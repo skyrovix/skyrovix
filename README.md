@@ -2,81 +2,50 @@
 
 # Skyrovix
 
-### AI-Powered Virtual Internships • Real-World Projects • Career Development
+### Build Skills. Gain Experience. Launch Your Career.
 
-Empowering students and professionals through industry-focused internships, hands-on learning, open-source projects, and AI-driven career solutions.
+**AI-Powered Virtual Internship Platform for Students & Freshers**
 
-🌐 **Website:** https://skyrovix.online
+🌐 https://skyrovix.online
 
 </div>
 
 ---
 
-## 🚀 About Skyrovix
+# Welcome to Skyrovix 👋
 
-**Skyrovix** is an MSME-registered EdTech and Technology company committed to bridging the gap between academic learning and industry requirements.
+**Skyrovix** is an **MSME-Registered EdTech and Technology Company** dedicated to helping students gain real-world experience through industry-focused virtual internships.
 
-We provide AI-powered virtual internships, project-based learning, certification programs, developer tools, and open-source solutions that help students build practical skills and become job-ready.
+Our mission is to bridge the gap between academic learning and industry expectations by providing structured internship programs, practical projects, certifications, and career development opportunities.
 
-Our mission is to create an accessible learning ecosystem where anyone can gain real-world experience through hands-on projects and modern technologies.
-
----
-
-## 🎯 Our Mission
-
-- Deliver industry-standard virtual internships
-- Enable hands-on, project-based learning
-- Build innovative AI-powered education platforms
-- Support open-source development
-- Help students become career-ready
+Whether you're a beginner or an aspiring software engineer, Skyrovix provides the platform to learn by doing.
 
 ---
 
-# 💻 Technology Stack
+# 🎯 What We Offer
 
-### Frontend
-- React
-- Next.js
-- TypeScript
-- Tailwind CSS
-- HTML5
-- CSS3
-- JavaScript
-
-### Backend
-- Node.js
-- Express.js
-- Python
-- Java
-- REST APIs
-
-### Database
-- PostgreSQL
-- Supabase
-- Firebase
-- MongoDB
-
-### Cloud & DevOps
-- Vercel
-- Docker
-- GitHub Actions
-- Cloudflare
-
-### AI & Data
-- Generative AI
-- Machine Learning
-- Prompt Engineering
-- Data Science
+- 🚀 Virtual Internships
+- 💻 Real-World Projects
+- 📜 Internship Certificates
+- 📄 Verified Offer Letters
+- 🎯 Industry-Based Tasks
+- 🤖 AI-Powered Learning
+- 📚 Project Documentation
+- 💼 Career Development
+- 🌐 Remote Learning
+- 🏆 Portfolio Building
 
 ---
 
-# 🎓 Internship Domains
+# 💼 Internship Domains
+
+We provide internship programs across multiple technology domains.
 
 - Full Stack Development
-- MERN Stack
-- MEAN Stack
 - Frontend Development
 - Backend Development
+- MERN Stack
+- MEAN Stack
 - Python Development
 - Java Development
 - Artificial Intelligence
@@ -85,89 +54,89 @@ Our mission is to create an accessible learning ecosystem where anyone can gain 
 - Data Analytics
 - Cyber Security
 - Cloud Computing
+- DevOps
 - UI/UX Design
 - Android Development
-- Flutter
-- DevOps
+- Flutter Development
+- React Native
 - Prompt Engineering
 
 ---
 
-# 🌟 What We Build
+# 📂 Open Source Projects
 
-- AI Applications
-- Virtual Internship Platform
-- Learning Management Systems
-- Career Development Tools
-- Portfolio Platforms
-- Student Management Systems
-- Open Source Projects
-- APIs & SDKs
+This GitHub organization contains repositories related to:
+
+- Internship Projects
+- Learning Resources
+- Starter Templates
+- Student Assignments
 - Developer Tools
-
----
-
-# 🤝 Open Source
-
-We believe in collaboration and innovation.
-
-Our repositories include:
-
-- Production-ready applications
-- Educational resources
-- Starter templates
-- Developer utilities
 - APIs
-- Learning projects
-- Community contributions
+- Documentation
+- Open Source Utilities
 
-We welcome developers, students, educators, and contributors from around the world.
+Every repository is designed to help students learn through practical implementation.
 
 ---
 
-# 🌍 Connect With Us
+# 🎓 Why Choose Skyrovix?
+
+✅ AI-Powered Internship Platform
+
+✅ MSME Registered Organization
+
+✅ Industry-Oriented Curriculum
+
+✅ Practical Task-Based Learning
+
+✅ Real Project Experience
+
+✅ Portfolio Development
+
+✅ Remote Internship Programs
+
+✅ Internship Completion Certificate
+
+✅ Verification System
+
+✅ Career-Focused Training
+
+---
+
+# 🌍 Our Vision
+
+To become one of India's leading AI-powered virtual internship platforms, enabling millions of students to gain practical skills, build professional portfolios, and prepare for successful careers.
+
+---
+
+# 🤝 Contributing
+
+We welcome developers, mentors, educators, and students to contribute to our open-source ecosystem.
+
+If you're interested in improving our projects or collaborating with Skyrovix, feel free to open issues, submit pull requests, or connect with us.
+
+---
+
+# 📫 Connect With Us
 
 🌐 Website  
 https://skyrovix.online
 
+📧 Email  
+skyrovix@gmail.com
+
 💼 LinkedIn  
 https://www.linkedin.com/company/skyrovix
-
-🐙 GitHub  
-https://github.com/skyrovix
-
-📧 Email  
-contact@skyrovix.online
-
----
-
-# 📊 Why Skyrovix?
-
-- ✅ MSME Registered
-- ✅ AI-Powered Learning
-- ✅ Industry-Focused Internships
-- ✅ Real-World Projects
-- ✅ Portfolio Building
-- ✅ Career Development
-- ✅ Professional Certifications
-- ✅ Open Source First
-
----
-
-# ❤️ Join Our Community
-
-Whether you're a student, developer, educator, or organization, Skyrovix is dedicated to building the future of practical learning through technology and open-source innovation.
-
-⭐ Follow our GitHub Organization to stay updated with our latest projects and releases.
 
 ---
 
 <div align="center">
 
-### Building Skills. Creating Opportunities. Empowering Careers.
+## Build Skills • Complete Projects • Earn Certificates • Get Career Ready
+
+⭐ Follow **Skyrovix** to stay updated with our latest internship programs and open-source projects.
 
 **Made with ❤️ by Skyrovix**
-
-© 2026 Skyrovix. All Rights Reserved.
 
 </div>
