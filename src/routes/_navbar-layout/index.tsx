@@ -40,6 +40,7 @@ import yrTechLogo from "@/assets/yr-tech logo.png";
 import vinixLogo from "@/assets/vinix.png";
 import msmeLogo from "@/assets/msme.png";
 import skyrovixLogo from "@/assets/logo.png";
+import { CollegeLogoMarquee } from "@/components/CollegeLogoMarquee";
 
 const COURSE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   BookOpen, Layers, Monitor, Server, BarChart3, Brain, Palette, Code2, Shield, TrendingUp,
@@ -448,6 +449,36 @@ function Landing() {
         </div>
       </section>
 
+      {/* ─── STUDENTS FROM LEADING COLLEGES (RIGHT TO LEFT MARQUEE) ─── */}
+      <CollegeLogoMarquee />
+
+      {/* ─── HOW IT WORKS ─── */}
+      <section className="border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/40 py-20 sm:py-24 relative z-10">
+        <div className="mx-auto max-w-7xl px-4">
+          <Reveal>
+            <div className="mx-auto mb-14 max-w-2xl text-center">
+              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#07284a] dark:text-blue-400 bg-blue-500/5">How it works</Badge>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-800 dark:text-white">Your journey to certification</h2>
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground font-medium">A simple 5-step journey from application to certification.</p>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            {STEPS.map((s, i) => (
+              <FadeUp key={i} delay={0.1 + i * 0.08}>
+                <div className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 p-6 backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-blue-500/25 hover:bg-white dark:hover:bg-[#0f172a]">
+                  <div className="absolute -top-3 left-6 grid size-7 place-items-center rounded-full bg-[#07284a] dark:bg-blue-600 text-xs font-extrabold text-white shadow-md ring-4 ring-blue-500/10 transition-transform duration-300 group-hover:scale-110">{i + 1}</div>
+                  <div className="size-11 rounded-2xl bg-blue-50/70 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4 mt-1">
+                    <s.icon className="size-5 transition-transform duration-500 group-hover:rotate-12" />
+                  </div>
+                  <h3 className="font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-[15px]">{s.title}</h3>
+                  <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{s.desc}</p>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── INDUSTRY & ECOSYSTEM PARTNERS ─── */}
       <Reveal delay={0.15}>
         <section className="border-b border-border/30 bg-white/50 dark:bg-slate-950/10 py-8 sm:py-10 relative z-10">
@@ -480,33 +511,6 @@ function Landing() {
           </div>
         </section>
       </Reveal>
-
-      {/* ─── HOW IT WORKS ─── */}
-      <section className="border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/40 py-20 sm:py-24 relative z-10">
-        <div className="mx-auto max-w-7xl px-4">
-          <Reveal>
-            <div className="mx-auto mb-14 max-w-2xl text-center">
-              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#07284a] dark:text-blue-400 bg-blue-500/5">How it works</Badge>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-800 dark:text-white">Your journey to certification</h2>
-              <p className="mt-3 text-sm sm:text-base text-muted-foreground font-medium">A simple 5-step journey from application to certification.</p>
-            </div>
-          </Reveal>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {STEPS.map((s, i) => (
-              <FadeUp key={i} delay={0.1 + i * 0.08}>
-                <div className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 p-6 backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-blue-500/25 hover:bg-white dark:hover:bg-[#0f172a]">
-                  <div className="absolute -top-3 left-6 grid size-7 place-items-center rounded-full bg-[#07284a] dark:bg-blue-600 text-xs font-extrabold text-white shadow-md ring-4 ring-blue-500/10 transition-transform duration-300 group-hover:scale-110">{i + 1}</div>
-                  <div className="size-11 rounded-2xl bg-blue-50/70 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4 mt-1">
-                    <s.icon className="size-5 transition-transform duration-500 group-hover:rotate-12" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-[15px]">{s.title}</h3>
-                  <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{s.desc}</p>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ─── WHY SKYROVIX ─── */}
       <section className="py-20 sm:py-24 relative z-10">
