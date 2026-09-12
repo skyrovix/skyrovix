@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { loadEnv } from "./env.server";
 
 type SendEmailInput = {
   to: string;
@@ -29,6 +30,7 @@ export const sendEmail = createServerFn({ method: "POST" })
   .validator((d: any) => d)
   .handler(async ({ data }): Promise<EmailResult> => {
     console.log("[Email] ===== sendEmail handler invoked =====");
+    loadEnv();
 
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = process.env.SMTP_PORT
@@ -138,7 +140,7 @@ export const sendEmail = createServerFn({ method: "POST" })
             imageAssets,
           });
 
-      const blob = await ReactPdf.pdf(docEl).toBlob();
+      const blob = await ReactPdf.pdf(docEl as any).toBlob();
       const arrayBuffer = await blob.arrayBuffer();
       pdfBuffer = Buffer.from(arrayBuffer);
       console.log("[Email] PDF generated:", pdfBuffer.length, "bytes");
@@ -211,8 +213,8 @@ async function logToDb(
   console.log("[Email] Step 4: Logging to email_logs table...");
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: logRow, error: logError } = await supabaseAdmin
-      .from("email_logs")
+    const { data: logRow, error: logError } = await (supabaseAdmin
+      .from("email_logs" as any) as any)
       .insert({
         user_id: userId,
         email_to: emailTo,

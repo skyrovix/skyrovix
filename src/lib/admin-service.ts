@@ -38,7 +38,7 @@ export const deleteCourseEnrollment = createServerFn({ method: "POST" })
 
     const cascade = ["lesson_progress", "course_task_submissions", "quiz_attempts", "course_certificates", "topic_quiz_attempts"] as const;
     for (const table of cascade) {
-      const { error } = await supabaseAdmin.from(table).delete().eq("enrollment_id", enrollmentId);
+      const { error } = await (supabaseAdmin.from(table as any) as any).delete().eq("enrollment_id", enrollmentId);
       if (error) {
         console.error(`[Admin] Failed to delete ${table}:`, error);
         return { success: false, error: `Failed to delete ${table}: ${error.message}` };

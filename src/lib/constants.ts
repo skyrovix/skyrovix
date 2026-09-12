@@ -9,7 +9,7 @@ export const COMPANY = {
 };
 
 export const PAYMENT = {
-  upiId: "hariharanmahesh34@okhdfcbank",
+  upiId: "hariharanmahesh34@oksbi",
   payeeName: "Hariharan Mahesh",
   amount: 100,
   currency: "INR",

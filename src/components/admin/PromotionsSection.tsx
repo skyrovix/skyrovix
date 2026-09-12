@@ -54,11 +54,11 @@ export function PromotionsSection() {
   const { data: appliedApps } = useQuery({
     queryKey: ["admin-coupon-applications"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("applications")
+      const { data } = await (supabase
+        .from("applications") as any)
         .select("id, full_name, email, phone, domain, college, course, year, created_at, status, coupon_code, intern_id")
         .not("coupon_code", "is", null);
-      return data ?? [];
+      return (data ?? []) as any[];
     },
     refetchInterval: 15_000,
   });
@@ -67,11 +67,11 @@ export function PromotionsSection() {
   const { data: appliedPayments } = useQuery({
     queryKey: ["admin-coupon-payments"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("payments")
+      const { data } = await (supabase
+        .from("payments" as any) as any)
         .select("id, amount, coupon_code, created_at, status, application_id")
         .not("coupon_code", "is", null);
-      return data ?? [];
+      return (data ?? []) as any[];
     },
     refetchInterval: 15_000,
   });

@@ -22,14 +22,15 @@ type MarkOfflineInput = {
 
 export const trackLogin = createServerFn({ method: "POST" })
   .validator((d: any) => d as TrackLoginInput)
-  .handler(async ({ data, request }) => {
+  .handler(async ({ data, request }: { data: TrackLoginInput; request?: any }) => {
     const { studentId, internId, studentName, email, domain, college, device, browser, os } = data;
     if (!studentId) return { success: false, error: "Student ID required" };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-      || request.headers.get("x-real-ip") || "";
+    const headers = request?.headers;
+    const ip = headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim()
+      || headers?.get?.("x-real-ip") || "";
 
     let country = "", state = "", city = "";
     if (ip && ip !== "::1" && ip !== "127.0.0.1") {
@@ -44,8 +45,8 @@ export const trackLogin = createServerFn({ method: "POST" })
       } catch {}
     }
 
-    const { data: session, error } = await supabaseAdmin
-      .from("login_sessions")
+    const { data: session, error } = await (supabaseAdmin
+      .from("login_sessions" as any) as any)
       .insert({
         student_id: studentId,
         intern_id: internId || null,
@@ -78,8 +79,8 @@ export const heartbeat = createServerFn({ method: "POST" })
     if (!sessionId) return { success: false };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin
-      .from("login_sessions")
+    await (supabaseAdmin
+      .from("login_sessions" as any) as any)
       .update({ last_active: new Date().toISOString() })
       .eq("id", sessionId);
 
@@ -93,8 +94,8 @@ export const markOffline = createServerFn({ method: "POST" })
     if (!sessionId) return { success: false };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin
-      .from("login_sessions")
+    await (supabaseAdmin
+      .from("login_sessions" as any) as any)
       .update({
         status: "offline",
         logout_time: new Date().toISOString(),
@@ -110,8 +111,8 @@ export const markStaleSessionsOffline = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
-    const { data: stale } = await supabaseAdmin
-      .from("login_sessions")
+    const { data: stale } = await (supabaseAdmin
+      .from("login_sessions" as any) as any)
       .update({
         status: "offline",
       })

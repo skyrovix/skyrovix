@@ -40,8 +40,7 @@ export function useReviews(targetType: string, targetId: string) {
   return useQuery({
     queryKey: ["reviews", targetType, targetId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_reviews_with_profiles", { p_target_type: targetType, p_target_id: targetId });
+      const { data, error } = await (supabase.rpc as any)("get_reviews_with_profiles", { p_target_type: targetType, p_target_id: targetId });
       if (error) throw error;
       return (data ?? []) as ReviewWithProfile[];
     },
@@ -53,8 +52,7 @@ export function useRecentReviews(limit = 6) {
   return useQuery({
     queryKey: ["recent-reviews", limit],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_recent_reviews_with_profiles", { p_limit: limit });
+      const { data, error } = await (supabase.rpc as any)("get_recent_reviews_with_profiles", { p_limit: limit });
       if (error) throw error;
       return (data ?? []) as ReviewWithProfile[];
     },
@@ -68,8 +66,8 @@ export function useUserReview(targetType: string, targetId: string, userId: stri
     enabled: !!userId,
     queryFn: async () => {
       if (!userId) return null;
-      const { data } = await supabase
-        .from("reviews")
+      const { data } = await (supabase
+        .from("reviews" as any) as any)
         .select("*")
         .eq("target_type", targetType)
         .eq("target_id", targetId)
@@ -105,9 +103,9 @@ export function useSubmitReview() {
       content: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-      const { data, error } = await supabase
-        .from("reviews")
+      if (!user) throw new Error("Must be logged in to submit a review");
+      const { data, error } = await (supabase
+        .from("reviews" as any) as any)
         .upsert(
           {
             user_id: user.id,
@@ -136,7 +134,7 @@ export function useDeleteReview() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (reviewId: string) => {
-      const { error } = await supabase.from("reviews").delete().eq("id", reviewId);
+      const { error } = await (supabase.from("reviews" as any) as any).delete().eq("id", reviewId);
       if (error) throw error;
     },
     onSuccess: () => {

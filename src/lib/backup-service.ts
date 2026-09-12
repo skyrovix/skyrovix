@@ -208,7 +208,7 @@ async function createFilesZip(supabaseAdmin: any): Promise<ArrayBuffer> {
   }
 
   const blob = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 6 } });
-  return blob.buffer;
+  return blob.buffer.slice(0) as ArrayBuffer;
 }
 
 async function createFullZip(supabaseAdmin: any, sqlContent: string, backupId: string): Promise<{ buffer: ArrayBuffer; size: number }> {
@@ -248,7 +248,7 @@ async function createFullZip(supabaseAdmin: any, sqlContent: string, backupId: s
   }, null, 2));
 
   const blob = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 6 } });
-  return { buffer: blob.buffer, size: blob.byteLength };
+  return { buffer: blob.buffer.slice(0) as ArrayBuffer, size: blob.byteLength };
 }
 
 // ─── Server Functions ─────────────────────────────────────────
@@ -427,7 +427,7 @@ export const restoreBackup = createServerFn({ method: "POST" })
             cols.forEach((c: string, i: number) => { row[c] = vals[i]; });
             delete row.id;
 
-            await supabaseAdmin.from(table).insert(row);
+            await (supabaseAdmin.from(table as any) as any).insert(row);
             inserted++;
           } catch {}
         }
@@ -462,7 +462,7 @@ export const restoreBackup = createServerFn({ method: "POST" })
               cols.forEach((c: string, i: number) => { row[c] = vals[i]; });
               delete row.id;
 
-              await supabaseAdmin.from(table).insert(row);
+              await (supabaseAdmin.from(table as any) as any).insert(row);
               inserted++;
             } catch {}
           }
@@ -622,7 +622,7 @@ export const restoreFromUpload = createServerFn({ method: "POST" })
             const row: Record<string, any> = {};
             cols.forEach((c: string, i: number) => { row[c] = vals[i]; });
             delete row.id;
-            const { error } = await supabaseAdmin.from(table).insert(row);
+            const { error } = await (supabaseAdmin.from(table as any) as any).insert(row);
             if (!error) restoredCount++;
           } catch {}
         }

@@ -873,7 +873,7 @@ function ReviewsMarquee() {
   const [activeIdx, setActiveIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoPaused = useRef(false);
-  const autoTimer = useRef<ReturnType<typeof setInterval>>();
+  const autoTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   // Track scroll position
   useEffect(() => {
@@ -900,7 +900,7 @@ function ReviewsMarquee() {
       }, 4000);
     };
     start();
-    return () => clearInterval(autoTimer.current);
+    return () => { if (autoTimer.current) clearInterval(autoTimer.current); };
   }, [activeIdx, allItems.length]);
 
   // Pause on user interaction, resume after 6s idle

@@ -210,7 +210,7 @@ function CourseDetailsPage() {
     queryKey: ["course-enrolled-count", course?.id],
     enabled: !!course?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("count_course_enrollments", {
+      const { data, error } = await (supabase.rpc as any)("count_course_enrollments", {
         p_course_id: course!.id,
       });
       if (error) throw error;

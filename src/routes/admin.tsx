@@ -192,7 +192,7 @@ function AdminPanel() {
         supabase.from("submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("payments").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("certificates").select("id", { count: "exact", head: true }),
-        supabase.from("applications").select("id", { count: "exact", head: true }).eq("submission_status", "submitted"),
+        (supabase.from("applications") as any).select("id", { count: "exact", head: true }).eq("submission_status", "submitted"),
       ]);
       return {
         apps: a.count ?? 0, subs: s.count ?? 0, pays: p.count ?? 0, certs: c.count ?? 0, pendingVerification: v.count ?? 0,
@@ -1180,10 +1180,10 @@ function ApplicationsSection() {
                   <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(a.created_at).toLocaleDateString("en-IN")}</td>
                   <td className="px-4 py-3">
                     <Badge className={`text-xs ${
-                      a.status === "completed" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
-                      a.status === "ongoing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
-                      a.status === "approved" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                      a.status === "rejected" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
+                      (a.status as string) === "completed" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                      (a.status as string) === "ongoing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                      (a.status as string) === "approved" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+                      (a.status as string) === "rejected" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
                       "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                     }`}>{a.status}</Badge>
                   </td>
@@ -1246,8 +1246,7 @@ function SubmissionsSection() {
   });
 
   const loadHistory = async (id: string) => {
-    const { data: history } = await supabase
-      .from("submission_history")
+    const { data: history } = await (supabase.from("submission_history" as any) as any)
       .select("*")
       .eq("submission_id", id)
       .eq("table_name", tableName)
@@ -1261,7 +1260,7 @@ function SubmissionsSection() {
     const reason = newStatus === "rejected" ? rejectReason : "";
     const { error } = await supabase.from(tableName as any).update({ status: newStatus, feedback: reason || null, reviewed_at: new Date().toISOString() }).eq("id", id);
     if (error) { setLoadingId(null); return toast.error(error.message); }
-    await supabase.from("submission_history").insert({
+    await (supabase.from("submission_history" as any) as any).insert({
       submission_id: id,
       table_name: tableName,
       previous_status: data?.find((s: any) => s.id === id)?.status ?? null,
@@ -1289,7 +1288,7 @@ function SubmissionsSection() {
         <div>
           <h3 className="mb-3 text-sm font-semibold text-amber-600 flex items-center gap-2"><Clock className="size-4" /> Pending Review ({pending.length})</h3>
           <div className="space-y-3">
-            {pending.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status, label) => setConfirmAction({ id: s.id, status, label })} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
+            {pending.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string) => setConfirmAction({ id: s.id, status, label })} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
           </div>
         </div>
       )}
@@ -1298,7 +1297,7 @@ function SubmissionsSection() {
         <div className="mt-6">
           <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Reviewed ({reviewed.length})</h3>
           <div className="space-y-3">
-            {reviewed.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status, label) => setConfirmAction({ id: s.id, status, label })} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
+            {reviewed.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string) => setConfirmAction({ id: s.id, status, label })} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
           </div>
         </div>
       )}
@@ -1496,9 +1495,51 @@ function PaymentsSection() {
     } else {
       const { error } = await supabase.from("payments").update({ status: "verified", verified_at: new Date().toISOString() }).eq("id", paymentId);
       if (error) return toast.error(error.message);
-      toast.success("Payment verified — certificate will be issued after admin approves internship submission.");
+
+      // Check if application tasks are already approved
+      const { data: app } = await (supabase.from("applications") as any).select("*").eq("id", applicationId).maybeSingle();
+      if (app && (app.submission_status === "approved" || app.verified)) {
+        // Issue certificate if not already issued
+        const { data: existingCert } = await supabase.from("certificates").select("certificate_id").eq("application_id", applicationId).maybeSingle();
+        let cert_id = existingCert?.certificate_id;
+        if (!existingCert) {
+          cert_id = generateCertId();
+          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          const { error: cerr } = await supabase.from("certificates").insert({
+            application_id: applicationId,
+            certificate_id: cert_id,
+            verification_hash: hash,
+          });
+          if (!cerr) {
+            await (supabase.from("applications") as any).update({
+              certificate_generated: true,
+              certificate_generated_at: new Date().toISOString(),
+            }).eq("id", applicationId);
+
+            // Send certificate email
+            (async () => {
+              try {
+                const { sendCertificateEmail } = await import("@/lib/email-helpers");
+                await sendCertificateEmail({
+                  to: app.email,
+                  studentName: app.full_name,
+                  studentId: app.user_id,
+                  certId: cert_id!,
+                  domainName: getDomain(app.domain)?.name ?? app.domain,
+                  internId: app.intern_id,
+                });
+              } catch (e) { console.warn("[Email] Failed to send certificate:", e); }
+            })();
+          }
+        }
+        toast.success(`Payment verified & Certificate ${cert_id ?? ''} issued!`);
+      } else {
+        toast.success("Payment verified! Certificate will be issued once admin approves internship tasks.");
+      }
     }
     qc.invalidateQueries({ queryKey: ["admin-payments"] });
+    qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
+    qc.invalidateQueries({ queryKey: ["admin-verification-reviewed"] });
   };
 
   const pendingP = data?.filter((p: any) => p.status === "pending") ?? [];
@@ -1619,8 +1660,8 @@ function VerificationSection() {
   const { data: pendingApps } = useQuery({
     queryKey: ["admin-verification-pending"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("applications")
+      const { data, error } = await (supabase
+        .from("applications") as any)
         .select("*")
         .eq("submission_status", "submitted")
         .order("submitted_at", { ascending: false });
@@ -1633,8 +1674,8 @@ function VerificationSection() {
   const { data: reviewedApps } = useQuery({
     queryKey: ["admin-verification-reviewed"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("applications")
+      const { data, error } = await (supabase
+        .from("applications") as any)
         .select("*")
         .in("submission_status", ["approved", "rejected"])
         .order("verified_at", { ascending: false });
@@ -1647,53 +1688,72 @@ function VerificationSection() {
   const handleApprove = async (app: any) => {
     setActionLoading(app.id);
     try {
-      // Generate certificate
-      const cert_id = generateCertId();
-      const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
-      const { error: cerr } = await supabase.from("certificates").insert({
-        application_id: app.id,
-        certificate_id: cert_id,
-        verification_hash: hash,
-      });
-      if (cerr) throw cerr;
+      const pay = paymentMap[app.id];
+      const couponApplied = Boolean(
+        (app.coupon_code && app.coupon_code.trim() !== "") ||
+        (pay && (pay.coupon_code || pay.utr_number === "FREE_COUPON" || pay.amount === 0))
+      );
+      const isPaymentVerified = pay && pay.status === "verified";
+      const shouldIssueCert = couponApplied || isPaymentVerified;
+
+      let cert_id: string | null = null;
+      if (shouldIssueCert) {
+        const { data: existingCert } = await supabase.from("certificates").select("certificate_id").eq("application_id", app.id).maybeSingle();
+        if (existingCert) {
+          cert_id = existingCert.certificate_id;
+        } else {
+          cert_id = generateCertId();
+          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          const { error: cerr } = await supabase.from("certificates").insert({
+            application_id: app.id,
+            certificate_id: cert_id,
+            verification_hash: hash,
+          });
+          if (cerr) throw cerr;
+        }
+      }
 
       // Update application
-      const { error: updErr } = await supabase
-        .from("applications")
+      const { error: updErr } = await (supabase
+        .from("applications") as any)
         .update({
           submission_status: "approved",
           verified: true,
           verified_by: user?.id,
           verified_at: new Date().toISOString(),
-          certificate_generated: true,
-          certificate_generated_at: new Date().toISOString(),
+          certificate_generated: shouldIssueCert,
+          certificate_generated_at: shouldIssueCert ? new Date().toISOString() : null,
           verification_notes: null,
           rejection_reason: null,
         })
         .eq("id", app.id);
       if (updErr) throw updErr;
 
-      toast.success(`Internship approved! Certificate ${cert_id} issued.`);
-
-      // Send certificate email
-      (async () => {
-        try {
-          const { sendCertificateEmail } = await import("@/lib/email-helpers");
-          const result = await sendCertificateEmail({
-            to: app.email,
-            studentName: app.full_name,
-            studentId: app.user_id,
-            certId: cert_id,
-            domainName: getDomain(app.domain)?.name ?? app.domain,
-            internId: app.intern_id,
-          });
-          if (!result.success) console.warn("[Email] Certificate email not sent:", result.error);
-        } catch (e) { console.warn("[Email] Failed to send certificate:", e); }
-      })();
+      if (shouldIssueCert && cert_id) {
+        toast.success(`Internship approved! Certificate ${cert_id} issued.`);
+        // Send certificate email
+        (async () => {
+          try {
+            const { sendCertificateEmail } = await import("@/lib/email-helpers");
+            const result = await sendCertificateEmail({
+              to: app.email,
+              studentName: app.full_name,
+              studentId: app.user_id,
+              certId: cert_id!,
+              domainName: getDomain(app.domain)?.name ?? app.domain,
+              internId: app.intern_id,
+            });
+            if (!result.success) console.warn("[Email] Certificate email not sent:", result.error);
+          } catch (e) { console.warn("[Email] Failed to send certificate:", e); }
+        })();
+      } else {
+        toast.success("Tasks approved! Student notified to submit payment verification before certificate issuance.");
+      }
 
       qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
       qc.invalidateQueries({ queryKey: ["admin-verification-reviewed"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      qc.invalidateQueries({ queryKey: ["admin-payments"] });
     } catch (err: any) {
       toast.error(err.message || "Failed to approve internship");
     } finally {
@@ -1705,8 +1765,8 @@ function VerificationSection() {
     if (!rejectDialog) return;
     setActionLoading(rejectDialog.id);
     try {
-      const { error: updErr } = await supabase
-        .from("applications")
+      const { error: updErr } = await (supabase
+        .from("applications") as any)
         .update({
           submission_status: "rejected",
           verified: false,
@@ -1746,7 +1806,16 @@ function VerificationSection() {
         <div>
           <h3 className="mb-3 text-sm font-semibold text-amber-600 flex items-center gap-2"><Clock className="size-4" /> Pending Verification ({pendingApps.length})</h3>
           <div className="space-y-3">
-            {pendingApps.map((a: any) => (
+            {pendingApps.map((a: any) => {
+              const pay = paymentMap[a.id];
+              const hasCoupon = Boolean(
+                (a.coupon_code && a.coupon_code.trim() !== "") ||
+                (pay && (pay.coupon_code || pay.utr_number === "FREE_COUPON" || pay.amount === 0))
+              );
+              const isPayDone = pay && pay.status === "verified";
+              const issuesCert = hasCoupon || isPayDone;
+
+              return (
               <div key={a.id} className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -1761,16 +1830,16 @@ function VerificationSection() {
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div><span className="text-muted-foreground">Applied</span><p className="font-semibold">{new Date(a.created_at).toLocaleDateString("en-IN")}</p></div>
                   <div><span className="text-muted-foreground">Submitted</span><p className="font-semibold">{a.submitted_at ? new Date(a.submitted_at).toLocaleDateString("en-IN") : "—"}</p></div>
-                  <div><span className="text-muted-foreground">Payment</span><p className="font-semibold">{paymentMap[a.id] ? (paymentMap[a.id].utr_number === "FREE_COUPON" ? "Free Coupon" : `₹${paymentMap[a.id].amount}`) : "—"}</p></div>
-                  <div><span className="text-muted-foreground">Status</span><p className="font-semibold capitalize">{paymentMap[a.id]?.status ?? "—"}</p></div>
+                  <div><span className="text-muted-foreground">Payment</span><p className="font-semibold">{pay ? (pay.utr_number === "FREE_COUPON" ? "Free Coupon" : `₹${pay.amount}`) : "—"}</p></div>
+                  <div><span className="text-muted-foreground">Status</span><p className="font-semibold capitalize">{pay?.status ?? "—"}</p></div>
                 </div>
-                {a.coupon_code && <p className="mt-2 text-xs text-muted-foreground">Coupon: <span className="font-mono font-bold">{a.coupon_code}</span></p>}
+                {a.coupon_code && <p className="mt-2 text-xs text-muted-foreground">Coupon: <span className="font-mono font-bold text-emerald-600">{a.coupon_code}</span></p>}
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl"
                     disabled={actionLoading === a.id}
                     onClick={() => handleApprove(a)}>
                     {actionLoading === a.id ? <Loader2 className="size-3.5 animate-spin mr-1" /> : <CheckCircle2 className="size-3.5 mr-1" />}
-                    Approve & Issue Certificate
+                    {issuesCert ? "Approve & Issue Certificate" : "Approve Tasks (Awaiting Payment)"}
                   </Button>
                   <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
                     disabled={actionLoading === a.id}
@@ -1791,7 +1860,8 @@ function VerificationSection() {
                   </div>
                 )}
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       )}
@@ -2161,10 +2231,10 @@ function AnalyticsSection() {
     queryKey: ["admin-analytics-completion"],
     queryFn: async () => {
       const { data } = await supabase.from("enrollments").select("status");
-      if (!data || data.length === 0) return { completed: 0, inProgress: 0, pct: 0 };
+      if (!data || data.length === 0) return { completed: 0, inProgress: 0, pct: 0, total: 0 };
       const completed = data.filter((e) => e.status === "completed").length;
       const total = data.length || 1;
-      return { completed, inProgress: total - completed, pct: Math.round((completed / total) * 100) };
+      return { completed, inProgress: total - completed, pct: Math.round((completed / total) * 100), total: data.length };
     },
     ...cfg,
   });
@@ -2172,10 +2242,10 @@ function AnalyticsSection() {
   const { data: revenue } = useQuery({
     queryKey: ["admin-analytics-revenue"],
     queryFn: async () => {
-      const { data } = await supabase.from("payments").select("amount, created_at").eq("status", "verified");
+      const { data } = await (supabase.from("payments" as any) as any).select("amount, created_at").eq("status", "verified");
       if (!data || data.length === 0) return { data: [], total: 0 };
       const map: Record<string, number> = {};
-      data.forEach((p) => {
+      data.forEach((p: any) => {
         const d = new Date(p.created_at);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         map[key] = (map[key] || 0) + Number(p.amount);
@@ -2553,8 +2623,8 @@ function EmailLogsSection() {
   const { data: logs } = useQuery({
     queryKey: ["admin-email-logs"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("email_logs")
+      const { data } = await (supabase
+        .from("email_logs" as any) as any)
         .select("*")
         .order("created_at", { ascending: false });
       return data ?? [];

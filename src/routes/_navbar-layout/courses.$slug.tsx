@@ -141,34 +141,34 @@ function CourseContentPage() {
     queryKey: ["content-topic-quizzes", enrollment?.id],
     enabled: !!enrollment?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("topic_quiz_attempts")
+      const { data, error } = await (supabase
+        .from("topic_quiz_attempts" as any) as any)
         .select("topic_id, passed")
         .eq("enrollment_id", enrollment!.id);
       if (error) throw error;
-      return data;
+      return (data ?? []) as any[];
     },
   });
-  const topicQuizAttempts = new Map(quizAttemptsList.map((q) => [q.topic_id, q.passed]));
+  const topicQuizAttempts = new Map((quizAttemptsList as any[]).map((q: any) => [q.topic_id, q.passed]));
 
   // 6. Fetch topic quiz questions
   const { data: quizQuestions = [] } = useQuery({
     queryKey: ["content-quiz-questions", topics.length],
     enabled: topics.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("topic_quiz_questions")
+      const { data, error } = await (supabase
+        .from("topic_quiz_questions" as any) as any)
         .select("*")
         .in("topic_id", topicIds)
         .order("order_index", { ascending: true });
       if (error) throw error;
-      return data;
+      return (data ?? []) as any[];
     },
   });
 
   // Group quiz questions by topic
   const questionsByTopic = new Map<string, any[]>();
-  quizQuestions.forEach((q) => {
+  (quizQuestions as any[]).forEach((q: any) => {
     if (!questionsByTopic.has(q.topic_id)) {
       questionsByTopic.set(q.topic_id, []);
     }
@@ -180,12 +180,12 @@ function CourseContentPage() {
     queryKey: ["content-bookmarks", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bookmarks")
+      const { data, error } = await (supabase
+        .from("bookmarks" as any) as any)
         .select("topic_id")
         .eq("user_id", user!.id);
       if (error) throw error;
-      return data.map((b) => b.topic_id);
+      return ((data ?? []) as any[]).map((b: any) => b.topic_id);
     },
   });
   const bookmarkedTopicIds = new Set(bookmarksList);
@@ -195,15 +195,15 @@ function CourseContentPage() {
     queryKey: ["content-notes", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notes")
+      const { data, error } = await (supabase
+        .from("notes" as any) as any)
         .select("topic_id, content")
         .eq("user_id", user!.id);
       if (error) throw error;
-      return data;
+      return (data ?? []) as any[];
     },
   });
-  const notesMap = new Map(notesList.map((n) => [n.topic_id, n.content]));
+  const notesMap = new Map((notesList as any[]).map((n: any) => [n.topic_id, n.content]));
 
   // Handle active topic change
   const currentTopic = topics[activeTopicIdx];
@@ -324,15 +324,15 @@ function CourseContentPage() {
     mutationFn: async (topicId: string) => {
       const isBookmarked = bookmarkedTopicIds.has(topicId);
       if (isBookmarked) {
-        const { error } = await supabase
-          .from("bookmarks")
+        const { error } = await (supabase
+          .from("bookmarks" as any) as any)
           .delete()
           .eq("user_id", user!.id)
           .eq("topic_id", topicId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("bookmarks")
+        const { error } = await (supabase
+          .from("bookmarks" as any) as any)
           .insert({ user_id: user!.id, topic_id: topicId });
         if (error) throw error;
       }
@@ -347,8 +347,8 @@ function CourseContentPage() {
   const saveNoteMutation = useMutation({
     mutationFn: async ({ topicId, content }: { topicId: string; content: string }) => {
       setSavingNote(true);
-      const { error } = await supabase
-        .from("notes")
+      const { error } = await (supabase
+        .from("notes" as any) as any)
         .upsert(
           { user_id: user!.id, topic_id: topicId, content },
           { onConflict: "user_id,topic_id" }
@@ -423,8 +423,8 @@ function CourseContentPage() {
   // Action: Quiz Completed
   const topicQuizMutation = useMutation({
     mutationFn: async ({ topicId, passed, score, total }: { topicId: string; passed: boolean; score: number; total: number }) => {
-      const { error } = await supabase
-        .from("topic_quiz_attempts")
+      const { error } = await (supabase
+        .from("topic_quiz_attempts" as any) as any)
         .upsert(
           { enrollment_id: enrollment!.id, topic_id: topicId, answers: {}, score, total, passed },
           { onConflict: "enrollment_id,topic_id" }

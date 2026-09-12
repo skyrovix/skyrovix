@@ -33,7 +33,7 @@ function ReviewPage() {
     enabled: !!user,
   });
 
-  const app = appsList?.find((a) => a.status === "ongoing" || a.status === "approved") ?? appsList?.[0] ?? null;
+  const app = appsList?.find((a) => (a.status as string) === "ongoing" || (a.status as string) === "approved") ?? appsList?.[0] ?? null;
   const domain = app ? getDomain(app.domain) : null;
 
   if (!app) {
