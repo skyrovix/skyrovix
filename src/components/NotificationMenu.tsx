@@ -131,8 +131,7 @@ export function NotificationMenu() {
     queryKey: ["notif-proj-subs", user?.id],
     enabled: Boolean(user?.id),
     queryFn: async () => {
-      const { data } = await supabase
-        .from("project_submissions")
+      const { data } = await (supabase.from as any)("project_submissions")
         .select("*, project_challenges(title, project_id)")
         .eq("user_id", user!.id)
         .order("updated_at", { ascending: false });
