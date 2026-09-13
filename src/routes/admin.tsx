@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1251,11 +1251,20 @@ function SubmissionsSection() {
   const { data } = useQuery({
     queryKey: ["admin-subs"],
     queryFn: async () => {
-      const { data: list } = await supabase
-        .from("submissions")
-        .select("*, applications!inner(full_name, intern_id, domain), tasks(title, task_number)")
-        .order("submitted_at", { ascending: false });
-      return list ?? [];
+      try {
+        const { data: list, error } = await supabase
+          .from("submissions")
+          .select("*, applications(full_name, intern_id, domain), tasks(title, task_number)")
+          .order("submitted_at", { ascending: false });
+        if (error) {
+          console.error("Error fetching submissions:", error);
+          return [];
+        }
+        return list ?? [];
+      } catch (err) {
+        console.error("Submissions fetch exception:", err);
+        return [];
+      }
     },
     refetchInterval: 10_000,
   });
@@ -1263,33 +1272,56 @@ function SubmissionsSection() {
   const { data: historySubIds } = useQuery({
     queryKey: ["admin-sub-history-ids"],
     queryFn: async () => {
-      const { data: history } = await (supabase.from("submission_history" as any) as any)
-        .select("submission_id")
-        .eq("previous_status", "rejected");
-      return new Set<string>(history?.map((h: any) => h.submission_id) ?? []);
+      try {
+        const { data: history } = await (supabase.from("submission_history" as any) as any)
+          .select("submission_id")
+          .eq("previous_status", "rejected");
+        return new Set<string>(history?.map((h: any) => h.submission_id) ?? []);
+      } catch (err) {
+        console.error("History sub IDs fetch exception:", err);
+        return new Set<string>();
+      }
     },
-    refetchInterval: 5_000,
+    refetchInterval: 10_000,
   });
 
   const [subFilter, setSubFilter] = useState<"all" | "pending" | "resubmitted" | "reviewed">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const isResubmitted = useCallback((sub: any) => {
-    if (sub.status !== "pending") return false;
+    if (!sub || sub.status !== "pending") return false;
     if (sub.reviewed_at) return true;
     if (sub.feedback) return true;
     if (historySubIds?.has(sub.id)) return true;
     const siblingRejected = data?.some(
-      (other: any) => other.application_id === sub.application_id && other.task_id === sub.task_id && (other.status === "rejected" || other.reviewed_at)
+      (other: any) => other.id !== sub.id && other.application_id === sub.application_id && other.task_id === sub.task_id && (other.status === "rejected" || other.reviewed_at)
     );
     if (siblingRejected) return true;
     return false;
   }, [data, historySubIds]);
 
+  const activePendingKeys = useMemo(() => {
+    const keys = new Set<string>();
+    data?.forEach((s: any) => {
+      if (s.status === "pending" && s.application_id && s.task_id) {
+        keys.add(`${s.application_id}_${s.task_id}`);
+      }
+    });
+    return keys;
+  }, [data]);
+
   const pendingList = useMemo(() => data?.filter((s: any) => s.status === "pending") ?? [], [data]);
   const resubmittedList = useMemo(() => pendingList.filter((s: any) => isResubmitted(s)), [pendingList, isResubmitted]);
   const freshPendingList = useMemo(() => pendingList.filter((s: any) => !isResubmitted(s)), [pendingList, isResubmitted]);
-  const reviewedList = useMemo(() => data?.filter((s: any) => s.status !== "pending") ?? [], [data]);
+  const reviewedList = useMemo(() => {
+    if (!data) return [];
+    return data.filter((s: any) => {
+      if (s.status === "pending") return false;
+      const key = `${s.application_id}_${s.task_id}`;
+      if (activePendingKeys.has(key)) return false;
+      return true;
+    });
+  }, [data, activePendingKeys]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];
@@ -1305,10 +1337,10 @@ function SubmissionsSection() {
 
       if (subFilter === "pending") return s.status === "pending";
       if (subFilter === "resubmitted") return isResubmitted(s);
-      if (subFilter === "reviewed") return s.status !== "pending";
+      if (subFilter === "reviewed") return s.status !== "pending" && !activePendingKeys.has(`${s.application_id}_${s.task_id}`);
       return true;
     });
-  }, [data, subFilter, searchQuery, isResubmitted]);
+  }, [data, subFilter, searchQuery, isResubmitted, activePendingKeys]);
 
   const loadHistory = async (id: string) => {
     const { data: history } = await (supabase.from("submission_history" as any) as any)
@@ -1606,6 +1638,7 @@ function SubmissionsSection() {
 }
 
 function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, historyData, isResubmitted: isResubmittedProp }: any) {
+  if (!sub) return null;
   const [actionsOpen, setActionsOpen] = useState(false);
   const isLoading = loadingId === sub.id;
   const taskLabel = `Task ${sub.tasks?.task_number ?? ""}: ${sub.tasks?.title ?? "Task Submission"}`;
@@ -1613,7 +1646,7 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
   const userMeta = `${sub.applications?.intern_id ?? ""} · ${getDomain(sub.applications?.domain)?.name ?? sub.applications?.domain ?? ""}`;
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const isResubmitted = sub.status === "pending" && (Boolean(sub.reviewed_at) || Boolean(sub.feedback) || Boolean(isResubmittedProp));
+  const isResubmitted = sub?.status === "pending" && (Boolean(sub?.reviewed_at) || Boolean(sub?.feedback) || Boolean(isResubmittedProp));
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {

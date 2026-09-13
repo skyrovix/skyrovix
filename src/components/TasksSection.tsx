@@ -481,7 +481,7 @@ function TaskSubmitDialog({
           const rpcParams: Record<string, any> = task.taskNumber === 0
             ? { p_domain: domain?.slug ?? "" }
             : { p_domain: domain?.slug ?? "", p_task_number: task.taskNumber, p_title: task.title ?? `Task ${task.taskNumber}`, p_description: task.description ?? "" };
-          const { data: rpcId, error: rpcErr } = await supabase.rpc(rpcName, rpcParams);
+          const { data: rpcId, error: rpcErr } = await supabase.rpc(rpcName as any, rpcParams as any);
           if (rpcErr || !rpcId) {
             return toast.error(rpcErr?.message?.includes("function") ? "Task system not ready — admin must run the SQL migration." : `Could not initialise task: ${rpcErr?.message ?? "unknown error"}`);
           }
@@ -534,28 +534,57 @@ function TaskSubmitDialog({
         github_url: githubUrl,
         notes,
         status: "pending" as const,
+        submitted_at: new Date().toISOString(),
       };
       if (deployedUrl) payload.deployed_url = deployedUrl;
       if (pdfUrl) payload.pdf_url = pdfUrl;
       if (screenshotUrl) payload.screenshot_url = screenshotUrl;
 
-      const { error } = submission
-        ? await supabase.from("submissions").update({ ...payload, submitted_at: new Date().toISOString() }).eq("id", submission.id)
-        : await supabase.from("submissions").insert(payload);
-      if (error) { setLoading(false); return toast.error(error.message); }
+      // Check if a submission already exists for this application & task
+      let targetSubId = submission?.id;
+      let prevStatus = submission?.status;
 
-      if (submission && submission.status === "rejected") {
-        await supabase.from("submission_history").insert({
-          submission_id: submission.id,
+      if (!targetSubId) {
+        const { data: existing } = await supabase
+          .from("submissions")
+          .select("id, status")
+          .eq("application_id", appId)
+          .eq("task_id", taskId)
+          .maybeSingle();
+        if (existing) {
+          targetSubId = existing.id;
+          prevStatus = existing.status;
+        }
+      }
+
+      let subErr = null;
+      if (targetSubId) {
+        const { error } = await supabase
+          .from("submissions")
+          .update(payload)
+          .eq("id", targetSubId);
+        subErr = error;
+      } else {
+        const { error } = await supabase
+          .from("submissions")
+          .insert(payload);
+        subErr = error;
+      }
+
+      if (subErr) { setLoading(false); return toast.error(subErr.message); }
+
+      if (prevStatus === "rejected" || targetSubId) {
+        await (supabase.from("submission_history" as any) as any).insert({
+          submission_id: targetSubId ?? null,
           table_name: "submissions",
-          previous_status: "rejected",
+          previous_status: prevStatus ?? "rejected",
           new_status: "pending",
           changed_by: user.id,
-          reason: null,
+          reason: "Student resubmitted task for review",
         });
       }
       setLoading(false);
-      toast.success(submission?.status === "rejected" ? "Resubmitted for review!" : "Task submitted for review! 🎉");
+      toast.success(prevStatus === "rejected" ? "Resubmitted for review!" : "Task submitted for review! 🎉");
       onOpenChange(false);
       onSubmitted();
     } catch (err: any) {
@@ -754,8 +783,8 @@ function TaskCard({
   const loadHistory = async () => {
     if (!submission) return;
     if (showHistory) { setShowHistory(false); return; }
-    const { data } = await supabase
-      .from("submission_history").select("*").eq("submission_id", submission.id)
+    const { data } = await (supabase.from("submission_history" as any) as any)
+      .select("*").eq("submission_id", submission.id)
       .eq("table_name", "submissions").order("created_at", { ascending: false });
     setHistory(data ?? []);
     setShowHistory(true);
