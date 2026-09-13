@@ -29,7 +29,7 @@ import {
   PanelRightOpen, FolderTree,   FileQuestion, PieChart, Percent, Briefcase,
   Loader2, Activity, Wifi, WifiOff, LogIn, Monitor, Smartphone, Tablet,
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
-  HardDrive,
+  HardDrive, RotateCcw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -1216,7 +1216,7 @@ function ApplicationsSection() {
 function SubmissionsSection() {
   const qc = useQueryClient();
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = useState<{ id: string; status: string; label: string } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ id: string; status: string; label: string; sub?: any } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [showHistory, setShowHistory] = useState<string | null>(null);
   const [historyData, setHistoryData] = useState<any[]>([]);
@@ -1229,6 +1229,21 @@ function SubmissionsSection() {
     }
     return () => { document.body.style.overflow = ""; };
   }, [confirmAction]);
+
+  useEffect(() => {
+    const channel = supabase.channel("admin-submissions-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "submissions" }, () => {
+        qc.invalidateQueries({ queryKey: ["admin-subs"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "submission_history" }, () => {
+        qc.invalidateQueries({ queryKey: ["admin-subs"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
 
   const tableName = "submissions";
   const queryKey = ["admin-subs"];
@@ -1244,6 +1259,38 @@ function SubmissionsSection() {
     },
     refetchInterval: 10_000,
   });
+
+  const [subFilter, setSubFilter] = useState<"all" | "pending" | "resubmitted" | "reviewed">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const isResubmitted = (sub: any) => {
+    if (sub.status !== "pending") return false;
+    return Boolean(sub.reviewed_at) || Boolean(sub.feedback);
+  };
+
+  const pendingList = useMemo(() => data?.filter((s: any) => s.status === "pending") ?? [], [data]);
+  const resubmittedList = useMemo(() => pendingList.filter((s: any) => isResubmitted(s)), [pendingList]);
+  const freshPendingList = useMemo(() => pendingList.filter((s: any) => !isResubmitted(s)), [pendingList]);
+  const reviewedList = useMemo(() => data?.filter((s: any) => s.status !== "pending") ?? [], [data]);
+
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.filter((s: any) => {
+      const name = s.applications?.full_name?.toLowerCase() || "";
+      const internId = s.applications?.intern_id?.toLowerCase() || "";
+      const domain = s.applications?.domain?.toLowerCase() || "";
+      const title = s.tasks?.title?.toLowerCase() || "";
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = !query || name.includes(query) || internId.includes(query) || domain.includes(query) || title.includes(query);
+
+      if (!matchesSearch) return false;
+
+      if (subFilter === "pending") return s.status === "pending";
+      if (subFilter === "resubmitted") return isResubmitted(s);
+      if (subFilter === "reviewed") return s.status !== "pending";
+      return true;
+    });
+  }, [data, subFilter, searchQuery]);
 
   const loadHistory = async (id: string) => {
     const { data: history } = await (supabase.from("submission_history" as any) as any)
@@ -1275,34 +1322,117 @@ function SubmissionsSection() {
     qc.invalidateQueries({ queryKey });
   };
 
-  const pending = data?.filter((s: any) => s.status === "pending") ?? [];
-  const reviewed = data?.filter((s: any) => s.status !== "pending") ?? [];
-
   return (
     <div className="animate-fade-in-up space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Task Submissions</h2>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Task Submissions</h2>
+          <p className="text-xs text-muted-foreground">Review, approve, or request revisions for intern task submissions.</p>
+        </div>
+        <Button variant="outline" size="sm" className="rounded-xl h-9" onClick={() => qc.invalidateQueries({ queryKey })}>
+          <RefreshCw className="size-4 mr-1.5" /> Refresh List
+        </Button>
       </div>
 
-      {pending.length > 0 && (
-        <div>
-          <h3 className="mb-3 text-sm font-semibold text-amber-600 flex items-center gap-2"><Clock className="size-4" /> Pending Review ({pending.length})</h3>
-          <div className="space-y-3">
-            {pending.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
-          </div>
+      {/* Filter Tabs & Search Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white/40 dark:bg-slate-900/40 p-2.5 rounded-2xl border border-border/40 backdrop-blur">
+        <div className="flex flex-wrap gap-1 bg-muted/60 p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setSubFilter("all")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${subFilter === "all" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            All Submissions ({data?.length ?? 0})
+          </button>
+          <button
+            type="button"
+            onClick={() => setSubFilter("pending")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${subFilter === "pending" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Clock className="size-3 text-amber-500" /> Pending ({pendingList.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setSubFilter("resubmitted")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+              subFilter === "resubmitted" ? "bg-purple-600 text-white shadow-sm font-bold" : "text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+            }`}
+          >
+            <RotateCcw className="size-3" /> Resubmitted 🔄 ({resubmittedList.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setSubFilter("reviewed")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${subFilter === "reviewed" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Reviewed ({reviewedList.length})
+          </button>
+        </div>
+
+        <div className="relative w-64 max-w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search intern name, ID, domain..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-xs rounded-xl"
+          />
+        </div>
+      </div>
+
+      {/* Submissions Content */}
+      {subFilter === "all" ? (
+        <div className="space-y-6">
+          {resubmittedList.length > 0 && (
+            <div>
+              <h3 className="mb-3 text-sm font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                <RotateCcw className="size-4 text-purple-600 animate-spin-slow" /> Resubmitted for Re-Review ({resubmittedList.length})
+              </h3>
+              <div className="space-y-3">
+                {resubmittedList.map((s: any) => (
+                  <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {freshPendingList.length > 0 && (
+            <div>
+              <h3 className="mb-3 text-sm font-semibold text-amber-600 flex items-center gap-2">
+                <Clock className="size-4" /> Fresh Pending Review ({freshPendingList.length})
+              </h3>
+              <div className="space-y-3">
+                {freshPendingList.map((s: any) => (
+                  <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {reviewedList.length > 0 && (
+            <div>
+              <h3 className="mb-3 text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-slate-500" /> Reviewed ({reviewedList.length})
+              </h3>
+              <div className="space-y-3">
+                {reviewedList.map((s: any) => (
+                  <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredData.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12 text-sm">No task submissions found matching your current filter.</p>
+          ) : (
+            filteredData.map((s: any) => (
+              <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+            ))
+          )}
         </div>
       )}
-
-      {reviewed.length > 0 && (
-        <div className="mt-6">
-          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Reviewed ({reviewed.length})</h3>
-          <div className="space-y-3">
-            {reviewed.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
-          </div>
-        </div>
-      )}
-
-      {!data?.length && <p className="text-center text-muted-foreground py-12">No submissions yet.</p>}
 
       {/* Confirmation & Feedback Dialog */}
       {confirmAction && (
@@ -1328,6 +1458,20 @@ function SubmissionsSection() {
                   <XCircle className="size-5" />
                 </button>
               </div>
+
+              {/* Resubmission Banner in Dialog */}
+              {isResubmitted(confirmAction.sub) && (
+                <div className="mb-4 p-3 rounded-2xl border border-purple-200 bg-purple-50 dark:bg-purple-950/40 dark:border-purple-900/50 text-xs space-y-1">
+                  <p className="font-bold text-purple-800 dark:text-purple-300 flex items-center gap-1.5">
+                    <RotateCcw className="size-3.5 text-purple-600" /> Reviewing Resubmitted Task 🔄
+                  </p>
+                  {confirmAction.sub?.feedback && (
+                    <p className="text-slate-700 dark:text-slate-300 text-[11px] italic">
+                      Previous Feedback: "{confirmAction.sub.feedback}"
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Status Selector */}
               <div className="mb-4">
@@ -1446,10 +1590,12 @@ function SubmissionsSection() {
 function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, historyData }: any) {
   const [actionsOpen, setActionsOpen] = useState(false);
   const isLoading = loadingId === sub.id;
-  const taskLabel = `Task ${sub.tasks?.task_number}: ${sub.tasks?.title}`;
-  const userName = sub.applications?.full_name;
-  const userMeta = `${sub.applications?.intern_id} · ${getDomain(sub.applications?.domain)?.name}`;
+  const taskLabel = `Task ${sub.tasks?.task_number ?? ""}: ${sub.tasks?.title ?? "Task Submission"}`;
+  const userName = sub.applications?.full_name ?? "Student";
+  const userMeta = `${sub.applications?.intern_id ?? ""} · ${getDomain(sub.applications?.domain)?.name ?? sub.applications?.domain ?? ""}`;
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isResubmitted = sub.status === "pending" && (Boolean(sub.reviewed_at) || Boolean(sub.feedback));
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -1464,19 +1610,43 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
   if (sub.status !== "rejected") actionItems.push({ status: "rejected", label: "Reject", icon: XCircle, color: "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40" });
   if (sub.status !== "pending") actionItems.push({ status: "pending", label: "Mark as Pending", icon: Clock, color: "text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40" });
 
+  const formattedSubmittedAt = sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null;
+  const formattedReviewedAt = sub.reviewed_at ? new Date(sub.reviewed_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null;
+
   return (
-    <div className={`rounded-2xl border border-border/60 bg-white p-4 dark:bg-[#1E293B] shadow-xs transition-all ${actionsOpen ? "relative z-50 ring-2 ring-blue-500/20 shadow-xl" : "relative z-1"}`}>
+    <div className={`rounded-2xl border bg-white p-4 dark:bg-[#1E293B] shadow-xs transition-all ${
+      isResubmitted 
+        ? "border-l-4 border-l-purple-600 border-purple-200/80 bg-purple-50/20 dark:bg-purple-950/15 dark:border-purple-900/40" 
+        : "border-border/60"
+    } ${actionsOpen ? "relative z-50 ring-2 ring-blue-500/20 shadow-xl" : "relative z-1"}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-semibold text-sm text-foreground">{taskLabel}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-sm text-foreground">{taskLabel}</p>
+          </div>
           <p className="text-xs text-muted-foreground">{userName} · {userMeta}</p>
+          {formattedSubmittedAt && (
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Submitted: <span className="font-medium text-foreground">{formattedSubmittedAt}</span>
+              {formattedReviewedAt && <span className="ml-2 font-mono text-[10px] text-muted-foreground">(Prev Review: {formattedReviewedAt})</span>}
+            </p>
+          )}
         </div>
+
         <div className="flex items-center gap-2">
-          <Badge className={`text-xs capitalize font-semibold border-0 ${
-            sub.status === "approved" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" :
-            sub.status === "rejected" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300" :
-            "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-          }`}>{isLoading ? "Saving..." : sub.status}</Badge>
+          {isLoading ? (
+            <Badge className="text-xs font-semibold border-0 bg-slate-100 text-slate-700">Saving...</Badge>
+          ) : isResubmitted ? (
+            <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 font-bold border-0 text-xs px-2.5 py-1 animate-pulse flex items-center gap-1 shadow-xs">
+              <RotateCcw className="size-3" /> Resubmitted for Review 🔄
+            </Badge>
+          ) : (
+            <Badge className={`text-xs capitalize font-semibold border-0 ${
+              sub.status === "approved" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" :
+              sub.status === "rejected" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300" :
+              "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+            }`}>{sub.status}</Badge>
+          )}
 
           <div className="relative" ref={dropdownRef}>
             <Button size="sm" variant="outline" className="h-8 text-xs rounded-xl border-border/60 gap-1 bg-white dark:bg-slate-800" onClick={() => setActionsOpen(!actionsOpen)}>
@@ -1510,6 +1680,7 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
         </div>
       </div>
 
+      {/* Submitted Links & Notes */}
       <div className="mt-2.5 flex flex-wrap gap-3 text-xs">
         {sub.github_url && <a href={sub.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline font-medium"><ExternalLink className="size-3" /> GitHub</a>}
         {sub.deployed_url && <a href={sub.deployed_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline font-medium"><ExternalLink className="size-3" /> Live Demo</a>}
@@ -1518,10 +1689,18 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
         {sub.notes && <p className="w-full text-muted-foreground mt-1 bg-muted/30 p-2 rounded-xl border border-border/20">{sub.notes}</p>}
       </div>
 
+      {/* Previous Rejection / Admin Feedback Notice */}
       {sub.feedback && (
-        <div className="mt-2.5 rounded-xl border border-blue-200 bg-blue-50/80 p-3 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300">
-          <span className="font-bold flex items-center gap-1.5 mb-0.5"><MessageSquare className="size-3.5 text-blue-600 dark:text-blue-400" /> Admin Feedback for Student:</span>
-          <p className="pl-5 text-slate-700 dark:text-slate-300">{sub.feedback}</p>
+        <div className={`mt-2.5 rounded-xl border p-3 text-xs ${
+          isResubmitted 
+            ? "border-amber-300 bg-amber-50/90 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200"
+            : "border-blue-200 bg-blue-50/80 text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300"
+        }`}>
+          <span className="font-bold flex items-center gap-1.5 mb-0.5">
+            {isResubmitted ? <RotateCcw className="size-3.5 text-amber-600 dark:text-amber-400" /> : <MessageSquare className="size-3.5 text-blue-600 dark:text-blue-400" />}
+            {isResubmitted ? "Previous Rejection Reason (Student has updated & resubmitted):" : "Admin Feedback for Student:"}
+          </span>
+          <p className="pl-5 text-slate-700 dark:text-slate-300 font-medium">"{sub.feedback}"</p>
         </div>
       )}
 

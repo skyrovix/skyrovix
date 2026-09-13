@@ -23,7 +23,7 @@ import {
 } from "@/components/project-pdf-docs";
 import {
   Clock, CheckCircle2, XCircle, Search, ExternalLink, Award, FileText,
-  ShieldCheck, Loader2, RefreshCw, Github, Video, AlertTriangle, ArrowUpRight
+  ShieldCheck, Loader2, RefreshCw, Github, Video, AlertTriangle, ArrowUpRight, Download
 } from "lucide-react";
 
 export function ProjectSubmissionsSection() {
@@ -46,6 +46,19 @@ export function ProjectSubmissionsSection() {
   const [submittingAward, setSubmittingAward] = useState(false);
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Real-time listener for project submissions
+  useEffect(() => {
+    const channel = supabase.channel("admin-project-subs-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "project_submissions" }, () => {
+        qc.invalidateQueries({ queryKey: ["admin-project-submissions"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
 
   // Fetch all project submissions
   const { data: submissions = [], isLoading, refetch } = useQuery({
@@ -425,13 +438,19 @@ export function ProjectSubmissionsSection() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Badge className={`text-xs capitalize font-semibold ${
-                        s.status === "approved" ? "bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400" :
-                        s.status === "rejected" ? "bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400" :
-                        "bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400"
-                      }`}>
-                        {s.status}
-                      </Badge>
+                      {s.status === "pending" && (s.evaluated_at || s.evaluation || s.notes?.includes("Rejection")) ? (
+                        <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 font-bold border-0 text-xs px-2.5 py-1 animate-pulse flex items-center gap-1 shadow-xs">
+                          <RefreshCw className="size-3" /> Resubmitted for Review 🔄
+                        </Badge>
+                      ) : (
+                        <Badge className={`text-xs capitalize font-semibold ${
+                          s.status === "approved" ? "bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400" :
+                          s.status === "rejected" ? "bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400" :
+                          "bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400"
+                        }`}>
+                          {s.status}
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
