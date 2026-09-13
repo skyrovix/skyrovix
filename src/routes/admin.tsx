@@ -1255,9 +1255,9 @@ function SubmissionsSection() {
     setShowHistory(showHistory === id ? null : id);
   };
 
-  const changeStatus = async (id: string, newStatus: string) => {
+  const changeStatus = async (id: string, newStatus: string, feedbackText?: string) => {
     setLoadingId(id);
-    const reason = newStatus === "rejected" ? rejectReason : "";
+    const reason = feedbackText !== undefined ? feedbackText : rejectReason;
     const { error } = await supabase.from(tableName as any).update({ status: newStatus, feedback: reason || null, reviewed_at: new Date().toISOString() }).eq("id", id);
     if (error) { setLoadingId(null); return toast.error(error.message); }
     await (supabase.from("submission_history" as any) as any).insert({
@@ -1271,7 +1271,7 @@ function SubmissionsSection() {
     setLoadingId(null);
     setConfirmAction(null);
     setRejectReason("");
-    toast.success(`Submission ${newStatus}`);
+    toast.success(`Submission marked as ${newStatus}`);
     qc.invalidateQueries({ queryKey });
   };
 
@@ -1288,7 +1288,7 @@ function SubmissionsSection() {
         <div>
           <h3 className="mb-3 text-sm font-semibold text-amber-600 flex items-center gap-2"><Clock className="size-4" /> Pending Review ({pending.length})</h3>
           <div className="space-y-3">
-            {pending.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string) => setConfirmAction({ id: s.id, status, label })} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
+            {pending.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
           </div>
         </div>
       )}
@@ -1297,46 +1297,142 @@ function SubmissionsSection() {
         <div className="mt-6">
           <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Reviewed ({reviewed.length})</h3>
           <div className="space-y-3">
-            {reviewed.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string) => setConfirmAction({ id: s.id, status, label })} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
+            {reviewed.map((s: any) => <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />)}
           </div>
         </div>
       )}
 
       {!data?.length && <p className="text-center text-muted-foreground py-12">No submissions yet.</p>}
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation & Feedback Dialog */}
       {confirmAction && (
         <Portal>
           <div
             className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
-            onClick={() => setConfirmAction(null)}
+            onClick={() => { setConfirmAction(null); setRejectReason(""); }}
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
           >
             <div
-              className="w-full max-w-md rounded-2xl border border-border/50 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:bg-[#1E293B]/95 dark:border-white/10 animate-in zoom-in-95 my-auto"
+              className="w-full max-w-lg rounded-3xl border border-border/50 bg-white p-6 shadow-2xl dark:bg-[#0F172A] dark:border-white/10 animate-in zoom-in-95 my-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-bold">Confirm Action</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Are you sure you want to <span className="font-semibold text-foreground">{confirmAction.label}</span> this submission?</p>
-              {confirmAction.status === "rejected" && (
-                <div className="mt-4">
-                  <Label className="text-xs">Reason for rejection</Label>
-                  <Textarea
-                    placeholder="Provide a reason for rejection..."
-                    value={rejectReason}
-                    onChange={(e) => setRejectReason(e.target.value)}
-                    rows={3}
-                    className="mt-1 text-xs"
-                  />
+              <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Task Review & Feedback</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {confirmAction.sub?.tasks?.title} · {confirmAction.sub?.applications?.full_name} ({confirmAction.sub?.applications?.intern_id})
+                  </p>
                 </div>
-              )}
+                <button onClick={() => { setConfirmAction(null); setRejectReason(""); }} className="text-muted-foreground hover:text-foreground">
+                  <XCircle className="size-5" />
+                </button>
+              </div>
+
+              {/* Status Selector */}
+              <div className="mb-4">
+                <Label className="text-xs font-semibold block mb-1.5">Action Status</Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmAction({ ...confirmAction, status: "approved", label: "Approve" })}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition border ${
+                      confirmAction.status === "approved"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                        : "bg-muted/40 text-muted-foreground border-border/60 hover:bg-muted"
+                    }`}
+                  >
+                    <CheckCircle2 className="size-3.5" /> Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmAction({ ...confirmAction, status: "rejected", label: "Reject" })}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition border ${
+                      confirmAction.status === "rejected"
+                        ? "bg-rose-600 text-white border-rose-600 shadow-md"
+                        : "bg-muted/40 text-muted-foreground border-border/60 hover:bg-muted"
+                    }`}
+                  >
+                    <XCircle className="size-3.5" /> Reject
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmAction({ ...confirmAction, status: "pending", label: "Pending" })}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition border ${
+                      confirmAction.status === "pending"
+                        ? "bg-amber-600 text-white border-amber-600 shadow-md"
+                        : "bg-muted/40 text-muted-foreground border-border/60 hover:bg-muted"
+                    }`}
+                  >
+                    <Clock className="size-3.5" /> Pending
+                  </button>
+                </div>
+              </div>
+
+              {/* Feedback Textarea */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold flex items-center gap-1.5">
+                  <MessageSquare className="size-3.5 text-primary" /> Task Feedback for Student
+                </Label>
+                <Textarea
+                  placeholder="Enter detailed feedback for the intern (e.g., 'Great work! Clean code and solid implementation.' or 'Please fix responsive design on mobile and re-submit.')"
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  rows={4}
+                  className="text-xs rounded-xl border-border/60 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              {/* Quick Feedback Chips */}
+              <div className="mt-3">
+                <p className="text-[11px] font-medium text-muted-foreground mb-1.5">Quick Presets:</p>
+                <div className="flex flex-wrap gap-1.5 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setRejectReason("Approved — Excellent code implementation and project structure!")}
+                    className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 hover:bg-emerald-100 transition"
+                  >
+                    👍 Excellent work
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRejectReason("Approved — Good attempt, completed all required features.")}
+                    className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 hover:bg-blue-100 transition"
+                  >
+                    ✅ Good attempt
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRejectReason("Needs Revision — Please fix requested features and resubmit.")}
+                    className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 hover:bg-rose-100 transition"
+                  >
+                    ⚠️ Needs Revision
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRejectReason("Needs Revision — Missing live demo URL or project screenshot.")}
+                    className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 hover:bg-amber-100 transition"
+                  >
+                    🔗 Missing Links
+                  </button>
+                </div>
+              </div>
+
               <div className="mt-6 flex gap-3 justify-end">
-                <Button variant="outline" size="sm" className="rounded-xl" onClick={() => { setConfirmAction(null); setRejectReason(""); }}>Cancel</Button>
-                <Button size="sm" className={`rounded-xl text-white border-0 ${confirmAction.status === "approved" ? "bg-green-600 hover:bg-green-700" : confirmAction.status === "rejected" ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}`}
+                <Button variant="outline" size="sm" className="rounded-xl h-9 text-xs" onClick={() => { setConfirmAction(null); setRejectReason(""); }}>
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  className={`rounded-xl text-white border-0 h-9 text-xs font-bold ${
+                    confirmAction.status === "approved" ? "bg-emerald-600 hover:bg-emerald-700" :
+                    confirmAction.status === "rejected" ? "bg-rose-600 hover:bg-rose-700" :
+                    "bg-amber-600 hover:bg-amber-700"
+                  }`}
                   disabled={loadingId === confirmAction.id}
-                  onClick={() => changeStatus(confirmAction.id, confirmAction.status)}>
-                  {loadingId === confirmAction.id ? "Saving..." : `Yes, ${confirmAction.label}`}
+                  onClick={() => changeStatus(confirmAction.id, confirmAction.status, rejectReason)}
+                >
+                  {loadingId === confirmAction.id ? "Saving..." : "Save & Send Feedback"}
                 </Button>
               </div>
             </div>
@@ -1364,42 +1460,48 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
   }, []);
 
   const actionItems = [];
-  if (sub.status !== "approved") actionItems.push({ status: "approved", label: "Approve", icon: CheckCircle2, color: "text-green-600" });
-  if (sub.status !== "rejected") actionItems.push({ status: "rejected", label: "Reject", icon: XCircle, color: "text-red-600" });
-  if (sub.status !== "pending") actionItems.push({ status: "pending", label: "Mark as Pending", icon: Clock, color: "text-amber-600" });
+  if (sub.status !== "approved") actionItems.push({ status: "approved", label: "Approve", icon: CheckCircle2, color: "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40" });
+  if (sub.status !== "rejected") actionItems.push({ status: "rejected", label: "Reject", icon: XCircle, color: "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40" });
+  if (sub.status !== "pending") actionItems.push({ status: "pending", label: "Mark as Pending", icon: Clock, color: "text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40" });
 
   return (
-    <div className={`rounded-2xl border border-border/50 bg-white/60 p-4 backdrop-blur dark:bg-[#1E293B]/60 ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
+    <div className={`rounded-2xl border border-border/60 bg-white p-4 dark:bg-[#1E293B] shadow-xs transition-all ${actionsOpen ? "relative z-50 ring-2 ring-blue-500/20 shadow-xl" : "relative z-1"}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-semibold text-sm">{taskLabel}</p>
+          <p className="font-semibold text-sm text-foreground">{taskLabel}</p>
           <p className="text-xs text-muted-foreground">{userName} · {userMeta}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className={`text-xs ${
-            sub.status === "approved" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-            sub.status === "rejected" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
-            "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+          <Badge className={`text-xs capitalize font-semibold border-0 ${
+            sub.status === "approved" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" :
+            sub.status === "rejected" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300" :
+            "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
           }`}>{isLoading ? "Saving..." : sub.status}</Badge>
+
           <div className="relative" ref={dropdownRef}>
-            <Button size="sm" variant="outline" className="h-8 text-xs rounded-lg border-border/60 gap-1" onClick={() => setActionsOpen(!actionsOpen)}>
+            <Button size="sm" variant="outline" className="h-8 text-xs rounded-xl border-border/60 gap-1 bg-white dark:bg-slate-800" onClick={() => setActionsOpen(!actionsOpen)}>
               Actions <ChevronDown className="size-3" />
             </Button>
             {actionsOpen && (
-              <div className="absolute right-0 top-10 z-40 w-48 rounded-xl border border-border/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-2xl dark:bg-[#1E293B]/95 dark:border-white/10 animate-in zoom-in-95">
+              <div className="absolute right-0 top-9 z-50 w-52 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xl dark:bg-[#0F172A] dark:border-slate-800 animate-in zoom-in-95">
                 {actionItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <button key={item.status}
-                      onClick={() => { setActionsOpen(false); onAction(item.status, item.label); }}
-                      className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-accent/50 ${item.color}`}>
+                      onClick={() => { setActionsOpen(false); onAction(item.status, item.label, sub); }}
+                      className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition ${item.color}`}>
                       <Icon className="size-4" /> {item.label}
                     </button>
                   );
                 })}
+                <button
+                  onClick={() => { setActionsOpen(false); onAction(sub.status, "Send Feedback", sub); }}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition">
+                  <MessageSquare className="size-4" /> Send Feedback
+                </button>
                 <div className="my-1 border-t border-border/40" />
                 <button onClick={() => { setActionsOpen(false); onHistory(); }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent/50">
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent/50 transition">
                   <Clock className="size-4" /> View History
                 </button>
               </div>
@@ -1407,23 +1509,26 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
           </div>
         </div>
       </div>
-      <div className="mt-2 flex flex-wrap gap-2 text-xs">
-        {sub.github_url && <a href={sub.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary"><ExternalLink className="size-3" /> GitHub</a>}
-        {sub.deployed_url && <a href={sub.deployed_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary"><ExternalLink className="size-3" /> Demo</a>}
-        {sub.pdf_url && <a href={sub.pdf_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary"><FileText className="size-3" /> Report</a>}
-        {sub.screenshot_url && <a href={sub.screenshot_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary"><ExternalLink className="size-3" /> Screenshot</a>}
-        {sub.notes && <p className="w-full text-muted-foreground mt-1">{sub.notes}</p>}
+
+      <div className="mt-2.5 flex flex-wrap gap-3 text-xs">
+        {sub.github_url && <a href={sub.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline font-medium"><ExternalLink className="size-3" /> GitHub</a>}
+        {sub.deployed_url && <a href={sub.deployed_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline font-medium"><ExternalLink className="size-3" /> Live Demo</a>}
+        {sub.pdf_url && <a href={sub.pdf_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline font-medium"><FileText className="size-3" /> PDF Report</a>}
+        {sub.screenshot_url && <a href={sub.screenshot_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline font-medium"><ExternalLink className="size-3" /> Screenshot</a>}
+        {sub.notes && <p className="w-full text-muted-foreground mt-1 bg-muted/30 p-2 rounded-xl border border-border/20">{sub.notes}</p>}
       </div>
+
       {sub.feedback && (
-        <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 p-2.5 text-xs text-blue-900 dark:border-blue-900/30 dark:bg-blue-950/30 dark:text-blue-300">
-          <span className="font-semibold">Feedback:</span> {sub.feedback}
+        <div className="mt-2.5 rounded-xl border border-blue-200 bg-blue-50/80 p-3 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300">
+          <span className="font-bold flex items-center gap-1.5 mb-0.5"><MessageSquare className="size-3.5 text-blue-600 dark:text-blue-400" /> Admin Feedback for Student:</span>
+          <p className="pl-5 text-slate-700 dark:text-slate-300">{sub.feedback}</p>
         </div>
       )}
 
       {/* History */}
       {showHistory && (
-        <div className="mt-3 rounded-xl border border-border/40 bg-secondary/30 p-3">
-          <p className="mb-2 text-xs font-semibold text-muted-foreground">Submission History</p>
+        <div className="mt-3 rounded-2xl border border-border/40 bg-secondary/30 p-3.5">
+          <p className="mb-2 text-xs font-bold text-muted-foreground">Submission Review History</p>
           {historyData.length === 0 ? (
             <p className="text-xs text-muted-foreground">No history recorded yet.</p>
           ) : (
@@ -1433,12 +1538,12 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
                   <div className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-muted text-[9px] font-bold text-muted-foreground">{i + 1}</div>
                   <div>
                     <p>
-                      <span className={`font-semibold ${h.new_status === "approved" ? "text-green-600" : h.new_status === "rejected" ? "text-red-600" : "text-amber-600"}`}>{h.previous_status ?? "—"}</span>
+                      <span className={`font-semibold ${h.new_status === "approved" ? "text-emerald-600" : h.new_status === "rejected" ? "text-rose-600" : "text-amber-600"}`}>{h.previous_status ?? "—"}</span>
                       <span className="mx-1.5 text-muted-foreground">→</span>
-                      <span className={`font-semibold ${h.new_status === "approved" ? "text-green-600" : h.new_status === "rejected" ? "text-red-600" : "text-amber-600"}`}>{h.new_status}</span>
+                      <span className={`font-semibold ${h.new_status === "approved" ? "text-emerald-600" : h.new_status === "rejected" ? "text-rose-600" : "text-amber-600"}`}>{h.new_status}</span>
                     </p>
-                    <p className="text-muted-foreground">{new Date(h.created_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
-                    {h.reason && <p className="mt-0.5 text-muted-foreground italic">Reason: {h.reason}</p>}
+                    <p className="text-muted-foreground text-[11px]">{new Date(h.created_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                    {h.reason && <p className="mt-0.5 text-muted-foreground italic text-[11px]">Feedback: {h.reason}</p>}
                   </div>
                 </div>
               ))}

@@ -34,6 +34,7 @@ import {
   Image,
   Link2,
   Send,
+  MessageSquare,
 } from "lucide-react";
 
 const TECH_KEYWORDS = ["react", "node", "mongodb", "database", "auth", "responsive", "deploy", "api", "jwt", "tailwind", "crud", "linkedin", "network", "post", "share", "python", "javascript", "typescript", "css", "html", "github", "docker", "aws", "firebase", "sql", "graphql", "next", "express", "redux", "figma"];
@@ -596,15 +597,17 @@ function TaskSubmitDialog({
           </div>
         </div>
 
-        {/* Rejected banner */}
-        {submission?.status === "rejected" && (
-          <div className="mx-6 mt-4 rounded-xl border border-red-200 bg-red-50 p-3 flex items-start gap-2">
-            <AlertCircle className="size-4 text-red-500 mt-0.5 shrink-0" />
+        {/* Feedback banner in submission modal */}
+        {submission?.feedback && (
+          <div className={`mx-6 mt-4 rounded-xl border p-3 flex items-start gap-2 ${
+            submission.status === "approved" ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-900/40 dark:text-emerald-300" :
+            submission.status === "rejected" ? "border-rose-200 bg-rose-50 text-rose-900 dark:bg-rose-950/30 dark:border-rose-900/40 dark:text-rose-300" :
+            "border-blue-200 bg-blue-50 text-blue-900 dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-blue-300"
+          }`}>
+            <MessageSquare className="size-4 mt-0.5 shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-red-700">Needs Revision</p>
-              {submission.feedback && (
-                <p className="mt-0.5 text-xs text-red-600">Reason: {submission.feedback}</p>
-              )}
+              <p className="text-xs font-bold capitalize">Mentor Feedback ({submission.status})</p>
+              <p className="mt-0.5 text-xs opacity-90 leading-relaxed">{submission.feedback}</p>
             </div>
           </div>
         )}
@@ -860,15 +863,18 @@ function TaskCard({
             </p>
           ) : (
             <div className="space-y-3">
-              {submission?.status === "rejected" && (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="size-4 text-red-500 shrink-0" />
-                    <p className="text-xs font-semibold text-red-700">Needs Revision</p>
+              {/* Feedback banner on task card */}
+              {submission?.feedback && (
+                <div className={`rounded-xl border p-3 text-xs ${
+                  submission.status === "approved" ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-900/40 dark:text-emerald-300" :
+                  submission.status === "rejected" ? "border-rose-200 bg-rose-50 text-rose-900 dark:bg-rose-950/30 dark:border-rose-900/40 dark:text-rose-300" :
+                  "border-blue-200 bg-blue-50 text-blue-900 dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-blue-300"
+                }`}>
+                  <div className="flex items-center gap-1.5 font-bold mb-0.5">
+                    <MessageSquare className="size-3.5 shrink-0" />
+                    <span>Mentor Feedback ({submission.status}):</span>
                   </div>
-                  {submission.feedback && (
-                    <p className="mt-1 text-xs text-red-600 pl-6">Reason: {submission.feedback}</p>
-                  )}
+                  <p className="pl-5 text-xs leading-relaxed opacity-90">{submission.feedback}</p>
                 </div>
               )}
               {!tasksReady ? (

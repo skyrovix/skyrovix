@@ -1,5 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Logo } from "./Logo";
+import { NotificationMenu } from "./NotificationMenu";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,6 +126,7 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {user ? (
               <>
+                <NotificationMenu />
                 <button 
                   onClick={() => setDark(!dark)}
                   aria-label="Toggle theme"

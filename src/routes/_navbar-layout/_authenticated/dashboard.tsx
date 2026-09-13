@@ -1886,7 +1886,7 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
 
             <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg hover:-translate-y-0.5"
               onClick={() => downloadIDCard({
-                fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at, photoUrl: app.photo_url
+                fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at, photoUrl: app.photo_url, email: app.email
               })}>
                 <Download className="size-4 text-emerald-300" /> Download ID Card
             </Button>
@@ -2545,7 +2545,7 @@ function IDCardSection({ app }: { app: Application | null }) {
   return (
     <div className="rounded-3xl border border-border/40 bg-white/60 p-5 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5">
       <h3 className="flex items-center gap-2 font-bold mb-4 text-sm text-foreground"><Shield className="size-4 text-primary" /> Digital ID Card</h3>
-      <IDCard internId={app.intern_id} fullName={app.full_name} domain={domain?.name ?? app.domain} photoUrl={app.photo_url} issuedAt={app.offer_issued_at} />
+      <IDCard internId={app.intern_id} fullName={app.full_name} domain={domain?.name ?? app.domain} photoUrl={app.photo_url} issuedAt={app.offer_issued_at} email={app.email} />
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Badge className="bg-emerald-600 text-white text-[10px] border-0"><CheckCircle2 className="mr-1 size-3" /> ACTIVE</Badge>
         <div className="flex flex-wrap gap-2 ml-auto">
@@ -2558,7 +2558,7 @@ function IDCardSection({ app }: { app: Application | null }) {
           </Button>
           <Button size="sm" className="brand-gradient text-white border-0 rounded-xl h-8 text-xs font-semibold"
             onClick={() => downloadIDCard({
-              fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at, photoUrl: app.photo_url
+              fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at, photoUrl: app.photo_url, email: app.email
             })}>
             <Download className="mr-1 size-3" /> Download ID
           </Button>

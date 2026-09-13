@@ -2,6 +2,7 @@ import { Document, Page, Text, View, StyleSheet, Image, pdf, type DocumentProps 
 import type { ReactElement } from "react";
 import QRCode from "qrcode";
 import logo from "@/assets/logo.png";
+import topNavLogo from "@/assets/top nav bar logo.png";
 import seal from "@/assets/seal.jpg";
 import msme from "@/assets/msme.png";
 import sigFounder from "@/assets/hari sig.jpeg";
@@ -474,70 +475,154 @@ export function CourseCertificateDoc({ fullName, courseName, score, total, certI
 // ─── ID CARD PDF ───
 
 const idCardS = StyleSheet.create({
-  page: { padding: 10, fontSize: 9, fontFamily: "Helvetica", backgroundColor: "#07284a" },
-  bgCircle1: { position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: 40, backgroundColor: "#1a4a7a" },
-  bgCircle2: { position: "absolute", bottom: -20, left: -20, width: 80, height: 80, borderRadius: 40, backgroundColor: "#0d4f7a" },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8, paddingBottom: 6, borderBottomWidth: 0.5, borderBottomColor: "#3a6a9a" },
-  logoRow: { flexDirection: "row", alignItems: "center" },
-  logo: { width: 22, height: 22, marginRight: 6 },
-  brandBlock: {},
-  brandText: { fontSize: 7, color: "#8ab4d8", letterSpacing: 2, textTransform: "uppercase" },
-  cardTitle: { fontSize: 9, fontWeight: 700, color: "#ffffff", marginTop: 1 },
-  yearBadge: { fontSize: 7, color: "#c8dce8", backgroundColor: "#1a4a7a", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  body: { flexDirection: "row", marginTop: 10, marginBottom: 10 },
-  photoBox: { width: 52, height: 52, borderRadius: 6, borderWidth: 2, borderColor: "#5a8ab0", backgroundColor: "#1a4a7a", justifyContent: "center", alignItems: "center", marginRight: 10 },
-  photoInitial: { fontSize: 22, fontWeight: 700, color: "#ffffff" },
-  info: { flex: 1, justifyContent: "center" },
-  label: { fontSize: 6, color: "#8ab4d8", marginBottom: 1, textTransform: "uppercase", letterSpacing: 1 },
-  name: { fontSize: 14, fontWeight: 700, color: "#ffffff", marginBottom: 3 },
-  domain: { fontSize: 9, fontWeight: 500, color: "#c8dce8" },
-  footer: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", paddingTop: 6, borderTopWidth: 0.5, borderTopColor: "#3a6a9a" },
-  idLabel: { fontSize: 6, color: "#8ab4d8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 1 },
-  idValue: { fontSize: 9, fontWeight: 700, color: "#ffffff", fontFamily: "Courier" },
-  issueDate: { fontSize: 7, color: "#7a9ab8", marginTop: 2 },
-  qrBox: { padding: 5, backgroundColor: "#ffffff", borderRadius: 4 },
-  qrPlaceholder: { width: 40, height: 40 },
+  page: { padding: 12, fontSize: 8, fontFamily: "Helvetica", backgroundColor: "#ffffff", color: "#0b1e48", position: "relative" },
+  header: { alignItems: "center", marginTop: 2, marginBottom: 4 },
+  logo: { width: 110, height: 28, objectFit: "contain" },
+  subtitle: { fontSize: 7, fontWeight: 700, color: "#0b2545", textAlign: "center", marginTop: 2 },
+  
+  photoBox: { width: 84, height: 96, borderRadius: 10, borderWidth: 2, borderColor: "#0066ff", backgroundColor: "#f0f7ff", alignSelf: "center", marginTop: 4, marginBottom: 4, overflow: "hidden", justifyContent: "center", alignItems: "center" },
+  photoImg: { width: 84, height: 96, objectFit: "cover" },
+  photoInitial: { fontSize: 26, fontWeight: 700, color: "#0066ff" },
+
+  name: { fontSize: 13, fontWeight: 700, color: "#0b1e48", textAlign: "center" },
+  role: { fontSize: 8, fontWeight: 700, color: "#0b1e48", textAlign: "center", letterSpacing: 1.5, marginTop: 2 },
+  underline: { width: 35, height: 1.5, backgroundColor: "#0066ff", alignSelf: "center", marginTop: 3, marginBottom: 6 },
+
+  detailsBlock: { marginTop: 2, marginBottom: 4, paddingHorizontal: 4 },
+  detailRow: { flexDirection: "row", alignItems: "center", marginBottom: 3.5 },
+  label: { width: 55, fontSize: 7.5, fontWeight: 700, color: "#334155" },
+  colon: { width: 8, fontSize: 7.5, fontWeight: 700, color: "#64748b" },
+  value: { flex: 1, fontSize: 7.5, fontWeight: 700, color: "#0b1e48" },
+
+  barcodeBox: { alignSelf: "center", marginTop: 4, alignItems: "center" },
+  barcodeImg: { width: 140, height: 24, objectFit: "contain" },
+  barcodeText: { fontSize: 7.5, fontWeight: 700, color: "#0b1e48", letterSpacing: 1.5, marginTop: 2 },
+  qrBox: { width: 42, height: 42, alignSelf: "center" },
+
+  footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 0.5, borderTopColor: "#e2e8f0", paddingTop: 4, marginTop: 6 },
+  footerLink: { fontSize: 7, fontWeight: 700, color: "#0066ff" },
+  footerMotto: { fontSize: 7, fontWeight: 700, color: "#0066ff", fontStyle: "italic" }
 });
 
-export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, qrCodeDataUri }: {
-  fullName: string; internId: string; domain: string; issuedAt: string; photoUrl?: string | null; qrCodeDataUri?: string;
+const CODE39_PATTERNS_PDF: Record<string, string> = {
+  '0': '101001101101', '1': '110100101011', '2': '101100101011', '3': '110110010101',
+  '4': '101001101011', '5': '110100110101', '6': '101100110101', '7': '101001011011',
+  '8': '110100101101', '9': '101100101101', 'A': '110101001011', 'B': '101101001011',
+  'C': '110110100101', 'D': '101011001011', 'E': '110101100101', 'F': '101101100101',
+  'G': '101010011011', 'H': '110101001101', 'I': '101101001101', 'J': '101011001101',
+  'K': '110101010011', 'L': '101101010011', 'M': '110110101001', 'N': '101011010011',
+  'O': '110101101001', 'P': '101101101001', 'Q': '101010110011', 'R': '110101011001',
+  'S': '101101011001', 'T': '101011011001', 'U': '110010101011', 'V': '100110101011',
+  'W': '110011010101', 'X': '100101101011', 'Y': '110010110101', 'Z': '100110110101',
+  '-': '100101011011', '.': '110010101101', ' ': '100110101101', '*': '100101101101',
+  '$': '100100100101', '/': '100100101001', '+': '100101001001', '%': '100100100100'
+};
+
+function generateBarcodeDataUri(text: string): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  try {
+    const clean = '*' + (text || '').toUpperCase().replace(/[^A-Z0-9\-\.\ \$\/\+\%]/g, '') + '*';
+    const bits: boolean[] = [];
+    for (const char of clean) {
+      const pattern = CODE39_PATTERNS_PDF[char] || CODE39_PATTERNS_PDF['-'];
+      for (const bit of pattern) {
+        bits.push(bit === '1');
+      }
+      bits.push(false);
+    }
+    const canvas = document.createElement("canvas");
+    const barWidth = 2;
+    const height = 45;
+    canvas.width = bits.length * barWidth;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return undefined;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, height);
+    ctx.fillStyle = "#0b1e48";
+    bits.forEach((isBar, i) => {
+      if (isBar) {
+        ctx.fillRect(i * barWidth, 0, barWidth, height);
+      }
+    });
+    return canvas.toDataURL("image/png");
+  } catch {
+    return undefined;
+  }
+}
+
+export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, email, validUpto, barcodeDataUri, qrCodeDataUri }: {
+  fullName: string; internId: string; domain: string; issuedAt: string; photoUrl?: string | null; email?: string | null; validUpto?: string | null; barcodeDataUri?: string; qrCodeDataUri?: string;
 }) {
-  const domainName = domain.charAt(0).toUpperCase() + domain.slice(1);
+  const computeValidUpto = () => {
+    if (validUpto) return validUpto;
+    const issueDate = new Date(issuedAt || Date.now());
+    const year = isNaN(issueDate.getFullYear()) ? new Date().getFullYear() : issueDate.getFullYear();
+    return `31 Dec ${year}`;
+  };
+
+  const validUntilStr = computeValidUpto();
+
   return (
     <Document>
-      <Page size={[360, 230]} style={idCardS.page}>
-        <View style={idCardS.bgCircle1} />
-        <View style={idCardS.bgCircle2} />
+      <Page size={[230, 360]} style={idCardS.page}>
+        {/* Header */}
         <View style={idCardS.header}>
-          <View style={idCardS.logoRow}>
-            <Image style={idCardS.logo} src={logo} />
-            <View style={idCardS.brandBlock}>
-              <Text style={idCardS.brandText}>SKYROVIX</Text>
-              <Text style={idCardS.cardTitle}>Intern ID Card</Text>
-            </View>
-          </View>
-          <Text style={idCardS.yearBadge}>{new Date(issuedAt).getFullYear()}</Text>
+          <Image style={idCardS.logo} src={topNavLogo} />
+          <Text style={idCardS.subtitle}>Virtual Internship and Training Platform</Text>
         </View>
-        <View style={idCardS.body}>
-          <View style={idCardS.photoBox}>
-            {photoUrl ? <Image style={{ width: 52, height: 52, borderRadius: 6 }} src={photoUrl} /> : <Text style={idCardS.photoInitial}>{fullName.charAt(0).toUpperCase()}</Text>}
+
+        {/* Photo Box */}
+        <View style={idCardS.photoBox}>
+          {photoUrl ? <Image style={idCardS.photoImg} src={photoUrl} /> : <Text style={idCardS.photoInitial}>{fullName ? fullName.charAt(0).toUpperCase() : "I"}</Text>}
+        </View>
+
+        {/* Name & Role */}
+        <Text style={idCardS.name}>{fullName}</Text>
+        <Text style={idCardS.role}>INTERN</Text>
+        <View style={idCardS.underline} />
+
+        {/* Details Table */}
+        <View style={idCardS.detailsBlock}>
+          <View style={idCardS.detailRow}>
+            <Text style={idCardS.label}>ID No</Text>
+            <Text style={idCardS.colon}>:</Text>
+            <Text style={idCardS.value}>{internId}</Text>
           </View>
-          <View style={idCardS.info}>
-            <Text style={idCardS.label}>Name</Text>
-            <Text style={idCardS.name}>{fullName}</Text>
+
+          <View style={idCardS.detailRow}>
+            <Text style={idCardS.label}>Email</Text>
+            <Text style={idCardS.colon}>:</Text>
+            <Text style={idCardS.value}>{email || "N/A"}</Text>
+          </View>
+
+          <View style={idCardS.detailRow}>
             <Text style={idCardS.label}>Domain</Text>
-            <Text style={idCardS.domain}>{domainName}</Text>
+            <Text style={idCardS.colon}>:</Text>
+            <Text style={idCardS.value}>{domain}</Text>
+          </View>
+
+          <View style={idCardS.detailRow}>
+            <Text style={idCardS.label}>Valid Upto</Text>
+            <Text style={idCardS.colon}>:</Text>
+            <Text style={idCardS.value}>{validUntilStr}</Text>
           </View>
         </View>
+
+        {/* Barcode & Monospace Text */}
+        <View style={idCardS.barcodeBox}>
+          {barcodeDataUri ? (
+            <Image style={idCardS.barcodeImg} src={barcodeDataUri} />
+          ) : (
+            qrCodeDataUri ? <Image style={idCardS.qrBox} src={qrCodeDataUri} /> : null
+          )}
+          <Text style={idCardS.barcodeText}>{internId}</Text>
+        </View>
+
+        {/* Footer */}
         <View style={idCardS.footer}>
-          <View>
-            <Text style={idCardS.idLabel}>Intern ID</Text>
-            <Text style={idCardS.idValue}>{internId}</Text>
-            <Text style={idCardS.issueDate}>Issued {new Date(issuedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</Text>
-          </View>
-          <View style={idCardS.qrBox}>
-            {qrCodeDataUri ? <Image style={idCardS.qrPlaceholder} src={qrCodeDataUri} /> : <View style={idCardS.qrPlaceholder} />}
-          </View>
+          <Text style={idCardS.footerLink}>skyrovix.online</Text>
+          <Text style={idCardS.footerMotto}>Learn | Build | Grow</Text>
         </View>
       </Page>
     </Document>
@@ -545,15 +630,17 @@ export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, qrCo
 }
 
 export async function downloadIDCard(params: {
-  fullName: string; internId: string; domain: string; issuedAt: string; photoUrl?: string | null;
+  fullName: string; internId: string; domain: string; issuedAt: string; photoUrl?: string | null; email?: string | null; validUpto?: string | null;
 }) {
   const verifyUrl = typeof window !== "undefined" ? `${window.location.origin}/verify-certificate?intern=${params.internId}` : "";
   let qrDataUri: string | undefined;
+  let barcodeDataUri: string | undefined;
   try {
     qrDataUri = await QRCode.toDataURL(verifyUrl, { width: 160, margin: 1 });
-  } catch { /* QR generation failed, proceed without */ }
+    barcodeDataUri = generateBarcodeDataUri(params.internId);
+  } catch { /* proceed */ }
   await downloadPdf(
-    <IDCardDoc {...params} qrCodeDataUri={qrDataUri} />,
+    <IDCardDoc {...params} qrCodeDataUri={qrDataUri} barcodeDataUri={barcodeDataUri} />,
     `IDCard_${params.internId}.pdf`
   );
 }

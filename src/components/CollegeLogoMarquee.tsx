@@ -1,16 +1,10 @@
 import React from "react";
-import annaLogo from "@/assets/college-loge-right-to-left/anna.png";
-import thanjavurLogo from "@/assets/college-loge-right-to-left/thanjavur.png";
-import snistLogo from "@/assets/college-loge-right-to-left/sreenidhi-transparent.png";
-import sriRajaLogo from "@/assets/college-loge-right-to-left/sri raja.png";
-import mzcetLogo from "@/assets/college-loge-right-to-left/mzcet-logo__1_-removebg-preview.png";
-import srustiLogo from "@/assets/college-loge-right-to-left/SRUSTI-removebg-preview.png";
-import orientalLogo from "@/assets/college-loge-right-to-left/oriental-transparent.png";
-import kipLogo from "@/assets/college-loge-right-to-left/kip-transparent.png";
-import vignanLogo from "@/assets/college-loge-right-to-left/vignan-transparent.png";
-import gnitLogo from "@/assets/college-loge-right-to-left/gnit-transparent.png";
-import presidencyLogo from "@/assets/college-loge-right-to-left/presidency-transparent.png";
-import aceLogo from "@/assets/college-loge-right-to-left/ace-transparent.png";
+
+// Dynamically import ALL logos ONLY from college-loge-right-to-left folder
+const rightToLeftLogos = import.meta.glob<{ default: string }>(
+  "/src/assets/college-loge-right-to-left/*.{png,jpg,jpeg,webp,svg}",
+  { eager: true }
+);
 
 export interface CollegeItem {
   id: string;
@@ -18,31 +12,32 @@ export interface CollegeItem {
   src: string;
 }
 
-const COLLEGE_LOGOS: CollegeItem[] = [
-  { id: "anna", name: "Anna University", src: annaLogo },
-  { id: "thanjavur", name: "Government College of Engineering, Thanjavur", src: thanjavurLogo },
-  { id: "snist", name: "Sreenidhi Institute of Science and Technology", src: snistLogo },
-  { id: "vignan", name: "Vignan's University", src: vignanLogo },
-  { id: "gnit", name: "Greater Noida Institute of Technology", src: gnitLogo },
-  { id: "oriental", name: "Oriental University", src: orientalLogo },
-  { id: "presidency", name: "Presidency College Autonomous", src: presidencyLogo },
-  { id: "ace", name: "ACE Engineering Academy", src: aceLogo },
-  { id: "srrc", name: "Sri Raaja Raajan College of Engineering", src: sriRajaLogo },
-  { id: "mzcet", name: "Mount Zion College of Engineering and Technology", src: mzcetLogo },
-  { id: "srusti", name: "Srusti Academy of Management", src: srustiLogo },
-  { id: "kip", name: "Engineering and Technology Institute", src: kipLogo },
-];
+const COLLEGE_LOGOS: CollegeItem[] = Object.entries(rightToLeftLogos).map(([path, module], idx) => {
+  const filename = path.split("/").pop() || `college-${idx}`;
+  const rawName = filename.replace(/\.(png|jpg|jpeg|webp|svg)$/i, "").replace(/-transparent$/i, "");
+  let name = rawName;
+  if (rawName.startsWith("WhatsApp Image")) {
+    name = "Partner College";
+  } else {
+    name = rawName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  return {
+    id: `college-logo-${idx}`,
+    name,
+    src: module.default,
+  };
+});
 
 export function CollegeLogoMarquee() {
-  // Duplicate list to create a seamless infinite loop with NO visible jump
+  // Duplicate list for seamless infinite right-to-left loop
   const duplicatedLogos = [...COLLEGE_LOGOS, ...COLLEGE_LOGOS];
 
   return (
     <section
       aria-label="Students From Leading Colleges"
-      className="relative w-full border-b border-border/30 bg-white/50 dark:bg-slate-950/10 py-10 sm:py-12 lg:py-14 overflow-hidden z-10"
+      className="relative w-full border-b border-border/30 bg-white/60 dark:bg-slate-950/20 py-10 sm:py-12 lg:py-14 overflow-hidden z-10"
     >
-      {/* Scoped CSS animation for continuous right-to-left marquee */}
+      {/* Continuous Right-to-Left Marquee CSS */}
       <style>{`
         @keyframes college-marquee-left-scroll {
           0% {
@@ -56,14 +51,14 @@ export function CollegeLogoMarquee() {
           display: flex !important;
           width: max-content !important;
           will-change: transform;
-          animation: college-marquee-left-scroll 28s linear infinite !important;
+          animation: college-marquee-left-scroll 32s linear infinite !important;
         }
         .college-marquee-track:hover {
           animation-play-state: paused !important;
         }
         @media (max-width: 640px) {
           .college-marquee-track {
-            animation-duration: 20s !important;
+            animation-duration: 22s !important;
           }
         }
       `}</style>
@@ -80,19 +75,19 @@ export function CollegeLogoMarquee() {
 
       {/* Marquee Container with Left and Right Fade Overlays */}
       <div className="relative w-full overflow-hidden">
-        {/* Left Fade Gradient */}
+        {/* Left Fade Overlay */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 lg:w-40 z-20 bg-gradient-to-r from-white/90 dark:from-[#020617] to-transparent"
         />
 
-        {/* Right Fade Gradient */}
+        {/* Right Fade Overlay */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 lg:w-40 z-20 bg-gradient-to-l from-white/90 dark:from-[#020617] to-transparent"
         />
 
-        {/* Horizontal Marquee Moving Right to Left — Pure Logos, No Boxes */}
+        {/* Marquee Track — Pure Transparent Logos */}
         <div className="overflow-hidden py-3">
           <div className="college-marquee-track flex items-center gap-8 sm:gap-12 md:gap-16 px-6">
             {duplicatedLogos.map((college, idx) => (
@@ -105,7 +100,7 @@ export function CollegeLogoMarquee() {
                   src={college.src}
                   alt={college.name}
                   loading="lazy"
-                  className="h-10 sm:h-12 md:h-14 w-auto max-w-[130px] sm:max-w-[160px] md:max-w-[190px] object-contain dark:brightness-105 pointer-events-none drop-shadow-xs"
+                  className="h-10 sm:h-12 md:h-14 w-auto max-w-[130px] sm:max-w-[160px] md:max-w-[190px] object-contain dark:brightness-110 pointer-events-none drop-shadow-xs"
                 />
               </div>
             ))}
