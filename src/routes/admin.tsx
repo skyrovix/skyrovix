@@ -1260,17 +1260,35 @@ function SubmissionsSection() {
     refetchInterval: 10_000,
   });
 
+  const { data: historySubIds } = useQuery({
+    queryKey: ["admin-sub-history-ids"],
+    queryFn: async () => {
+      const { data: history } = await (supabase.from("submission_history" as any) as any)
+        .select("submission_id")
+        .eq("previous_status", "rejected");
+      return new Set<string>(history?.map((h: any) => h.submission_id) ?? []);
+    },
+    refetchInterval: 5_000,
+  });
+
   const [subFilter, setSubFilter] = useState<"all" | "pending" | "resubmitted" | "reviewed">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const isResubmitted = (sub: any) => {
+  const isResubmitted = useCallback((sub: any) => {
     if (sub.status !== "pending") return false;
-    return Boolean(sub.reviewed_at) || Boolean(sub.feedback);
-  };
+    if (sub.reviewed_at) return true;
+    if (sub.feedback) return true;
+    if (historySubIds?.has(sub.id)) return true;
+    const siblingRejected = data?.some(
+      (other: any) => other.application_id === sub.application_id && other.task_id === sub.task_id && (other.status === "rejected" || other.reviewed_at)
+    );
+    if (siblingRejected) return true;
+    return false;
+  }, [data, historySubIds]);
 
   const pendingList = useMemo(() => data?.filter((s: any) => s.status === "pending") ?? [], [data]);
-  const resubmittedList = useMemo(() => pendingList.filter((s: any) => isResubmitted(s)), [pendingList]);
-  const freshPendingList = useMemo(() => pendingList.filter((s: any) => !isResubmitted(s)), [pendingList]);
+  const resubmittedList = useMemo(() => pendingList.filter((s: any) => isResubmitted(s)), [pendingList, isResubmitted]);
+  const freshPendingList = useMemo(() => pendingList.filter((s: any) => !isResubmitted(s)), [pendingList, isResubmitted]);
   const reviewedList = useMemo(() => data?.filter((s: any) => s.status !== "pending") ?? [], [data]);
 
   const filteredData = useMemo(() => {
@@ -1290,7 +1308,7 @@ function SubmissionsSection() {
       if (subFilter === "reviewed") return s.status !== "pending";
       return true;
     });
-  }, [data, subFilter, searchQuery]);
+  }, [data, subFilter, searchQuery, isResubmitted]);
 
   const loadHistory = async (id: string) => {
     const { data: history } = await (supabase.from("submission_history" as any) as any)
@@ -1390,7 +1408,7 @@ function SubmissionsSection() {
               </h3>
               <div className="space-y-3">
                 {resubmittedList.map((s: any) => (
-                  <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+                  <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
                 ))}
               </div>
             </div>
@@ -1403,7 +1421,7 @@ function SubmissionsSection() {
               </h3>
               <div className="space-y-3">
                 {freshPendingList.map((s: any) => (
-                  <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+                  <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
                 ))}
               </div>
             </div>
@@ -1416,7 +1434,7 @@ function SubmissionsSection() {
               </h3>
               <div className="space-y-3">
                 {reviewedList.map((s: any) => (
-                  <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+                  <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
                 ))}
               </div>
             </div>
@@ -1428,7 +1446,7 @@ function SubmissionsSection() {
             <p className="text-center text-muted-foreground py-12 text-sm">No task submissions found matching your current filter.</p>
           ) : (
             filteredData.map((s: any) => (
-              <SubmissionCard key={s.id} sub={s} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
+              <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
             ))
           )}
         </div>
@@ -1587,7 +1605,7 @@ function SubmissionsSection() {
   );
 }
 
-function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, historyData }: any) {
+function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, historyData, isResubmitted: isResubmittedProp }: any) {
   const [actionsOpen, setActionsOpen] = useState(false);
   const isLoading = loadingId === sub.id;
   const taskLabel = `Task ${sub.tasks?.task_number ?? ""}: ${sub.tasks?.title ?? "Task Submission"}`;
@@ -1595,7 +1613,7 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
   const userMeta = `${sub.applications?.intern_id ?? ""} · ${getDomain(sub.applications?.domain)?.name ?? sub.applications?.domain ?? ""}`;
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const isResubmitted = sub.status === "pending" && (Boolean(sub.reviewed_at) || Boolean(sub.feedback));
+  const isResubmitted = sub.status === "pending" && (Boolean(sub.reviewed_at) || Boolean(sub.feedback) || Boolean(isResubmittedProp));
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
