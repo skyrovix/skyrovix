@@ -40,14 +40,35 @@ export function NotificationMenu() {
   const [selectedNotif, setSelectedNotif] = useState<NotificationItem | null>(null);
 
   const [readIds, setReadIds] = useState<string[]>(() => {
-    if (typeof window === "undefined" || !user?.id) return [];
+    if (typeof window === "undefined") return [];
     try {
-      const saved = localStorage.getItem(`skyrovix_read_notifs_${user.id}`);
-      return saved ? JSON.parse(saved) : [];
+      if (user?.id) {
+        const saved = localStorage.getItem(`skyrovix_read_notifs_${user.id}`);
+        if (saved) return JSON.parse(saved);
+      }
+      const guestSaved = localStorage.getItem("skyrovix_read_notifs_guest");
+      return guestSaved ? JSON.parse(guestSaved) : [];
     } catch {
       return [];
     }
   });
+
+  const isLoadedRef = useRef(false);
+
+  // Sync state when user becomes available after initial render
+  useEffect(() => {
+    if (typeof window === "undefined" || !user?.id) return;
+    try {
+      const key = `skyrovix_read_notifs_${user.id}`;
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        setReadIds(JSON.parse(saved));
+      }
+      isLoadedRef.current = true;
+    } catch {
+      isLoadedRef.current = true;
+    }
+  }, [user?.id]);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -85,11 +106,12 @@ export function NotificationMenu() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Save readIds to localStorage
+  // Save readIds to localStorage (safely after user initial load completes)
   useEffect(() => {
-    if (user?.id) {
-      localStorage.setItem(`skyrovix_read_notifs_${user.id}`, JSON.stringify(readIds));
-    }
+    if (typeof window === "undefined") return;
+    if (user?.id && !isLoadedRef.current) return;
+    const key = user?.id ? `skyrovix_read_notifs_${user.id}` : `skyrovix_read_notifs_guest`;
+    localStorage.setItem(key, JSON.stringify(readIds));
   }, [readIds, user?.id]);
 
   // Queries

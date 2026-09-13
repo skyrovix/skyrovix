@@ -160,8 +160,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr" className="bg-[#f8fafc] dark:bg-[#070b19]">
-      <head>
+    <html lang="en" dir="ltr" className="bg-[#f8fafc] dark:bg-[#070b19]" suppressHydrationWarning>
+      <head suppressHydrationWarning>
         <HeadContent />
         <meta name="google-adsense-account" content="ca-pub-5755024838228586" />
         <script
@@ -172,7 +172,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-FD15M64DX5" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-FD15M64DX5',{page_path:window.location.pathname});`,
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-FD15M64DX5',{page_path:typeof window !== 'undefined' ? window.location.pathname : ''});`,
           }}
         />
         <script
