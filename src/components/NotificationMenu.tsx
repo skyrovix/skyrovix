@@ -367,7 +367,7 @@ export function NotificationMenu() {
 
       {/* Notifications Dropdown Panel */}
       {open && (
-        <div className="absolute right-0 top-11 z-50 w-[330px] sm:w-[380px] rounded-2xl border border-slate-200/90 bg-white p-0 shadow-2xl backdrop-blur-2xl dark:bg-[#0F172A] dark:border-slate-800 animate-in zoom-in-95 overflow-hidden">
+        <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-11 z-[999] w-auto sm:w-[380px] rounded-2xl border border-slate-200/90 bg-white p-0 shadow-2xl backdrop-blur-2xl dark:bg-[#0F172A] dark:border-slate-800 animate-in zoom-in-95 overflow-hidden">
           
           {/* Panel Header */}
           <div className="flex items-center justify-between border-b border-border/40 px-4 py-3 bg-slate-50/70 dark:bg-slate-900/60">
