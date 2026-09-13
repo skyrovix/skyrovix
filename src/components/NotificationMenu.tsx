@@ -142,10 +142,23 @@ export function NotificationMenu() {
   });
 
   const { data: userCerts } = useQuery({
-    queryKey: ["notif-certs", user?.id],
+    queryKey: ["notif-certs", user?.id, userApps?.map((a) => a.id)],
     enabled: Boolean(user?.id),
     queryFn: async () => {
-      const { data } = await supabase.from("certificates").select("*").eq("user_id", user!.id);
+      let appIds = userApps?.map((a) => a.id) ?? [];
+      if (appIds.length === 0) {
+        const { data: apps } = await supabase
+          .from("applications")
+          .select("id")
+          .eq("user_id", user!.id);
+        appIds = apps?.map((a) => a.id) ?? [];
+      }
+      if (appIds.length === 0) return [];
+
+      const { data } = await supabase
+        .from("certificates")
+        .select("*")
+        .in("application_id", appIds);
       return data ?? [];
     },
     refetchInterval: 5000,
