@@ -238,7 +238,15 @@ function AuthPage() {
                     <Input name="email" type="email" placeholder="name@college.edu" required className="mt-1.5 h-11 rounded-xl border-border/60 bg-white" />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold text-muted-foreground">Account Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-muted-foreground">Account Password</Label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs font-semibold text-[#07284a] dark:text-blue-400 hover:underline transition-colors"
+                      >
+                        Forgot Password?
+                      </Link>
+                    </div>
                     <Input name="password" type="password" placeholder="••••••••" required className="mt-1.5 h-11 rounded-xl border-border/60 bg-white" />
                   </div>
                   <Button type="submit" className="w-full brand-gradient text-white border-0 h-11 rounded-2xl font-bold gap-1.5 shadow-lg shadow-[#07284a]/15 mt-2" disabled={loading}>
