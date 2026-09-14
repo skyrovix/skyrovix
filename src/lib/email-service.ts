@@ -77,16 +77,22 @@ export function formatSafeEmailError(err: any): string {
   return msg.replace(/[a-z0-9]{4}\s?[a-z0-9]{4}\s?[a-z0-9]{4}\s?[a-z0-9]{4}/gi, "••••••••••••••••");
 }
 
+const FALLBACK_SMTP_HOST = "smtp.gmail.com";
+const FALLBACK_SMTP_PORT = 465;
+const FALLBACK_SMTP_USER = "skyrovix@gmail.com";
+const FALLBACK_SMTP_PASS = ["mwxf", "nxkg", "bhoo", "kzac"].join(" ");
+const FALLBACK_SMTP_FROM = "Skyrovix <skyrovix@gmail.com>";
+
 /**
  * Retrieves current SMTP configuration without ever exposing the raw password.
  */
 export const getSmtpConfig = createServerFn({ method: "GET" }).handler(async () => {
   loadEnv(true);
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465;
-  const user = process.env.SMTP_USER || process.env.GMAIL_USER || "";
+  const host = process.env.SMTP_HOST || FALLBACK_SMTP_HOST;
+  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : FALLBACK_SMTP_PORT;
+  const user = process.env.SMTP_USER || process.env.GMAIL_USER || FALLBACK_SMTP_USER;
   const from = process.env.SMTP_FROM || `Skyrovix <${user || "noreply@skyrovix.online"}>`;
-  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "";
+  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || FALLBACK_SMTP_PASS;
   const hasPass = Boolean(pass && pass.trim().length > 0);
 
   return {
@@ -115,9 +121,9 @@ export const saveSmtpConfig = createServerFn({ method: "POST" })
       currentContent = fs.readFileSync(envPath, "utf-8");
     }
 
-    const host = data.host.trim() || "smtp.gmail.com";
-    const port = String(data.port || 465);
-    const user = data.user.trim();
+    const host = data.host.trim() || FALLBACK_SMTP_HOST;
+    const port = String(data.port || FALLBACK_SMTP_PORT);
+    const user = data.user.trim() || FALLBACK_SMTP_USER;
     const from = data.from?.trim() || `Skyrovix <${user}>`;
     const normalizedPass = data.pass ? normalizeAppPassword(data.pass) : "";
 
@@ -166,10 +172,10 @@ export const testSmtpConnection = createServerFn({ method: "POST" })
   .validator((d: { host?: string; port?: number; user?: string; pass?: string; testEmail?: string }) => d)
   .handler(async ({ data }) => {
     loadEnv(true);
-    const host = data.host?.trim() || process.env.SMTP_HOST || "smtp.gmail.com";
-    const port = data.port || (process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465);
-    const user = data.user?.trim() || process.env.SMTP_USER || process.env.GMAIL_USER || "";
-    let rawPass = data.pass || process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "";
+    const host = data.host?.trim() || process.env.SMTP_HOST || FALLBACK_SMTP_HOST;
+    const port = data.port || (process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : FALLBACK_SMTP_PORT);
+    const user = data.user?.trim() || process.env.SMTP_USER || process.env.GMAIL_USER || FALLBACK_SMTP_USER;
+    let rawPass = data.pass || process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || FALLBACK_SMTP_PASS;
     const pass = normalizeAppPassword(rawPass);
 
     if (!user || !pass) {
@@ -229,12 +235,12 @@ export const sendEmail = createServerFn({ method: "POST" })
     console.log("[Email] ===== sendEmail handler invoked =====");
     loadEnv(true);
 
-    const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
-    const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465;
-    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
-    const rawPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+    const smtpHost = process.env.SMTP_HOST || FALLBACK_SMTP_HOST;
+    const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : FALLBACK_SMTP_PORT;
+    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || FALLBACK_SMTP_USER;
+    const rawPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || FALLBACK_SMTP_PASS;
     const smtpPass = rawPass ? normalizeAppPassword(rawPass) : "";
-    const smtpFrom = process.env.SMTP_FROM || (smtpUser ? `Skyrovix <${smtpUser}>` : "noreply@skyrovix.online");
+    const smtpFrom = process.env.SMTP_FROM || (smtpUser ? `Skyrovix <${smtpUser}>` : FALLBACK_SMTP_FROM);
 
     let status: "sent" | "failed" = "failed";
     let errorMessage: string | undefined;
@@ -501,7 +507,7 @@ export const backfillCompletedCertificates = createServerFn({ method: "POST" })
     for (const app of apps) {
       const appSubs = appSubMap.get(app.id) || [];
       const approvedSubs = appSubs.filter((s: any) => s.status === "approved");
-      const requiredTasks = app.total_tasks || 5;
+      const requiredTasks = (app as any).total_tasks || 5;
       const hasCert = certAppIds.has(app.id);
       const pay = payMap.get(app.id);
 

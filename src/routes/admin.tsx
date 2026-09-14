@@ -3631,7 +3631,7 @@ function AnalyticsSection() {
     queryKey: ["admin-analytics-revenue"],
     queryFn: async () => {
       const { data, error } = await (supabase.from("payments" as any) as any)
-        .select("amount, created_at")
+        .select("amount, submitted_at, verified_at")
         .eq("status", "verified");
       if (error) {
         console.error("Failed to load revenue analytics:", error);
@@ -3640,7 +3640,7 @@ function AnalyticsSection() {
       if (!data || data.length === 0) return { data: [], total: 0 };
       const map: Record<string, number> = {};
       data.forEach((p: any) => {
-        const d = new Date(p.created_at);
+        const d = new Date(p.verified_at || p.submitted_at || Date.now());
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         map[key] = (map[key] || 0) + Number(p.amount);
       });
@@ -5046,7 +5046,7 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
     enabled: tab === "payments" && Boolean(appId),
     queryFn: async () => {
       if (!appId) return [];
-      const { data } = await supabase.from("payments").select("*").eq("application_id", appId).order("created_at", { ascending: false });
+      const { data } = await supabase.from("payments").select("*").eq("application_id", appId).order("submitted_at", { ascending: false });
       return data ?? [];
     },
   });
@@ -5173,9 +5173,9 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
                         <tr key={p.id} className="border-b border-border/20 hover:bg-accent/20">
                           <td className="px-3 py-2 font-medium">{p.amount ? `₹${p.amount.toLocaleString("en-IN")}` : "—"}</td>
                           <td className="px-3 py-2"><Badge className={`text-xs ${p.status === "verified" ? "bg-green-100 text-green-700" : p.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>{p.status}</Badge></td>
-                          <td className="px-3 py-2 text-xs text-muted-foreground">{p.payment_method ?? "—"}</td>
-                          <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">{p.utr ?? "—"}</td>
-                          <td className="px-3 py-2 text-xs text-muted-foreground">{formatDate(p.created_at)}</td>
+                          <td className="px-3 py-2 text-xs text-muted-foreground">{p.payment_method ?? "UPI"}</td>
+                          <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">{p.utr_number || p.utr || "—"}</td>
+                          <td className="px-3 py-2 text-xs text-muted-foreground">{formatDate(p.verified_at || p.submitted_at)}</td>
                         </tr>
                       ))}
                     </tbody>

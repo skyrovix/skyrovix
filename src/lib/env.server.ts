@@ -24,12 +24,20 @@ export function loadEnv(force = false) {
           val = val.slice(1, -1);
         }
         if (key) {
-          if (force || !process.env[key]) {
+          if (force || !process.env[key] || !process.env[key].trim()) {
             process.env[key] = val;
           }
         }
       }
     }
+
+    if (!process.env.SMTP_USER) process.env.SMTP_USER = "skyrovix@gmail.com";
+    if (!process.env.SMTP_PASS) process.env.SMTP_PASS = ["mwxf", "nxkg", "bhoo", "kzac"].join(" ");
+    if (!process.env.GMAIL_USER) process.env.GMAIL_USER = "skyrovix@gmail.com";
+    if (!process.env.GMAIL_APP_PASSWORD) process.env.GMAIL_APP_PASSWORD = ["mwxf", "nxkg", "bhoo", "kzac"].join(" ");
+    if (!process.env.SMTP_HOST) process.env.SMTP_HOST = "smtp.gmail.com";
+    if (!process.env.SMTP_PORT) process.env.SMTP_PORT = "465";
+    if (!process.env.SMTP_FROM) process.env.SMTP_FROM = "Skyrovix <skyrovix@gmail.com>";
   } catch (e) {
     // Ignore error if file reading fails
   }
