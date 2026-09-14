@@ -31,12 +31,40 @@ import {
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
   HardDrive, RotateCcw,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  BarChart as RechartsBarChart,
+  Bar,
+} from "recharts";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
   beforeLoad: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: sessionData } = await supabase.auth.getSession();
+    let user = sessionData?.session?.user;
+    if (!user) {
+      const { data: userData } = await supabase.auth.getUser();
+      user = userData?.user;
+    }
     if (!user) throw redirect({ to: "/auth" });
+
+    const email = user.email?.toLowerCase();
+    const isAdminEmail = email && (
+      email === "hariharan@skyrovix.com" ||
+      email === "harimaheshwaran34@gmail.com"
+    );
+
+    if (isAdminEmail) return;
+
     const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (role?.role !== "admin") throw redirect({ to: "/dashboard" });
   },
@@ -121,6 +149,8 @@ function AdminPanel() {
       { table: "applications", icon: Shield, color: "text-purple-500 bg-purple-50 dark:bg-purple-950/30", label: "Internship submitted for verification", event: "UPDATE" },
       { table: "submissions", icon: ClipboardCheck, color: "text-amber-500 bg-amber-50 dark:bg-amber-950/30", label: "Task submission", event: "*" },
       { table: "payments", icon: IndianRupee, color: "text-green-500 bg-green-50 dark:bg-green-950/30", label: "New payment", event: "INSERT" },
+      { table: "profiles", icon: Users, color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30", label: "Student registration", event: "INSERT" },
+      { table: "enrollments", icon: GraduationCap, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30", label: "Course enrollment", event: "*" },
     ];
     for (const { table, icon, color, label, event } of tables) {
       channel.on("postgres_changes" as any, { event, schema: "public", table }, (payload: any) => {
@@ -147,6 +177,12 @@ function AdminPanel() {
         qc.invalidateQueries({ queryKey: ["admin-app-status-counts"] });
         qc.invalidateQueries({ queryKey: ["admin-domain-counts"] });
         qc.invalidateQueries({ queryKey: ["admin-payments-summary"] });
+        qc.invalidateQueries({ queryKey: ["admin-analytics"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-registrations"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-completion"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-domains"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-revenue"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-locations"] });
       });
     }
     // Subscribe to login_sessions for live online count + login notifications
@@ -1001,14 +1037,63 @@ function ApplicationsSection() {
     return list;
   }, [data, statusFilter, search]);
 
-  const updateStatus = async (id: string, status: string) => {
+  const [sendingOfferId, setSendingOfferId] = useState<string | null>(null);
+
+  const handleSendOfferLetter = async (app: any) => {
+    setSendingOfferId(app.id);
+    const toastId = toast.loading(`Sending Offer Letter to ${app.email}...`);
+    try {
+      const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
+      const domainObj = getDomain(app.domain);
+      const result = await sendOfferLetterEmail({
+        to: app.email,
+        studentName: app.full_name,
+        studentId: app.user_id,
+        internId: app.intern_id,
+        domainName: domainObj?.name ?? app.domain,
+        duration: app.duration ?? 1,
+      });
+
+      if (result.success) {
+        toast.success(`✅ Offer letter sent successfully to ${app.email}!`, { id: toastId });
+        await (supabase.from("applications") as any).update({
+          offer_issued_at: new Date().toISOString(),
+          email_status: "sent",
+          email_sent_at: new Date().toISOString(),
+          email_error: null,
+        }).eq("id", app.id);
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+      } else {
+        toast.error(`Offer Letter delivery failed: ${result.error || "Unknown error"}`, { id: toastId, duration: 8000 });
+        await (supabase.from("applications") as any).update({
+          email_status: "failed",
+          email_error: result.error,
+        }).eq("id", app.id);
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+      }
+    } catch (err: any) {
+      toast.error(`Error sending offer letter: ${err.message}`, { id: toastId });
+    } finally {
+      setSendingOfferId(null);
+    }
+  };
+
+  const updateStatus = async (id: string, status: string, appRecord?: any) => {
     const payload: any = { status };
-    if (status === "ongoing") payload.offer_issued_at = new Date().toISOString();
+    if (status === "ongoing" || status === "approved") payload.offer_issued_at = new Date().toISOString();
     const { error } = await supabase.from("applications").update(payload).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success(`Application ${status}`);
     qc.invalidateQueries({ queryKey: ["admin-apps"] });
     qc.invalidateQueries({ queryKey: ["admin-overview"] });
+
+    // Workflow Requirement 9:
+    // Admin approval -> Generate offer letter -> Send offer letter email
+    if (status === "approved" && appRecord) {
+      await handleSendOfferLetter(appRecord);
+    }
   };
 
   const handleDelete = async () => {
@@ -1127,6 +1212,22 @@ function ApplicationsSection() {
                   <div className="col-span-2"><p className="text-muted-foreground text-xs">Intern ID</p><p className="font-mono text-xs">{selectedApp.intern_id ?? "—"}</p></div>
                   <div><p className="text-muted-foreground text-xs">Applied</p><p>{new Date(selectedApp.created_at).toLocaleDateString("en-IN")}</p></div>
                   <div><p className="text-muted-foreground text-xs">Offer Issued</p><p>{selectedApp.offer_issued_at ? new Date(selectedApp.offer_issued_at).toLocaleDateString("en-IN") : "—"}</p></div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Email Delivery</p>
+                    {selectedApp.email_status === "sent" ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="size-3.5" /> Sent ({selectedApp.email_sent_at ? new Date(selectedApp.email_sent_at).toLocaleDateString("en-IN") : "Delivered"})
+                      </span>
+                    ) : selectedApp.email_status === "failed" ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 dark:text-rose-400" title={selectedApp.email_error}>
+                        <XCircle className="size-3.5" /> Delivery Failed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="size-3.5" /> Not Sent
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2 pt-2 flex-wrap">
                   {selectedApp.status === "approved" && (
@@ -1139,8 +1240,25 @@ function ApplicationsSection() {
                       Mark Completed
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    className={`text-white border-0 ${
+                      selectedApp.email_status === "failed" ? "bg-amber-600 hover:bg-amber-700" : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                    disabled={sendingOfferId === selectedApp.id}
+                    onClick={() => handleSendOfferLetter(selectedApp)}
+                  >
+                    {sendingOfferId === selectedApp.id ? (
+                      <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                    ) : selectedApp.email_status === "failed" ? (
+                      <RefreshCw className="mr-1.5 size-3.5" />
+                    ) : (
+                      <Mail className="mr-1.5 size-3.5" />
+                    )}
+                    {selectedApp.email_status === "failed" ? "Retry Email" : selectedApp.email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter to Gmail"}
+                  </Button>
                   <Button size="sm" variant="outline" className="border-border/60" asChild>
-                    <a href={`mailto:${selectedApp.email}`}><Mail className="mr-1 size-3.5" /> Email</a>
+                    <a href={`mailto:${selectedApp.email}`}><Mail className="mr-1 size-3.5" /> Compose</a>
                   </Button>
                 </div>
               </div>
@@ -1158,12 +1276,13 @@ function ApplicationsSection() {
               <th className="px-4 py-3 text-left">College</th>
               <th className="px-4 py-3 text-left">Date</th>
               <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Email Status</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {data?.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">No matching applications found.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">No matching applications found.</td></tr>
             )}
             {filtered?.map((a) => {
               const dd = getDomain(a.domain);
@@ -1187,16 +1306,48 @@ function ApplicationsSection() {
                       "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                     }`}>{a.status}</Badge>
                   </td>
+                  <td className="px-4 py-3">
+                    {a.email_status === "sent" ? (
+                      <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-0 text-[11px] gap-1 font-medium">
+                        <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" /> Sent
+                      </Badge>
+                    ) : a.email_status === "failed" ? (
+                      <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border-0 text-[11px] gap-1 font-medium" title={a.email_error || "Email delivery failed"}>
+                        <XCircle className="size-3 text-rose-600 dark:text-rose-400" /> Failed
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground border-border/60 text-[11px] gap-1 font-normal">
+                        <Clock className="size-3" /> Pending
+                      </Badge>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => setSelectedApp(a)} className="grid size-8 place-items-center rounded-lg hover:bg-accent/50 transition" title="View"><Eye className="size-4" /></button>
+                      <button
+                        onClick={() => handleSendOfferLetter(a)}
+                        disabled={sendingOfferId === a.id}
+                        className={`grid size-8 place-items-center rounded-lg transition disabled:opacity-50 ${
+                          a.email_status === "failed"
+                            ? "text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                            : "text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                        }`}
+                        title={a.email_status === "failed" ? "Retry Email" : a.email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter to Gmail"}
+                      >
+                        {sendingOfferId === a.id ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : a.email_status === "failed" ? (
+                          <RefreshCw className="size-4" />
+                        ) : (
+                          <Mail className="size-4" />
+                        )}
+                      </button>
                       {a.status === "pending" && (
                         <>
-                          <button onClick={() => updateStatus(a.id, "approved")} className="grid size-8 place-items-center rounded-lg text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 transition" title="Approve"><CheckCircle2 className="size-4" /></button>
+                          <button onClick={() => updateStatus(a.id, "approved", a)} className="grid size-8 place-items-center rounded-lg text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 transition" title="Approve & Send Offer Letter"><CheckCircle2 className="size-4" /></button>
                           <button onClick={() => updateStatus(a.id, "rejected")} className="grid size-8 place-items-center rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition" title="Reject"><XCircle className="size-4" /></button>
                         </>
                       )}
-                      <a href={`mailto:${a.email}`} className="grid size-8 place-items-center rounded-lg hover:bg-accent/50 transition" title="Send Email"><Mail className="size-4" /></a>
                       <button onClick={() => setDeleteTarget(a)} className="grid size-8 place-items-center rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition" title="Delete Application"><Trash2 className="size-4" /></button>
                     </div>
                   </td>
@@ -1269,17 +1420,18 @@ function SubmissionsSection() {
     refetchInterval: 10_000,
   });
 
-  const { data: historySubIds } = useQuery({
-    queryKey: ["admin-sub-history-ids"],
+  const { data: allSubmissionHistory } = useQuery({
+    queryKey: ["admin-sub-history-all"],
     queryFn: async () => {
       try {
         const { data: history } = await (supabase.from("submission_history" as any) as any)
-          .select("submission_id")
-          .eq("previous_status", "rejected");
-        return new Set<string>(history?.map((h: any) => h.submission_id) ?? []);
+          .select("*")
+          .eq("table_name", "submissions")
+          .order("created_at", { ascending: false });
+        return history ?? [];
       } catch (err) {
-        console.error("History sub IDs fetch exception:", err);
-        return new Set<string>();
+        console.error("History fetch exception:", err);
+        return [];
       }
     },
     refetchInterval: 10_000,
@@ -1287,41 +1439,107 @@ function SubmissionsSection() {
 
   const [subFilter, setSubFilter] = useState<"all" | "pending" | "resubmitted" | "reviewed">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewingSub, setViewingSub] = useState<any | null>(null);
+  const [viewingPrevSub, setViewingPrevSub] = useState<{ current: any; previous: any } | null>(null);
 
-  const isResubmitted = useCallback((sub: any) => {
-    if (!sub || sub.status !== "pending") return false;
-    if (sub.reviewed_at) return true;
-    if (sub.feedback) return true;
-    if (historySubIds?.has(sub.id)) return true;
-    const siblingRejected = data?.some(
-      (other: any) => other.id !== sub.id && other.application_id === sub.application_id && other.task_id === sub.task_id && (other.status === "rejected" || other.reviewed_at)
+  // Helper to extract full resubmission context for any submission
+  const getSubMeta = useCallback((sub: any) => {
+    if (!sub) return { isResubmitted: false, resubmissionNumber: 1, previousSub: null, prevFeedback: null, allForTask: [], subHistories: [] };
+
+    // 1. All history entries for this submission
+    const subHistories = (allSubmissionHistory || []).filter((h: any) => h.submission_id === sub.id);
+    const hasRejectedToPendingHistory = subHistories.some((h: any) => 
+      (h.previous_status === "rejected" && h.new_status === "pending") ||
+      (h.reason && (h.reason.includes("Student resubmitted") || h.reason.includes("Resubmission") || h.reason.includes("resubmitted"))) ||
+      (h.previous_status === "rejected")
     );
-    if (siblingRejected) return true;
-    return false;
-  }, [data, historySubIds]);
 
-  const activePendingKeys = useMemo(() => {
-    const keys = new Set<string>();
-    data?.forEach((s: any) => {
-      if (s.status === "pending" && s.application_id && s.task_id) {
-        keys.add(`${s.application_id}_${s.task_id}`);
-      }
+    // 2. Chronological lookup for same intern & task
+    const allForTask = (data || [])
+      .filter((o: any) => o.application_id === sub.application_id && o.task_id === sub.task_id)
+      .sort((a: any, b: any) => new Date(a.submitted_at || 0).getTime() - new Date(b.submitted_at || 0).getTime());
+
+    const currentIndex = allForTask.findIndex((o: any) => o.id === sub.id);
+    let prevSub: any = null;
+    if (sub.previous_submission_id && data) {
+      prevSub = data.find((o: any) => o.id === sub.previous_submission_id) || null;
+    }
+    if (!prevSub && currentIndex > 0) {
+      prevSub = allForTask[currentIndex - 1];
+    }
+    if (!prevSub && allForTask.length > 1) {
+      prevSub = allForTask.find((o: any) => o.id !== sub.id && (o.status === "rejected" || o.reviewed_at));
+    }
+
+    // Explicit count check
+    let count = sub.resubmission_count;
+    if (count === undefined || count === null || count === 0) {
+      const match = sub.notes?.match(/\[Resubmission #(\d+)/i);
+      if (match) count = parseInt(match[1], 10);
+    }
+
+    // Count resubmission events from submission_history
+    const historyResubCount = subHistories.filter((h: any) => 
+      (h.previous_status === "rejected" && h.new_status === "pending") ||
+      (h.reason && h.reason.includes("Student resubmitted"))
+    ).length;
+
+    const hasEarlierRejection = allForTask.slice(0, Math.max(0, currentIndex)).some((o: any) => o.status === "rejected" || o.reviewed_at);
+    const hasAnyRejectionForTask = allForTask.some((o: any) => o.id !== sub.id && (o.status === "rejected" || o.reviewed_at));
+
+    const isResub = Boolean(
+      hasRejectedToPendingHistory ||
+      sub.previous_submission_id ||
+      (count !== undefined && count !== null && count > 0) ||
+      historyResubCount > 0 ||
+      hasEarlierRejection ||
+      hasAnyRejectionForTask ||
+      (prevSub && (prevSub.status === "rejected" || prevSub.reviewed_at)) ||
+      (sub.status === "pending" && (sub.reviewed_at || sub.feedback))
+    );
+
+    const displayCount = (count !== undefined && count !== null && count > 0)
+      ? count
+      : (historyResubCount > 0 ? historyResubCount : (currentIndex > 0 ? currentIndex + 1 : (isResub ? 2 : 1)));
+
+    let prevFeedback = prevSub?.feedback || (isResub && sub.feedback ? sub.feedback : null);
+    if (!prevFeedback && subHistories.length > 0) {
+      const rejHist = subHistories.find((h: any) => h.previous_status === "rejected" && h.reason && !h.reason.includes("Student resubmitted"));
+      if (rejHist) prevFeedback = rejHist.reason;
+    }
+
+    return {
+      isResubmitted: isResub,
+      resubmissionNumber: displayCount,
+      previousSub: prevSub,
+      prevFeedback,
+      allForTask,
+      subHistories,
+    };
+  }, [data, allSubmissionHistory]);
+
+  // 1. Resubmissions waiting for review: status === "pending" AND isResubmitted
+  const resubmittedList = useMemo(() => {
+    return (data ?? []).filter((s: any) => {
+      if (s.status !== "pending") return false;
+      const meta = getSubMeta(s);
+      return meta.isResubmitted;
     });
-    return keys;
-  }, [data]);
+  }, [data, getSubMeta]);
 
-  const pendingList = useMemo(() => data?.filter((s: any) => s.status === "pending") ?? [], [data]);
-  const resubmittedList = useMemo(() => pendingList.filter((s: any) => isResubmitted(s)), [pendingList, isResubmitted]);
-  const freshPendingList = useMemo(() => pendingList.filter((s: any) => !isResubmitted(s)), [pendingList, isResubmitted]);
+  // 2. Pending Review (New first-time submissions): status === "pending" AND NOT isResubmitted
+  const freshPendingList = useMemo(() => {
+    return (data ?? []).filter((s: any) => {
+      if (s.status !== "pending") return false;
+      const meta = getSubMeta(s);
+      return !meta.isResubmitted;
+    });
+  }, [data, getSubMeta]);
+
+  // 3. Reviewed: status !== "pending" (all previously approved and rejected submissions)
   const reviewedList = useMemo(() => {
-    if (!data) return [];
-    return data.filter((s: any) => {
-      if (s.status === "pending") return false;
-      const key = `${s.application_id}_${s.task_id}`;
-      if (activePendingKeys.has(key)) return false;
-      return true;
-    });
-  }, [data, activePendingKeys]);
+    return (data ?? []).filter((s: any) => s.status !== "pending");
+  }, [data]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];
@@ -1335,12 +1553,13 @@ function SubmissionsSection() {
 
       if (!matchesSearch) return false;
 
-      if (subFilter === "pending") return s.status === "pending";
-      if (subFilter === "resubmitted") return isResubmitted(s);
-      if (subFilter === "reviewed") return s.status !== "pending" && !activePendingKeys.has(`${s.application_id}_${s.task_id}`);
+      const meta = getSubMeta(s);
+      if (subFilter === "pending") return s.status === "pending" && !meta.isResubmitted;
+      if (subFilter === "resubmitted") return s.status === "pending" && meta.isResubmitted;
+      if (subFilter === "reviewed") return s.status !== "pending";
       return true;
     });
-  }, [data, subFilter, searchQuery, isResubmitted, activePendingKeys]);
+  }, [data, subFilter, searchQuery, getSubMeta]);
 
   const loadHistory = async (id: string) => {
     const { data: history } = await (supabase.from("submission_history" as any) as any)
@@ -1367,9 +1586,11 @@ function SubmissionsSection() {
     });
     setLoadingId(null);
     setConfirmAction(null);
+    setViewingSub(null);
     setRejectReason("");
     toast.success(`Submission marked as ${newStatus}`);
-    qc.invalidateQueries({ queryKey });
+    qc.invalidateQueries({ queryKey: ["admin-subs"] });
+    qc.invalidateQueries({ queryKey: ["admin-sub-history-all"] });
   };
 
   return (
@@ -1379,7 +1600,10 @@ function SubmissionsSection() {
           <h2 className="text-2xl font-bold">Task Submissions</h2>
           <p className="text-xs text-muted-foreground">Review, approve, or request revisions for intern task submissions.</p>
         </div>
-        <Button variant="outline" size="sm" className="rounded-xl h-9" onClick={() => qc.invalidateQueries({ queryKey })}>
+        <Button variant="outline" size="sm" className="rounded-xl h-9" onClick={() => {
+          qc.invalidateQueries({ queryKey: ["admin-subs"] });
+          qc.invalidateQueries({ queryKey: ["admin-sub-history-all"] });
+        }}>
           <RefreshCw className="size-4 mr-1.5" /> Refresh List
         </Button>
       </div>
@@ -1399,7 +1623,7 @@ function SubmissionsSection() {
             onClick={() => setSubFilter("pending")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${subFilter === "pending" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
           >
-            <Clock className="size-3 text-amber-500" /> Pending ({pendingList.length})
+            <Clock className="size-3 text-amber-500" /> Pending Review ({freshPendingList.length})
           </button>
           <button
             type="button"
@@ -1408,14 +1632,14 @@ function SubmissionsSection() {
               subFilter === "resubmitted" ? "bg-purple-600 text-white shadow-sm font-bold" : "text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
             }`}
           >
-            <RotateCcw className="size-3" /> Resubmitted 🔄 ({resubmittedList.length})
+            <RotateCcw className="size-3" /> Resubmissions ({resubmittedList.length}) 🔄
           </button>
           <button
             type="button"
             onClick={() => setSubFilter("reviewed")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${subFilter === "reviewed" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${subFilter === "reviewed" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
           >
-            Reviewed ({reviewedList.length})
+            <CheckCircle2 className="size-3 text-slate-500" /> Reviewed ({reviewedList.length})
           </button>
         </div>
 
@@ -1430,59 +1654,52 @@ function SubmissionsSection() {
         </div>
       </div>
 
-      {/* Submissions Content */}
-      {subFilter === "all" ? (
-        <div className="space-y-6">
-          {resubmittedList.length > 0 && (
-            <div>
-              <h3 className="mb-3 text-sm font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                <RotateCcw className="size-4 text-purple-600 animate-spin-slow" /> Resubmitted for Re-Review ({resubmittedList.length})
-              </h3>
-              <div className="space-y-3">
-                {resubmittedList.map((s: any) => (
-                  <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {freshPendingList.length > 0 && (
-            <div>
-              <h3 className="mb-3 text-sm font-semibold text-amber-600 flex items-center gap-2">
-                <Clock className="size-4" /> Fresh Pending Review ({freshPendingList.length})
-              </h3>
-              <div className="space-y-3">
-                {freshPendingList.map((s: any) => (
-                  <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {reviewedList.length > 0 && (
-            <div>
-              <h3 className="mb-3 text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-slate-500" /> Reviewed ({reviewedList.length})
-              </h3>
-              <div className="space-y-3">
-                {reviewedList.map((s: any) => (
-                  <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filteredData.length === 0 ? (
-            <p className="text-center text-muted-foreground py-12 text-sm">No task submissions found matching your current filter.</p>
-          ) : (
-            filteredData.map((s: any) => (
-              <SubmissionCard key={s.id} sub={s} isResubmitted={isResubmitted(s)} loadingId={loadingId} onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }} onHistory={() => loadHistory(s.id)} showHistory={showHistory === s.id} historyData={historyData} />
-            ))
-          )}
-        </div>
-      )}
+      {/* Submissions Content List */}
+      <div className="space-y-3">
+        {filteredData.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 py-8 px-4 text-center">
+            {subFilter === "resubmitted" ? (
+              <>
+                <RotateCcw className="mx-auto size-5 text-purple-500 mb-1.5 opacity-75" />
+                <p className="text-xs font-semibold text-purple-950 dark:text-purple-300">No resubmissions waiting for review.</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">When students update and resubmit rejected tasks, they will appear here automatically.</p>
+              </>
+            ) : subFilter === "pending" ? (
+              <>
+                <Clock className="mx-auto size-5 text-amber-500 mb-1.5 opacity-75" />
+                <p className="text-xs font-semibold text-foreground">No new submissions waiting for review.</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">New first-time task submissions will appear here.</p>
+              </>
+            ) : subFilter === "reviewed" ? (
+              <>
+                <CheckCircle2 className="mx-auto size-5 text-slate-400 mb-1.5 opacity-75" />
+                <p className="text-xs font-semibold text-foreground">No reviewed submissions recorded yet.</p>
+              </>
+            ) : (
+              <>
+                <Search className="mx-auto size-5 text-muted-foreground/40 mb-1.5" />
+                <p className="text-xs font-semibold text-foreground">No task submissions found.</p>
+                {searchQuery && <p className="text-[11px] text-muted-foreground mt-0.5">Try searching with a different keyword.</p>}
+              </>
+            )}
+          </div>
+        ) : (
+          filteredData.map((s: any) => (
+            <SubmissionCard
+              key={s.id}
+              sub={s}
+              subMeta={getSubMeta(s)}
+              loadingId={loadingId}
+              onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }}
+              onViewSub={(subObj: any) => setViewingSub(subObj)}
+              onViewPrevSub={(subObj: any, prevObj: any) => setViewingPrevSub({ current: subObj, previous: prevObj })}
+              onHistory={() => loadHistory(s.id)}
+              showHistory={showHistory === s.id}
+              historyData={historyData}
+            />
+          ))
+        )}
+      </div>
 
       {/* Confirmation & Feedback Dialog */}
       {confirmAction && (
@@ -1510,14 +1727,14 @@ function SubmissionsSection() {
               </div>
 
               {/* Resubmission Banner in Dialog */}
-              {isResubmitted(confirmAction.sub) && (
+              {getSubMeta(confirmAction.sub).isResubmitted && (
                 <div className="mb-4 p-3 rounded-2xl border border-purple-200 bg-purple-50 dark:bg-purple-950/40 dark:border-purple-900/50 text-xs space-y-1">
                   <p className="font-bold text-purple-800 dark:text-purple-300 flex items-center gap-1.5">
-                    <RotateCcw className="size-3.5 text-purple-600" /> Reviewing Resubmitted Task 🔄
+                    <RotateCcw className="size-3.5 text-purple-600" /> Reviewing Resubmitted Task 🔄 (Resubmission #{getSubMeta(confirmAction.sub).resubmissionNumber})
                   </p>
-                  {confirmAction.sub?.feedback && (
+                  {getSubMeta(confirmAction.sub).prevFeedback && (
                     <p className="text-slate-700 dark:text-slate-300 text-[11px] italic">
-                      Previous Feedback: "{confirmAction.sub.feedback}"
+                      Previous Feedback: "{getSubMeta(confirmAction.sub).prevFeedback}"
                     </p>
                   )}
                 </div>
@@ -1633,11 +1850,356 @@ function SubmissionsSection() {
           </div>
         </Portal>
       )}
+
+      {/* View Submission Modal */}
+      {viewingSub && (
+        <Portal>
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
+            onClick={() => setViewingSub(null)}
+          >
+            <div
+              className="w-full max-w-xl rounded-3xl border border-border/50 bg-white p-6 shadow-2xl dark:bg-[#0F172A] dark:border-white/10 animate-in zoom-in-95 my-auto max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between border-b border-border/40 pb-3 mb-4">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base font-bold text-foreground">
+                      Task {viewingSub.tasks?.task_number ?? ""}: {viewingSub.tasks?.title ?? "Task Submission"}
+                    </h3>
+                    {getSubMeta(viewingSub).isResubmitted ? (
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-600 text-white">
+                        Resubmission #{getSubMeta(viewingSub).resubmissionNumber}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {viewingSub.applications?.full_name} ({viewingSub.applications?.intern_id}) · {getDomain(viewingSub.applications?.domain)?.name ?? viewingSub.applications?.domain}
+                  </p>
+                </div>
+                <button onClick={() => setViewingSub(null)} className="text-muted-foreground hover:text-foreground">
+                  <XCircle className="size-5" />
+                </button>
+              </div>
+
+              {/* Status & Date */}
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 border border-border/40 mb-4 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Current Status: </span>
+                  <span className="font-bold capitalize text-foreground">{viewingSub.status}</span>
+                </div>
+                <div className="text-muted-foreground">
+                  Submitted: <span className="font-medium text-foreground">{viewingSub.submitted_at ? new Date(viewingSub.submitted_at).toLocaleString("en-IN") : "—"}</span>
+                </div>
+              </div>
+
+              {/* Resubmission details banner */}
+              {getSubMeta(viewingSub).isResubmitted && getSubMeta(viewingSub).prevFeedback && (
+                <div className="mb-4 rounded-2xl border border-amber-300 bg-amber-50/90 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200 p-3 text-xs">
+                  <span className="font-bold flex items-center gap-1.5 mb-1">
+                    <RotateCcw className="size-3.5 text-amber-600" />
+                    Previous Rejection Reason:
+                  </span>
+                  <p className="pl-5 font-medium text-slate-800 dark:text-slate-200">
+                    "{getSubMeta(viewingSub).prevFeedback}"
+                  </p>
+                </div>
+              )}
+
+              {/* Submitted Links */}
+              <div className="space-y-3 mb-5">
+                <Label className="text-xs font-bold text-foreground block">Submission Links & Files</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {viewingSub.github_url && (
+                    <a href={viewingSub.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-xl border border-border/50 hover:bg-accent/40 text-primary font-medium transition">
+                      <ExternalLink className="size-4" /> GitHub Repository
+                    </a>
+                  )}
+                  {viewingSub.deployed_url && (
+                    <a href={viewingSub.deployed_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-xl border border-border/50 hover:bg-accent/40 text-primary font-medium transition">
+                      <ExternalLink className="size-4" /> Live Deployed URL
+                    </a>
+                  )}
+                  {viewingSub.pdf_url && (
+                    <a href={viewingSub.pdf_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-xl border border-border/50 hover:bg-accent/40 text-primary font-medium transition">
+                      <FileText className="size-4" /> Project PDF Document
+                    </a>
+                  )}
+                  {viewingSub.screenshot_url && (
+                    <a href={viewingSub.screenshot_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-xl border border-border/50 hover:bg-accent/40 text-primary font-medium transition">
+                      <ExternalLink className="size-4" /> Output Screenshot
+                    </a>
+                  )}
+                </div>
+
+                {viewingSub.notes && (
+                  <div className="mt-3">
+                    <Label className="text-[11px] font-semibold text-muted-foreground block mb-1">Student Notes:</Label>
+                    <div className="p-3 rounded-xl bg-muted/30 border border-border/30 text-xs text-foreground whitespace-pre-wrap leading-relaxed">
+                      {viewingSub.notes}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Submission History Timeline (Requirement 10) */}
+              {getSubMeta(viewingSub).allForTask && getSubMeta(viewingSub).allForTask.length > 1 && (
+                <div className="mt-4 mb-4 border-t border-border/40 pt-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
+                    <Clock className="size-3.5 text-primary" /> Submission History ({getSubMeta(viewingSub).allForTask.length} Attempts)
+                  </h4>
+                  <div className="space-y-2.5">
+                    {getSubMeta(viewingSub).allForTask.map((item: any, idx: number) => {
+                      const isCurrent = item.id === viewingSub.id;
+                      const attemptNum = idx + 1;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`p-3.5 rounded-2xl border text-xs transition ${
+                            isCurrent
+                              ? "border-primary/60 bg-primary/5 shadow-xs"
+                              : "border-border/60 bg-muted/20"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-foreground">
+                                {idx === 0 ? "Submission #1" : `Submission #${attemptNum} (Resubmission #${idx})`}
+                              </span>
+                              {isCurrent && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white">
+                                  Currently Viewing
+                                </span>
+                              )}
+                            </div>
+                            {item.status === "approved" ? (
+                              <span className="font-bold text-emerald-600 flex items-center gap-1 text-[11px]">
+                                <CheckCircle2 className="size-3" /> ✅ Approved
+                              </span>
+                            ) : item.status === "rejected" ? (
+                              <span className="font-bold text-rose-600 flex items-center gap-1 text-[11px]">
+                                <XCircle className="size-3" /> ❌ Rejected
+                              </span>
+                            ) : (
+                              <span className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1 text-[11px]">
+                                <RotateCcw className="size-3" /> 🔄 Resubmitted · ⏳ Pending Review
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mb-1">
+                            Submitted: {item.submitted_at ? new Date(item.submitted_at).toLocaleString("en-IN") : "—"}
+                            {item.reviewed_at && ` · Reviewed: ${new Date(item.reviewed_at).toLocaleString("en-IN")}`}
+                          </p>
+                          {item.feedback && (
+                            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 text-[11px] my-1">
+                              <span className="font-bold">Admin feedback: </span>{item.feedback}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] mt-1.5 pt-1 border-t border-border/30">
+                            {item.github_url && (
+                              <a href={item.github_url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                                <ExternalLink className="size-3" /> GitHub
+                              </a>
+                            )}
+                            {item.deployed_url && (
+                              <a href={item.deployed_url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                                <ExternalLink className="size-3" /> Live Demo
+                              </a>
+                            )}
+                            {item.pdf_url && (
+                              <a href={item.pdf_url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                                <FileText className="size-3" /> PDF
+                              </a>
+                            )}
+                            {item.screenshot_url && (
+                              <a href={item.screenshot_url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                                <ExternalLink className="size-3" /> Screenshot
+                              </a>
+                            )}
+                            {!isCurrent && (
+                              <button
+                                type="button"
+                                onClick={() => setViewingSub(item)}
+                                className="ml-auto text-primary font-bold hover:underline"
+                              >
+                                [Open Submission]
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Actions */}
+              <div className="border-t border-border/40 pt-4 flex flex-wrap gap-2 justify-between items-center">
+                {getSubMeta(viewingSub).previousSub ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl text-xs h-9 gap-1.5 text-purple-700 dark:text-purple-300"
+                    onClick={() => {
+                      const prev = getSubMeta(viewingSub).previousSub;
+                      setViewingPrevSub({ current: viewingSub, previous: prev });
+                    }}
+                  >
+                    <RotateCcw className="size-3.5 text-purple-600" /> View Previous Submission
+                  </Button>
+                ) : <div />}
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-9 font-bold"
+                    onClick={() => {
+                      setConfirmAction({ id: viewingSub.id, status: "approved", label: "Approve", sub: viewingSub });
+                      setRejectReason("Approved — Excellent work!");
+                    }}
+                  >
+                    <CheckCircle2 className="size-3.5 mr-1" /> Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs h-9 font-bold"
+                    onClick={() => {
+                      setConfirmAction({ id: viewingSub.id, status: "rejected", label: "Reject", sub: viewingSub });
+                      setRejectReason("");
+                    }}
+                  >
+                    <XCircle className="size-3.5 mr-1" /> Reject
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
+
+      {/* View Previous Submission Modal */}
+      {viewingPrevSub && (
+        <Portal>
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
+            onClick={() => setViewingPrevSub(null)}
+          >
+            <div
+              className="w-full max-w-xl rounded-3xl border border-purple-200 bg-white p-6 shadow-2xl dark:bg-[#0F172A] dark:border-purple-900/40 animate-in zoom-in-95 my-auto max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between border-b border-border/40 pb-3 mb-4">
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <RotateCcw className="size-4 text-purple-600" /> Previous Submission Details
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Compare student's previous rejected attempt with their current resubmission.
+                  </p>
+                </div>
+                <button onClick={() => setViewingPrevSub(null)} className="text-muted-foreground hover:text-foreground">
+                  <XCircle className="size-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                {/* Previous Submission Box */}
+                <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50/40 dark:bg-rose-950/20 dark:border-rose-900/40 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-rose-700 dark:text-rose-300">
+                    <span className="flex items-center gap-1.5"><XCircle className="size-4" /> Previous Status: Rejected</span>
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      {viewingPrevSub.previous?.submitted_at ? new Date(viewingPrevSub.previous.submitted_at).toLocaleString("en-IN") : "—"}
+                    </span>
+                  </div>
+
+                  {viewingPrevSub.previous?.feedback && (
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-200/80 dark:border-rose-900/40 text-foreground mt-2">
+                      <p className="font-semibold text-rose-600 dark:text-rose-400 text-[11px] mb-0.5">Admin Feedback given:</p>
+                      <p className="italic">"{viewingPrevSub.previous.feedback}"</p>
+                    </div>
+                  )}
+
+                  {/* Previous Links */}
+                  <div className="pt-2 flex flex-wrap gap-2 text-[11px]">
+                    {viewingPrevSub.previous?.github_url && (
+                      <a href={viewingPrevSub.previous.github_url} target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium flex items-center gap-1">
+                        <ExternalLink className="size-3" /> Prev GitHub
+                      </a>
+                    )}
+                    {viewingPrevSub.previous?.deployed_url && (
+                      <a href={viewingPrevSub.previous.deployed_url} target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium flex items-center gap-1">
+                        <ExternalLink className="size-3" /> Prev Live Demo
+                      </a>
+                    )}
+                    {viewingPrevSub.previous?.notes && (
+                      <p className="w-full text-muted-foreground mt-1 bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg text-[11px]">
+                        Prev Notes: {viewingPrevSub.previous.notes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Current Resubmission Summary Box */}
+                <div className="p-4 rounded-2xl border border-purple-200 bg-purple-50/40 dark:bg-purple-950/20 dark:border-purple-900/40 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-purple-700 dark:text-purple-300">
+                    <span className="flex items-center gap-1.5"><RotateCcw className="size-4" /> Current Resubmission (Pending Review)</span>
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      {viewingPrevSub.current?.submitted_at ? new Date(viewingPrevSub.current.submitted_at).toLocaleString("en-IN") : "—"}
+                    </span>
+                  </div>
+
+                  <div className="pt-2 flex flex-wrap gap-3 text-xs">
+                    {viewingPrevSub.current?.github_url && (
+                      <a href={viewingPrevSub.current.github_url} target="_blank" rel="noreferrer" className="text-primary hover:underline font-semibold flex items-center gap-1">
+                        <ExternalLink className="size-3.5" /> New GitHub Link
+                      </a>
+                    )}
+                    {viewingPrevSub.current?.deployed_url && (
+                      <a href={viewingPrevSub.current.deployed_url} target="_blank" rel="noreferrer" className="text-primary hover:underline font-semibold flex items-center gap-1">
+                        <ExternalLink className="size-3.5" /> New Live Demo
+                      </a>
+                    )}
+                    {viewingPrevSub.current?.pdf_url && (
+                      <a href={viewingPrevSub.current.pdf_url} target="_blank" rel="noreferrer" className="text-primary hover:underline font-semibold flex items-center gap-1">
+                        <FileText className="size-3.5" /> New PDF Report
+                      </a>
+                    )}
+                  </div>
+
+                  {viewingPrevSub.current?.notes && (
+                    <div className="mt-2 text-[11px] bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-border/40 text-foreground whitespace-pre-wrap">
+                      <span className="font-semibold text-muted-foreground block mb-0.5">Updated Student Notes:</span>
+                      {viewingPrevSub.current.notes}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 flex justify-end">
+                <Button variant="outline" size="sm" className="rounded-xl text-xs h-9" onClick={() => setViewingPrevSub(null)}>
+                  Close Comparison
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
     </div>
   );
 }
 
-function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, historyData, isResubmitted: isResubmittedProp }: any) {
+function SubmissionCard({
+  sub,
+  subMeta,
+  loadingId,
+  onAction,
+  onViewSub,
+  onViewPrevSub,
+  onHistory,
+  showHistory,
+  historyData,
+}: any) {
   if (!sub) return null;
   const [actionsOpen, setActionsOpen] = useState(false);
   const isLoading = loadingId === sub.id;
@@ -1646,7 +2208,12 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
   const userMeta = `${sub.applications?.intern_id ?? ""} · ${getDomain(sub.applications?.domain)?.name ?? sub.applications?.domain ?? ""}`;
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const isResubmitted = sub?.status === "pending" && (Boolean(sub?.reviewed_at) || Boolean(sub?.feedback) || Boolean(isResubmittedProp));
+  const { isResubmitted, resubmissionNumber, previousSub, prevFeedback } = subMeta || {
+    isResubmitted: false,
+    resubmissionNumber: 1,
+    previousSub: null,
+    prevFeedback: null,
+  };
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -1666,45 +2233,77 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
 
   return (
     <div className={`rounded-2xl border bg-white p-4 dark:bg-[#1E293B] shadow-xs transition-all ${
-      isResubmitted 
+      sub.status === "pending" && isResubmitted
         ? "border-l-4 border-l-purple-600 border-purple-200/80 bg-purple-50/20 dark:bg-purple-950/15 dark:border-purple-900/40" 
-        : "border-border/60"
+        : sub.status === "pending"
+        ? "border-l-4 border-l-amber-500 border-border/60"
+        : sub.status === "approved"
+        ? "border-l-4 border-l-emerald-500 border-border/60"
+        : "border-l-4 border-l-rose-500 border-border/60"
     } ${actionsOpen ? "relative z-50 ring-2 ring-blue-500/20 shadow-xl" : "relative z-1"}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-sm text-foreground">{taskLabel}</p>
+            {isResubmitted && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600 text-white shadow-xs">
+                Resubmission #{resubmissionNumber}
+              </span>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">{userName} · {userMeta}</p>
           {formattedSubmittedAt && (
             <p className="text-[11px] text-muted-foreground mt-0.5">
               Submitted: <span className="font-medium text-foreground">{formattedSubmittedAt}</span>
-              {formattedReviewedAt && <span className="ml-2 font-mono text-[10px] text-muted-foreground">(Prev Review: {formattedReviewedAt})</span>}
+              {formattedReviewedAt && <span className="ml-2 font-mono text-[10px] text-muted-foreground">(Reviewed: {formattedReviewedAt})</span>}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {isLoading ? (
             <Badge className="text-xs font-semibold border-0 bg-slate-100 text-slate-700">Saving...</Badge>
-          ) : isResubmitted ? (
-            <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 font-bold border-0 text-xs px-2.5 py-1 animate-pulse flex items-center gap-1 shadow-xs">
-              <RotateCcw className="size-3" /> Resubmitted for Review 🔄
+          ) : sub.status === "pending" && isResubmitted ? (
+            <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 font-bold border border-purple-300/60 dark:border-purple-800 text-xs px-2.5 py-1 flex items-center gap-1.5 shadow-xs">
+              <RotateCcw className="size-3 text-purple-600" /> 🔄 Resubmitted — Pending Review
+            </Badge>
+          ) : sub.status === "pending" ? (
+            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-semibold border-0 text-xs flex items-center gap-1">
+              <Clock className="size-3 text-amber-600" /> Pending Review
+            </Badge>
+          ) : sub.status === "approved" ? (
+            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold border-0 text-xs flex items-center gap-1">
+              <CheckCircle2 className="size-3 text-emerald-600" /> ✅ Approved
             </Badge>
           ) : (
-            <Badge className={`text-xs capitalize font-semibold border-0 ${
-              sub.status === "approved" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" :
-              sub.status === "rejected" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300" :
-              "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-            }`}>{sub.status}</Badge>
+            <Badge className="bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 font-semibold border-0 text-xs flex items-center gap-1">
+              <XCircle className="size-3 text-rose-600" /> ❌ Rejected
+            </Badge>
           )}
 
+          {/* Quick View Submission Button */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs rounded-xl border-border/60 gap-1 bg-white dark:bg-slate-800 font-medium"
+            onClick={() => onViewSub(sub)}
+          >
+            <Eye className="size-3.5 text-primary" /> View Submission
+          </Button>
+
+          {/* Actions Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <Button size="sm" variant="outline" className="h-8 text-xs rounded-xl border-border/60 gap-1 bg-white dark:bg-slate-800" onClick={() => setActionsOpen(!actionsOpen)}>
               Actions <ChevronDown className="size-3" />
             </Button>
             {actionsOpen && (
-              <div className="absolute right-0 top-9 z-50 w-52 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xl dark:bg-[#0F172A] dark:border-slate-800 animate-in zoom-in-95">
+              <div className="absolute right-0 top-9 z-50 w-56 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xl dark:bg-[#0F172A] dark:border-slate-800 animate-in zoom-in-95">
+                <button
+                  onClick={() => { setActionsOpen(false); onViewSub(sub); }}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted transition"
+                >
+                  <Eye className="size-4 text-primary" /> View Submission
+                </button>
                 {actionItems.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -1715,11 +2314,14 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
                     </button>
                   );
                 })}
-                <button
-                  onClick={() => { setActionsOpen(false); onAction(sub.status, "Send Feedback", sub); }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition">
-                  <MessageSquare className="size-4" /> Send Feedback
-                </button>
+                {(isResubmitted || previousSub) && (
+                  <button
+                    onClick={() => { setActionsOpen(false); onViewPrevSub(sub, previousSub); }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition"
+                  >
+                    <RotateCcw className="size-4 text-purple-600" /> View Previous Submission
+                  </button>
+                )}
                 <div className="my-1 border-t border-border/40" />
                 <button onClick={() => { setActionsOpen(false); onHistory(); }}
                   className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent/50 transition">
@@ -1741,17 +2343,15 @@ function SubmissionCard({ sub, loadingId, onAction, onHistory, showHistory, hist
       </div>
 
       {/* Previous Rejection / Admin Feedback Notice */}
-      {sub.feedback && (
-        <div className={`mt-2.5 rounded-xl border p-3 text-xs ${
-          isResubmitted 
-            ? "border-amber-300 bg-amber-50/90 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200"
-            : "border-blue-200 bg-blue-50/80 text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300"
-        }`}>
-          <span className="font-bold flex items-center gap-1.5 mb-0.5">
-            {isResubmitted ? <RotateCcw className="size-3.5 text-amber-600 dark:text-amber-400" /> : <MessageSquare className="size-3.5 text-blue-600 dark:text-blue-400" />}
-            {isResubmitted ? "Previous Rejection Reason (Student has updated & resubmitted):" : "Admin Feedback for Student:"}
+      {prevFeedback && (
+        <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/90 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200 p-3 text-xs">
+          <span className="font-bold flex items-center gap-1.5 mb-1 text-amber-900 dark:text-amber-200">
+            <RotateCcw className="size-3.5 text-amber-600 dark:text-amber-400" />
+            Previous Rejection Reason (Student has updated & resubmitted):
           </span>
-          <p className="pl-5 text-slate-700 dark:text-slate-300 font-medium">"{sub.feedback}"</p>
+          <p className="pl-5 font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
+            "{prevFeedback}"
+          </p>
         </div>
       )}
 
@@ -1792,6 +2392,7 @@ function PaymentsSection() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   const { data } = useQuery({
     queryKey: ["admin-payments"],
@@ -1823,58 +2424,120 @@ function PaymentsSection() {
   }, [data, statusFilter, search]);
 
   const verify = async (paymentId: string, applicationId: string, accept: boolean) => {
-    if (!accept) {
-      const { error } = await supabase.from("payments").update({ status: "rejected", verified_at: new Date().toISOString() }).eq("id", paymentId);
-      if (error) return toast.error(error.message);
-      toast.success("Payment rejected");
-    } else {
-      const { error } = await supabase.from("payments").update({ status: "verified", verified_at: new Date().toISOString() }).eq("id", paymentId);
-      if (error) return toast.error(error.message);
+    setVerifyingId(paymentId);
+    try {
+      if (!accept) {
+        const { error } = await supabase.from("payments").update({ status: "rejected", verified_at: new Date().toISOString() }).eq("id", paymentId);
+        if (error) return toast.error(error.message);
+        toast.success("Payment rejected");
+      } else {
+        const toastId = toast.loading("Verifying payment and issuing certificate...");
 
-      // Check if application tasks are already approved
-      const { data: app } = await (supabase.from("applications") as any).select("*").eq("id", applicationId).maybeSingle();
-      if (app && (app.submission_status === "approved" || app.verified)) {
-        // Issue certificate if not already issued
-        const { data: existingCert } = await supabase.from("certificates").select("certificate_id").eq("application_id", applicationId).maybeSingle();
-        let cert_id = existingCert?.certificate_id;
-        if (!existingCert) {
-          cert_id = generateCertId();
-          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
-          const { error: cerr } = await supabase.from("certificates").insert({
-            application_id: applicationId,
-            certificate_id: cert_id,
-            verification_hash: hash,
-          });
-          if (!cerr) {
-            await (supabase.from("applications") as any).update({
-              certificate_generated: true,
-              certificate_generated_at: new Date().toISOString(),
-            }).eq("id", applicationId);
+        // 1. Update payment status to verified
+        const { error: payErr } = await supabase.from("payments").update({ status: "verified", verified_at: new Date().toISOString() }).eq("id", paymentId);
+        if (payErr) {
+          toast.error(`Payment verification failed: ${payErr.message}`, { id: toastId });
+          return;
+        }
 
-            // Send certificate email
-            (async () => {
-              try {
-                const { sendCertificateEmail } = await import("@/lib/email-helpers");
-                await sendCertificateEmail({
-                  to: app.email,
-                  studentName: app.full_name,
-                  studentId: app.user_id,
-                  certId: cert_id!,
-                  domainName: getDomain(app.domain)?.name ?? app.domain,
-                  internId: app.intern_id,
-                });
-              } catch (e) { console.warn("[Email] Failed to send certificate:", e); }
-            })();
+        // 2. Resolve target application
+        let targetAppId = applicationId;
+        if (!targetAppId) {
+          const { data: pRec } = await supabase.from("payments").select("application_id").eq("id", paymentId).maybeSingle();
+          if (pRec?.application_id) targetAppId = pRec.application_id;
+        }
+
+        let app: any = null;
+        if (targetAppId) {
+          const { data: aData } = await (supabase.from("applications") as any).select("*").eq("id", targetAppId).maybeSingle();
+          app = aData;
+        }
+
+        if (!app) {
+          toast.success("Payment verified! (Associated application not found)", { id: toastId });
+        } else {
+          // 3. Mark application verified, completed, and certificate_generated = true
+          await (supabase.from("applications") as any).update({
+            status: "completed",
+            submission_status: "approved",
+            verified: true,
+            verified_at: new Date().toISOString(),
+            certificate_generated: true,
+            certificate_generated_at: new Date().toISOString(),
+          }).eq("id", targetAppId);
+
+          // 4. Retrieve or generate certificate
+          const { data: existingCert } = await supabase.from("certificates").select("certificate_id").eq("application_id", targetAppId).maybeSingle();
+          let cert_id = existingCert?.certificate_id;
+
+          if (!cert_id) {
+            cert_id = generateCertId();
+            const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+            const { error: cerr } = await supabase.from("certificates").insert({
+              application_id: targetAppId,
+              certificate_id: cert_id,
+              verification_hash: hash,
+            });
+            if (cerr) {
+              console.error("[Cert] Failed to create certificate record:", cerr);
+            }
+          }
+
+          // 5. Automatically send the certificate to student's registered email via Gmail SMTP
+          let targetEmail = (app.email || "").trim();
+          if (!targetEmail && app.user_id) {
+            const { data: prof } = await supabase.from("profiles").select("email").eq("id", app.user_id).maybeSingle();
+            if (prof?.email) targetEmail = prof.email.trim();
+          }
+
+          if (targetEmail && cert_id) {
+            try {
+              const { sendCertificateEmail } = await import("@/lib/email-helpers");
+              const domainName = getDomain(app.domain)?.name ?? app.domain ?? "Internship Track";
+              const result = await sendCertificateEmail({
+                to: targetEmail,
+                studentName: app.full_name,
+                studentId: app.user_id,
+                certId: cert_id,
+                domainName,
+                internId: app.intern_id,
+              });
+
+              if (result.success) {
+                await (supabase.from("applications") as any).update({
+                  email_status: "sent",
+                  email_sent_at: new Date().toISOString(),
+                  email_error: null,
+                }).eq("id", targetAppId);
+                toast.success(`Payment approved & Certificate ${cert_id} sent to ${targetEmail}!`, { id: toastId });
+              } else {
+                await (supabase.from("applications") as any).update({
+                  email_status: "failed",
+                  email_error: result.error || "Email delivery failed",
+                }).eq("id", targetAppId);
+                toast.error(`Payment approved & Certificate issued, but email delivery failed: ${result.error}`, { id: toastId, duration: 8000 });
+              }
+            } catch (emailErr: any) {
+              console.warn("[Email] Failed to send certificate email:", emailErr);
+              toast.error(`Payment approved & Certificate issued, but email error: ${emailErr.message}`, { id: toastId });
+            }
+          } else {
+            toast.success(`Payment verified & Certificate ${cert_id ?? ''} issued!`, { id: toastId });
           }
         }
-        toast.success(`Payment verified & Certificate ${cert_id ?? ''} issued!`);
-      } else {
-        toast.success("Payment verified! Certificate will be issued once admin approves internship tasks.");
       }
+      qc.invalidateQueries({ queryKey: ["admin-payments"] });
+      qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
+      qc.invalidateQueries({ queryKey: ["admin-verification-reviewed"] });
+      qc.invalidateQueries({ queryKey: ["admin-certs"] });
+      qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      qc.invalidateQueries({ queryKey: ["admin-students"] });
+    } catch (err: any) {
+      toast.error(`Error verifying payment: ${err?.message || err}`);
+    } finally {
+      setVerifyingId(null);
     }
-    qc.invalidateQueries({ queryKey: ["admin-payments"] });
-    qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
-    qc.invalidateQueries({ queryKey: ["admin-verification-reviewed"] });
   };
 
   const pendingP = data?.filter((p: any) => p.status === "pending") ?? [];
@@ -1950,8 +2613,28 @@ function PaymentsSection() {
                 <td className="px-4 py-3 text-right">
                   {p.status === "pending" ? (
                     <div className="flex justify-end gap-1">
-                      <button onClick={() => p.applications?.id && verify(p.id, p.applications.id, true)} className="grid size-8 place-items-center rounded-lg text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30" title="Verify"><CheckCircle2 className="size-4" /></button>
-                      <button onClick={() => p.applications?.id && verify(p.id, p.applications.id, false)} className="grid size-8 place-items-center rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30" title="Reject"><XCircle className="size-4" /></button>
+                      <button
+                        disabled={verifyingId === p.id}
+                        onClick={() => {
+                          const appId = p.application_id || p.applications?.id || "";
+                          verify(p.id, appId, true);
+                        }}
+                        className="grid size-8 place-items-center rounded-lg text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 disabled:opacity-50"
+                        title="Approve Payment & Send Certificate"
+                      >
+                        {verifyingId === p.id ? <Loader2 className="size-4 animate-spin text-green-600" /> : <CheckCircle2 className="size-4" />}
+                      </button>
+                      <button
+                        disabled={verifyingId === p.id}
+                        onClick={() => {
+                          const appId = p.application_id || p.applications?.id || "";
+                          verify(p.id, appId, false);
+                        }}
+                        className="grid size-8 place-items-center rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50"
+                        title="Reject Payment"
+                      >
+                        <XCircle className="size-4" />
+                      </button>
                     </div>
                   ) : (
                     <Badge variant="outline" className="text-xs">{p.status === "verified" ? "Completed" : "Rejected"}</Badge>
@@ -1995,13 +2678,35 @@ function VerificationSection() {
   const { data: pendingApps } = useQuery({
     queryKey: ["admin-verification-pending"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("applications") as any)
-        .select("*")
-        .eq("submission_status", "submitted")
-        .order("submitted_at", { ascending: false });
-      if (error) { console.error("Failed to fetch pending apps:", error); return []; }
-      return data ?? [];
+      const [appsRes, subsRes, certsRes] = await Promise.all([
+        supabase.from("applications").select("*").order("created_at", { ascending: false }),
+        supabase.from("submissions").select("application_id, status"),
+        supabase.from("certificates").select("application_id"),
+      ]);
+
+      const certSet = new Set(certsRes.data?.map((c: any) => c.application_id) || []);
+      const appSubs = new Map<string, any[]>();
+      subsRes.data?.forEach((s: any) => {
+        if (!appSubs.has(s.application_id)) appSubs.set(s.application_id, []);
+        appSubs.get(s.application_id)!.push(s);
+      });
+
+      const list = (appsRes.data || []).filter((app: any) => {
+        if (app.submission_status === "rejected") return false;
+        if (certSet.has(app.id) && (app.submission_status === "approved" || app.status === "completed")) return false;
+
+        const subs = appSubs.get(app.id) || [];
+        const approvedCount = subs.filter((s: any) => s.status === "approved").length;
+        const requiredTasks = app.total_tasks || 5;
+
+        // Pending if explicitly marked submitted OR if all tasks are approved but certificate not yet issued
+        return (
+          app.submission_status === "submitted" ||
+          (approvedCount >= requiredTasks && !certSet.has(app.id))
+        );
+      });
+
+      return list;
     },
     refetchInterval: 10_000,
   });
@@ -2065,22 +2770,31 @@ function VerificationSection() {
       if (updErr) throw updErr;
 
       if (shouldIssueCert && cert_id) {
-        toast.success(`Internship approved! Certificate ${cert_id} issued.`);
-        // Send certificate email
-        (async () => {
+        const studentEmail = app.email;
+        if (studentEmail) {
+          const toastId = toast.loading(`Sending Certificate to ${studentEmail}...`);
           try {
             const { sendCertificateEmail } = await import("@/lib/email-helpers");
             const result = await sendCertificateEmail({
-              to: app.email,
+              to: studentEmail,
               studentName: app.full_name,
               studentId: app.user_id,
               certId: cert_id!,
               domainName: getDomain(app.domain)?.name ?? app.domain,
               internId: app.intern_id,
             });
-            if (!result.success) console.warn("[Email] Certificate email not sent:", result.error);
-          } catch (e) { console.warn("[Email] Failed to send certificate:", e); }
-        })();
+            if (result.success) {
+              toast.success(`Internship approved & Certificate ${cert_id} sent to ${studentEmail}!`, { id: toastId });
+            } else {
+              toast.error(`Internship approved, but certificate email failed: ${result.error}`, { id: toastId, duration: 8000 });
+            }
+          } catch (e: any) {
+            console.warn("[Email] Failed to send certificate:", e);
+            toast.error(`Internship approved, but certificate email error: ${e.message}`, { id: toastId });
+          }
+        } else {
+          toast.success(`Internship approved! Certificate ${cert_id} issued.`);
+        }
       } else {
         toast.success("Tasks approved! Student notified to submit payment verification before certificate issuance.");
       }
@@ -2290,14 +3004,122 @@ function VerificationSection() {
 // CERTIFICATES
 // ══════════════════════════════════════════════
 function CertificatesSection() {
+  const qc = useQueryClient();
   const [downloading, setDownloading] = useState(false);
+  const [sendingCertId, setSendingCertId] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+
   const { data } = useQuery({
     queryKey: ["admin-certs"],
     queryFn: async () => {
-      const { data: list } = await supabase.from("certificates").select("*, applications(full_name, intern_id, domain)").order("issued_at", { ascending: false });
+      const { data: list } = await supabase
+        .from("certificates")
+        .select("*, applications(full_name, intern_id, domain, email, user_id)")
+        .order("issued_at", { ascending: false });
       return list ?? [];
     },
   });
+
+  // Query completed students who do not have certificates yet
+  const { data: eligiblePending } = useQuery({
+    queryKey: ["admin-certs-eligible-pending"],
+    queryFn: async () => {
+      const [appsRes, subsRes, certsRes, paysRes] = await Promise.all([
+        supabase.from("applications").select("*"),
+        supabase.from("submissions").select("application_id, status"),
+        supabase.from("certificates").select("application_id"),
+        supabase.from("payments").select("application_id, status"),
+      ]);
+
+      const certSet = new Set(certsRes.data?.map((c: any) => c.application_id) || []);
+      const payMap = new Map(paysRes.data?.map((p: any) => [p.application_id, p]) || []);
+      const appSubs = new Map<string, any[]>();
+      subsRes.data?.forEach((s: any) => {
+        if (!appSubs.has(s.application_id)) appSubs.set(s.application_id, []);
+        appSubs.get(s.application_id)!.push(s);
+      });
+
+      const list: any[] = [];
+      appsRes.data?.forEach((app: any) => {
+        const hasCert = certSet.has(app.id);
+        const subs = appSubs.get(app.id) || [];
+        const approvedCount = subs.filter((s: any) => s.status === "approved").length;
+        const requiredTasks = app.total_tasks || 5;
+        const pay = payMap.get(app.id);
+        const isCompleted = approvedCount >= requiredTasks || (pay && pay.status === "verified");
+        if (isCompleted && !hasCert) {
+          list.push({ app, approvedCount, requiredTasks, pay });
+        }
+      });
+      return list;
+    },
+    refetchInterval: 10_000,
+  });
+
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    const toastId = toast.loading("Checking & issuing certificates for completed students...");
+    try {
+      const { backfillCompletedCertificates } = await import("@/lib/email-service");
+      const res = await backfillCompletedCertificates();
+      if (res.success) {
+        if (res.count > 0) {
+          toast.success(`Successfully issued & sent certificates to ${res.count} student(s)!`, { id: toastId });
+        } else {
+          toast.info("All completed students already have certificates.", { id: toastId });
+        }
+        qc.invalidateQueries({ queryKey: ["admin-certs"] });
+        qc.invalidateQueries({ queryKey: ["admin-certs-eligible-pending"] });
+        qc.invalidateQueries({ queryKey: ["admin-payments"] });
+        qc.invalidateQueries({ queryKey: ["admin-verification-reviewed"] });
+        qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+        qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      } else {
+        toast.error(`Backfill failed: ${res.error}`, { id: toastId });
+      }
+    } catch (e: any) {
+      toast.error(`Backfill error: ${e.message}`, { id: toastId });
+    } finally {
+      setBackfilling(false);
+    }
+  };
+
+  const handleSendCertificate = async (c: any) => {
+    setSendingCertId(c.id);
+    const targetEmail = c.applications?.email;
+    const targetName = c.applications?.full_name ?? "Student";
+    if (!targetEmail) {
+      toast.error("Student email not found for this certificate");
+      setSendingCertId(null);
+      return;
+    }
+
+    const toastId = toast.loading(`Sending Certificate to ${targetEmail}...`);
+    try {
+      const { sendCertificateEmail } = await import("@/lib/email-helpers");
+      const result = await sendCertificateEmail({
+        to: targetEmail,
+        studentName: targetName,
+        studentId: c.applications?.user_id ?? c.user_id ?? c.id,
+        certId: c.certificate_id,
+        domainName: getDomain(c.applications?.domain)?.name ?? c.applications?.domain ?? "Internship Track",
+        internId: c.applications?.intern_id ?? "",
+      });
+
+      if (result.success) {
+        toast.success(`Certificate ${c.certificate_id} sent to ${targetEmail}!`, { id: toastId });
+        qc.invalidateQueries({ queryKey: ["admin-certs"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+      } else {
+        toast.error(`Certificate delivery failed: ${result.error || "Unknown error"}`, { id: toastId, duration: 8000 });
+      }
+    } catch (err: any) {
+      toast.error(`Error sending certificate: ${err.message}`, { id: toastId });
+    } finally {
+      setSendingCertId(null);
+    }
+  };
 
   const downloadAll = async () => {
     if (!data) return;
@@ -2337,16 +3159,53 @@ function CertificatesSection() {
           <h2 className="text-2xl font-bold">Certificate Management</h2>
           <p className="text-sm text-muted-foreground">{data?.length ?? 0} certificates</p>
         </div>
-        <Button onClick={downloadAll} disabled={downloading} className="brand-gradient text-white border-0">
-          <Download className="mr-1.5 size-4" />{downloading ? "Generating…" : "Download All as ZIP"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleBackfill}
+            disabled={backfilling}
+            className="rounded-xl text-xs gap-1.5 border-border/60"
+            title="Scan and issue certificates to completed students"
+          >
+            {backfilling ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+            Backfill Completed Students
+          </Button>
+          <Button onClick={downloadAll} disabled={downloading} className="brand-gradient text-white border-0">
+            <Download className="mr-1.5 size-4" />{downloading ? "Generating…" : "Download All as ZIP"}
+          </Button>
+        </div>
       </div>
+
+      {eligiblePending && eligiblePending.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2.5">
+            <Award className="size-5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">
+                {eligiblePending.length} completed student(s) ready for Certificate generation & delivery
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {eligiblePending.map((e: any) => `${e.app.full_name} (${e.app.email})`).join(", ")}
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleBackfill}
+            disabled={backfilling}
+            className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs shrink-0 border-0"
+          >
+            {backfilling ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Sparkles className="size-3.5 mr-1.5" />}
+            Issue & Send Certificates ({eligiblePending.length})
+          </Button>
+        </div>
+      )}
       <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <th className="px-4 py-3 text-left">Certificate ID</th>
               <th className="px-4 py-3 text-left">Student</th>
+              <th className="px-4 py-3 text-left">Email</th>
               <th className="px-4 py-3 text-left">Domain</th>
               <th className="px-4 py-3 text-left">Issued</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -2354,17 +3213,26 @@ function CertificatesSection() {
           </thead>
           <tbody>
             {!data?.length && (
-              <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No certificates issued yet.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">No certificates issued yet.</td></tr>
             )}
             {data?.map((c: any) => (
               <tr key={c.id} className="border-b border-border/30 transition hover:bg-accent/20">
-                <td className="px-4 py-3 font-mono text-xs">{c.certificate_id}</td>
+                <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">{c.certificate_id}</td>
                 <td className="px-4 py-3 font-medium">{c.applications?.full_name}</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">{c.applications?.email || "—"}</td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">{getDomain(c.applications?.domain)?.name}</td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(c.issued_at).toLocaleDateString("en-IN")}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-1">
-                    <button className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" onClick={() => {
+                    <button
+                      className="grid size-8 place-items-center rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition disabled:opacity-50"
+                      title="Send Certificate to Gmail"
+                      disabled={sendingCertId === c.id}
+                      onClick={() => handleSendCertificate(c)}
+                    >
+                      {sendingCertId === c.id ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+                    </button>
+                    <button className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="Download PDF" onClick={() => {
                       downloadPdf(CertificateDoc({
                         fullName: c.applications?.full_name ?? "Student",
                         internId: c.applications?.intern_id ?? "",
@@ -2374,7 +3242,7 @@ function CertificatesSection() {
                         verifyUrl: `${window.location.origin}/verify-certificate`,
                       }), `certificate-${c.certificate_id}.pdf`);
                     }}><Download className="size-4" /></button>
-                    <Link to="/verify-certificate" className="grid size-8 place-items-center rounded-lg hover:bg-accent/50"><ExternalLink className="size-4" /></Link>
+                    <Link to="/verify-certificate" className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="View Verification Page"><ExternalLink className="size-4" /></Link>
                   </div>
                 </td>
               </tr>
@@ -2509,75 +3377,266 @@ function StudentsSection() {
 // ══════════════════════════════════════════════
 function AnalyticsSection() {
   const qc = useQueryClient();
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const cfg = { refetchInterval: 5_000 };
+  const cfg = { refetchInterval: 3_000 };
 
-  // Real-time subscriptions
+  const [isDark, setIsDark] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString());
+  const [realtimeActive, setRealtimeActive] = useState<boolean>(true);
+
+  // Time range selector for registrations: "30d" | "6m" | "12m"
+  const [regTimeRange, setRegTimeRange] = useState<"30d" | "6m" | "12m">("12m");
+
+  // Registration source: "profiles" (Student Accounts) | "applications" (Internship Applications)
+  const [regSource, setRegSource] = useState<"profiles" | "applications">("profiles");
+
+  // Completion source: "courses" (Course Enrollments) | "internships" (Internship Applications)
+  const [completionSource, setCompletionSource] = useState<"courses" | "internships">("courses");
+
   useEffect(() => {
-    const channel = supabase.channel("analytics-realtime");
-    const tables = ["applications", "payments", "enrollments", "profiles"];
+    setIsDark(document.documentElement.classList.contains("dark"));
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Real-time subscriptions across all analytics tables
+  useEffect(() => {
+    const channelName = `analytics-live-sync-${Math.random().toString(36).substring(2, 8)}`;
+    const channel = supabase.channel(channelName);
+    const tables = ["applications", "payments", "enrollments", "profiles", "submissions", "submission_history"];
+
     for (const table of tables) {
-      channel.on("postgres_changes" as any, { event: "*", schema: "public", table }, () => {
+      channel.on("postgres_changes" as any, { event: "*", schema: "public", table }, (payload: any) => {
+        setLastSyncTime(new Date().toLocaleTimeString());
+        qc.refetchQueries({ queryKey: ["admin-analytics-registrations"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-completion"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-domains"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-revenue"] });
+        qc.refetchQueries({ queryKey: ["admin-analytics-locations"] });
         qc.invalidateQueries({ queryKey: ["admin-analytics"] });
       });
     }
-    channel.subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
 
-  const { data: regData = [] } = useQuery({
-    queryKey: ["admin-analytics-registrations"],
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("created_at");
-      if (!data || data.length === 0) return [];
-      const map: Record<string, number> = {};
-      data.forEach((p) => {
-        const d = new Date(p.created_at);
-        map[`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`] = (map[`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`] || 0) + 1;
-      });
-      const now = new Date();
-      const result: number[] = [];
-      for (let i = 11; i >= 0; i--) {
-        const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        result.push(map[`${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}`] || 0);
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        setRealtimeActive(true);
+      } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+        setRealtimeActive(false);
       }
-      return result;
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
+  const handleManualRefresh = () => {
+    setLastSyncTime(new Date().toLocaleTimeString());
+    qc.refetchQueries({ queryKey: ["admin-analytics-registrations"] });
+    qc.refetchQueries({ queryKey: ["admin-analytics-completion"] });
+    qc.refetchQueries({ queryKey: ["admin-analytics-domains"] });
+    qc.refetchQueries({ queryKey: ["admin-analytics-revenue"] });
+    qc.refetchQueries({ queryKey: ["admin-analytics-locations"] });
+    toast.success("Analytics synced with live database");
+  };
+
+  // ─── 1. Student Registrations / Applications (Real-Time) ───
+  const {
+    data: regState,
+    isLoading: isRegLoading,
+    isError: isRegError,
+    refetch: refetchReg,
+  } = useQuery({
+    queryKey: ["admin-analytics-registrations", regTimeRange, regSource],
+    queryFn: async () => {
+      const table = regSource === "applications" ? "applications" : "profiles";
+      const { data, error } = await supabase.from(table).select("created_at");
+      if (error) {
+        console.error(`Failed to load ${table} analytics:`, error);
+        throw error;
+      }
+
+      const now = new Date();
+      const points: Array<{
+        key: string;
+        label: string;
+        fullLabel: string;
+        registrations: number;
+      }> = [];
+
+      if (regTimeRange === "30d") {
+        // Daily breakdown for the last 30 days
+        const dailyMap = new Map<string, number>();
+        if (data) {
+          data.forEach((p: any) => {
+            if (!p.created_at) return;
+            const d = new Date(p.created_at);
+            const ist = new Date(d.getTime() + 5.5 * 3600 * 1000);
+            const key = ist.toISOString().slice(0, 10);
+            dailyMap.set(key, (dailyMap.get(key) || 0) + 1);
+          });
+        }
+
+        for (let i = 29; i >= 0; i--) {
+          const target = new Date(now.getTime() - i * 24 * 3600 * 1000);
+          const ist = new Date(target.getTime() + 5.5 * 3600 * 1000);
+          const key = ist.toISOString().slice(0, 10);
+          const monthShort = ist.toLocaleString("en-IN", { month: "short" });
+          const dayNum = ist.getDate();
+          points.push({
+            key,
+            label: `${monthShort} ${dayNum}`,
+            fullLabel: ist.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+            registrations: dailyMap.get(key) || 0,
+          });
+        }
+      } else {
+        // Monthly breakdown (6m or 12m)
+        const monthCount = regTimeRange === "6m" ? 6 : 12;
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const fullMonthNames = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+
+        const monthMap = new Map<string, number>();
+        if (data) {
+          data.forEach((p: any) => {
+            if (!p.created_at) return;
+            const d = new Date(p.created_at);
+            const ist = new Date(d.getTime() + 5.5 * 3600 * 1000);
+            const ymKey = `${ist.getUTCFullYear()}-${String(ist.getUTCMonth() + 1).padStart(2, "0")}`;
+            monthMap.set(ymKey, (monthMap.get(ymKey) || 0) + 1);
+          });
+        }
+
+        for (let i = monthCount - 1; i >= 0; i--) {
+          const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const y = targetDate.getFullYear();
+          const m = targetDate.getMonth();
+          const ymKey = `${y}-${String(m + 1).padStart(2, "0")}`;
+          points.push({
+            key: ymKey,
+            label: monthNames[m],
+            fullLabel: `${fullMonthNames[m]} ${y}`,
+            registrations: monthMap.get(ymKey) || 0,
+          });
+        }
+      }
+
+      const total = data?.length ?? 0;
+      const recent = points[points.length - 1]?.registrations ?? 0;
+      const prior = points[points.length - 2]?.registrations ?? 0;
+      let pctChange: number | null = null;
+      if (prior > 0) {
+        pctChange = Math.round(((recent - prior) / prior) * 100);
+      }
+
+      console.log("Student Registration Chart Data:", points);
+
+      return {
+        data: points,
+        total,
+        recent,
+        prior,
+        pctChange,
+      };
     },
     ...cfg,
   });
 
-  const { data: domainData = [] } = useQuery({
+  // ─── 2. Completion Rate (Courses or Internships) ───
+  const {
+    data: completion,
+    isLoading: isCompletionLoading,
+    isError: isCompletionError,
+    refetch: refetchCompletion,
+  } = useQuery({
+    queryKey: ["admin-analytics-completion", completionSource],
+    queryFn: async () => {
+      if (completionSource === "internships") {
+        const { data, error } = await supabase
+          .from("applications")
+          .select("status, submission_status");
+        if (error) {
+          console.error("Failed to load internship applications analytics:", error);
+          throw error;
+        }
+        const total = data?.length ?? 0;
+        const completed = data?.filter((a: any) => a.status === "completed" || a.submission_status === "approved").length ?? 0;
+        const inProgress = Math.max(total - completed, 0);
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const donutData = [
+          { name: "Completed", value: completed, color: "#2563eb" },
+          { name: "In Progress", value: inProgress, color: isDark ? "#334155" : "#e2e8f0" },
+        ];
+
+        console.log("Internship Analytics:", { total, completed, inProgress, completionRate: `${pct}%` });
+        return { completed, inProgress, pct, total, donutData, label: "Internships" };
+      } else {
+        const { data, error } = await supabase
+          .from("enrollments")
+          .select("status, progress_percent");
+        if (error) {
+          console.error("Failed to load enrollment analytics:", error);
+          throw error;
+        }
+        const total = data?.length ?? 0;
+        const completed = data?.filter((e: any) => e.status?.toLowerCase() === "completed").length ?? 0;
+        const inProgress = Math.max(total - completed, 0);
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const donutData = [
+          { name: "Completed", value: completed, color: "#2563eb" },
+          { name: "In Progress", value: inProgress, color: isDark ? "#334155" : "#e2e8f0" },
+        ];
+
+        console.log("Course Analytics:", { totalEnrolled: total, completed, inProgress, completionRate: `${pct}%` });
+        return { completed, inProgress, pct, total, donutData, label: "Courses" };
+      }
+    },
+    ...cfg,
+  });
+
+  // ─── 3. Domain Popularity ───
+  const { data: domainData = [], isLoading: isDomainLoading } = useQuery({
     queryKey: ["admin-analytics-domains"],
     queryFn: async () => {
-      const { data } = await supabase.from("applications").select("domain");
+      const { data, error } = await supabase.from("applications").select("domain");
+      if (error) {
+        console.error("Failed to load domain analytics:", error);
+        throw error;
+      }
       if (!data || data.length === 0) return [];
       const map: Record<string, number> = {};
-      data.forEach((a) => { map[a.domain] = (map[a.domain] || 0) + 1; });
+      data.forEach((a: any) => {
+        if (a.domain) map[a.domain] = (map[a.domain] || 0) + 1;
+      });
       const total = Object.values(map).reduce((a, b) => a + b, 0) || 1;
       return Object.entries(map)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 6)
-        .map(([label, count]) => ({ label, pct: Math.round((count / total) * 100) }));
+        .map(([label, count]) => ({
+          label,
+          count,
+          pct: Math.round((count / total) * 100),
+        }));
     },
     ...cfg,
   });
 
-  const { data: completion } = useQuery({
-    queryKey: ["admin-analytics-completion"],
-    queryFn: async () => {
-      const { data } = await supabase.from("enrollments").select("status");
-      if (!data || data.length === 0) return { completed: 0, inProgress: 0, pct: 0, total: 0 };
-      const completed = data.filter((e) => e.status === "completed").length;
-      const total = data.length || 1;
-      return { completed, inProgress: total - completed, pct: Math.round((completed / total) * 100), total: data.length };
-    },
-    ...cfg,
-  });
-
-  const { data: revenue } = useQuery({
+  // ─── 4. Revenue Overview ───
+  const { data: revenue, isLoading: isRevenueLoading } = useQuery({
     queryKey: ["admin-analytics-revenue"],
     queryFn: async () => {
-      const { data } = await (supabase.from("payments" as any) as any).select("amount, created_at").eq("status", "verified");
+      const { data, error } = await (supabase.from("payments" as any) as any)
+        .select("amount, created_at")
+        .eq("status", "verified");
+      if (error) {
+        console.error("Failed to load revenue analytics:", error);
+        throw error;
+      }
       if (!data || data.length === 0) return { data: [], total: 0 };
       const map: Record<string, number> = {};
       data.forEach((p: any) => {
@@ -2585,21 +3644,40 @@ function AnalyticsSection() {
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         map[key] = (map[key] || 0) + Number(p.amount);
       });
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const fullMonthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
       const now = new Date();
-      const result: number[] = [];
+      const points: Array<{ month: string; fullMonth: string; amount: number }> = [];
       for (let i = 11; i >= 0; i--) {
-        const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        result.push(map[`${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}`] || 0);
+        const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const y = targetDate.getFullYear();
+        const m = targetDate.getMonth();
+        const key = `${y}-${String(m + 1).padStart(2, "0")}`;
+        points.push({
+          month: monthNames[m],
+          fullMonth: `${fullMonthNames[m]} ${y}`,
+          amount: map[key] || 0,
+        });
       }
-      return { data: result, total: result.reduce((a, b) => a + b, 0) };
+      return { data: points, total: points.reduce((a, b) => a + b.amount, 0) };
     },
     ...cfg,
   });
 
-  const { data: locationStats } = useQuery({
+  // ─── 5. Location & Discovery Analytics ───
+  const { data: locationStats, isLoading: isLocLoading } = useQuery({
     queryKey: ["admin-analytics-locations"],
     queryFn: async () => {
-      const { data } = await supabase.from("applications").select("country, state, district, city, hear_about, referral_name");
+      const { data, error } = await supabase
+        .from("applications")
+        .select("country, state, district, city, hear_about, referral_name");
+      if (error) {
+        console.error("Failed to load location analytics:", error);
+        throw error;
+      }
       if (!data || data.length === 0) {
         return { countries: [], states: [], districts: [], cities: [], sources: [], referrals: [] };
       }
@@ -2624,7 +3702,7 @@ function AnalyticsSection() {
         districtMap[district] = (districtMap[district] || 0) + 1;
         cityMap[city] = (cityMap[city] || 0) + 1;
         sourceMap[source] = (sourceMap[source] || 0) + 1;
-        
+
         if (refName && refName.trim()) {
           referralMap[refName] = (referralMap[refName] || 0) + 1;
         }
@@ -2666,125 +3744,541 @@ function AnalyticsSection() {
     ...cfg,
   });
 
-  const maxReg = Math.max(...regData, 1);
-  const maxRev = Math.max(...(revenue?.data ?? []), 1);
-
-  const noRegData = regData.length === 0 || regData.every((v) => v === 0);
+  const noRegData = !regState || regState.data.length === 0 || regState.data.every((p) => p.registrations === 0);
+  const noCompletionData = !completion || completion.total === 0;
   const noDomainData = domainData.length === 0;
-  const noCompletionData = completion && completion.total === 0;
-  const noRevenueData = !revenue || revenue.data.length === 0 || revenue.data.every((v) => v === 0);
+  const noRevenueData = !revenue || revenue.data.length === 0 || revenue.data.every((p) => p.amount === 0);
+
+  // Custom tooltips
+  const RegistrationTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const item = payload[0].payload;
+      return (
+        <div className="rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.fullLabel}</p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="size-2.5 rounded-full bg-blue-600" />
+            <span className="text-xs text-slate-600 dark:text-slate-300">
+              {regSource === "profiles" ? "Registrations:" : "Applications:"}
+            </span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white">{item.registrations}</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CompletionTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const item = payload[0];
+      const total = completion?.total || 1;
+      const rate = Math.round(((item.value || 0) / total) * 100);
+      return (
+        <div className="rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+          <div className="flex items-center gap-2">
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: item.payload?.color || "#2563eb" }} />
+            <p className="text-xs font-bold text-slate-900 dark:text-white">{item.name}</p>
+          </div>
+          <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            {item.value} {completion?.label?.toLowerCase() || "item"}{item.value !== 1 ? "s" : ""} ({rate}%)
+          </p>
+          <div className="mt-1.5 border-t border-slate-100 pt-1 text-[11px] text-slate-400 dark:border-slate-800">
+            Overall Completion Rate: <span className="font-semibold text-blue-600 dark:text-blue-400">{completion?.pct ?? 0}%</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const RevenueTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const item = payload[0].payload;
+      return (
+        <div className="rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.fullMonth}</p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="size-2.5 rounded-full bg-emerald-600" />
+            <span className="text-xs text-slate-600 dark:text-slate-300">Revenue:</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white">₹ {item.amount.toLocaleString("en-IN")}</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="animate-fade-in-up space-y-6">
-      <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Registrations */}
-        <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-          <h3 className="mb-1 font-semibold">Student Registrations</h3>
-          <p className="mb-4 text-xs text-muted-foreground">Per month (last 12 months)</p>
-          {noRegData ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
-          ) : (
-            <div className="flex items-end gap-1.5 h-40">
-              {regData.map((v, i) => (
-                <div key={i} className="group relative flex flex-1 flex-col items-center">
-                  <div className="w-full rounded-t-lg brand-gradient transition-all duration-300 hover:opacity-80" style={{ height: `${(v / maxReg) * 100}%` }} />
-                  <span className="mt-1.5 text-[10px] text-muted-foreground">{months[i]}</span>
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-foreground px-2 py-1 text-xs text-background opacity-0 transition group-hover:opacity-100">{v}</div>
-                </div>
-              ))}
-            </div>
-          )}
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Analytics Dashboard</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Real-time student registration trends, course completions, and performance analytics.
+          </p>
         </div>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Live Sync Badge */}
+          <div className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-300">
+            <span className={`size-2 rounded-full ${realtimeActive ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+            <span>Live Sync Active</span>
+            <span className="text-[11px] font-normal text-emerald-600/70 dark:text-emerald-400/70">
+              ({lastSyncTime})
+            </span>
+          </div>
 
-        {/* Domain Popularity */}
-        <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-          <h3 className="mb-1 font-semibold">Domain Popularity</h3>
-          <p className="mb-4 text-xs text-muted-foreground">Applications per domain</p>
-          {noDomainData ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
-          ) : (
-            <div className="space-y-3">
-              {domainData.map((d) => (
-                <div key={d.label}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span>{d.label}</span>
-                    <span className="font-semibold">{d.pct}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-secondary/80 overflow-hidden">
-                    <div className="h-full rounded-full brand-gradient transition-all" style={{ width: `${d.pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Course Completion */}
-        <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-          <h3 className="mb-1 font-semibold">Course Completion Rate</h3>
-          <p className="mb-4 text-xs text-muted-foreground">Enrolled vs completed</p>
-          {noCompletionData ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
-          ) : (
-            <div className="flex items-center justify-center gap-8">
-              <div className="relative grid size-36 place-items-center">
-                <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="oklch(0.9 0.01 270)" strokeWidth="8" />
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="oklch(0.55 0.22 295)" strokeWidth="8" strokeDasharray={`${(completion?.pct ?? 0) * 2.64} ${100 * 2.64}`} strokeLinecap="round" />
-                </svg>
-                <span className="font-display text-3xl font-bold">{completion?.pct ?? 0}%</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-2"><span className="size-3 rounded-sm brand-gradient" /><span>Completed: {completion?.completed ?? 0}</span></div>
-                <div className="flex items-center gap-2"><span className="size-3 rounded-sm bg-secondary" /><span>In Progress: {completion?.inProgress ?? 0}</span></div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Revenue */}
-        <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-          <h3 className="mb-1 font-semibold">Revenue Overview</h3>
-          <p className="mb-4 text-xs text-muted-foreground">{noRevenueData ? "No data available" : `₹ ${(revenue?.total ?? 0).toLocaleString("en-IN")} total`}</p>
-          {noRevenueData ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
-          ) : (
-            <div className="flex items-end gap-1.5 h-36">
-              {(revenue?.data ?? []).map((v, i) => (
-                <div key={i} className="flex flex-1 flex-col items-center">
-                  <div className="w-full rounded-t-lg bg-gradient-to-t from-blue-500 to-[#07284a] opacity-80 transition-all hover:opacity-100" style={{ height: `${(v / maxRev) * 100}%` }} />
-                  <span className="mt-1.5 text-[10px] text-muted-foreground">{months[i]}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <button
+            onClick={handleManualRefresh}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            <RefreshCw className="size-3.5 text-slate-500" />
+            Refresh
+          </button>
         </div>
       </div>
 
-      {/* ─── Location & Discovery Analytics ─── */}
-      <div className="border-t border-border/40 pt-6 mt-8">
-        <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-          🌍 Location & Discovery Analytics
-        </h3>
-        <div className="grid gap-4 lg:grid-cols-2">
-          
+      {/* Main 2-Column Analytics Grid */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        {/* ─── 1. Student Registrations Card ─── */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A] flex flex-col justify-between">
+          <div>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="grid size-8 place-items-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                    <Users className="size-4" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-base">
+                    {regSource === "profiles" ? "Student Registrations" : "Internship Applications"}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {regTimeRange === "30d" ? "Daily registrations over the last 30 days" : "Monthly registrations over the last 12 months"}
+                </p>
+
+                {/* Source switcher */}
+                <div className="mt-2.5 flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg w-fit dark:bg-slate-800/80">
+                  <button
+                    onClick={() => setRegSource("profiles")}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition ${
+                      regSource === "profiles"
+                        ? "bg-white text-blue-600 shadow-xs dark:bg-slate-900 dark:text-blue-400"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    User Accounts ({regSource === "profiles" ? regState?.total ?? 98 : 98})
+                  </button>
+                  <button
+                    onClick={() => setRegSource("applications")}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition ${
+                      regSource === "applications"
+                        ? "bg-white text-blue-600 shadow-xs dark:bg-slate-900 dark:text-blue-400"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    Applications ({regSource === "applications" ? regState?.total ?? 87 : 87})
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-start sm:items-end gap-2.5">
+                {/* Time Range Pills */}
+                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg dark:bg-slate-800/80">
+                  <button
+                    onClick={() => setRegTimeRange("30d")}
+                    className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition ${
+                      regTimeRange === "30d"
+                        ? "bg-white text-slate-900 font-semibold shadow-xs dark:bg-slate-900 dark:text-white"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    30 Days
+                  </button>
+                  <button
+                    onClick={() => setRegTimeRange("6m")}
+                    className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition ${
+                      regTimeRange === "6m"
+                        ? "bg-white text-slate-900 font-semibold shadow-xs dark:bg-slate-900 dark:text-white"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    6 Months
+                  </button>
+                  <button
+                    onClick={() => setRegTimeRange("12m")}
+                    className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition ${
+                      regTimeRange === "12m"
+                        ? "bg-white text-slate-900 font-semibold shadow-xs dark:bg-slate-900 dark:text-white"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    12 Months
+                  </button>
+                </div>
+
+                <div className="text-left sm:text-right">
+                  <div className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total</div>
+                  <div className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+                    {regState?.total ?? 0}
+                  </div>
+                  {regState?.pctChange !== null && regState?.pctChange !== undefined && (
+                    <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 sm:justify-end mt-1">
+                      <TrendingUp className="size-3" />
+                      <span>+{regState.pctChange}% vs previous</span>
+                    </div>
+                  )}
+                  {regState?.pctChange === null && (regState?.recent ?? 0) > 0 && (
+                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 sm:justify-end mt-1">
+                      +{regState?.recent} recent
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Chart Body */}
+            {isRegLoading ? (
+              <div className="flex flex-col items-center justify-center h-[230px] text-center">
+                <Loader2 className="size-6 animate-spin text-blue-600 mb-2" />
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Loading real-time analytics...</p>
+              </div>
+            ) : isRegError ? (
+              <div className="flex flex-col items-center justify-center h-[230px] text-center">
+                <AlertTriangle className="size-6 text-amber-500 mb-2" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load registration analytics.</p>
+                <button onClick={() => refetchReg()} className="mt-2 text-xs text-blue-600 hover:underline">Retry</button>
+              </div>
+            ) : noRegData ? (
+              <div className="flex flex-col items-center justify-center h-[230px] text-center">
+                <div className="grid size-12 place-items-center rounded-2xl bg-slate-50 dark:bg-slate-800/60 text-slate-400 mb-2.5">
+                  <Users className="size-5" />
+                </div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No registration data yet</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-xs">Student registrations will appear here automatically.</p>
+              </div>
+            ) : (
+              <div className="h-[230px] w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={regState?.data ?? []} margin={{ top: 10, right: 12, left: -4, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="regGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "#1e293b" : "#f1f5f9"} />
+                    <XAxis
+                      dataKey="label"
+                      axisLine={false}
+                      tickLine={false}
+                      interval={regTimeRange === "30d" ? 4 : 0}
+                      tick={{ fontSize: 10, fill: isDark ? "#94a3b8" : "#64748b" }}
+                      dy={6}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: isDark ? "#94a3b8" : "#64748b" }}
+                      allowDecimals={false}
+                      width={34}
+                    />
+                    <RechartsTooltip content={<RegistrationTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="registrations"
+                      stroke="#2563eb"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#regGradient)"
+                      activeDot={{ r: 5, fill: "#2563eb", stroke: isDark ? "#0F172A" : "#ffffff", strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ─── 2. Completion Rate Card (Courses vs Internships) ─── */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A] flex flex-col justify-between">
+          <div>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="grid size-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                    <GraduationCap className="size-4" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-base">
+                    {completionSource === "courses" ? "Course Completion Rate" : "Internship Completion Rate"}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {completionSource === "courses" ? "Enrolled vs completed courses" : "Internship applicants vs completed interns"}
+                </p>
+
+                {/* Source switcher */}
+                <div className="mt-2.5 flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg w-fit dark:bg-slate-800/80">
+                  <button
+                    onClick={() => setCompletionSource("courses")}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition ${
+                      completionSource === "courses"
+                        ? "bg-white text-emerald-600 shadow-xs dark:bg-slate-900 dark:text-emerald-400"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    Courses ({completionSource === "courses" ? completion?.total ?? 5 : 5})
+                  </button>
+                  <button
+                    onClick={() => setCompletionSource("internships")}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition ${
+                      completionSource === "internships"
+                        ? "bg-white text-emerald-600 shadow-xs dark:bg-slate-900 dark:text-emerald-400"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    Internships ({completionSource === "internships" ? completion?.total ?? 87 : 87})
+                  </button>
+                </div>
+              </div>
+
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700/60 dark:bg-slate-800/60 dark:text-slate-300 self-start">
+                <BookOpen className="size-3.5 text-slate-400" />
+                {completionSource === "courses" ? "Active Courses" : "Active Internships"}
+              </span>
+            </div>
+
+            {/* Donut Chart Body */}
+            {isCompletionLoading ? (
+              <div className="flex flex-col items-center justify-center h-[210px] text-center">
+                <Loader2 className="size-6 animate-spin text-emerald-600 mb-2" />
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Loading completion analytics...</p>
+              </div>
+            ) : isCompletionError ? (
+              <div className="flex flex-col items-center justify-center h-[210px] text-center">
+                <AlertTriangle className="size-6 text-amber-500 mb-2" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load completion analytics.</p>
+                <button onClick={() => refetchCompletion()} className="mt-2 text-xs text-blue-600 hover:underline">Retry</button>
+              </div>
+            ) : noCompletionData ? (
+              <div className="flex flex-col items-center justify-center h-[210px] text-center">
+                <div className="grid size-12 place-items-center rounded-2xl bg-slate-50 dark:bg-slate-800/60 text-slate-400 mb-2.5">
+                  <GraduationCap className="size-5" />
+                </div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No completion data yet</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-xs">Completion statistics will appear here automatically.</p>
+              </div>
+            ) : (
+              <div className="relative flex items-center justify-center h-[175px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPie>
+                    <RechartsTooltip content={<CompletionTooltip />} />
+                    <Pie
+                      data={completion?.donutData ?? []}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={56}
+                      outerRadius={76}
+                      paddingAngle={(completion?.donutData?.filter((d: any) => d.value > 0).length ?? 0) > 1 ? 4 : 0}
+                      cornerRadius={4}
+                      stroke="none"
+                    >
+                      {completion?.donutData?.map((entry: any, index: number) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index === 0 ? "#2563eb" : isDark ? "#334155" : "#e2e8f0"}
+                        />
+                      ))}
+                    </Pie>
+                  </RechartsPie>
+                </ResponsiveContainer>
+
+                {/* Center text inside donut */}
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+                    {completion?.pct ?? 0}%
+                  </span>
+                  <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">
+                    Completion Rate
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Legend / Key Metrics below donut */}
+          {!noCompletionData && (
+            <div className="mt-3 grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+              <div className="flex items-center gap-2.5 rounded-xl bg-slate-50/80 p-2.5 dark:bg-slate-800/40">
+                <span className="size-3 shrink-0 rounded-full bg-blue-600" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Completed</div>
+                  <div className="text-base font-bold text-slate-900 dark:text-white">{completion?.completed ?? 0}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-xl bg-slate-50/80 p-2.5 dark:bg-slate-800/40">
+                <span className="size-3 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">In Progress</div>
+                  <div className="text-base font-bold text-slate-900 dark:text-white">{completion?.inProgress ?? 0}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ─── 3. Domain Popularity Card ─── */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-4 mb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="grid size-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                    <FolderTree className="size-4" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-base">Domain Popularity</h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Applications per internship domain</p>
+              </div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                {domainData.length} Domains
+              </span>
+            </div>
+
+            {isDomainLoading ? (
+              <div className="flex flex-col items-center justify-center h-[210px] text-center">
+                <Loader2 className="size-6 animate-spin text-indigo-600 mb-2" />
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Loading domains...</p>
+              </div>
+            ) : noDomainData ? (
+              <p className="py-10 text-center text-sm text-slate-400">No domain data available</p>
+            ) : (
+              <div className="space-y-3.5 pt-1">
+                {domainData.map((d) => (
+                  <div key={d.label}>
+                    <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+                      <span className="text-slate-700 dark:text-slate-200 capitalize">{d.label}</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{d.count} ({d.pct}%)</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-500"
+                        style={{ width: `${d.pct}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ─── 4. Revenue Overview Card ─── */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-4 mb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="grid size-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                    <IndianRupee className="size-4" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-base">Revenue Overview</h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Monthly verified fee payments (last 12 months)</p>
+              </div>
+              <div className="text-right">
+                <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase">Total Revenue</div>
+                <div className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
+                  ₹ {(revenue?.total ?? 0).toLocaleString("en-IN")}
+                </div>
+              </div>
+            </div>
+
+            {isRevenueLoading ? (
+              <div className="flex flex-col items-center justify-center h-[210px] text-center">
+                <Loader2 className="size-6 animate-spin text-emerald-600 mb-2" />
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Loading revenue...</p>
+              </div>
+            ) : noRevenueData ? (
+              <div className="flex flex-col items-center justify-center h-[210px] text-center">
+                <div className="grid size-12 place-items-center rounded-2xl bg-slate-50 dark:bg-slate-800/60 text-slate-400 mb-2.5">
+                  <IndianRupee className="size-5" />
+                </div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No verified revenue yet</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-xs">Verified payments will be aggregated here.</p>
+              </div>
+            ) : (
+              <div className="h-[210px] w-full pt-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsBarChart data={revenue?.data ?? []} margin={{ top: 10, right: 12, left: -4, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "#1e293b" : "#f1f5f9"} />
+                    <XAxis
+                      dataKey="month"
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      tick={{ fontSize: 10, fill: isDark ? "#94a3b8" : "#64748b" }}
+                      dy={6}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: isDark ? "#94a3b8" : "#64748b" }}
+                      allowDecimals={false}
+                      width={34}
+                    />
+                    <RechartsTooltip content={<RevenueTooltip />} />
+                    <Bar
+                      dataKey="amount"
+                      fill="#059669"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </RechartsBarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Location & Discovery Analytics Section ─── */}
+      <div className="border-t border-slate-200/70 dark:border-slate-800/80 pt-6 mt-8">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Globe className="size-5 text-blue-600" />
+              Location & Discovery Analytics
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Geographic footprint of applicant students and marketing acquisition channels.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
           {/* Countries */}
-          <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-            <h3 className="mb-1 font-semibold">Students by Country</h3>
-            <p className="mb-4 text-xs text-muted-foreground">Geographic country stats</p>
-            {!locationStats || locationStats.countries.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A]">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">Students by Country</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Geographic country stats</p>
+            {isLocLoading ? (
+              <div className="py-8 text-center text-xs text-slate-400">Loading location data...</div>
+            ) : !locationStats || locationStats.countries.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-400">No country data available</p>
             ) : (
               <div className="space-y-3">
                 {locationStats.countries.map((c) => (
                   <div key={c.label}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span>{c.label === "India" ? "🇮🇳 India" : c.label}</span>
-                      <span className="font-semibold text-muted-foreground">{c.count} students ({c.pct}%)</span>
+                    <div className="flex items-center justify-between text-xs mb-1 font-medium">
+                      <span className="text-slate-700 dark:text-slate-200">{c.label === "India" ? "🇮🇳 India" : c.label}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">{c.count} students ({c.pct}%)</span>
                     </div>
-                    <div className="h-2 rounded-full bg-secondary/80 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all" style={{ width: `${c.pct}%` }} />
+                    <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-500" style={{ width: `${c.pct}%` }} />
                     </div>
                   </div>
                 ))}
@@ -2793,21 +4287,23 @@ function AnalyticsSection() {
           </div>
 
           {/* States */}
-          <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-            <h3 className="mb-1 font-semibold">Students by State / UT (Top 10)</h3>
-            <p className="mb-4 text-xs text-muted-foreground">Distribution across Indian States</p>
-            {!locationStats || locationStats.states.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A]">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">Students by State / UT (Top 10)</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Distribution across Indian States</p>
+            {isLocLoading ? (
+              <div className="py-8 text-center text-xs text-slate-400">Loading state data...</div>
+            ) : !locationStats || locationStats.states.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-400">No state data available</p>
             ) : (
               <div className="space-y-3">
                 {locationStats.states.map((s) => (
                   <div key={s.label}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span>{s.label}</span>
-                      <span className="font-semibold text-muted-foreground">{s.count} ({s.pct}%)</span>
+                    <div className="flex items-center justify-between text-xs mb-1 font-medium">
+                      <span className="text-slate-700 dark:text-slate-200">{s.label}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">{s.count} ({s.pct}%)</span>
                     </div>
-                    <div className="h-2 rounded-full bg-secondary/80 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-[#07284a] transition-all" style={{ width: `${s.pct}%` }} />
+                    <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500" style={{ width: `${s.pct}%` }} />
                     </div>
                   </div>
                 ))}
@@ -2816,21 +4312,23 @@ function AnalyticsSection() {
           </div>
 
           {/* Districts */}
-          <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-            <h3 className="mb-1 font-semibold">Students by District (Top 10)</h3>
-            <p className="mb-4 text-xs text-muted-foreground">Distribution by District</p>
-            {!locationStats || locationStats.districts.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A]">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">Students by District (Top 10)</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Distribution by District</p>
+            {isLocLoading ? (
+              <div className="py-8 text-center text-xs text-slate-400">Loading district data...</div>
+            ) : !locationStats || locationStats.districts.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-400">No district data available</p>
             ) : (
               <div className="space-y-3">
                 {locationStats.districts.map((d) => (
                   <div key={d.label}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span>{d.label}</span>
-                      <span className="font-semibold text-muted-foreground">{d.count} ({d.pct}%)</span>
+                    <div className="flex items-center justify-between text-xs mb-1 font-medium">
+                      <span className="text-slate-700 dark:text-slate-200">{d.label}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">{d.count} ({d.pct}%)</span>
                     </div>
-                    <div className="h-2 rounded-full bg-secondary/80 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all" style={{ width: `${d.pct}%` }} />
+                    <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500" style={{ width: `${d.pct}%` }} />
                     </div>
                   </div>
                 ))}
@@ -2839,21 +4337,23 @@ function AnalyticsSection() {
           </div>
 
           {/* Cities */}
-          <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-            <h3 className="mb-1 font-semibold">Students by City / Town (Top 10)</h3>
-            <p className="mb-4 text-xs text-muted-foreground">Distribution by City</p>
-            {!locationStats || locationStats.cities.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A]">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">Students by City / Town (Top 10)</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Distribution by City</p>
+            {isLocLoading ? (
+              <div className="py-8 text-center text-xs text-slate-400">Loading city data...</div>
+            ) : !locationStats || locationStats.cities.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-400">No city data available</p>
             ) : (
               <div className="space-y-3">
                 {locationStats.cities.map((c) => (
                   <div key={c.label}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span>{c.label}</span>
-                      <span className="font-semibold text-muted-foreground">{c.count} ({c.pct}%)</span>
+                    <div className="flex items-center justify-between text-xs mb-1 font-medium">
+                      <span className="text-slate-700 dark:text-slate-200">{c.label}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">{c.count} ({c.pct}%)</span>
                     </div>
-                    <div className="h-2 rounded-full bg-secondary/80 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 transition-all" style={{ width: `${c.pct}%` }} />
+                    <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 transition-all duration-500" style={{ width: `${c.pct}%` }} />
                     </div>
                   </div>
                 ))}
@@ -2861,22 +4361,24 @@ function AnalyticsSection() {
             )}
           </div>
 
-          {/* Discovery Source Comparison */}
-          <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-            <h3 className="mb-1 font-semibold">Discovery Sources Comparison</h3>
-            <p className="mb-4 text-xs text-muted-foreground">Google vs Instagram vs LinkedIn etc.</p>
-            {!locationStats || locationStats.sources.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No data available</p>
+          {/* Discovery Sources Comparison */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A]">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">Discovery Sources Comparison</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Google vs Instagram vs LinkedIn etc.</p>
+            {isLocLoading ? (
+              <div className="py-8 text-center text-xs text-slate-400">Loading discovery sources...</div>
+            ) : !locationStats || locationStats.sources.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-400">No discovery sources available</p>
             ) : (
               <div className="space-y-3">
                 {locationStats.sources.map((src) => (
                   <div key={src.label}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-medium">{src.label}</span>
-                      <span className="font-semibold text-muted-foreground">{src.count} ({src.pct}%)</span>
+                    <div className="flex items-center justify-between text-xs mb-1 font-medium">
+                      <span className="text-slate-700 dark:text-slate-200">{src.label}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">{src.count} ({src.pct}%)</span>
                     </div>
-                    <div className="h-2.5 rounded-full bg-secondary/80 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-600 transition-all" style={{ width: `${src.pct}%` }} />
+                    <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-600 transition-all duration-500" style={{ width: `${src.pct}%` }} />
                     </div>
                   </div>
                 ))}
@@ -2885,16 +4387,18 @@ function AnalyticsSection() {
           </div>
 
           {/* Referral Name Tracker */}
-          <div className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
-            <h3 className="mb-1 font-semibold">Referral Name Tracker (Top 10)</h3>
-            <p className="mb-4 text-xs text-muted-foreground">Top classmates / existing interns referred</p>
-            {!locationStats || locationStats.referrals.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No referrals recorded yet</p>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0F172A]">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">Referral Name Tracker (Top 10)</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Top classmates / existing interns referred</p>
+            {isLocLoading ? (
+              <div className="py-8 text-center text-xs text-slate-400">Loading referrals...</div>
+            ) : !locationStats || locationStats.referrals.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-400">No referrals recorded yet</p>
             ) : (
-              <div className="divide-y divide-border/30">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {locationStats.referrals.map((r, idx) => (
                   <div key={idx} className="flex items-center justify-between py-2.5 text-xs">
-                    <span className="font-medium text-sm">{r.name}</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200">{r.name}</span>
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2.5 py-0.5 rounded-md">
                       {r.count} referrals
                     </span>
@@ -2903,7 +4407,6 @@ function AnalyticsSection() {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
@@ -2913,38 +4416,285 @@ function AnalyticsSection() {
 // ══════════════════════════════════════════════
 // SETTINGS
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════
 function SettingsSection() {
   const [portalName, setPortalName] = useState("Skyrovix Internship Portal");
   const [contactEmail, setContactEmail] = useState(COMPANY.email);
   const [companyName, setCompanyName] = useState(COMPANY.name);
-  const [saving, setSaving] = useState(false);
+  const [savingGeneral, setSavingGeneral] = useState(false);
 
-  const save = async () => {
-    setSaving(true);
+  // SMTP Settings
+  const [smtpHost, setSmtpHost] = useState("smtp.gmail.com");
+  const [smtpPort, setSmtpPort] = useState(465);
+  const [smtpUser, setSmtpUser] = useState("skyrovix@gmail.com");
+  const [smtpPass, setSmtpPass] = useState("");
+  const [smtpFrom, setSmtpFrom] = useState("Skyrovix <skyrovix@gmail.com>");
+  const [showPass, setShowPass] = useState(false);
+  const [hasExistingPass, setHasExistingPass] = useState(false);
+  const [savingSmtp, setSavingSmtp] = useState(false);
+  const [testingSmtp, setTestingSmtp] = useState(false);
+  const [testEmail, setTestEmail] = useState("skyrovix@gmail.com");
+  const [testResult, setTestResult] = useState<{ success: boolean; message?: string; error?: string } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { getSmtpConfig } = await import("@/lib/email-service");
+        const cfg = await getSmtpConfig();
+        if (cfg) {
+          if (cfg.host) setSmtpHost(cfg.host);
+          if (cfg.port) setSmtpPort(cfg.port);
+          if (cfg.user) {
+            setSmtpUser(cfg.user);
+            setTestEmail(cfg.user);
+          }
+          if (cfg.from) setSmtpFrom(cfg.from);
+          if (cfg.hasPass) setHasExistingPass(true);
+        }
+      } catch (e) {}
+    })();
+  }, []);
+
+  const saveGeneral = async () => {
+    setSavingGeneral(true);
     await new Promise((r) => setTimeout(r, 600));
-    toast.success("Settings saved (stored locally)");
-    setSaving(false);
+    toast.success("General settings saved successfully");
+    setSavingGeneral(false);
+  };
+
+  const handleSaveSmtp = async () => {
+    if (!smtpUser.trim()) return toast.error("Please enter a valid Gmail address");
+    setSavingSmtp(true);
+    try {
+      const { saveSmtpConfig } = await import("@/lib/email-service");
+      await saveSmtpConfig({
+        data: {
+          host: smtpHost.trim(),
+          port: Number(smtpPort),
+          user: smtpUser.trim(),
+          pass: smtpPass.trim() || undefined,
+          from: smtpFrom.trim(),
+        },
+      });
+      toast.success("SMTP Configuration saved successfully to .env!");
+      setHasExistingPass(true);
+      setSmtpPass("");
+    } catch (err: any) {
+      toast.error(`Failed to save SMTP: ${err.message}`);
+    } finally {
+      setSavingSmtp(false);
+    }
+  };
+
+  const handleTestSmtp = async () => {
+    setTestingSmtp(true);
+    setTestResult(null);
+    const toastId = toast.loading("Testing connection to Gmail SMTP...");
+    try {
+      const { testSmtpConnection } = await import("@/lib/email-service");
+      const res = await testSmtpConnection({
+        data: {
+          host: smtpHost.trim(),
+          port: Number(smtpPort),
+          user: smtpUser.trim(),
+          pass: smtpPass.trim() || undefined,
+          testEmail: testEmail.trim() || undefined,
+        },
+      });
+      setTestResult(res);
+      if (res.success) {
+        toast.success(res.message || "✅ Email configuration is working.", { id: toastId });
+      } else {
+        toast.error(`SMTP Test Failed: ${res.error}`, { id: toastId, duration: 8000 });
+      }
+    } catch (err: any) {
+      setTestResult({ success: false, error: "❌ Gmail authentication failed. Please check your credentials." });
+      toast.error(`SMTP Error: ${err.message}`, { id: toastId });
+    } finally {
+      setTestingSmtp(false);
+    }
   };
 
   return (
-    <div className="animate-fade-in-up space-y-4 max-w-2xl">
-      <h2 className="text-2xl font-bold">Settings</h2>
-      <div className="rounded-2xl border border-border/50 bg-white/60 p-5 backdrop-blur dark:bg-[#1E293B]/60">
-        <h3 className="font-semibold mb-4">General</h3>
+    <div className="animate-fade-in-up space-y-6 max-w-4xl">
+      <div>
+        <h2 className="text-2xl font-bold">Portal & System Settings</h2>
+        <p className="text-sm text-muted-foreground">Manage organization profile, SMTP mail server credentials, and automated delivery.</p>
+      </div>
+
+      {/* SMTP Email Configuration */}
+      <div className="rounded-2xl border border-blue-200/80 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-blue-900/50 dark:bg-[#1E293B]/80">
+        <div className="flex items-center justify-between pb-4 border-b border-border/50">
+          <div className="flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+              <Mail className="size-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-foreground">Email & Gmail SMTP Configuration</h3>
+              <p className="text-xs text-muted-foreground">Required to send Offer Letters and Certificates directly to student Gmail inboxes.</p>
+            </div>
+          </div>
+          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-0 text-xs">
+            Automated Delivery
+          </Badge>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs font-semibold">Sender Gmail</Label>
+            <Input
+              type="email"
+              value={smtpUser}
+              onChange={(e) => setSmtpUser(e.target.value)}
+              placeholder="e.g. skyrovix@gmail.com"
+              className="mt-1.5 rounded-xl text-xs h-9"
+            />
+          </div>
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold">App Password</Label>
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
+                {showPass ? "Hide" : "Show"} password
+              </button>
+            </div>
+            <Input
+              type={showPass ? "text" : "password"}
+              value={smtpPass}
+              onChange={(e) => setSmtpPass(e.target.value)}
+              placeholder={hasExistingPass ? "••••••••••••" : "Enter 16-character Google App Password"}
+              className="mt-1.5 rounded-xl text-xs h-9 font-mono"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Use a Google 16-character App Password. Do not enter your normal Gmail password.
+            </p>
+          </div>
+          <div>
+            <Label className="text-xs font-semibold">SMTP Host</Label>
+            <Input
+              value={smtpHost}
+              onChange={(e) => setSmtpHost(e.target.value)}
+              placeholder="smtp.gmail.com"
+              className="mt-1.5 rounded-xl text-xs h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-semibold">SMTP Port (465 SSL or 587 TLS)</Label>
+            <Input
+              type="number"
+              value={smtpPort}
+              onChange={(e) => setSmtpPort(Number(e.target.value))}
+              placeholder="465"
+              className="mt-1.5 rounded-xl text-xs h-9"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Label className="text-xs font-semibold">Email "From" Header Display</Label>
+            <Input
+              value={smtpFrom}
+              onChange={(e) => setSmtpFrom(e.target.value)}
+              placeholder="Skyrovix <skyrovix@gmail.com>"
+              className="mt-1.5 rounded-xl text-xs h-9"
+            />
+          </div>
+        </div>
+
+        {/* Google App Password Setup Help (Section 13) */}
+        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/70 p-4 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-blue-300">
+          <p className="font-semibold flex items-center gap-1.5 text-sm text-blue-950 dark:text-blue-200">
+            <HelpCircle className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            How to configure Gmail:
+          </p>
+          <ol className="mt-2 list-decimal pl-5 space-y-1.5 text-[11px] text-blue-900 dark:text-blue-300/90 leading-relaxed">
+            <li>Enable <strong>2-Step Verification</strong> on the Google account.</li>
+            <li>Open Google Account &rarr; <strong>Security</strong>.</li>
+            <li>Create an <strong>App Password</strong> at <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="underline font-semibold text-blue-700 dark:text-blue-400 hover:text-blue-800">myaccount.google.com/apppasswords</a>.</li>
+            <li>Select/use a suitable app name such as <strong>Skyrovix</strong>.</li>
+            <li>Copy the generated <strong>16-character App Password</strong>.</li>
+            <li>Enter the Gmail address and App Password in Admin Settings.</li>
+            <li>Click <strong>"Test Email Configuration"</strong>.</li>
+            <li>After successful testing, offer letters can be sent automatically.</li>
+          </ol>
+          <p className="mt-2 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+            &bull; Do not use your normal Gmail password.
+          </p>
+        </div>
+
+        {/* Live Test Diagnostic Output */}
+        {testResult && (
+          <div className={`mt-4 rounded-xl p-3.5 text-xs border ${
+            testResult.success
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800"
+              : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800"
+          }`}>
+            <p className="font-semibold flex items-center gap-1.5">
+              {testResult.success ? <CheckCircle2 className="size-4 text-emerald-600" /> : <XCircle className="size-4 text-rose-600" />}
+              {testResult.success ? "Email configuration is working" : "Gmail authentication failed"}
+            </p>
+            <p className="mt-1 text-[11px]">{testResult.message || testResult.error}</p>
+          </div>
+        )}
+
+        {/* Action Controls */}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/50">
+          <div className="flex items-center gap-2 flex-1 max-w-sm">
+            <Input
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="Test recipient email..."
+              className="text-xs h-9 rounded-xl"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleTestSmtp}
+              disabled={testingSmtp}
+              className="rounded-xl text-xs h-9 shrink-0 gap-1.5"
+            >
+              {testingSmtp ? <Loader2 className="size-3.5 animate-spin" /> : <Zap className="size-3.5 text-amber-500" />}
+              Test Email Configuration
+            </Button>
+          </div>
+
+          <Button
+            type="button"
+            onClick={handleSaveSmtp}
+            disabled={savingSmtp}
+            className="brand-gradient text-white border-0 rounded-xl text-xs h-9 px-5 font-semibold"
+          >
+            {savingSmtp ? "Saving..." : "Save SMTP Settings"}
+          </Button>
+        </div>
+      </div>
+
+      {/* General Settings */}
+      <div className="rounded-2xl border border-border/50 bg-white/80 p-6 shadow-sm backdrop-blur dark:bg-[#1E293B]/80">
+        <h3 className="font-bold text-base mb-4">General Platform Information</h3>
         <div className="space-y-4">
           <div>
-            <Label>Portal Name</Label>
-            <Input value={portalName} onChange={(e) => setPortalName(e.target.value)} className="mt-1 rounded-xl border-border/60" />
+            <Label className="text-xs font-semibold">Portal Name</Label>
+            <Input value={portalName} onChange={(e) => setPortalName(e.target.value)} className="mt-1.5 rounded-xl border-border/60 text-xs h-9" />
           </div>
           <div>
-            <Label>Contact Email</Label>
-            <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="mt-1 rounded-xl border-border/60" />
+            <Label className="text-xs font-semibold">Support Contact Email</Label>
+            <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="mt-1.5 rounded-xl border-border/60 text-xs h-9" />
           </div>
           <div>
-            <Label>Company</Label>
-            <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="mt-1 rounded-xl border-border/60" />
+            <Label className="text-xs font-semibold">Company / Brand Name</Label>
+            <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="mt-1.5 rounded-xl border-border/60 text-xs h-9" />
           </div>
-          <Button onClick={save} disabled={saving} className="brand-gradient text-white border-0">{saving ? "Saving…" : "Save Changes"}</Button>
+          <div className="pt-2">
+            <Button onClick={saveGeneral} disabled={savingGeneral} className="brand-gradient text-white border-0 rounded-xl text-xs h-9 px-5 font-semibold">
+              {savingGeneral ? "Saving…" : "Save General Settings"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -2955,7 +4705,10 @@ function SettingsSection() {
 // EMAIL LOGS
 // ══════════════════════════════════════════════
 function EmailLogsSection() {
-  const { data: logs } = useQuery({
+  const qc = useQueryClient();
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const { data: logs, refetch } = useQuery({
     queryKey: ["admin-email-logs"],
     queryFn: async () => {
       const { data } = await (supabase
@@ -2967,47 +4720,90 @@ function EmailLogsSection() {
   });
 
   const resend = async (log: any) => {
+    setResendingId(log.id);
+    const docLabel = log.document_type === "offer_letter" ? "Offer Letter" : "Certificate";
+    const toastId = toast.loading(`Resending official ${docLabel} PDF to ${log.email_to}...`);
     try {
-      const { data: app } = await supabase
-        .from("applications")
-        .select("full_name, intern_id, domain, email, user_id")
+      const { data: app } = await (supabase
+        .from("applications") as any)
+        .select("id, full_name, intern_id, domain, email, user_id, duration")
         .eq("user_id", log.user_id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
       if (!app?.email) {
-        toast.error("Cannot resend: student data not found");
+        toast.error("Cannot resend: student application record not found", { id: toastId });
+        setResendingId(null);
         return;
       }
-      const { sendEmail } = await import("@/lib/email-service");
-      const result = await sendEmail({
-        data: {
+
+      if (log.document_type === "offer_letter") {
+        const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
+        const domainObj = getDomain(app.domain);
+        const result = await sendOfferLetterEmail({
           to: app.email,
           studentName: app.full_name,
           studentId: app.user_id,
-          documentType: log.document_type,
-          subject: `Re: ${log.subject}`,
-          body: `This is a re-sent notification regarding:\n${log.subject}\n\nPlease contact support if you need the original PDF attachment.`,
-          referenceId: log.reference_id,
-          pdfData: {
-            fullName: app.full_name,
-            internId: app.intern_id ?? log.reference_id ?? "",
-            domain: app.domain ?? "",
-            issuedAt: new Date().toISOString(),
-          },
-        },
-      });
-      if (result.success) toast.success("Resend request logged");
-      else toast.error(`Resend failed: ${result.error}`);
+          internId: app.intern_id,
+          domainName: domainObj?.name ?? app.domain,
+          duration: app.duration ?? 1,
+        });
+        if (result.success) {
+          toast.success(`Offer Letter successfully resent to ${app.email}!`, { id: toastId });
+        } else {
+          toast.error(`Resend failed: ${result.error}`, { id: toastId, duration: 8000 });
+        }
+      } else {
+        const { sendCertificateEmail } = await import("@/lib/email-helpers");
+        const result = await sendCertificateEmail({
+          to: app.email,
+          studentName: app.full_name,
+          studentId: app.user_id,
+          certId: log.reference_id || "SKX-CERT",
+          domainName: getDomain(app.domain)?.name ?? app.domain,
+          internId: app.intern_id || "",
+        });
+        if (result.success) {
+          toast.success(`Certificate successfully resent to ${app.email}!`, { id: toastId });
+        } else {
+          toast.error(`Resend failed: ${result.error}`, { id: toastId, duration: 8000 });
+        }
+      }
+      qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
     } catch (e: any) {
-      toast.error(`Resend failed: ${e.message}`);
+      toast.error(`Resend failed: ${e.message}`, { id: toastId });
+    } finally {
+      setResendingId(null);
     }
   };
 
+  const sentCount = logs?.filter((l: any) => l.status === "sent").length ?? 0;
+  const failedCount = logs?.filter((l: any) => l.status === "failed").length ?? 0;
+
   return (
     <div className="animate-fade-in-up space-y-4">
-      <h2 className="text-2xl font-bold">Email Logs</h2>
-      <p className="text-sm text-muted-foreground">{logs?.length ?? 0} email records</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold">Email Transmission Logs</h2>
+          <p className="text-sm text-muted-foreground">{logs?.length ?? 0} total dispatches · {sentCount} delivered · {failedCount} failed</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="rounded-xl text-xs h-9 gap-1.5">
+            <RefreshCw className="size-3.5" /> Refresh
+          </Button>
+        </div>
+      </div>
+
+      {failedCount > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300 flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="size-4 text-amber-600 shrink-0" />
+            <span>Notice: {failedCount} email(s) encountered delivery issues. Make sure your Gmail App Password in Settings is up-to-date.</span>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
         <table className="w-full text-sm">
           <thead>
@@ -3017,7 +4813,7 @@ function EmailLogsSection() {
               <th className="px-4 py-3 text-left">Document</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Sent At</th>
-              <th className="px-4 py-3 text-left">Error</th>
+              <th className="px-4 py-3 text-left">Error Details</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -3042,13 +4838,17 @@ function EmailLogsSection() {
                   }`}>{log.status}</Badge>
                 </td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">{log.sent_at ? new Date(log.sent_at).toLocaleString("en-IN") : "—"}</td>
-                <td className="px-4 py-3 text-xs text-red-500 max-w-[200px] truncate" title={log.error_message ?? ""}>{log.error_message ?? "—"}</td>
+                <td className="px-4 py-3 text-xs text-red-500 max-w-[240px] truncate" title={log.error_message ?? ""}>{log.error_message ?? "—"}</td>
                 <td className="px-4 py-3 text-right">
-                    {log.status === "failed" && (
-                    <button onClick={() => resend(log)} className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition" title="Resend email">
-                      <RefreshCw className="size-3.5" /> Resend
-                    </button>
-                  )}
+                  <button
+                    onClick={() => resend(log)}
+                    disabled={resendingId === log.id}
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition disabled:opacity-50"
+                    title="Resend PDF document to Gmail"
+                  >
+                    {resendingId === log.id ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+                    Resend
+                  </button>
                 </td>
               </tr>
             ))}

@@ -228,7 +228,7 @@ function Dashboard() {
     queryFn: async () => {
       if (!appsList?.length) return [];
       const ids = appsList.map((a) => a.id);
-      const { data } = await supabase.from("submissions").select("*").in("application_id", ids);
+      const { data } = await supabase.from("submissions").select("*").in("application_id", ids).order("submitted_at", { ascending: false });
       return data ?? [];
     },
     enabled: !!appsList?.length,
@@ -494,28 +494,37 @@ function Dashboard() {
       const { error: insertError } = await (supabase.from("applications") as any).insert(payload);
       if (insertError) throw insertError;
 
-      toast.success("Application submitted successfully! Your new internship has started.");
-      
       // Invalidate queries to refresh list
       qc.invalidateQueries({ queryKey: ["my-applications", user?.id] });
       
-      // Send offer letter email in the background
-      (async () => {
+      const studentEmail = (user?.email || payload.email || "").trim();
+      const domainObj = getDomain(newDomain);
+      const domainName = domainObj?.name ?? newDomain;
+
+      if (studentEmail) {
+        toast.loading(`Sending your Offer Letter to ${studentEmail}...`, { id: "offer-letter-delivery" });
         try {
           const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
-          const domainObj = getDomain(newDomain);
-          await sendOfferLetterEmail({
-            to: user?.email ?? "",
+          const result = await sendOfferLetterEmail({
+            to: studentEmail,
             studentName: payload.full_name,
             studentId: user!.id,
             internId: intern_id,
-            domainName: domainObj?.name ?? newDomain,
+            domainName,
             duration: newDuration,
           });
-        } catch (e) {
+          if (result.success) {
+            toast.success(`Application submitted! Official Offer Letter sent to ${studentEmail}`, { id: "offer-letter-delivery" });
+          } else {
+            toast.error(`Application submitted, but offer letter delivery failed: ${result.error}`, { id: "offer-letter-delivery", duration: 8000 });
+          }
+        } catch (e: any) {
           console.warn("Failed to send offer letter email for new domain:", e);
+          toast.error(`Application submitted, but email error: ${e.message}`, { id: "offer-letter-delivery" });
         }
-      })();
+      } else {
+        toast.success("Application submitted successfully! Your new internship has started.");
+      }
 
       // Reset form
       setNewDomain("");

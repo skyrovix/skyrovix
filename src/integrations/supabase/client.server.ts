@@ -7,12 +7,11 @@ import type { Database } from './types';
 import { loadEnv } from '@/lib/env.server';
 
 const DEFAULT_URL = "https://eesiuqeswydlmwhecrcy.supabase.co";
-const DEFAULT_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlc2l1cWVzd3lkbG13aGVjcmN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODI0OTAsImV4cCI6MjA5Nzc1ODQ5MH0.56yomVN0MzIVwLbBZarmZVaJyKwC8cs_KJPEil3usY0";
 
 function createSupabaseAdminClient() {
   loadEnv();
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_SERVICE_ROLE_KEY;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {

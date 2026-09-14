@@ -3,8 +3,8 @@ import path from "node:path";
 
 let isLoaded = false;
 
-export function loadEnv() {
-  if (isLoaded) return;
+export function loadEnv(force = false) {
+  if (isLoaded && !force) return;
   isLoaded = true;
 
   try {
@@ -23,8 +23,10 @@ export function loadEnv() {
         ) {
           val = val.slice(1, -1);
         }
-        if (key && !process.env[key]) {
-          process.env[key] = val;
+        if (key) {
+          if (force || !process.env[key]) {
+            process.env[key] = val;
+          }
         }
       }
     }

@@ -242,28 +242,36 @@ function DomainsPage() {
         photo_url,
       });
 
-      toast.success("Application submitted! Your internship has started.");
-      navigate({ to: "/dashboard", search: {} as any });
+      const studentEmail = (currentUser.email || payload.email || "").trim();
+      const domainObj = getDomain(applyDomain);
+      const domainName = domainObj?.name ?? applyDomain;
 
-      (async () => {
+      if (studentEmail) {
+        toast.loading(`Sending your Offer Letter to ${studentEmail}...`, { id: "offer-letter-delivery" });
         try {
           const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
-          const domainObj = getDomain(applyDomain);
-          const domainName = domainObj?.name ?? applyDomain;
-          await sendOfferLetterEmail({
-            to: currentUser!.email ?? "",
+          const result = await sendOfferLetterEmail({
+            to: studentEmail,
             studentName: payload.full_name,
-            studentId: currentUser!.id,
+            studentId: currentUser.id,
             internId: intern_id,
             domainName,
             duration: applyDuration,
           });
-          toast.success("Offer letter sent to your email!");
-        } catch (e) {
-          toast.error("Offer letter email could not be sent.");
+          if (result.success) {
+            toast.success(`Application submitted! Official Offer Letter sent to ${studentEmail}`, { id: "offer-letter-delivery" });
+          } else {
+            toast.error(`Application submitted, but offer letter delivery failed: ${result.error}`, { id: "offer-letter-delivery", duration: 8000 });
+          }
+        } catch (e: any) {
           console.warn("[Email] Failed to send offer letter:", e);
+          toast.error(`Application submitted, but email error: ${e.message}`, { id: "offer-letter-delivery" });
         }
-      })();
+      } else {
+        toast.success("Application submitted! Your internship has started.");
+      }
+
+      navigate({ to: "/dashboard", search: {} as any });
 
     } catch (err) {
       const msg = (err as any)?.message || (err as any)?.error_description || "Something went wrong.";

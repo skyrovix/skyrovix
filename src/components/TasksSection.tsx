@@ -57,6 +57,9 @@ type Submission = {
   notes: string | null;
   feedback: string | null;
   submitted_at?: string;
+  reviewed_at?: string | null;
+  previous_submission_id?: string | null;
+  resubmission_count?: number | null;
 };
 
 function getTaskStatus(submission: Submission | undefined, dueDate: Date): TaskStatus {
@@ -228,10 +231,14 @@ export function TasksSection({
   }, [domainSlug, duration]);
 
   const tasksWithMeta = useMemo(() => {
+    const getLatestSub = (tId: string) => {
+      const matches = (rawSubmissions || []).filter((s) => s.task_id === tId);
+      if (!matches.length) return undefined;
+      return [...matches].sort((a, b) => new Date(b.submitted_at || 0).getTime() - new Date(a.submitted_at || 0).getTime())[0];
+    };
+
     const linkedinId = taskIdMap[0] ?? `${domainSlug}-0`;
-    const linkedinSub = linkedinId
-      ? rawSubmissions.find((s) => s.task_id === linkedinId)
-      : undefined;
+    const linkedinSub = linkedinId ? getLatestSub(linkedinId) : undefined;
     const linkedinDue = computeDueDate(1);
     const linkedinStatus = getTaskStatus(linkedinSub, linkedinDue);
     const linkedinMeta = {
@@ -246,7 +253,7 @@ export function TasksSection({
 
     const domainTasks = allTasks.map((t) => {
       const id = taskIdMap[t.taskNumber] ?? `${domainSlug}-${t.taskNumber}`;
-      const sub = rawSubmissions.find((s) => s.task_id === id);
+      const sub = getLatestSub(id);
       const dueDate = computeDueDate(t.taskNumber);
       const status = getTaskStatus(sub, dueDate);
       const remaining = daysRemaining(dueDate);
@@ -540,51 +547,122 @@ function TaskSubmitDialog({
       if (pdfUrl) payload.pdf_url = pdfUrl;
       if (screenshotUrl) payload.screenshot_url = screenshotUrl;
 
-      // Check if a submission already exists for this application & task
-      let targetSubId = submission?.id;
-      let prevStatus = submission?.status;
-
-      if (!targetSubId) {
+      // Check if a previous submission exists for this application & task
+      let prevSub = submission;
+      if (!prevSub) {
         const { data: existing } = await supabase
           .from("submissions")
-          .select("id, status")
+          .select("*")
           .eq("application_id", appId)
           .eq("task_id", taskId)
+          .order("submitted_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
         if (existing) {
-          targetSubId = existing.id;
-          prevStatus = existing.status;
+          prevSub = existing as any;
         }
       }
 
-      let subErr = null;
-      if (targetSubId) {
-        const { error } = await supabase
+      const isResubmission = Boolean(prevSub && (prevSub.status === "rejected" || prevSub.reviewed_at));
+      let insertedId: string | null = null;
+      let resubCount = 1;
+
+      if (isResubmission && prevSub) {
+        // Count previous submissions for this application & task
+        const { data: previousSubs } = await supabase
           .from("submissions")
-          .update(payload)
-          .eq("id", targetSubId);
-        subErr = error;
+          .select("id, status")
+          .eq("application_id", appId)
+          .eq("task_id", taskId);
+
+        const existingCount = previousSubs?.length ?? 1;
+        const prevResubCount = Number(prevSub.resubmission_count ?? 0);
+        const newResubmissionCount = prevResubCount > 0 ? prevResubCount + 1 : existingCount;
+        resubCount = newResubmissionCount;
+
+        const noteHeader = `[Resubmission #${newResubmissionCount} | Prev: ${prevSub.id}]`;
+        const resubNotes = notes ? `${noteHeader}\n${notes}` : noteHeader;
+
+        const resubPayload: Record<string, any> = {
+          application_id: appId,
+          task_id: taskId,
+          github_url: githubUrl,
+          notes: resubNotes,
+          status: "pending",
+          submitted_at: new Date().toISOString(),
+          feedback: null,
+          reviewed_at: null,
+          previous_submission_id: prevSub.id,
+          resubmission_count: newResubmissionCount,
+        };
+        if (deployedUrl) resubPayload.deployed_url = deployedUrl;
+        if (pdfUrl) resubPayload.pdf_url = pdfUrl;
+        if (screenshotUrl) resubPayload.screenshot_url = screenshotUrl;
+
+        // Insert new submission linked to previous submission
+        let { data: newSub, error: insertErr } = await supabase
+          .from("submissions")
+          .insert(resubPayload as any)
+          .select("id")
+          .single();
+
+        if (insertErr && (insertErr.message?.includes("column") || (insertErr as any).code === "PGRST204" || (insertErr as any).code === "42703")) {
+          // Graceful fallback if columns are not yet in Supabase schema
+          const fallbackPayload = { ...resubPayload };
+          delete fallbackPayload.previous_submission_id;
+          delete fallbackPayload.resubmission_count;
+          const fallbackRes = await supabase
+            .from("submissions")
+            .insert(fallbackPayload as any)
+            .select("id")
+            .single();
+          newSub = fallbackRes.data;
+          insertErr = fallbackRes.error;
+        }
+
+        if (insertErr) {
+          setLoading(false);
+          return toast.error(insertErr.message);
+        }
+
+        insertedId = newSub?.id ?? null;
+
+        if (insertedId) {
+          try {
+            await (supabase.from("submission_history" as any) as any).insert({
+              submission_id: insertedId,
+              table_name: "submissions",
+              previous_status: "rejected",
+              new_status: "pending",
+              changed_by: user.id,
+              reason: `Resubmission #${newResubmissionCount} (Previous submission: ${prevSub.id})`,
+            });
+          } catch (histErr) {
+            console.warn("Could not insert submission history:", histErr);
+          }
+        }
       } else {
-        const { error } = await supabase
-          .from("submissions")
-          .insert(payload);
-        subErr = error;
+        // Standard first-time submission or draft update
+        if (prevSub && prevSub.status === "pending") {
+          const { error: updErr } = await supabase
+            .from("submissions")
+            .update(payload as any)
+            .eq("id", prevSub.id);
+          if (updErr) { setLoading(false); return toast.error(updErr.message); }
+          insertedId = prevSub.id;
+        } else {
+          const { data: newSub, error: insErr } = await supabase
+            .from("submissions")
+            .insert(payload as any)
+            .select("id")
+            .single();
+          if (insErr) { setLoading(false); return toast.error(insErr.message); }
+          insertedId = newSub?.id ?? null;
+        }
       }
 
-      if (subErr) { setLoading(false); return toast.error(subErr.message); }
-
-      if (prevStatus === "rejected" || targetSubId) {
-        await (supabase.from("submission_history" as any) as any).insert({
-          submission_id: targetSubId ?? null,
-          table_name: "submissions",
-          previous_status: prevStatus ?? "rejected",
-          new_status: "pending",
-          changed_by: user.id,
-          reason: "Student resubmitted task for review",
-        });
-      }
       setLoading(false);
-      toast.success(prevStatus === "rejected" ? "Resubmitted for review!" : "Task submitted for review! 🎉");
+      toast.success(isResubmission ? `Resubmission #${resubCount} submitted for review! 🔄` : "Task submitted for review! 🎉");
       onOpenChange(false);
       onSubmitted();
     } catch (err: any) {
