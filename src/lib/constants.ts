@@ -16,14 +16,33 @@ export const PRODUCTION_DOMAINS = {
 } as const;
 
 /**
- * Resolves the allowed production redirect URL for password recovery.
- * Allowed production domains:
- * 1. https://skyrovix.in
- * 2. https://skyrovix.online
+ * Resolves the production redirect URL for password recovery.
  *
- * NEVER returns localhost or 127.0.0.1 under any circumstances.
+ * Supported production domains:
+ * 1. https://skyrovix.online
+ * 2. https://skyrovix.in
+ *
+ * - Prioritizes VITE_APP_URL environment variable if set.
+ * - Dynamically supports both https://skyrovix.in and https://skyrovix.online based on hostname.
+ * - Defaults strictly to https://skyrovix.online/reset-password for local dev or unconfigured environments.
+ * - NEVER returns localhost or 127.0.0.1 under any circumstances.
  */
 export function getProductionResetPasswordRedirectUrl(): string {
+  // 1. Check environment variable VITE_APP_URL
+  const envUrl = (
+    (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_APP_URL) ||
+    (typeof process !== "undefined" && process.env && (process.env.VITE_APP_URL || process.env.APP_URL)) ||
+    ""
+  ).trim();
+
+  if (envUrl) {
+    const cleanUrl = envUrl.replace(/\/+$/, "");
+    if (!cleanUrl.includes("localhost") && !cleanUrl.includes("127.0.0.1")) {
+      return `${cleanUrl}/reset-password`;
+    }
+  }
+
+  // 2. Check current browser hostname if accessing live production domain
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname.toLowerCase();
     if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
@@ -33,19 +52,33 @@ export function getProductionResetPasswordRedirectUrl(): string {
       return "https://skyrovix.online/reset-password";
     }
   }
-  // Default fallback for localhost or any other environment:
+
+  // 3. Strict safe production default (never localhost)
   return "https://skyrovix.online/reset-password";
 }
 
 /**
- * Resolves the allowed production redirect URL for authentication and email confirmation.
- * Allowed production domains:
- * 1. https://skyrovix.in/auth
- * 2. https://skyrovix.online/auth
+ * Resolves the production redirect URL for authentication and email confirmation.
+ * Supported production domains:
+ * 1. https://skyrovix.online
+ * 2. https://skyrovix.in
  *
  * NEVER returns localhost or 127.0.0.1 under any circumstances.
  */
 export function getProductionAuthRedirectUrl(): string {
+  const envUrl = (
+    (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_APP_URL) ||
+    (typeof process !== "undefined" && process.env && (process.env.VITE_APP_URL || process.env.APP_URL)) ||
+    ""
+  ).trim();
+
+  if (envUrl) {
+    const cleanUrl = envUrl.replace(/\/+$/, "");
+    if (!cleanUrl.includes("localhost") && !cleanUrl.includes("127.0.0.1")) {
+      return `${cleanUrl}/auth`;
+    }
+  }
+
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname.toLowerCase();
     if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
@@ -55,6 +88,7 @@ export function getProductionAuthRedirectUrl(): string {
       return "https://skyrovix.online/auth";
     }
   }
+
   return "https://skyrovix.online/auth";
 }
 
@@ -62,6 +96,19 @@ export function getProductionAuthRedirectUrl(): string {
  * Returns the current public website origin, guaranteeing it never falls back to localhost.
  */
 export function getPublicSiteUrl(): string {
+  const envUrl = (
+    (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_APP_URL) ||
+    (typeof process !== "undefined" && process.env && (process.env.VITE_APP_URL || process.env.APP_URL)) ||
+    ""
+  ).trim();
+
+  if (envUrl) {
+    const cleanUrl = envUrl.replace(/\/+$/, "");
+    if (!cleanUrl.includes("localhost") && !cleanUrl.includes("127.0.0.1")) {
+      return cleanUrl;
+    }
+  }
+
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname.toLowerCase();
     if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
@@ -71,6 +118,7 @@ export function getPublicSiteUrl(): string {
       return "https://skyrovix.online";
     }
   }
+
   return SITE_URL;
 }
 
