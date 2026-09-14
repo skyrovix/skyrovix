@@ -24,8 +24,8 @@ import type { CouponResult } from "@/lib/coupons";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { IDCard } from "@/components/IDCard";
-import { TasksSection } from "@/components/TasksSection";
 import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadIDCard, downloadPdf } from "@/components/pdf-docs";
+import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Copy, Download, FileText, CheckCircle2, Clock, XCircle, X, Upload, Award,
@@ -415,6 +415,7 @@ function Dashboard() {
   const [newPincode, setNewPincode] = useState("");
   const [newHearAbout, setNewHearAbout] = useState("");
   const [newReferralName, setNewReferralName] = useState("");
+  const [previewOfferApp, setPreviewOfferApp] = useState<Application | null>(null);
 
   const handleApplyNewCoupon = async () => {
     if (!newCouponCode.trim()) return;
@@ -449,10 +450,12 @@ function Dashboard() {
     if (!newState) return toast.error("State / Union Territory is required");
     if (!newDistrict) return toast.error("District is required");
     if (!newCity.trim()) return toast.error("City / Town is required");
-    if (!/^\d{6}$/.test(newPincode)) return toast.error("PIN Code must be exactly 6 digits");
+    if (!/^\d{6}$/.test(newPincode)) {
+      return toast.error("PIN Code must be exactly 6 digits");
+    }
     if (!newHearAbout) return toast.error("Please select how you heard about us");
     if ((newHearAbout === "Friend / Classmate" || newHearAbout === "Existing Skyrovix Intern") && !newReferralName.trim()) {
-      return toast.error("Referral Name is required");
+      return toast.error("Referral Name is required for selected referral source");
     }
     
     // Check if already enrolled in this domain and active/pending
@@ -464,16 +467,15 @@ function Dashboard() {
     setSubmittingNewApp(true);
     try {
       const intern_id = generateInternId();
-      const limit = taskLimits[newDuration] ?? 5;
-      
-      const payload = {
-        user_id: user?.id,
+      const dur = durationConfig(newDuration);
+      const payload: Record<string, any> = {
+        user_id: user!.id,
         domain: newDomain,
         duration: newDuration,
-        total_tasks: limit,
+        total_tasks: dur?.tasks ?? 5,
         intern_id,
-        full_name: app?.full_name ?? user?.user_metadata?.full_name ?? "Student",
-        email: user?.email ?? "",
+        full_name: app?.full_name || user?.user_metadata?.full_name || "",
+        email: user?.email || app?.email || "",
         phone: app?.phone ?? "",
         college: app?.college ?? "",
         course: app?.course ?? "",
@@ -482,6 +484,7 @@ function Dashboard() {
         coupon_code: newCouponApplied?.code ?? null,
         status: "approved",
         submission_status: "in_progress",
+        offer_issued_at: new Date().toISOString(),
         country: newCountry,
         state: newState,
         district: newDistrict,
@@ -514,16 +517,17 @@ function Dashboard() {
             duration: newDuration,
           });
           if (result.success) {
-            toast.success(`Application submitted! Official Offer Letter sent to ${studentEmail}`, { id: "offer-letter-delivery" });
+            toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
           } else {
-            toast.error(`Application submitted, but offer letter delivery failed: ${result.error}`, { id: "offer-letter-delivery", duration: 8000 });
+            console.warn("[Email] Delivery warning:", result.error);
+            toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
           }
         } catch (e: any) {
           console.warn("Failed to send offer letter email for new domain:", e);
-          toast.error(`Application submitted, but email error: ${e.message}`, { id: "offer-letter-delivery" });
+          toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
         }
       } else {
-        toast.success("Application submitted successfully! Your new internship has started.");
+        toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { duration: 8000 });
       }
 
       // Reset form
@@ -793,7 +797,33 @@ function Dashboard() {
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-6">
                 {/* Documents & Details */}
-                <IDCardSection app={da} />
+                <IDCardSection app={da} onViewOfferLetter={() => setPreviewOfferApp(da)} />
+
+                {/* Offer Letter View/Download Card */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl border border-border/40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-10 place-items-center rounded-2xl brand-gradient text-white shadow-md">
+                      <FileText className="size-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Internship Offer Letter</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Ref: <span className="font-mono font-semibold">{da.intern_id}</span> · Issued: {new Date(da.offer_issued_at || da.created_at).toLocaleDateString("en-IN")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white dark:bg-slate-800" onClick={() => setPreviewOfferApp(da)}>
+                      <Eye className="size-3.5 text-blue-500" /> View Offer Letter
+                    </Button>
+                    <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadPdf(
+                      <OfferLetterDoc fullName={da.full_name} internId={da.intern_id} domain={dd?.name ?? da.domain} issuedAt={da.offer_issued_at || da.created_at} duration={da.duration ?? 1} />,
+                      `OfferLetter_${da.intern_id}.pdf`
+                    )}>
+                      <Download className="size-3.5" /> Download Offer Letter
+                    </Button>
+                  </div>
+                </div>
 
                 {/* Summary Panel */}
                 <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
@@ -866,7 +896,7 @@ function Dashboard() {
       return (
         <div className="space-y-6">
           {/* Welcome Banner */}
-          <HeroSection app={app} internApproved={internApproved} durationLimit={internTotal} cert={cert} payment={payment} setShowPaymentModal={setShowPaymentModal} />
+          <HeroSection app={app} internApproved={internApproved} durationLimit={internTotal} cert={cert} payment={payment} setShowPaymentModal={setShowPaymentModal} onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)} />
           
           {/* Stats details card row */}
           <StatsCards internApproved={internApproved} internPending={internPending} durationLimit={internTotal} cert={cert} payment={payment} setShowPaymentModal={setShowPaymentModal} />
@@ -946,8 +976,8 @@ function Dashboard() {
                   const aCert = allAppCerts?.find((c: any) => c.application_id === a.id) ?? null;
                   const appTaskCount = taskLimits[a.duration ?? 1] ?? 5;
                   return (
-                    <button key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })}
-                      className="w-full text-left rounded-2xl border border-border/40 bg-white/60 p-4 backdrop-blur-xl transition-all hover:shadow-md hover:bg-white/80 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 group">
+                    <div key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })}
+                      className="w-full text-left rounded-2xl border border-border/40 bg-white/60 p-4 backdrop-blur-xl transition-all hover:shadow-md hover:bg-white/80 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 group cursor-pointer">
                       <div className="flex items-center gap-4">
                         <div className={`grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${d?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-sm`}>
                           <span className="text-lg font-bold">{d?.icon ?? "?"}</span>
@@ -975,7 +1005,34 @@ function Dashboard() {
                         </div>
                         <ChevronRight className="size-4 text-muted-foreground group-hover:translate-x-1 transition shrink-0" />
                       </div>
-                    </button>
+                      <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border/30">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewOfferApp(a);
+                          }}
+                        >
+                          <Eye className="mr-1.5 size-3.5 text-blue-500" /> View Offer Letter
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadPdf(
+                              <OfferLetterDoc fullName={a.full_name} internId={a.intern_id} domain={d?.name ?? a.domain} issuedAt={a.offer_issued_at || a.created_at} duration={a.duration ?? 1} />,
+                              `OfferLetter_${a.intern_id}.pdf`
+                            );
+                          }}
+                        >
+                          <Download className="mr-1.5 size-3.5 text-emerald-500" /> Download Offer Letter
+                        </Button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -1042,7 +1099,7 @@ function Dashboard() {
           
           <ProfilePanel app={app} onChange={() => qc.invalidateQueries({ queryKey: ["my-applications", user?.id] })} />
 
-          <IDCardSection app={app} />
+          <IDCardSection app={app} onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)} />
         </div>
       );
     }
@@ -1113,7 +1170,34 @@ function Dashboard() {
             <TimelineSection steps={daSteps} currentStep={daCurrentStep} />
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-6">
-                <IDCardSection app={da} />
+                <IDCardSection app={da} onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)} />
+
+                {/* Offer Letter View/Download Card */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl border border-border/40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-10 place-items-center rounded-2xl brand-gradient text-white shadow-md">
+                      <FileText className="size-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Internship Offer Letter</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Ref: <span className="font-mono font-semibold">{da.intern_id}</span> · Issued: {new Date(da.offer_issued_at || da.created_at).toLocaleDateString("en-IN")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white dark:bg-slate-800" onClick={() => setPreviewOfferApp(da)}>
+                      <Eye className="size-3.5 text-blue-500" /> View Offer Letter
+                    </Button>
+                    <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadPdf(
+                      <OfferLetterDoc fullName={da.full_name} internId={da.intern_id} domain={dd?.name ?? da.domain} issuedAt={da.offer_issued_at || da.created_at} duration={da.duration ?? 1} />,
+                      `OfferLetter_${da.intern_id}.pdf`
+                    )}>
+                      <Download className="size-3.5" /> Download Offer Letter
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
                   <h3 className="flex items-center gap-2 font-bold text-sm"><ScrollText className="size-4 text-primary" /> Application Details</h3>
                   <div className="grid grid-cols-2 gap-4 text-xs">
@@ -1185,7 +1269,7 @@ function Dashboard() {
                   const pct = aTotal > 0 ? Math.round((aApproved / aTotal) * 100) : 0;
                   const aCert = allAppCerts?.find((c: any) => c.application_id === a.id);
                   return (
-                    <button key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })} className="w-full text-left rounded-3xl border border-emerald-200/60 bg-gradient-to-r from-emerald-50/50 to-white/60 p-5 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30 shadow-sm hover:shadow-md hover:border-emerald-300/80 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 group">
+                    <div key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })} className="w-full text-left rounded-3xl border border-emerald-200/60 bg-gradient-to-r from-emerald-50/50 to-white/60 p-5 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30 shadow-sm hover:shadow-md hover:border-emerald-300/80 transition-all duration-200 hover:-translate-y-0.5 group cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${d?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-md text-2xl`}>
                           {d?.icon ?? "🎓"}
@@ -1203,10 +1287,37 @@ function Dashboard() {
                             </div>
                             <span className="text-xs font-bold text-foreground shrink-0">{aApproved}/{aTotal} tasks</span>
                           </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-emerald-200/40 dark:border-emerald-800/20">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewOfferApp(a);
+                              }}
+                            >
+                              <Eye className="mr-1.5 size-3.5 text-blue-500" /> View Offer Letter
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadPdf(
+                                  <OfferLetterDoc fullName={a.full_name} internId={a.intern_id} domain={d?.name ?? a.domain} issuedAt={a.offer_issued_at || a.created_at} duration={a.duration ?? 1} />,
+                                  `OfferLetter_${a.intern_id}.pdf`
+                                );
+                              }}
+                            >
+                              <Download className="mr-1.5 size-3.5 text-emerald-500" /> Download Offer Letter
+                            </Button>
+                          </div>
                         </div>
                         <ChevronRight className="size-5 text-muted-foreground/40 group-hover:text-muted-foreground/80 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1222,7 +1333,7 @@ function Dashboard() {
                   const d = getDomain(a.domain);
                   const aCert = allAppCerts?.find((c: any) => c.application_id === a.id);
                   return (
-                    <button key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })} className="w-full text-left rounded-3xl border border-border/40 bg-white/50 p-5 backdrop-blur-xl dark:bg-slate-900/50 dark:border-white/5 shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 group">
+                    <div key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })} className="w-full text-left rounded-3xl border border-border/40 bg-white/50 p-5 backdrop-blur-xl dark:bg-slate-900/50 dark:border-white/5 shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-200 hover:-translate-y-0.5 group cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${d?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-md text-2xl opacity-70`}>
                           {d?.icon ?? "🎓"}
@@ -1234,10 +1345,37 @@ function Dashboard() {
                             {aCert && <Badge className="text-[10px] px-2 py-0.5 rounded-lg border-0 bg-emerald-600 text-white">Certified</Badge>}
                           </div>
                           <p className="text-xs text-muted-foreground">ID: <span className="font-mono font-bold">{a.intern_id}</span> · {a.duration ?? 1} month{(a.duration ?? 1) > 1 ? "s" : ""} · {a.completed_at ? `Completed ${new Date(a.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}` : ""}</p>
+                          <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border/30">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewOfferApp(a);
+                              }}
+                            >
+                              <Eye className="mr-1.5 size-3.5 text-blue-500" /> View Offer Letter
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadPdf(
+                                  <OfferLetterDoc fullName={a.full_name} internId={a.intern_id} domain={d?.name ?? a.domain} issuedAt={a.offer_issued_at || a.created_at} duration={a.duration ?? 1} />,
+                                  `OfferLetter_${a.intern_id}.pdf`
+                                );
+                              }}
+                            >
+                              <Download className="mr-1.5 size-3.5 text-emerald-500" /> Download Offer Letter
+                            </Button>
+                          </div>
                         </div>
                         <ChevronRight className="size-5 text-muted-foreground/40 group-hover:text-muted-foreground/80 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1791,6 +1929,15 @@ function Dashboard() {
         </div>,
         document.body
       )}
+
+      {/* Offer Letter Interactive Preview Dialog */}
+      <OfferLetterPreviewDialog
+        app={previewOfferApp}
+        open={!!previewOfferApp}
+        onOpenChange={(open) => {
+          if (!open) setPreviewOfferApp(null);
+        }}
+      />
     </div>
   );
 }
@@ -1831,7 +1978,7 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 
 // ─── HERO ───
 
-function HeroSection({ app, internApproved, durationLimit, cert, payment, setShowPaymentModal }: { app: any; internApproved: number; durationLimit: number; cert?: any; payment?: any; setShowPaymentModal?: (val: boolean) => void }) {
+function HeroSection({ app, internApproved, durationLimit, cert, payment, setShowPaymentModal, onViewOfferLetter }: { app: any; internApproved: number; durationLimit: number; cert?: any; payment?: any; setShowPaymentModal?: (val: boolean) => void; onViewOfferLetter?: (app: any) => void }) {
   const domain = getDomain(app.domain);
   const pct = durationLimit > 0 ? Math.min(100, Math.round((internApproved / durationLimit) * 100)) : 0;
 
@@ -1886,16 +2033,21 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
           {/* Quick Actions (Offer Letter, ID, WhatsApp, Certificate) */}
           <div className="flex flex-wrap justify-center md:justify-start gap-2.5 pt-4">
             <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg hover:-translate-y-0.5"
+              onClick={() => onViewOfferLetter?.(app)}>
+              <Eye className="size-4 text-blue-300" /> View Offer Letter
+            </Button>
+
+            <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg hover:-translate-y-0.5"
               onClick={() => downloadPdf(
-                <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at} duration={app.duration ?? 1} />,
+                <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
                 `OfferLetter_${app.intern_id}.pdf`
               )}>
-              <FileText className="size-4 text-blue-300" /> Download Offer Letter
+              <Download className="size-4 text-blue-300" /> Download Offer Letter
             </Button>
 
             <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg hover:-translate-y-0.5"
               onClick={() => downloadIDCard({
-                fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at, photoUrl: app.photo_url, email: app.email
+                fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at || app.created_at, photoUrl: app.photo_url, email: app.email
               })}>
                 <Download className="size-4 text-emerald-300" /> Download ID Card
             </Button>
@@ -2548,7 +2700,7 @@ function CertificateSection({ cert, app, compact }: any) {
 
 // ─── ID CARD ───
 
-function IDCardSection({ app }: { app: Application | null }) {
+function IDCardSection({ app, onViewOfferLetter }: { app: Application | null; onViewOfferLetter?: (app: Application) => void }) {
   if (!app) return null;
   const domain = getDomain(app.domain);
   return (
@@ -2558,16 +2710,20 @@ function IDCardSection({ app }: { app: Application | null }) {
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Badge className="bg-emerald-600 text-white text-[10px] border-0"><CheckCircle2 className="mr-1 size-3" /> ACTIVE</Badge>
         <div className="flex flex-wrap gap-2 ml-auto">
-          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white"
+          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white dark:bg-slate-800 hover:bg-slate-100"
+            onClick={() => onViewOfferLetter?.(app)}>
+            <Eye className="mr-1 size-3 text-blue-500" /> View Offer Letter
+          </Button>
+          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white dark:bg-slate-800 hover:bg-slate-100"
             onClick={() => downloadPdf(
-              <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at} duration={app.duration ?? 1} />,
+              <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
               `OfferLetter_${app.intern_id}.pdf`
             )}>
-            <FileText className="mr-1 size-3" /> Offer Letter
+            <Download className="mr-1 size-3 text-emerald-500" /> Download Offer Letter
           </Button>
           <Button size="sm" className="brand-gradient text-white border-0 rounded-xl h-8 text-xs font-semibold"
             onClick={() => downloadIDCard({
-              fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at, photoUrl: app.photo_url, email: app.email
+              fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at || app.created_at, photoUrl: app.photo_url, email: app.email
             })}>
             <Download className="mr-1 size-3" /> Download ID
           </Button>

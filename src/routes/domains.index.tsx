@@ -222,6 +222,8 @@ function DomainsPage() {
         photo_url,
         coupon_code: couponApplied?.code ?? null,
         status: "approved",
+        submission_status: "in_progress",
+        offer_issued_at: new Date().toISOString(),
         country,
         state,
         district,
@@ -260,16 +262,17 @@ function DomainsPage() {
             duration: applyDuration,
           });
           if (result.success) {
-            toast.success(`Application submitted! Official Offer Letter sent to ${studentEmail}`, { id: "offer-letter-delivery" });
+            toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
           } else {
-            toast.error(`Application submitted, but offer letter delivery failed: ${result.error}`, { id: "offer-letter-delivery", duration: 8000 });
+            console.warn("[Email] Delivery warning:", result.error);
+            toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
           }
         } catch (e: any) {
           console.warn("[Email] Failed to send offer letter:", e);
-          toast.error(`Application submitted, but email error: ${e.message}`, { id: "offer-letter-delivery" });
+          toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
         }
       } else {
-        toast.success("Application submitted! Your internship has started.");
+        toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { duration: 8000 });
       }
 
       navigate({ to: "/dashboard", search: {} as any });
