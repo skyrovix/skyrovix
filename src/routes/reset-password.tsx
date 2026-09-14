@@ -33,6 +33,45 @@ export const Route = createFileRoute("/reset-password")({
 
 type LinkStatus = "checking" | "valid" | "expired" | "no_session";
 
+function extractAuthParams() {
+  if (typeof window === "undefined") {
+    return { error: null, errorCode: null, accessToken: null, refreshToken: null, code: null, tokenHash: null, type: null };
+  }
+
+  const hash = window.location.hash.replace(/^#/, "");
+  const search = window.location.search.replace(/^\?/, "");
+
+  const hashParams = new URLSearchParams(hash);
+  const searchParams = new URLSearchParams(search);
+
+  const error =
+    hashParams.get("error_description") ||
+    hashParams.get("error") ||
+    searchParams.get("error_description") ||
+    searchParams.get("error");
+
+  const errorCode = hashParams.get("error_code") || searchParams.get("error_code");
+
+  const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
+  const refreshToken = hashParams.get("refresh_token") || searchParams.get("refresh_token");
+  const type = hashParams.get("type") || searchParams.get("type");
+
+  const code = searchParams.get("code") || hashParams.get("code");
+  const tokenHash = searchParams.get("token_hash") || hashParams.get("token_hash");
+
+  return {
+    error,
+    errorCode,
+    accessToken,
+    refreshToken,
+    code,
+    tokenHash,
+    type,
+    rawHash: hash,
+    rawSearch: search,
+  };
+}
+
 function ResetPasswordPage() {
   const navigate = useNavigate();
   const [linkStatus, setLinkStatus] = useState<LinkStatus>("checking");
@@ -44,71 +83,144 @@ function ResetPasswordPage() {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Check URL parameters and Supabase recovery session
   useEffect(() => {
     let isMounted = true;
 
-    const checkSessionAndHash = async () => {
-      // 1. Check if Supabase passed an error directly in the URL hash or query
-      if (typeof window !== "undefined") {
-        const hash = window.location.hash || "";
-        const search = window.location.search || "";
-        const combined = `${hash}&${search}`;
+    const initAuth = async () => {
+      const params = extractAuthParams();
+      console.log("[ResetPassword] Inspecting URL parameters...", {
+        hasError: Boolean(params.error || params.errorCode),
+        hasAccessToken: Boolean(params.accessToken),
+        hasCode: Boolean(params.code),
+        hasTokenHash: Boolean(params.tokenHash),
+        type: params.type,
+      });
 
-        if (
-          combined.includes("error=access_denied") ||
-          combined.includes("error_code=otp_expired") ||
-          combined.includes("otp_expired") ||
-          combined.includes("Email+link+is+invalid+or+has+expired")
-        ) {
-          if (isMounted) setLinkStatus("expired");
-          return;
+      // 1. Check for explicit error in URL (e.g. otp_expired, access_denied)
+      if (params.error || params.errorCode) {
+        console.warn("[ResetPassword] Error detected in URL:", params.error || params.errorCode);
+        if (isMounted) setLinkStatus("expired");
+        return;
+      }
+
+      // 2. If access_token and refresh_token are in the hash or query (standard recovery redirect)
+      if (params.accessToken && params.refreshToken) {
+        console.log("[ResetPassword] Found access_token and refresh_token, establishing session...");
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: params.accessToken,
+            refresh_token: params.refreshToken,
+          });
+
+          if (error) {
+            console.error("[ResetPassword] setSession failed:", error);
+            if (isMounted) setLinkStatus("expired");
+            return;
+          }
+
+          if (data?.session) {
+            console.log("[ResetPassword] Session established via setSession for:", data.session.user?.email);
+            if (isMounted) setLinkStatus("valid");
+            return;
+          }
+        } catch (err) {
+          console.error("[ResetPassword] Exception in setSession:", err);
         }
       }
 
-      // 2. Check existing active session (handles page refresh and already authenticated recovery)
+      // 3. If PKCE code is in query params (?code=...)
+      if (params.code) {
+        console.log("[ResetPassword] Found PKCE code, exchanging for session...");
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(params.code);
+          if (error) {
+            console.error("[ResetPassword] exchangeCodeForSession failed:", error);
+            if (isMounted) setLinkStatus("expired");
+            return;
+          }
+
+          if (data?.session) {
+            console.log("[ResetPassword] Session established via exchangeCodeForSession for:", data.session.user?.email);
+            if (isMounted) setLinkStatus("valid");
+            return;
+          }
+        } catch (err) {
+          console.error("[ResetPassword] Exception in exchangeCodeForSession:", err);
+        }
+      }
+
+      // 4. If token_hash is in query params (?token_hash=...&type=recovery)
+      if (params.tokenHash) {
+        console.log("[ResetPassword] Found token_hash, verifying OTP...");
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: params.tokenHash,
+            type: "recovery",
+          });
+
+          if (error) {
+            console.error("[ResetPassword] verifyOtp failed:", error);
+            if (isMounted) setLinkStatus("expired");
+            return;
+          }
+
+          if (data?.session) {
+            console.log("[ResetPassword] Session established via verifyOtp for:", data.session.user?.email);
+            if (isMounted) setLinkStatus("valid");
+            return;
+          }
+        } catch (err) {
+          console.error("[ResetPassword] Exception in verifyOtp:", err);
+        }
+      }
+
+      // 5. Check if there is already an active session (e.g. after refresh or previously established)
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (sessionData?.session) {
+        const { data: sessData } = await supabase.auth.getSession();
+        if (sessData?.session) {
+          console.log("[ResetPassword] Found existing active session for:", sessData.session.user?.email);
           if (isMounted) setLinkStatus("valid");
           return;
         }
-      } catch (e) {
-        console.warn("[ResetPassword] getSession error:", e);
+      } catch (err) {
+        console.warn("[ResetPassword] getSession error:", err);
       }
 
-      // 3. Listen for Supabase recovery or sign-in auth events
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // 6. Listen to onAuthStateChange in case Supabase background listener fires
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log("[ResetPassword] onAuthStateChange event:", event, Boolean(session));
         if (!isMounted) return;
         if (event === "PASSWORD_RECOVERY" || (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION"))) {
           setLinkStatus("valid");
         }
       });
 
-      // 4. Fallback timeout: if no session or token is detected after 2 seconds
-      const timeoutId = setTimeout(async () => {
+      // 7. Timeout fallback: recheck session once more after 1.5 seconds
+      const timer = setTimeout(async () => {
         if (!isMounted) return;
-        const { data } = await supabase.auth.getSession();
-        if (data?.session) {
-          setLinkStatus("valid");
-        } else {
-          // If the hash contains an error, mark expired; otherwise mark no_session
-          const hash = window.location.hash || "";
-          if (hash.includes("error=")) {
-            setLinkStatus("expired");
-          } else {
-            setLinkStatus("no_session");
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (data?.session) {
+            setLinkStatus("valid");
+            return;
           }
+        } catch {}
+
+        const p = extractAuthParams();
+        if (p.error || p.errorCode) {
+          setLinkStatus("expired");
+        } else {
+          setLinkStatus("no_session");
         }
-      }, 2000);
+      }, 1500);
 
       return () => {
         subscription.unsubscribe();
-        clearTimeout(timeoutId);
+        clearTimeout(timer);
       };
     };
 
-    checkSessionAndHash();
+    initAuth();
 
     return () => {
       isMounted = false;
@@ -169,10 +281,18 @@ function ResetPasswordPage() {
 
       if (error) {
         console.error("[ResetPassword] updateUser error:", error);
-        if (error.message?.toLowerCase().includes("different from the old")) {
+        setUpdating(false);
+        if (
+          error.message?.toLowerCase().includes("different from the old") ||
+          error.message?.toLowerCase().includes("same as")
+        ) {
           setErrorMessage("Your new password must be different from your previous password.");
           toast.error("Your new password must be different from your previous password.");
-        } else if (error.message?.toLowerCase().includes("session") || error.message?.toLowerCase().includes("auth")) {
+        } else if (
+          error.message?.toLowerCase().includes("session") ||
+          error.message?.toLowerCase().includes("auth") ||
+          error.message?.toLowerCase().includes("jwt")
+        ) {
           setErrorMessage("This password reset link has expired or is invalid. Please request a new one.");
           setLinkStatus("expired");
           toast.error("Session expired. Please request a new reset link.");
@@ -180,7 +300,6 @@ function ResetPasswordPage() {
           setErrorMessage(error.message || "Unable to reset your password. Please request a new reset link.");
           toast.error(error.message || "Unable to reset password.");
         }
-        setUpdating(false);
         return;
       }
 
@@ -201,10 +320,10 @@ function ResetPasswordPage() {
       }, 2500);
     } catch (err: any) {
       console.error("[ResetPassword] Unexpected error:", err);
+      setUpdating(false);
       const msg = err?.message || "An unexpected error occurred. Please request a new reset link.";
       setErrorMessage(msg);
       toast.error(msg);
-      setUpdating(false);
     }
   };
 
