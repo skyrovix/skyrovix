@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
@@ -197,6 +197,22 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    const isRecovery =
+      hash.includes("type=recovery") ||
+      search.includes("type=recovery") ||
+      (hash.includes("access_token=") && hash.includes("type=recovery"));
+
+    if (isRecovery && !window.location.pathname.startsWith("/reset-password")) {
+      console.log("[Root] Recovery tokens detected at root, redirecting to /reset-password...");
+      window.location.replace(`/reset-password${search}${hash}`);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

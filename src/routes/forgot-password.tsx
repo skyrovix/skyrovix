@@ -43,8 +43,8 @@ function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // Use exact origin for reset-password redirect
-      const redirectTo = `${window.location.origin}/reset-password`;
+      // Use live production URL so reset links work universally from any device, phone, or email client without depending on localhost
+      const redirectTo = "https://www.skyrovix.online/reset-password";
 
       const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
         redirectTo,
