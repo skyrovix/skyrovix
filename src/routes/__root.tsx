@@ -207,9 +207,18 @@ function RootComponent() {
       search.includes("type=recovery") ||
       (hash.includes("access_token=") && hash.includes("type=recovery"));
 
-    if (isRecovery && !window.location.pathname.startsWith("/reset-password")) {
-      console.log("[Root] Recovery tokens detected at root, redirecting to /reset-password...");
-      window.location.replace(`/reset-password${search}${hash}`);
+    if (isRecovery) {
+      const h = window.location.hostname.toLowerCase();
+      const isLocal = h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.");
+      if (isLocal) {
+        console.log("[Root] Recovery tokens detected on localhost, forwarding to production domain reset-password...");
+        window.location.replace(`https://skyrovix.online/reset-password${search}${hash}`);
+        return;
+      }
+      if (!window.location.pathname.startsWith("/reset-password")) {
+        console.log("[Root] Recovery tokens detected at root, redirecting to /reset-password...");
+        window.location.replace(`/reset-password${search}${hash}`);
+      }
     }
   }, []);
 

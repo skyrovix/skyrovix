@@ -10,7 +10,7 @@ import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 import { GraduationCap, Sparkles, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useLoginTracker } from "@/lib/use-login-tracker";
-import { getProductionAuthRedirectUrl, getPublicSiteUrl } from "@/lib/constants";
+import { getProductionAuthRedirectUrl, getPublicSiteUrl, getForgotPasswordUrl } from "@/lib/constants";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -243,12 +243,12 @@ function AuthPage() {
                   <div>
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-semibold text-muted-foreground">Account Password</Label>
-                      <Link
-                        to="/forgot-password"
+                      <a
+                        href={getForgotPasswordUrl()}
                         className="text-xs font-semibold text-[#07284a] dark:text-blue-400 hover:underline transition-colors"
                       >
                         Forgot Password?
-                      </Link>
+                      </a>
                     </div>
                     <div className="relative mt-1.5">
                       <Input

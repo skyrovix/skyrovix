@@ -122,6 +122,39 @@ export function getPublicSiteUrl(): string {
   return SITE_URL;
 }
 
+/**
+ * Detects if the current environment is running on localhost or a local development IP.
+ */
+export function isLocalhost(): boolean {
+  if (typeof window === "undefined") return false;
+  const hostname = window.location.hostname.toLowerCase();
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname.startsWith("192.168.") ||
+    hostname.endsWith(".local")
+  );
+}
+
+/**
+ * Returns the URL for Forgot Password.
+ * If running on localhost, directs to the live production domain (https://skyrovix.online/forgot-password).
+ * If running on a production domain (skyrovix.in or skyrovix.online), stays within that domain.
+ */
+export function getForgotPasswordUrl(): string {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
+      return "/forgot-password";
+    }
+    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
+      return "/forgot-password";
+    }
+  }
+  return "https://skyrovix.online/forgot-password";
+}
+
 export const PAYMENT = {
   upiId: "hariharanmahesh34@oksbi",
   payeeName: "Hariharan Mahesh",

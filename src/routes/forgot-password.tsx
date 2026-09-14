@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProductionResetPasswordRedirectUrl } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,15 @@ import { Sparkles, ArrowRight, ArrowLeft, Loader2, Mail, CheckCircle2, Shield } 
 
 export const Route = createFileRoute("/forgot-password")({
   ssr: false,
+  beforeLoad: () => {
+    if (typeof window !== "undefined") {
+      const h = window.location.hostname.toLowerCase();
+      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
+        // Enforce domain-only execution: redirect to live production domain
+        window.location.replace("https://skyrovix.online/forgot-password");
+      }
+    }
+  },
   head: () => ({
     meta: [
       { title: "Forgot Password — Skyrovix Internship Portal" },
@@ -26,6 +35,15 @@ function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const h = window.location.hostname.toLowerCase();
+      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
+        window.location.replace("https://skyrovix.online/forgot-password");
+      }
+    }
+  }, []);
+
   const validateEmail = (val: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
   };
@@ -33,6 +51,14 @@ function ForgotPasswordPage() {
   const handleResetRequest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    if (typeof window !== "undefined") {
+      const h = window.location.hostname.toLowerCase();
+      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
+        window.location.replace("https://skyrovix.online/forgot-password");
+        return;
+      }
+    }
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail || !validateEmail(trimmedEmail)) {

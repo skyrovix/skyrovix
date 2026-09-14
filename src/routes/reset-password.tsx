@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getForgotPasswordUrl } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,15 @@ import {
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
+  beforeLoad: () => {
+    if (typeof window !== "undefined") {
+      const h = window.location.hostname.toLowerCase();
+      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
+        // Enforce domain-only execution: forward tokens to production domain
+        window.location.replace(`https://skyrovix.online/reset-password${window.location.search}${window.location.hash}`);
+      }
+    }
+  },
   head: () => ({
     meta: [
       { title: "Reset Password — Skyrovix Internship Portal" },
@@ -87,6 +97,15 @@ function ResetPasswordPage() {
     let isMounted = true;
 
     const initAuth = async () => {
+      if (typeof window !== "undefined") {
+        const h = window.location.hostname.toLowerCase();
+        if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
+          console.log("[ResetPassword] Localhost detected, forwarding to live production domain...");
+          window.location.replace(`https://skyrovix.online/reset-password${window.location.search}${window.location.hash}`);
+          return;
+        }
+      }
+
       const params = extractAuthParams();
       console.log("[ResetPassword] Inspecting URL parameters...", {
         hasError: Boolean(params.error || params.errorCode),
@@ -465,9 +484,9 @@ function ResetPasswordPage() {
                 </div>
                 <div className="pt-2 flex flex-col gap-2">
                   <Button asChild className="w-full brand-gradient text-white border-0 h-11 rounded-2xl font-bold gap-1.5 shadow-lg shadow-[#07284a]/15">
-                    <Link to="/forgot-password">
+                    <a href={getForgotPasswordUrl()}>
                       Request New Reset Link <ArrowRight className="size-4" />
-                    </Link>
+                    </a>
                   </Button>
                   <Link
                     to="/auth"
@@ -495,9 +514,9 @@ function ResetPasswordPage() {
                 </div>
                 <div className="pt-2 flex flex-col gap-2">
                   <Button asChild className="w-full brand-gradient text-white border-0 h-11 rounded-2xl font-bold gap-1.5 shadow-lg shadow-[#07284a]/15">
-                    <Link to="/forgot-password">
+                    <a href={getForgotPasswordUrl()}>
                       Request Password Reset <ArrowRight className="size-4" />
-                    </Link>
+                    </a>
                   </Button>
                   <Link
                     to="/auth"
