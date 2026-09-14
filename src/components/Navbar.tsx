@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, LayoutDashboard, Shield, Menu, X, BookOpen, ListChecks, Award, User, Home, Briefcase, Mail, BadgeCheck, Info, Moon, Sparkles, Code2, Share2, HelpCircle, Package, CreditCard, MessageSquare, Rocket, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { getPublicSiteUrl } from "@/lib/constants";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
@@ -96,7 +97,7 @@ function UserDropdown({ user, isAdmin, signOut, isDashboardPage }: { user: any; 
               type="button"
               onClick={() => {
                 setOpen(false);
-                const url = window.location.origin;
+                const url = getPublicSiteUrl();
                 if (navigator.share) {
                   navigator.share({ title: "Skyrovix Internship", text: "Check out this internship platform!", url });
                 } else {

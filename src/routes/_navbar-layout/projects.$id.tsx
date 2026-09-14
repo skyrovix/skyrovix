@@ -15,6 +15,7 @@ import {
   ArrowLeft, ArrowRight, FileText, BarChart3, Database, ShieldAlert, Sparkles, ExternalLink, Download, Clock, Loader2
 } from "lucide-react";
 import { FadeUp } from "@/components/motion";
+import { getPublicSiteUrl } from "@/lib/constants";
 
 // Local fallback challenge if not in database
 const LOCAL_PROJECT_MAP: Record<string, any> = {
@@ -196,7 +197,7 @@ function ProjectDetailPage() {
 
   const handleDownloadCert = async () => {
     if (!certificate) return toast.error("Certificate detail not available.");
-    const verifyUrl = `${window.location.origin}/verify-certificate?cert=${certificate.cert_id}`;
+    const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?cert=${certificate.cert_id}`;
 
     toast.info("Generating project completion certificate PDF...");
     await downloadPdf(
@@ -217,7 +218,7 @@ function ProjectDetailPage() {
 
   const handleDownloadAward = async () => {
     if (!award) return toast.error("Award detail not available.");
-    const verifyUrl = `${window.location.origin}/verify-certificate?cert=${award.award_id}`;
+    const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?cert=${award.award_id}`;
 
     toast.info("Generating project award certificate PDF...");
     await downloadPdf(

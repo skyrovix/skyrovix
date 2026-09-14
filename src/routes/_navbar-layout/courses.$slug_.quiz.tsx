@@ -12,6 +12,7 @@ import { Award, Clock, ArrowLeft, ArrowRight, BookOpen, AlertTriangle, CheckCirc
 import { CourseCertificateDoc, downloadPdf } from "@/components/pdf-docs";
 import { FadeUp } from "@/components/motion";
 import { getLocalQuizQuestions } from "@/lib/quiz-content.generated";
+import { getPublicSiteUrl } from "@/lib/constants";
 
 // Local fallback questions for final quizzes if database questions are empty
 const MOCK_QUIZ_QUESTIONS: Record<string, any[]> = {
@@ -380,7 +381,7 @@ function CourseQuizPage() {
       studentName = profile?.full_name ?? "Student";
     }
 
-    const verifyUrl = `${window.location.origin}/verify-certificate?cert=${cert.certificate_id}`;
+    const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?cert=${cert.certificate_id}`;
     
     toast.info("Generating certificate PDF...");
     await downloadPdf(

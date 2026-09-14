@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { generateCertId, getDomain, COMPANY, DOMAINS } from "@/lib/constants";
+import { generateCertId, getDomain, COMPANY, DOMAINS, getPublicSiteUrl } from "@/lib/constants";
 import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 import { PromotionsSection } from "@/components/admin/PromotionsSection";
@@ -3134,7 +3134,7 @@ function CertificatesSection() {
           domain: getDomain(c.applications?.domain)?.name ?? c.applications?.domain,
           certId: c.certificate_id,
           issuedAt: c.issued_at,
-          verifyUrl: `${window.location.origin}/verify-certificate`,
+          verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
         });
         const blob = await downloadPdfBlob(doc);
         zip.file(`certificate-${c.certificate_id}.pdf`, blob);
@@ -3239,7 +3239,7 @@ function CertificatesSection() {
                         domain: getDomain(c.applications?.domain)?.name ?? c.applications?.domain,
                         certId: c.certificate_id,
                         issuedAt: c.issued_at,
-                        verifyUrl: `${window.location.origin}/verify-certificate`,
+                        verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
                       }), `certificate-${c.certificate_id}.pdf`);
                     }}><Download className="size-4" /></button>
                     <Link to="/verify-certificate" className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="View Verification Page"><ExternalLink className="size-4" /></Link>

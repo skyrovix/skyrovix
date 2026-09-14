@@ -14,7 +14,8 @@ import {
   generateProjectCertId,
   generateAwardId,
   EVALUATION_CRITERIA,
-  AWARD_CATEGORIES
+  AWARD_CATEGORIES,
+  getPublicSiteUrl
 } from "@/lib/constants";
 import {
   ProjectCompletionCert,
@@ -280,7 +281,7 @@ export function ProjectSubmissionsSection() {
     const cert = sub.certificate;
     if (!cert) return toast.error("Certificate not issued.");
 
-    const verifyUrl = `${window.location.origin}/verify-certificate?cert=${cert.cert_id}`;
+    const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?cert=${cert.cert_id}`;
     toast.info("Generating PDF certificate...");
 
     await downloadPdf(
@@ -342,7 +343,7 @@ export function ProjectSubmissionsSection() {
     const awd = sub.award;
     if (!awd) return toast.error("Award not issued.");
 
-    const verifyUrl = `${window.location.origin}/verify-certificate?cert=${awd.award_id}`;
+    const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?cert=${awd.award_id}`;
     toast.info("Generating award PDF...");
 
     await downloadPdf(

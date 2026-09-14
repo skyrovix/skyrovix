@@ -9,7 +9,7 @@ import sigFounder from "@/assets/hari sig.jpeg";
 import sigCofounder from "@/assets/mahesh sig.jpeg";
 import yrTech from "@/assets/yr-tech logo.png";
 import vinix from "@/assets/vinix.png";
-import { COMPANY, durationConfig } from "@/lib/constants";
+import { COMPANY, durationConfig, getPublicSiteUrl } from "@/lib/constants";
 import { EMAIL_ASSETS } from "@/lib/email-assets";
 
 const logoImg = EMAIL_ASSETS?.logo || logo;
@@ -632,7 +632,7 @@ export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, emai
 export async function downloadIDCard(params: {
   fullName: string; internId: string; domain: string; issuedAt: string; photoUrl?: string | null; email?: string | null; validUpto?: string | null;
 }) {
-  const verifyUrl = typeof window !== "undefined" ? `${window.location.origin}/verify-certificate?intern=${params.internId}` : "";
+  const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?intern=${params.internId}`;
   let qrDataUri: string | undefined;
   let barcodeDataUri: string | undefined;
   try {

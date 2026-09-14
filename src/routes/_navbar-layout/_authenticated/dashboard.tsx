@@ -18,7 +18,7 @@ import { ApplicationFormDialog } from "@/components/ApplicationFormDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { INDIA_STATES, STATE_DISTRICTS } from "@/lib/india-locations";
-import { DOMAINS, DURATIONS, PAYMENT, COMPANY, generateInternId, generateCertId, getDomain } from "@/lib/constants";
+import { DOMAINS, DURATIONS, PAYMENT, COMPANY, generateInternId, generateCertId, getDomain, getPublicSiteUrl } from "@/lib/constants";
 import { validateCoupon, calculateDiscountedAmount, formatDiscount } from "@/lib/coupons";
 import type { CouponResult } from "@/lib/coupons";
 import { toast } from "sonner";
@@ -1911,7 +1911,7 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
             {cert && (
               <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 hover:shadow-emerald-500/30 hover:-translate-y-0.5"
                 onClick={() => downloadPdf(
-                  <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${window.location.origin}/verify-certificate`} />,
+                  <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
                   `Certificate_${cert.certificate_id}.pdf`
                 )}>
                 <Award className="size-4" /> Download Certificate
@@ -2368,7 +2368,7 @@ function UnlockedCertificateCard({ app, cert, domain }: any) {
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full md:w-auto">
             <Button size="sm" className="brand-gradient text-white border-0 rounded-2xl h-10 px-6 font-semibold shadow-md gap-1.5"
-              onClick={() => downloadPdf(<CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${window.location.origin}/verify-certificate`} />, `Certificate_${cert.certificate_id}.pdf`)}>
+              onClick={() => downloadPdf(<CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />, `Certificate_${cert.certificate_id}.pdf`)}>
               <Download className="size-4" /> Download PDF
             </Button>
             <Button asChild size="sm" variant="outline" className="rounded-2xl border-border/60 h-10 px-6 font-semibold gap-1.5 bg-white/40">
@@ -2530,7 +2530,7 @@ function CertificateSection({ cert, app, compact }: any) {
             onClick={() => downloadPdf(
               <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain}
                 certId={cert.certificate_id} issuedAt={cert.issued_at}
-                verifyUrl={`${window.location.origin}/verify-certificate`} />,
+                verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
               `Certificate_${cert.certificate_id}.pdf`
             )}>
             <Download className="mr-1.5 size-4" /> Download PDF

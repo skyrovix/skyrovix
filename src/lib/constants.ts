@@ -8,6 +8,21 @@ export const COMPANY = {
   cofounder: { name: "Maheshwaran S", title: "Co-Founder" },
 };
 
+export const SITE_URL = "https://www.skyrovix.online";
+
+/**
+ * Returns the public website origin, guaranteeing it never falls back to localhost.
+ */
+export function getPublicSiteUrl(): string {
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    if (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1") && !origin.includes("0.0.0.0")) {
+      return origin;
+    }
+  }
+  return SITE_URL;
+}
+
 export const PAYMENT = {
   upiId: "hariharanmahesh34@oksbi",
   payeeName: "Hariharan Mahesh",

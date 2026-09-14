@@ -2,6 +2,7 @@ import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import topNavLogo from "@/assets/top nav bar logo.png";
 import { User, Mail, GraduationCap, Calendar, Globe, QrCode, Barcode } from "lucide-react";
+import { getPublicSiteUrl } from "@/lib/constants";
 
 type Props = {
   internId: string;
@@ -56,7 +57,7 @@ export function BarcodeSVG({ value, height = 36 }: { value: string; height?: num
 
 export function IDCard({ internId, fullName, domain, photoUrl, issuedAt, email, validUpto }: Props) {
   const [showQR, setShowQR] = useState(false);
-  const verifyUrl = typeof window !== "undefined" ? `${window.location.origin}/verify-certificate?intern=${internId}` : "";
+  const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?intern=${internId}`;
 
   // Calculate Valid Upto date
   const computeValidUpto = () => {

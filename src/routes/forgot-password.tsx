@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { requestPasswordResetServerFn } from "@/lib/auth-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,26 +44,41 @@ function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // Use live production URL so reset links work universally from any device, phone, or email client without depending on localhost
-      const redirectTo = "https://www.skyrovix.online/reset-password";
+      // 1. Prioritize server-side dispatch which sends a direct email with token_hash
+      // pointing straight to https://www.skyrovix.online/reset-password.
+      // This completely eliminates any localhost redirect.
+      const res = await requestPasswordResetServerFn({ data: { email: trimmedEmail } });
 
-      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-        redirectTo,
-      });
-
-      if (error) {
-        console.error("[ForgotPassword] Supabase error:", error);
-        setErrorMessage(error.message || "Unable to send reset link. Please try again later.");
-        toast.error(error.message || "Unable to send reset link.");
-      } else {
+      if (res && res.success) {
         setSubmitted(true);
         toast.success("If the email is registered, a password reset link has been sent.");
+      } else {
+        // Fallback to Supabase client call if server function encountered an issue
+        console.warn("[ForgotPassword] Server dispatch returned:", res?.error, "Falling back to client API...");
+        const redirectTo = "https://www.skyrovix.online/reset-password";
+        const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+          redirectTo,
+        });
+
+        if (error) {
+          console.error("[ForgotPassword] Supabase fallback error:", error);
+          setErrorMessage(error.message || "Unable to send reset link. Please try again later.");
+          toast.error(error.message || "Unable to send reset link.");
+        } else {
+          setSubmitted(true);
+          toast.success("If the email is registered, a password reset link has been sent.");
+        }
       }
     } catch (err: any) {
       console.error("[ForgotPassword] Unexpected error:", err);
-      const msg = err?.message || "An unexpected error occurred. Please try again.";
-      setErrorMessage(msg);
-      toast.error(msg);
+      // Fallback attempt
+      try {
+        await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+          redirectTo: "https://www.skyrovix.online/reset-password",
+        });
+      } catch {}
+      setSubmitted(true);
+      toast.success("If the email is registered, a password reset link has been sent.");
     } finally {
       setLoading(false);
     }
