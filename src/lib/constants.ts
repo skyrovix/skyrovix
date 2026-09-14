@@ -8,16 +8,67 @@ export const COMPANY = {
   cofounder: { name: "Maheshwaran S", title: "Co-Founder" },
 };
 
-export const SITE_URL = "https://www.skyrovix.online";
+export const SITE_URL = "https://skyrovix.online";
+
+export const PRODUCTION_DOMAINS = {
+  IN: "https://skyrovix.in",
+  ONLINE: "https://skyrovix.online",
+} as const;
 
 /**
- * Returns the public website origin, guaranteeing it never falls back to localhost.
+ * Resolves the allowed production redirect URL for password recovery.
+ * Allowed production domains:
+ * 1. https://skyrovix.in
+ * 2. https://skyrovix.online
+ *
+ * NEVER returns localhost or 127.0.0.1 under any circumstances.
+ */
+export function getProductionResetPasswordRedirectUrl(): string {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
+      return "https://skyrovix.in/reset-password";
+    }
+    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
+      return "https://skyrovix.online/reset-password";
+    }
+  }
+  // Default fallback for localhost or any other environment:
+  return "https://skyrovix.online/reset-password";
+}
+
+/**
+ * Resolves the allowed production redirect URL for authentication and email confirmation.
+ * Allowed production domains:
+ * 1. https://skyrovix.in/auth
+ * 2. https://skyrovix.online/auth
+ *
+ * NEVER returns localhost or 127.0.0.1 under any circumstances.
+ */
+export function getProductionAuthRedirectUrl(): string {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
+      return "https://skyrovix.in/auth";
+    }
+    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
+      return "https://skyrovix.online/auth";
+    }
+  }
+  return "https://skyrovix.online/auth";
+}
+
+/**
+ * Returns the current public website origin, guaranteeing it never falls back to localhost.
  */
 export function getPublicSiteUrl(): string {
   if (typeof window !== "undefined") {
-    const origin = window.location.origin;
-    if (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1") && !origin.includes("0.0.0.0")) {
-      return origin;
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
+      return "https://skyrovix.in";
+    }
+    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
+      return "https://skyrovix.online";
     }
   }
   return SITE_URL;

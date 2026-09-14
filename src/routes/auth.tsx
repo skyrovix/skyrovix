@@ -10,7 +10,7 @@ import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 import { GraduationCap, Sparkles, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useLoginTracker } from "@/lib/use-login-tracker";
-import { getPublicSiteUrl } from "@/lib/constants";
+import { getProductionAuthRedirectUrl, getPublicSiteUrl } from "@/lib/constants";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -126,7 +126,7 @@ function AuthPage() {
     const { data, error } = await supabase.auth.signUp({
       email: String(fd.get("email")),
       password: String(fd.get("password")),
-      options: { emailRedirectTo: `${getPublicSiteUrl()}/auth`, data: { full_name: String(fd.get("name")) } },
+      options: { emailRedirectTo: getProductionAuthRedirectUrl(), data: { full_name: String(fd.get("name")) } },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
