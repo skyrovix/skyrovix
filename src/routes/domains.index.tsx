@@ -13,7 +13,7 @@ import { validateCoupon } from "@/lib/coupons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { ArrowRight, ShieldCheck, Clock, Users, Eye, Sparkles, CheckCircle2, Loader2, Upload, Lock, ChevronRight } from "lucide-react";
+import { ArrowRight, ShieldCheck, Clock, Users, Eye, EyeOff, Sparkles, CheckCircle2, Loader2, Upload, Lock, ChevronRight } from "lucide-react";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FadeUp, SlideLeft, SlideRight } from "@/components/motion";
 import { BreadcrumbJsonLd, WebPageJsonLd } from "@/components/JsonLd";
@@ -79,6 +79,7 @@ function DomainsPage() {
   const [pincode, setPincode] = useState("");
   const [hearAbout, setHearAbout] = useState("");
   const [referralName, setReferralName] = useState("");
+  const [showGuestPassword, setShowGuestPassword] = useState(false);
 
   // Fetch profile if user is logged in
   const { data: profile } = useQuery({
@@ -417,7 +418,23 @@ function DomainsPage() {
 
                       <div className="space-y-2">
                         <Label className="text-xs sm:text-sm font-bold text-foreground">Account Password *</Label>
-                        <Input name="password" type="password" required placeholder="Choose password (min 6 chars)" className="h-11 rounded-xl bg-white border-border/60" />
+                        <div className="relative">
+                          <Input
+                            name="password"
+                            type={showGuestPassword ? "text" : "password"}
+                            required
+                            placeholder="Choose password (min 6 chars)"
+                            className="h-11 rounded-xl bg-white border-border/60 pr-10"
+                          />
+                          <button
+                            type="button"
+                            aria-label={showGuestPassword ? "Hide password" : "Show password"}
+                            onClick={() => setShowGuestPassword(!showGuestPassword)}
+                            className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                          >
+                            {showGuestPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}

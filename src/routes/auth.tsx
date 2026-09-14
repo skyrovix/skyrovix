@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
-import { GraduationCap, Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { GraduationCap, Sparkles, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useLoginTracker } from "@/lib/use-login-tracker";
 
 export const Route = createFileRoute("/auth")({
@@ -25,6 +25,8 @@ function AuthPage() {
   const search = Route.useSearch();
   const redirect = search.redirect ?? "/dashboard";
   const [loading, setLoading] = useState(false);
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const { startTracking } = useLoginTracker();
 
   const checkRoleAndRedirect = async (userId: string, userEmail?: string) => {
@@ -247,7 +249,23 @@ function AuthPage() {
                         Forgot Password?
                       </Link>
                     </div>
-                    <Input name="password" type="password" placeholder="••••••••" required className="mt-1.5 h-11 rounded-xl border-border/60 bg-white" />
+                    <div className="relative mt-1.5">
+                      <Input
+                        name="password"
+                        type={showSignInPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        required
+                        className="h-11 rounded-xl border-border/60 bg-white pr-10"
+                      />
+                      <button
+                        type="button"
+                        aria-label={showSignInPassword ? "Hide password" : "Show password"}
+                        onClick={() => setShowSignInPassword(!showSignInPassword)}
+                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                      >
+                        {showSignInPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full brand-gradient text-white border-0 h-11 rounded-2xl font-bold gap-1.5 shadow-lg shadow-[#07284a]/15 mt-2" disabled={loading}>
                     {loading ? <Loader2 className="size-4 animate-spin" /> : <>Access Dashboard <ArrowRight className="size-4" /></>}
@@ -267,7 +285,24 @@ function AuthPage() {
                   </div>
                   <div>
                     <Label className="text-xs font-semibold text-muted-foreground">Set Secure Password (min 6 chars)</Label>
-                    <Input name="password" type="password" placeholder="Min 6 characters" minLength={6} required className="mt-1.5 h-11 rounded-xl border-border/60 bg-white" />
+                    <div className="relative mt-1.5">
+                      <Input
+                        name="password"
+                        type={showSignUpPassword ? "text" : "password"}
+                        placeholder="Min 6 characters"
+                        minLength={6}
+                        required
+                        className="h-11 rounded-xl border-border/60 bg-white pr-10"
+                      />
+                      <button
+                        type="button"
+                        aria-label={showSignUpPassword ? "Hide password" : "Show password"}
+                        onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                      >
+                        {showSignUpPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full brand-gradient text-white border-0 h-11 rounded-2xl font-bold gap-1.5 shadow-lg shadow-[#07284a]/15 mt-2" disabled={loading}>
                     {loading ? <Loader2 className="size-4 animate-spin" /> : <>Register Account <GraduationCap className="size-4" /></>}
