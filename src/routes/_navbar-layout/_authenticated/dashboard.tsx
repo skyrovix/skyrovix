@@ -1997,106 +1997,216 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 
 function HeroSection({ app, internApproved, durationLimit, cert, payment, setShowPaymentModal, onViewOfferLetter }: { app: any; internApproved: number; durationLimit: number; cert?: any; payment?: any; setShowPaymentModal?: (val: boolean) => void; onViewOfferLetter?: (app: any) => void }) {
   const domain = getDomain(app.domain);
+  const internTotal = durationLimit || 4;
   const pct = durationLimit > 0 ? Math.min(100, Math.round((internApproved / durationLimit) * 100)) : 0;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#051c36] via-[#072d54] to-[#093e73] text-white p-6 sm:p-8 md:p-10 shadow-2xl shadow-[#051c36]/30 border border-white/10 animate-premium-glow hover:shadow-blue-500/10 transition-all duration-500 hover:scale-[1.005]">
-      {/* Decorative premium elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_65%)] pointer-events-none" />
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#06182c] via-[#092b4f] to-[#0c3f73] text-white p-4 sm:p-7 md:p-9 shadow-2xl shadow-[#06182c]/40 border border-white/10 animate-premium-glow hover:shadow-blue-500/10 transition-all duration-500">
+      {/* Decorative ambient lights */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.07),transparent_60%)] pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 size-72 rounded-full bg-blue-500/15 blur-[90px] pointer-events-none" />
       <div className="absolute -top-24 right-1/4 size-64 rounded-full bg-emerald-500/10 blur-[80px] pointer-events-none" />
       
       {/* Grid Pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] pointer-events-none" />
 
-      <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 z-10">
-        <div className="space-y-4 text-center md:text-left min-w-0 flex-1">
-          {/* Welcome Pill */}
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-blue-200 border border-white/10 backdrop-blur-md shadow-sm">
-            <Sparkles className="size-3 text-amber-300 animate-pulse" /> Welcome Intern
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-8">
+        
+        {/* Main Content Area */}
+        <div className="space-y-3.5 min-w-0 flex-1">
+          
+          {/* Top Profile Header (Avatar + Name & Info + Mobile Progress Ring) */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* User Avatar with verified ring */}
+              <div className="relative shrink-0">
+                {app.photo_url ? (
+                  <img src={app.photo_url} alt="" className="size-12 sm:size-14 rounded-2xl object-cover border-2 border-white/20 shadow-md" />
+                ) : (
+                  <div className="size-12 sm:size-14 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-lg sm:text-xl shadow-md border-2 border-white/20">
+                    {app.full_name?.charAt(0)?.toUpperCase() ?? "I"}
+                  </div>
+                )}
+                <div className="absolute -bottom-1 -right-1 grid size-4.5 place-items-center rounded-full bg-emerald-500 text-white ring-2 ring-[#06182c]">
+                  <CheckCircle2 className="size-3" />
+                </div>
+              </div>
+
+              {/* Name & Domain info */}
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-widest text-blue-200 border border-white/10 backdrop-blur-md mb-0.5">
+                  <Sparkles className="size-2.5 text-amber-300" /> Welcome Intern
+                </div>
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-black font-display leading-tight tracking-tight text-white truncate">
+                  {app.full_name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  <span className="text-xs font-semibold text-cyan-300 truncate">{domain?.name ?? app.domain}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(app.intern_id);
+                      toast.success(`Copied Intern ID: ${app.intern_id}`);
+                    }}
+                    title="Click to copy Intern ID"
+                    className="inline-flex items-center gap-1 text-[10.5px] font-mono text-blue-200/90 bg-white/10 hover:bg-white/20 active:scale-95 px-2 py-0.5 rounded-md border border-white/10 transition-all cursor-pointer"
+                  >
+                    <span>ID: {app.intern_id}</span>
+                    <Copy className="size-2.5 opacity-70" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile-only Compact Circular Progress Ring */}
+            <div className="md:hidden shrink-0 flex flex-col items-center justify-center p-2 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-md shadow-inner">
+              <div className="relative size-12 flex items-center justify-center">
+                <svg className="size-full -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#progress-gradient-mob)" strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray="251.32" strokeDashoffset={251.32 - (251.32 * pct) / 100} style={{ transition: "stroke-dashoffset 1s ease" }} />
+                  <defs>
+                    <linearGradient id="progress-gradient-mob" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#38bdf8" />
+                      <stop offset="100%" stopColor="#34d399" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="absolute text-[11px] font-black text-white">{pct}%</span>
+              </div>
+              <span className="text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider mt-0.5">Progress</span>
+            </div>
           </div>
 
-          {/* Name */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black font-display leading-tight tracking-tight drop-shadow-sm bg-gradient-to-b from-white to-slate-200 bg-clip-text text-transparent">
-            {app.full_name}
-          </h1>
-
-          {/* Details Row */}
-          <div className="flex flex-wrap justify-center md:justify-start items-center gap-2.5">
-            <Badge className="bg-white/10 hover:bg-white/15 text-white border border-white/10 text-xs font-semibold rounded-xl px-3 py-1 backdrop-blur-sm shadow-sm transition-all duration-300">
-              {domain?.name ?? app.domain}
-            </Badge>
-            <Badge className="bg-white/5 hover:bg-white/10 text-blue-100 border border-white/5 text-xs font-mono rounded-xl px-3 py-1 backdrop-blur-sm shadow-sm transition-all duration-300">
-              ID: {app.intern_id}
-            </Badge>
+          {/* Minimalist Frosted Meta Strip (Eliminates bulky dark boxes) */}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/10 text-xs text-blue-200/90 backdrop-blur-md">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="size-3.5 text-cyan-300 shrink-0" />
+              <span>Enrolled: <strong className="text-white font-semibold">{new Date(app.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Clock className="size-3.5 text-cyan-300 shrink-0" />
+              <span>Duration: <strong className="text-white font-semibold">{app.duration ?? 1} Month{(app.duration ?? 1) > 1 ? "s" : ""}</strong></span>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5">
+              <ListChecks className="size-3.5 text-emerald-300 shrink-0" />
+              <span>Tasks: <strong className="text-emerald-300 font-semibold">{internApproved} / {durationLimit} Completed</strong></span>
+            </div>
           </div>
 
-          {/* New Premium Meta Details Block */}
-          <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-4 gap-y-2 text-xs text-blue-200/90 font-medium pt-1">
-            <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 backdrop-blur-md shadow-sm">
-              <Calendar className="size-3.5 text-blue-300" />
-              <span>Enrolled: {new Date(app.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
-            </span>
-            <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 backdrop-blur-md shadow-sm">
-              <Clock className="size-3.5 text-blue-300" />
-              <span>Duration: {app.duration ?? 1} Month{(app.duration ?? 1) > 1 ? "s" : ""}</span>
-            </span>
-            <span className="hidden sm:flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 backdrop-blur-md shadow-sm">
-              <ListChecks className="size-3.5 text-blue-300" />
-              <span>Tasks: {internApproved} / {durationLimit} Approved</span>
-            </span>
-          </div>
+          {/* Quick Actions Dock: Modern App-Icon Grid on Mobile, Full Buttons on Desktop */}
+          <div className="space-y-2.5 pt-1">
+            
+            {/* Mobile 4-Column Action Dock */}
+            <div className="grid grid-cols-4 gap-2 md:hidden">
+              <button
+                type="button"
+                onClick={() => onViewOfferLetter?.(app)}
+                className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white/[0.08] hover:bg-white/[0.15] active:scale-90 border border-white/10 transition-all text-center group cursor-pointer shadow-sm hover:shadow-md"
+              >
+                <div className="grid size-10 place-items-center rounded-xl bg-blue-500/20 text-blue-300 group-hover:scale-110 group-hover:bg-blue-500/30 transition-all">
+                  <Eye className="size-5" />
+                </div>
+                <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">View Offer</span>
+              </button>
 
-          {/* Quick Actions (Offer Letter, ID, WhatsApp, Certificate) */}
-          <div className="flex flex-wrap justify-center md:justify-start gap-2.5 pt-4">
-            <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg hover:-translate-y-0.5"
-              onClick={() => onViewOfferLetter?.(app)}>
-              <Eye className="size-4 text-blue-300" /> View Offer Letter
-            </Button>
-
-            <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg hover:-translate-y-0.5"
-              onClick={() => downloadPdf(
-                <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
-                `OfferLetter_${app.intern_id}.pdf`
-              )}>
-              <Download className="size-4 text-blue-300" /> Download Offer Letter
-            </Button>
-
-            <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg hover:-translate-y-0.5"
-              onClick={() => downloadIDCard({
-                fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at || app.created_at, photoUrl: app.photo_url, email: app.email
-              })}>
-                <Download className="size-4 text-emerald-300" /> Download ID Card
-            </Button>
-
-            <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-[#25D366] hover:!bg-[#20ba59] text-white hover:!text-white border-0 gap-2 shadow-lg shadow-[#25D366]/20 transition-all hover:scale-105 active:scale-95 hover:shadow-[#25D366]/35 hover:-translate-y-0.5"
-              onClick={() => window.open("https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f", "_blank")}>
-              <svg className="size-4 fill-current" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.46h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
-              <span>Join WhatsApp Group</span>
-            </Button>
-
-            <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-95 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 hover:shadow-pink-500/35 hover:-translate-y-0.5"
-              onClick={() => window.open("https://www.instagram.com/skyrovix?stkn=ZXY2ZXdxZTM5czNr", "_blank")}>
-              <Instagram className="size-4" />
-              <span>Instagram</span>
-            </Button>
-
-            {cert && (
-              <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 hover:shadow-emerald-500/30 hover:-translate-y-0.5"
+              <button
+                type="button"
                 onClick={() => downloadPdf(
+                  <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
+                  `OfferLetter_${app.intern_id}.pdf`
+                )}
+                className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white/[0.08] hover:bg-white/[0.15] active:scale-90 border border-white/10 transition-all text-center group cursor-pointer shadow-sm hover:shadow-md"
+              >
+                <div className="grid size-10 place-items-center rounded-xl bg-sky-500/20 text-sky-300 group-hover:scale-110 group-hover:bg-sky-500/30 transition-all">
+                  <Download className="size-5" />
+                </div>
+                <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">Offer Letter</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => downloadIDCard({
+                  fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at || app.created_at, photoUrl: app.photo_url, email: app.email
+                })}
+                className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white/[0.08] hover:bg-white/[0.15] active:scale-90 border border-white/10 transition-all text-center group cursor-pointer shadow-sm hover:shadow-md"
+              >
+                <div className="grid size-10 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300 group-hover:scale-110 group-hover:bg-emerald-500/30 transition-all">
+                  <Download className="size-5" />
+                </div>
+                <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">ID Card</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={cert ? () => downloadPdf(
                   <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
                   `Certificate_${cert.certificate_id}.pdf`
-                )}>
-                <Award className="size-4" /> Download Certificate
+                ) : undefined}
+                disabled={!cert}
+                className={`flex flex-col items-center justify-center p-2 rounded-2xl ${cert ? "bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-90 border-emerald-400/30 cursor-pointer shadow-sm hover:shadow-emerald-500/20" : "bg-white/[0.03] border-white/5 opacity-40 cursor-not-allowed"} border transition-all text-center group`}
+              >
+                <div className={`grid size-10 place-items-center rounded-xl ${cert ? "bg-emerald-500/30 text-emerald-300 group-hover:scale-110" : "bg-white/5 text-white/40"} transition-all`}>
+                  <Award className="size-5" />
+                </div>
+                <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">{cert ? "Certificate" : "Locked"}</span>
+              </button>
+            </div>
+
+            {/* Desktop Full Buttons */}
+            <div className="hidden md:flex flex-wrap gap-2.5">
+              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
+                onClick={() => onViewOfferLetter?.(app)}>
+                <Eye className="size-4 text-blue-300" /> View Offer Letter
               </Button>
-            )}
+
+              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
+                onClick={() => downloadPdf(
+                  <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
+                  `OfferLetter_${app.intern_id}.pdf`
+                )}>
+                <Download className="size-4 text-blue-300" /> Download Offer Letter
+              </Button>
+
+              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
+                onClick={() => downloadIDCard({
+                  fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at || app.created_at, photoUrl: app.photo_url, email: app.email
+                })}>
+                <Download className="size-4 text-emerald-300" /> Download ID Card
+              </Button>
+
+              {cert && (
+                <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 hover:shadow-emerald-500/30"
+                  onClick={() => downloadPdf(
+                    <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
+                    `Certificate_${cert.certificate_id}.pdf`
+                  )}>
+                  <Award className="size-4 text-emerald-100" /> Download Certificate
+                </Button>
+              )}
+            </div>
+
+            {/* Official Community / Social Channels (WhatsApp + Instagram) */}
+            <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 pt-0.5">
+              <Button size="sm" className="w-full md:w-auto rounded-2xl h-10 text-xs font-bold bg-[#25D366] hover:!bg-[#20ba59] text-white hover:!text-white border-0 gap-2 shadow-md shadow-[#25D366]/20 transition-all hover:scale-105 active:scale-95"
+                onClick={() => window.open("https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f", "_blank")}>
+                <svg className="size-4 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.46h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                <span className="truncate">WhatsApp Group</span>
+              </Button>
+
+              <Button size="sm" className="w-full md:w-auto rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-95 text-white hover:!text-white border-0 gap-2 shadow-md shadow-pink-500/20 transition-all hover:scale-105 active:scale-95"
+                onClick={() => window.open("https://www.instagram.com/skyrovix?stkn=ZXY2ZXdxZTM5czNr", "_blank")}>
+                <Instagram className="size-4 shrink-0" />
+                <span className="truncate">Instagram</span>
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Circular Progress Ring */}
-        <div className="flex shrink-0 flex-col items-center">
+        {/* Desktop-only Large Circular Progress Ring */}
+        <div className="hidden md:flex shrink-0 flex-col items-center">
           <div className="relative size-28 shrink-0 flex items-center justify-center bg-white/5 rounded-full p-2 border border-white/5 backdrop-blur-md shadow-inner">
             <svg className="size-full -rotate-90" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
@@ -2115,6 +2225,7 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
