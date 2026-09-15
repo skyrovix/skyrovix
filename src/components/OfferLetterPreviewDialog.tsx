@@ -81,11 +81,11 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl w-[95vw] sm:w-[90vw] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-slate-100 dark:bg-slate-950 border-border/60 shadow-2xl rounded-2xl sm:rounded-3xl">
+      <DialogContent className="max-w-3xl w-[95vw] sm:w-[90vw] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-slate-100 dark:bg-slate-950 border-border/60 shadow-2xl rounded-2xl sm:rounded-3xl [&>button:last-child]:hidden">
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-5 py-3.5 bg-white dark:bg-slate-900 border-b border-border/40 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-white dark:bg-slate-900 border-b border-border/40 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#07284a] text-white shadow-sm">
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#07284a] text-white shadow-sm">
               <FileText className="size-4" />
             </div>
             <div className="truncate">
@@ -114,12 +114,21 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 </>
               )}
             </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="size-8 sm:size-9 p-0 rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800"
+              onClick={() => onOpenChange(false)}
+              title="Close Preview"
+            >
+              <X className="size-4" />
+            </Button>
           </div>
         </div>
 
         {/* Scrollable Letter Document Body */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-6 flex justify-center bg-slate-200/60 dark:bg-slate-950/80">
-          <div className="w-full max-w-[720px] bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl shadow-lg border border-slate-300/80 dark:border-slate-800 p-6 sm:p-10 font-sans text-xs sm:text-sm leading-relaxed relative selection:bg-blue-100 dark:selection:bg-blue-950">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 bg-slate-200/75 dark:bg-slate-950/85">
+          <div className="w-full max-w-[720px] mx-auto min-h-fit bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl shadow-xl border border-slate-300/80 dark:border-slate-800 p-6 sm:p-10 md:p-12 font-sans text-xs sm:text-sm leading-relaxed relative selection:bg-blue-100 dark:selection:bg-blue-950">
             
             {/* Watermark */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none overflow-hidden">

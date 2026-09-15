@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import topNavLogo from "@/assets/top nav bar logo.png";
-import { User, Mail, GraduationCap, Calendar, Globe, QrCode, Barcode } from "lucide-react";
+import logo from "@/assets/logo.png";
+import { Globe, QrCode, Barcode, CheckCircle2 } from "lucide-react";
 import { getPublicSiteUrl } from "@/lib/constants";
 
 type Props = {
@@ -42,14 +42,14 @@ function getBarcodeBits(text: string): boolean[] {
   return bits;
 }
 
-export function BarcodeSVG({ value, height = 36 }: { value: string; height?: number }) {
+export function BarcodeSVG({ value, height = 30 }: { value: string; height?: number }) {
   const bits = getBarcodeBits(value);
   const barWidth = 1.8;
   const totalWidth = bits.length * barWidth;
   return (
-    <svg viewBox={`0 0 ${totalWidth} ${height}`} className="h-9 w-full max-w-[210px] mx-auto overflow-visible" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${totalWidth} ${height}`} className="h-7 w-full max-w-[200px] mx-auto overflow-visible" preserveAspectRatio="none">
       {bits.map((isBar, i) =>
-        isBar ? <rect key={i} x={i * barWidth} y={0} width={barWidth} height={height} fill="#0b1e48" /> : null
+        isBar ? <rect key={i} x={i * barWidth} y={0} width={barWidth} height={height} fill="#07284a" /> : null
       )}
     </svg>
   );
@@ -70,152 +70,126 @@ export function IDCard({ internId, fullName, domain, photoUrl, issuedAt, email, 
   const validUntilStr = computeValidUpto();
 
   return (
-    <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[360px] aspect-[1/1.58] overflow-hidden rounded-[28px] bg-white text-slate-900 shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col justify-between select-none font-sans transition-all duration-300 hover:shadow-blue-500/10">
+    <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[350px] overflow-hidden rounded-[22px] bg-white text-slate-900 shadow-xl border border-slate-200/90 dark:border-slate-800 flex flex-col justify-between select-none font-sans transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10">
       
-      {/* Decorative Top Curves */}
-      <div className="absolute top-0 left-0 right-0 h-32 pointer-events-none overflow-hidden">
-        {/* Top Left Wave */}
-        <svg className="absolute -top-4 -left-4 w-40 h-32 text-blue-500/20" viewBox="0 0 100 100" preserveAspectRatio="none" fill="currentColor">
-          <path d="M0,0 L100,0 C60,40 40,80 0,100 Z" />
-        </svg>
-        <svg className="absolute top-0 left-0 w-32 h-28 text-blue-600/30" viewBox="0 0 100 100" preserveAspectRatio="none" fill="currentColor">
-          <path d="M0,0 L100,0 C50,30 30,60 0,80 Z" />
-        </svg>
-
-        {/* Top Right Wave */}
-        <svg className="absolute -top-4 -right-4 w-44 h-36 text-blue-600/25" viewBox="0 0 100 100" preserveAspectRatio="none" fill="currentColor">
-          <path d="M100,0 L0,0 C40,40 60,90 100,100 Z" />
-        </svg>
-        <svg className="absolute top-0 right-0 w-36 h-28 text-blue-500/15" viewBox="0 0 100 100" preserveAspectRatio="none" fill="currentColor">
-          <path d="M100,0 L0,0 C50,30 70,60 100,80 Z" />
-        </svg>
-      </div>
-
-      {/* Decorative Bottom Curves */}
-      <div className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none overflow-hidden">
-        {/* Bottom Left Wave */}
-        <svg className="absolute bottom-0 left-0 w-36 h-24 text-blue-500/20" viewBox="0 0 100 100" preserveAspectRatio="none" fill="currentColor">
-          <path d="M0,100 L100,100 C60,60 30,30 0,0 Z" />
-        </svg>
-        {/* Bottom Right Wave */}
-        <svg className="absolute bottom-0 right-0 w-44 h-28 text-blue-600/30" viewBox="0 0 100 100" preserveAspectRatio="none" fill="currentColor">
-          <path d="M100,100 L0,100 C40,60 70,20 100,0 Z" />
-        </svg>
-      </div>
-
-      {/* Quick QR / Barcode Toggle Button */}
-      <button 
-        type="button"
-        onClick={() => setShowQR(!showQR)} 
-        className="absolute top-3.5 right-3.5 z-20 grid size-7 place-items-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-105 transition-all border border-blue-200/60 shadow-xs"
-        title={showQR ? "Show Barcode" : "Show QR Code"}
-      >
-        {showQR ? <Barcode className="size-4" /> : <QrCode className="size-4" />}
-      </button>
-
-      {/* Card Content Outer Container */}
-      <div className="relative z-10 p-5 pt-4 flex-1 flex flex-col justify-between">
-        
-        {/* 1. Header Section */}
-        <div className="text-center pt-1">
-          <div className="flex items-center justify-center">
-            <img src={topNavLogo} alt="Skyrovix Logo" className="h-10 sm:h-11 w-auto max-w-[210px] object-contain drop-shadow-xs" />
-          </div>
-          <p className="text-[11px] font-semibold text-[#0b2545] tracking-tight mt-0.5">
-            Virtual Internship and Training Platform
-          </p>
+      {/* 1. Executive Dark Navy Header */}
+      <div className="relative bg-gradient-to-b from-[#061a33] via-[#092952] to-[#0c3970] px-5 pt-3 pb-8 text-white">
+        {/* Realistic Lanyard Slot */}
+        <div className="mx-auto w-12 h-2.5 rounded-full bg-slate-950/60 border border-white/20 shadow-inner mb-3 flex items-center justify-center">
+          <div className="w-8 h-1 rounded-full bg-white/15" />
         </div>
 
-        {/* 2. Photo Section */}
-        <div className="my-2.5 flex justify-center">
-          <div className="size-28 sm:size-32 rounded-2xl border-[2.5px] border-[#0066ff] p-0.5 bg-white shadow-md overflow-hidden relative">
+        {/* Company Header Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="size-8 rounded-lg bg-white/10 border border-white/20 p-1 grid place-items-center backdrop-blur-xs">
+              <img src={logo} alt="Skyrovix Logo" className="size-full object-contain" />
+            </div>
+            <div>
+              <span className="font-extrabold text-sm tracking-wider block leading-none text-white">SKYROVIX</span>
+              <span className="text-[8.5px] text-blue-200 font-medium tracking-wide block mt-0.5">Skill Development & Future Tech</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/30 px-2.5 py-0.5 rounded-full text-[9px] font-bold text-emerald-300 tracking-wider font-mono">
+            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            INTERN
+          </div>
+        </div>
+
+        {/* Toggle QR/Barcode Button in top-right */}
+        <button 
+          type="button"
+          onClick={() => setShowQR(!showQR)} 
+          className="absolute top-2.5 right-3.5 grid size-6 place-items-center rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-all cursor-pointer"
+          title={showQR ? "Show Barcode" : "Show QR Code"}
+        >
+          {showQR ? <Barcode className="size-3.5" /> : <QrCode className="size-3.5" />}
+        </button>
+      </div>
+
+      {/* 2. Photo Section (overlapping header) */}
+      <div className="-mt-8 flex justify-center relative z-10">
+        <div className="size-24 sm:size-26 rounded-2xl p-1 bg-white shadow-xl ring-1 ring-slate-200/80 relative">
+          <div className="size-full rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center">
             {photoUrl ? (
-              <img src={photoUrl} alt={fullName} className="size-full object-cover rounded-[14px]" />
+              <img src={photoUrl} alt={fullName} className="size-full object-cover" />
             ) : (
-              <div className="grid size-full place-items-center bg-gradient-to-br from-blue-600 to-indigo-800 text-white text-3xl font-extrabold rounded-[14px]">
+              <div className="grid size-full place-items-center bg-gradient-to-br from-[#061a33] to-[#1e40af] text-white text-2xl font-black">
                 {fullName ? fullName.charAt(0).toUpperCase() : "I"}
               </div>
             )}
           </div>
-        </div>
-
-        {/* 3. Name & Role Section */}
-        <div className="text-center px-2">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#0b1e48] tracking-tight leading-tight">
-            {fullName}
-          </h2>
-          <p className="text-xs sm:text-sm font-bold text-[#0b1e48] tracking-[0.2em] uppercase mt-0.5">
-            INTERN
-          </p>
-          <div className="w-14 h-[2px] bg-[#0066ff] rounded-full mx-auto my-1.5" />
-        </div>
-
-        {/* 4. Details List Section */}
-        <div className="my-2.5 px-3 sm:px-4 space-y-1.5 text-xs text-[#0b1e48]">
-          
-          {/* ID No */}
-          <div className="flex items-center gap-2">
-            <User className="size-4 text-[#0066ff] shrink-0" />
-            <span className="w-20 font-semibold text-[#334155]">ID No</span>
-            <span className="font-bold text-[#64748b]">:</span>
-            <span className="font-bold text-[#0b1e48] truncate tracking-tight">{internId}</span>
-          </div>
-
-          {/* Email */}
-          <div className="flex items-center gap-2">
-            <Mail className="size-4 text-[#0066ff] shrink-0" />
-            <span className="w-20 font-semibold text-[#334155]">Email</span>
-            <span className="font-bold text-[#64748b]">:</span>
-            <span className="font-bold text-[#0b1e48] truncate tracking-tight">{email || "N/A"}</span>
-          </div>
-
-          {/* Domain */}
-          <div className="flex items-center gap-2">
-            <GraduationCap className="size-4 text-[#0066ff] shrink-0" />
-            <span className="w-20 font-semibold text-[#334155]">Domain</span>
-            <span className="font-bold text-[#64748b]">:</span>
-            <span className="font-bold text-[#0b1e48] truncate tracking-tight">{domain}</span>
-          </div>
-
-          {/* Valid Upto */}
-          <div className="flex items-center gap-2">
-            <Calendar className="size-4 text-[#0066ff] shrink-0" />
-            <span className="w-20 font-semibold text-[#334155]">Valid Upto</span>
-            <span className="font-bold text-[#64748b]">:</span>
-            <span className="font-bold text-[#0b1e48] truncate tracking-tight">{validUntilStr}</span>
-          </div>
-
-        </div>
-
-        {/* 5. Barcode / QR Code Section */}
-        <div className="my-2 text-center flex flex-col items-center justify-center min-h-[58px]">
-          {showQR ? (
-            <div className="flex flex-col items-center gap-1 bg-white p-1.5 rounded-xl border border-slate-100 shadow-xs">
-              <QRCodeSVG value={verifyUrl} size={50} />
-              <span className="text-[9px] font-bold text-blue-600 tracking-wider uppercase">Scan to Verify</span>
-            </div>
-          ) : (
-            <div className="w-full flex flex-col items-center">
-              <BarcodeSVG value={internId} height={32} />
-              <span className="font-mono text-[11px] font-extrabold text-[#0b1e48] tracking-[0.2em] mt-0.5">
-                {internId}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* 6. Footer Section */}
-        <div className="pt-2 flex items-center justify-between text-[11px] font-semibold text-[#0066ff] border-t border-slate-100">
-          <div className="flex items-center gap-1">
-            <Globe className="size-3.5 text-[#0066ff]" />
-            <span>skyrovix.online</span>
-          </div>
-          <div className="italic tracking-tight">
-            Learn | Build | Grow
+          {/* Active Verified Status Badge */}
+          <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-[#061a33] text-emerald-400 flex items-center justify-center shadow-md ring-2 ring-white" title="Verified Credential">
+            <CheckCircle2 className="size-3.5" />
           </div>
         </div>
-
       </div>
+
+      {/* 3. Name, Role & Domain */}
+      <div className="text-center px-4 mt-2">
+        <h2 className="text-lg sm:text-xl font-black text-[#061a33] tracking-tight leading-tight uppercase truncate">
+          {fullName}
+        </h2>
+        <p className="text-[10px] font-extrabold text-blue-600 tracking-[0.25em] uppercase mt-0.5">
+          Virtual Intern
+        </p>
+        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 mt-1 rounded-full bg-blue-50/90 border border-blue-200/80 text-[10px] font-bold text-[#061a33] max-w-full">
+          <span className="size-1.5 rounded-full bg-blue-600 shrink-0" />
+          <span className="truncate">{domain}</span>
+        </div>
+      </div>
+
+      {/* 4. Professional Details Specification Grid */}
+      <div className="mx-4 my-2.5 p-3 bg-slate-50/90 rounded-xl border border-slate-200/80 text-left">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <span className="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Intern ID</span>
+            <span className="font-mono font-bold text-xs text-[#061a33] tracking-tight block truncate">{internId}</span>
+          </div>
+          <div>
+            <span className="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Valid Thru</span>
+            <span className="font-semibold text-xs text-slate-800 block truncate">{validUntilStr}</span>
+          </div>
+          <div className="col-span-2 border-t border-slate-200/60 pt-1.5 mt-0.5">
+            <span className="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Email Address</span>
+            <span className="font-semibold text-xs text-slate-800 block truncate">{email || "N/A"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Barcode & QR Code Section */}
+      <div className="px-4 py-1 text-center flex flex-col items-center justify-center min-h-[48px]">
+        {showQR ? (
+          <div className="flex flex-col items-center gap-1 bg-white p-2 rounded-xl border border-slate-200 shadow-xs">
+            <QRCodeSVG value={verifyUrl} size={48} />
+            <span className="text-[8px] font-bold text-slate-500 tracking-wider uppercase">Scan to Verify</span>
+          </div>
+        ) : (
+          <div className="w-full flex flex-col items-center">
+            <BarcodeSVG value={internId} height={24} />
+            <span className="font-mono text-[9px] font-bold text-slate-600 tracking-[0.25em] mt-0.5">
+              {internId}
+            </span>
+            <span className="text-[7.5px] font-semibold text-slate-400 tracking-[0.16em] uppercase mt-1">
+              Official Authenticated Credential
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* 6. Corporate Dark Navy Footer */}
+      <div className="bg-[#061a33] px-4 py-2 flex items-center justify-between text-[10px] text-white">
+        <div className="flex items-center gap-1.5 text-blue-200 font-medium">
+          <Globe className="size-3 text-blue-300" />
+          <span>skyrovix.online</span>
+        </div>
+        <div className="text-slate-300 text-[9px] font-semibold tracking-wider uppercase">
+          Empower · Innovate
+        </div>
+      </div>
+
     </div>
   );
 }

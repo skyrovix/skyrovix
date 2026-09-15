@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Image, pdf, type DocumentProps } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image, Svg, Path, pdf, type DocumentProps } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
 import QRCode from "qrcode";
 import logo from "@/assets/logo.png";
@@ -13,6 +13,7 @@ import { COMPANY, durationConfig, getPublicSiteUrl } from "@/lib/constants";
 import { EMAIL_ASSETS } from "@/lib/email-assets";
 
 const logoImg = EMAIL_ASSETS?.logo || logo;
+const topNavLogoImg = EMAIL_ASSETS?.topNavLogo || topNavLogo;
 const sealImg = EMAIL_ASSETS?.seal || seal;
 const msmeImg = EMAIL_ASSETS?.msme || msme;
 const sigFounderImg = EMAIL_ASSETS?.sigFounder || sigFounder;
@@ -475,33 +476,243 @@ export function CourseCertificateDoc({ fullName, courseName, score, total, certI
 // ─── ID CARD PDF ───
 
 const idCardS = StyleSheet.create({
-  page: { padding: 12, fontSize: 8, fontFamily: "Helvetica", backgroundColor: "#ffffff", color: "#0b1e48", position: "relative" },
-  header: { alignItems: "center", marginTop: 2, marginBottom: 4 },
-  logo: { width: 110, height: 28, objectFit: "contain" },
-  subtitle: { fontSize: 7, fontWeight: 700, color: "#0b2545", textAlign: "center", marginTop: 2 },
-  
-  photoBox: { width: 84, height: 96, borderRadius: 10, borderWidth: 2, borderColor: "#0066ff", backgroundColor: "#f0f7ff", alignSelf: "center", marginTop: 4, marginBottom: 4, overflow: "hidden", justifyContent: "center", alignItems: "center" },
-  photoImg: { width: 84, height: 96, objectFit: "cover" },
-  photoInitial: { fontSize: 26, fontWeight: 700, color: "#0066ff" },
-
-  name: { fontSize: 13, fontWeight: 700, color: "#0b1e48", textAlign: "center" },
-  role: { fontSize: 8, fontWeight: 700, color: "#0b1e48", textAlign: "center", letterSpacing: 1.5, marginTop: 2 },
-  underline: { width: 35, height: 1.5, backgroundColor: "#0066ff", alignSelf: "center", marginTop: 3, marginBottom: 6 },
-
-  detailsBlock: { marginTop: 2, marginBottom: 4, paddingHorizontal: 4 },
-  detailRow: { flexDirection: "row", alignItems: "center", marginBottom: 3.5 },
-  label: { width: 55, fontSize: 7.5, fontWeight: 700, color: "#334155" },
-  colon: { width: 8, fontSize: 7.5, fontWeight: 700, color: "#64748b" },
-  value: { flex: 1, fontSize: 7.5, fontWeight: 700, color: "#0b1e48" },
-
-  barcodeBox: { alignSelf: "center", marginTop: 4, alignItems: "center" },
-  barcodeImg: { width: 140, height: 24, objectFit: "contain" },
-  barcodeText: { fontSize: 7.5, fontWeight: 700, color: "#0b1e48", letterSpacing: 1.5, marginTop: 2 },
-  qrBox: { width: 42, height: 42, alignSelf: "center" },
-
-  footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 0.5, borderTopColor: "#e2e8f0", paddingTop: 4, marginTop: 6 },
-  footerLink: { fontSize: 7, fontWeight: 700, color: "#0066ff" },
-  footerMotto: { fontSize: 7, fontWeight: 700, color: "#0066ff", fontStyle: "italic" }
+  page: {
+    padding: 0,
+    fontSize: 8,
+    fontFamily: "Helvetica",
+    backgroundColor: "#ffffff",
+    color: "#061a33",
+    position: "relative",
+  },
+  cardContainer: {
+    position: "absolute",
+    top: 5,
+    left: 5,
+    right: 5,
+    bottom: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  header: {
+    backgroundColor: "#061a33",
+    paddingTop: 8,
+    paddingBottom: 22,
+    paddingHorizontal: 12,
+    alignItems: "center",
+  },
+  lanyardSlot: {
+    width: 28,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: "#020f1f",
+    borderWidth: 0.5,
+    borderColor: "#1e3a5f",
+    alignSelf: "center",
+    marginBottom: 6,
+  },
+  logoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  logoBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  logo: {
+    width: 20,
+    height: 20,
+    objectFit: "contain",
+  },
+  brandName: {
+    fontSize: 10.5,
+    fontWeight: 700,
+    color: "#ffffff",
+    letterSpacing: 0.8,
+  },
+  brandSubtitle: {
+    fontSize: 5,
+    color: "#93c5fd",
+    marginTop: 0.5,
+  },
+  badge: {
+    backgroundColor: "#064e3b",
+    borderWidth: 0.5,
+    borderColor: "#34d399",
+    borderRadius: 8,
+    paddingVertical: 1.5,
+    paddingHorizontal: 6,
+  },
+  badgeText: {
+    fontSize: 5.5,
+    fontWeight: 700,
+    color: "#6ee7b7",
+    letterSpacing: 0.8,
+  },
+  photoSection: {
+    alignItems: "center",
+    marginTop: -16,
+  },
+  photoBox: {
+    width: 62,
+    height: 70,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#ffffff",
+    backgroundColor: "#f1f5f9",
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  photoImg: {
+    width: 62,
+    height: 70,
+    objectFit: "cover",
+  },
+  photoInitialBox: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#061a33",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  photoInitial: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: "#ffffff",
+  },
+  nameBlock: {
+    alignItems: "center",
+    paddingHorizontal: 8,
+    marginTop: 3,
+  },
+  name: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#061a33",
+    textAlign: "center",
+    textTransform: "uppercase",
+  },
+  role: {
+    fontSize: 6.5,
+    fontWeight: 700,
+    color: "#2563eb",
+    textAlign: "center",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginTop: 1,
+  },
+  domainBadge: {
+    backgroundColor: "#eff6ff",
+    borderRadius: 8,
+    borderWidth: 0.5,
+    borderColor: "#bfdbfe",
+    paddingVertical: 1.5,
+    paddingHorizontal: 6,
+    marginTop: 2,
+  },
+  domainText: {
+    fontSize: 6,
+    fontWeight: 700,
+    color: "#061a33",
+    textAlign: "center",
+  },
+  detailsBlock: {
+    marginHorizontal: 12,
+    marginTop: 4,
+    backgroundColor: "#f8fafc",
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: "#e2e8f0",
+    padding: 5,
+  },
+  detailRow2Col: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 3,
+  },
+  detailCol: {
+    flex: 1,
+  },
+  detailDivider: {
+    borderTopWidth: 0.5,
+    borderTopColor: "#e2e8f0",
+    paddingTop: 3,
+    marginTop: 1,
+  },
+  label: {
+    fontSize: 5.5,
+    fontWeight: 700,
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  value: {
+    fontSize: 6.8,
+    fontWeight: 700,
+    color: "#061a33",
+    marginTop: 0.5,
+  },
+  barcodeBox: {
+    alignItems: "center",
+    marginTop: 3,
+    marginBottom: 2,
+  },
+  barcodeImg: {
+    width: 135,
+    height: 18,
+    objectFit: "contain",
+  },
+  barcodeText: {
+    fontSize: 6.5,
+    fontWeight: 700,
+    color: "#475569",
+    letterSpacing: 1.8,
+    marginTop: 1,
+    fontFamily: "Helvetica-Bold",
+  },
+  securityNotice: {
+    fontSize: 4.6,
+    fontWeight: 700,
+    color: "#94a3b8",
+    letterSpacing: 1.2,
+    marginTop: 1.5,
+    textTransform: "uppercase",
+  },
+  qrBox: {
+    width: 32,
+    height: 32,
+    alignSelf: "center",
+    marginBottom: 1,
+  },
+  footer: {
+    backgroundColor: "#061a33",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 4.5,
+    paddingHorizontal: 12,
+  },
+  footerLink: {
+    fontSize: 6,
+    fontWeight: 700,
+    color: "#93c5fd",
+  },
+  footerMotto: {
+    fontSize: 5.5,
+    fontWeight: 700,
+    color: "#cbd5e1",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
 });
 
 const CODE39_PATTERNS_PDF: Record<string, string> = {
@@ -539,7 +750,7 @@ function generateBarcodeDataUri(text: string): string | undefined {
     if (!ctx) return undefined;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, height);
-    ctx.fillStyle = "#0b1e48";
+    ctx.fillStyle = "#061a33";
     bits.forEach((isBar, i) => {
       if (isBar) {
         ctx.fillRect(i * barWidth, 0, barWidth, height);
@@ -566,63 +777,82 @@ export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, emai
   return (
     <Document>
       <Page size={[230, 360]} style={idCardS.page}>
-        {/* Header */}
-        <View style={idCardS.header}>
-          <Image style={idCardS.logo} src={topNavLogo} />
-          <Text style={idCardS.subtitle}>Virtual Internship and Training Platform</Text>
-        </View>
-
-        {/* Photo Box */}
-        <View style={idCardS.photoBox}>
-          {photoUrl ? <Image style={idCardS.photoImg} src={photoUrl} /> : <Text style={idCardS.photoInitial}>{fullName ? fullName.charAt(0).toUpperCase() : "I"}</Text>}
-        </View>
-
-        {/* Name & Role */}
-        <Text style={idCardS.name}>{fullName}</Text>
-        <Text style={idCardS.role}>INTERN</Text>
-        <View style={idCardS.underline} />
-
-        {/* Details Table */}
-        <View style={idCardS.detailsBlock}>
-          <View style={idCardS.detailRow}>
-            <Text style={idCardS.label}>ID No</Text>
-            <Text style={idCardS.colon}>:</Text>
-            <Text style={idCardS.value}>{internId}</Text>
+        <View style={idCardS.cardContainer}>
+          
+          {/* 1. Executive Dark Navy Header */}
+          <View style={idCardS.header}>
+            <View style={idCardS.lanyardSlot} />
+            <View style={idCardS.logoRow}>
+              <View style={idCardS.logoBox}>
+                <Image style={idCardS.logo} src={logoImg} />
+                <View>
+                  <Text style={idCardS.brandName}>SKYROVIX</Text>
+                  <Text style={idCardS.brandSubtitle}>Skill Development & Future Tech</Text>
+                </View>
+              </View>
+              <View style={idCardS.badge}>
+                <Text style={idCardS.badgeText}>INTERN</Text>
+              </View>
+            </View>
           </View>
 
-          <View style={idCardS.detailRow}>
-            <Text style={idCardS.label}>Email</Text>
-            <Text style={idCardS.colon}>:</Text>
-            <Text style={idCardS.value}>{email || "N/A"}</Text>
+          {/* 2. Photo Section */}
+          <View style={idCardS.photoSection}>
+            <View style={idCardS.photoBox}>
+              {photoUrl ? (
+                <Image style={idCardS.photoImg} src={photoUrl} />
+              ) : (
+                <View style={idCardS.photoInitialBox}>
+                  <Text style={idCardS.photoInitial}>{fullName ? fullName.charAt(0).toUpperCase() : "I"}</Text>
+                </View>
+              )}
+            </View>
           </View>
 
-          <View style={idCardS.detailRow}>
-            <Text style={idCardS.label}>Domain</Text>
-            <Text style={idCardS.colon}>:</Text>
-            <Text style={idCardS.value}>{domain}</Text>
+          {/* 3. Name & Role Section */}
+          <View style={idCardS.nameBlock}>
+            <Text style={idCardS.name}>{fullName}</Text>
+            <Text style={idCardS.role}>Virtual Intern</Text>
+            <View style={idCardS.domainBadge}>
+              <Text style={idCardS.domainText}>{domain}</Text>
+            </View>
           </View>
 
-          <View style={idCardS.detailRow}>
-            <Text style={idCardS.label}>Valid Upto</Text>
-            <Text style={idCardS.colon}>:</Text>
-            <Text style={idCardS.value}>{validUntilStr}</Text>
+          {/* 4. Details Table Grid */}
+          <View style={idCardS.detailsBlock}>
+            <View style={idCardS.detailRow2Col}>
+              <View style={idCardS.detailCol}>
+                <Text style={idCardS.label}>Intern ID</Text>
+                <Text style={idCardS.value}>{internId}</Text>
+              </View>
+              <View style={idCardS.detailCol}>
+                <Text style={idCardS.label}>Valid Thru</Text>
+                <Text style={idCardS.value}>{validUntilStr}</Text>
+              </View>
+            </View>
+            <View style={idCardS.detailDivider}>
+              <Text style={idCardS.label}>Email Address</Text>
+              <Text style={idCardS.value}>{email || "N/A"}</Text>
+            </View>
           </View>
-        </View>
 
-        {/* Barcode & Monospace Text */}
-        <View style={idCardS.barcodeBox}>
-          {barcodeDataUri ? (
-            <Image style={idCardS.barcodeImg} src={barcodeDataUri} />
-          ) : (
-            qrCodeDataUri ? <Image style={idCardS.qrBox} src={qrCodeDataUri} /> : null
-          )}
-          <Text style={idCardS.barcodeText}>{internId}</Text>
-        </View>
+          {/* 5. Barcode / QR Code Section */}
+          <View style={idCardS.barcodeBox}>
+            {barcodeDataUri ? (
+              <Image style={idCardS.barcodeImg} src={barcodeDataUri} />
+            ) : (
+              qrCodeDataUri ? <Image style={idCardS.qrBox} src={qrCodeDataUri} /> : null
+            )}
+            <Text style={idCardS.barcodeText}>{internId}</Text>
+            <Text style={idCardS.securityNotice}>OFFICIAL AUTHENTICATED CREDENTIAL</Text>
+          </View>
 
-        {/* Footer */}
-        <View style={idCardS.footer}>
-          <Text style={idCardS.footerLink}>skyrovix.online</Text>
-          <Text style={idCardS.footerMotto}>Learn | Build | Grow</Text>
+          {/* 6. Corporate Dark Navy Footer */}
+          <View style={idCardS.footer}>
+            <Text style={idCardS.footerLink}>skyrovix.online</Text>
+            <Text style={idCardS.footerMotto}>Empower · Innovate</Text>
+          </View>
+
         </View>
       </Page>
     </Document>
