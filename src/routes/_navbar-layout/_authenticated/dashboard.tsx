@@ -24,6 +24,7 @@ import type { CouponResult } from "@/lib/coupons";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { IDCard } from "@/components/IDCard";
+import { TasksSection } from "@/components/TasksSection";
 import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadIDCard, downloadPdf } from "@/components/pdf-docs";
 import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,7 +36,7 @@ import {
   ListChecks, LayoutDashboard, Flag, AlertTriangle, AlertCircle, Zap, Hash, Circle, Loader2,
   TrendingUp, Lock, Eye, LogOut,
   Settings, Wallet, CreditCard, ScrollText, Briefcase, Code2,
-  Share2, HelpCircle, Package, Users,
+  Share2, HelpCircle, Package, Users, Instagram,
 } from "lucide-react";
 
 function useInView(threshold = 0.15) {
@@ -2076,6 +2077,12 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
               <span>Join WhatsApp Group</span>
             </Button>
 
+            <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-95 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 hover:shadow-pink-500/35 hover:-translate-y-0.5"
+              onClick={() => window.open("https://www.instagram.com/skyrovix?stkn=ZXY2ZXdxZTM5czNr", "_blank")}>
+              <Instagram className="size-4" />
+              <span>Instagram</span>
+            </Button>
+
             {cert && (
               <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 hover:shadow-emerald-500/30 hover:-translate-y-0.5"
                 onClick={() => downloadPdf(
@@ -2785,6 +2792,9 @@ function WelcomeDashboard({ user, onCreated }: { user: any; onCreated: () => voi
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-2xl h-11 bg-white">
               <Link to="/domains"><Layers className="mr-2 size-4" /> Explore Domains</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="rounded-2xl h-11 bg-white hover:bg-slate-50 gap-2 text-xs font-bold" onClick={() => window.open("https://www.instagram.com/skyrovix?stkn=ZXY2ZXdxZTM5czNr", "_blank")}>
+              <Instagram className="size-4 text-pink-600" /> Instagram
             </Button>
           </div>
         </div>
