@@ -485,6 +485,7 @@ function Dashboard() {
         status: "approved",
         submission_status: "in_progress",
         offer_issued_at: new Date().toISOString(),
+        email_status: "pending",
         country: newCountry,
         state: newState,
         district: newDistrict,
@@ -494,7 +495,7 @@ function Dashboard() {
         referral_name: (newHearAbout === "Friend / Classmate" || newHearAbout === "Existing Skyrovix Intern") ? newReferralName : null,
       };
 
-      const { error: insertError } = await (supabase.from("applications") as any).insert(payload);
+      const { error: insertError } = await (supabase.from("applications" as any) as any).insert(payload);
       if (insertError) throw insertError;
 
       // Invalidate queries to refresh list
@@ -517,14 +518,29 @@ function Dashboard() {
             duration: newDuration,
           });
           if (result.success) {
+            await (supabase.from("applications" as any) as any).update({
+              email_status: "sent",
+              email_sent_at: new Date().toISOString(),
+              email_error: null,
+              offer_issued_at: new Date().toISOString(),
+            }).eq("intern_id", intern_id);
+            qc.invalidateQueries({ queryKey: ["my-applications", user?.id] });
             toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
           } else {
             console.warn("[Email] Delivery warning:", result.error);
-            toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
+            await (supabase.from("applications" as any) as any).update({
+              email_status: "failed",
+              email_error: result.error || "Email delivery failed",
+            }).eq("intern_id", intern_id);
+            toast.success("Application submitted successfully! You can view and download your Offer Letter from your Dashboard.", { id: "offer-letter-delivery", duration: 8000 });
           }
         } catch (e: any) {
           console.warn("Failed to send offer letter email for new domain:", e);
-          toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
+          await (supabase.from("applications" as any) as any).update({
+            email_status: "failed",
+            email_error: e?.message || "Email delivery failed",
+          }).eq("intern_id", intern_id);
+          toast.success("Application submitted successfully! You can view and download your Offer Letter from your Dashboard.", { id: "offer-letter-delivery", duration: 8000 });
         }
       } else {
         toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { duration: 8000 });

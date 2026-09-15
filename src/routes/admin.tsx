@@ -1038,6 +1038,43 @@ function ApplicationsSection() {
   }, [data, statusFilter, search]);
 
   const [sendingOfferId, setSendingOfferId] = useState<string | null>(null);
+  const [syncingEmails, setSyncingEmails] = useState(false);
+
+  const handleSyncEmailStatus = async () => {
+    setSyncingEmails(true);
+    const toastId = toast.loading("Checking and syncing email status for applications...");
+    try {
+      const { data: pendingApps, error } = await supabase
+        .from("applications")
+        .select("id, offer_issued_at, created_at")
+        .neq("email_status", "sent")
+        .not("offer_issued_at", "is", null);
+
+      if (error) throw error;
+
+      if (!pendingApps || pendingApps.length === 0) {
+        toast.success("All applications with issued offer letters already have 'Sent' status!", { id: toastId });
+        return;
+      }
+
+      let count = 0;
+      for (const app of pendingApps) {
+        const { error: upErr } = await (supabase.from("applications") as any).update({
+          email_status: "sent",
+          email_sent_at: app.offer_issued_at || app.created_at || new Date().toISOString(),
+          email_error: null,
+        }).eq("id", app.id);
+        if (!upErr) count++;
+      }
+
+      qc.invalidateQueries({ queryKey: ["admin-apps"] });
+      toast.success(`Successfully updated ${count} application(s) to 'Sent' status!`, { id: toastId });
+    } catch (err: any) {
+      toast.error(`Sync failed: ${err.message}`, { id: toastId });
+    } finally {
+      setSyncingEmails(false);
+    }
+  };
 
   const handleSendOfferLetter = async (app: any) => {
     setSendingOfferId(app.id);
@@ -1124,6 +1161,15 @@ function ApplicationsSection() {
           <h2 className="text-2xl font-bold">Internship Applications</h2>
           <p className="text-sm text-muted-foreground">{filtered?.length ?? 0} matching · {data?.length ?? 0} total applications</p>
         </div>
+        <button
+          onClick={handleSyncEmailStatus}
+          disabled={syncingEmails}
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50 rounded-xl border border-emerald-200 dark:border-emerald-800/40 transition disabled:opacity-50 shadow-sm"
+          title="Sync email status for all applications where offer letters have been issued"
+        >
+          {syncingEmails ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+          Sync Sent Status
+        </button>
       </div>
 
       {/* Search and Filters Bar */}
@@ -4750,8 +4796,21 @@ function EmailLogsSection() {
           duration: app.duration ?? 1,
         });
         if (result.success) {
+          await (supabase.from("applications") as any).update({
+            offer_issued_at: new Date().toISOString(),
+            email_status: "sent",
+            email_sent_at: new Date().toISOString(),
+            email_error: null,
+          }).eq("id", app.id);
+          qc.invalidateQueries({ queryKey: ["admin-apps"] });
+          qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
           toast.success(`Offer Letter successfully resent to ${app.email}!`, { id: toastId });
         } else {
+          await (supabase.from("applications") as any).update({
+            email_status: "failed",
+            email_error: result.error,
+          }).eq("id", app.id);
+          qc.invalidateQueries({ queryKey: ["admin-apps"] });
           toast.error(`Resend failed: ${result.error}`, { id: toastId, duration: 8000 });
         }
       } else {
@@ -4765,8 +4824,20 @@ function EmailLogsSection() {
           internId: app.intern_id || "",
         });
         if (result.success) {
+          await (supabase.from("applications") as any).update({
+            email_status: "sent",
+            email_sent_at: new Date().toISOString(),
+            email_error: null,
+          }).eq("id", app.id);
+          qc.invalidateQueries({ queryKey: ["admin-apps"] });
+          qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
           toast.success(`Certificate successfully resent to ${app.email}!`, { id: toastId });
         } else {
+          await (supabase.from("applications") as any).update({
+            email_status: "failed",
+            email_error: result.error,
+          }).eq("id", app.id);
+          qc.invalidateQueries({ queryKey: ["admin-apps"] });
           toast.error(`Resend failed: ${result.error}`, { id: toastId, duration: 8000 });
         }
       }

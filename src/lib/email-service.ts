@@ -8,6 +8,7 @@ type SendEmailInput = {
   documentType: "offer_letter" | "certificate";
   subject: string;
   body: string;
+  html?: string;
   referenceId?: string;
   pdfData: {
     fullName: string;
@@ -251,7 +252,7 @@ export const sendEmail = createServerFn({ method: "POST" })
       return { success: false, logId: "", error: errorMessage };
     }
 
-    const { to, studentName, studentId, documentType, subject, body, referenceId, pdfData } = data as SendEmailInput;
+    const { to, studentName, studentId, documentType, subject, body, html, referenceId, pdfData } = data as SendEmailInput;
 
     if (!smtpHost || !smtpUser || !smtpPass) {
       errorMessage = "Email delivery is not configured. Please configure Gmail in Admin Settings.";
@@ -364,7 +365,7 @@ export const sendEmail = createServerFn({ method: "POST" })
     console.log("[Email] Step 5: Sending email via sendMail to:", to);
 
     try {
-      const info = await transporter.sendMail({
+      const mailOptions: any = {
         from: smtpFrom,
         to,
         subject,
@@ -376,7 +377,12 @@ export const sendEmail = createServerFn({ method: "POST" })
             contentType: "application/pdf",
           },
         ],
-      });
+      };
+      if (html && typeof html === "string" && html.trim().length > 0) {
+        mailOptions.html = html;
+      }
+
+      const info = await transporter.sendMail(mailOptions);
 
       console.log("[Email] Step 5: sendMail succeeded with messageId:", info.messageId);
       status = "sent";
@@ -420,13 +426,23 @@ async function updateApplicationEmailStatus(
       if (referenceId.startsWith("SKX-CERT")) {
         const { data: certRow } = await supabaseAdmin.from("certificates").select("application_id").eq("certificate_id", referenceId).maybeSingle();
         if (certRow?.application_id) {
-          await (supabaseAdmin.from("applications") as any).update(payload).eq("id", certRow.application_id);
+          const res = await (supabaseAdmin.from("applications") as any).update(payload).eq("id", certRow.application_id).select();
+          if (res.error) console.error("[Email] DB update by certRow.application_id error:", res.error);
           return;
         }
       }
-      await (supabaseAdmin.from("applications") as any).update(payload).eq("intern_id", referenceId);
+      const res = await (supabaseAdmin.from("applications") as any).update(payload).eq("intern_id", referenceId).select();
+      if (res.error) {
+        console.error("[Email] DB update by intern_id error:", res.error);
+      } else if (!res.data || res.data.length === 0) {
+        if (userId) {
+          const resUser = await (supabaseAdmin.from("applications") as any).update(payload).eq("user_id", userId).select();
+          if (resUser.error) console.error("[Email] DB update by user_id error:", resUser.error);
+        }
+      }
     } else if (userId) {
-      await (supabaseAdmin.from("applications") as any).update(payload).eq("user_id", userId);
+      const res = await (supabaseAdmin.from("applications") as any).update(payload).eq("user_id", userId).select();
+      if (res.error) console.error("[Email] DB update by user_id error:", res.error);
     }
   } catch (err: any) {
     console.warn("[Email] Failed to update application email status:", err?.message);
