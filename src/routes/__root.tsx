@@ -250,6 +250,14 @@ function RootComponent() {
       (hash.includes("access_token=") && hash.includes("type=recovery"));
 
     if (isRecovery) {
+      const h = window.location.hostname.toLowerCase();
+      const isLocal = h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.");
+      if (isLocal) {
+        console.log("[Root] Recovery tokens detected on localhost, forwarding to production domain https://skyrovix.in/reset-password...");
+        window.location.replace(`https://skyrovix.in/reset-password${search}${hash}`);
+        return;
+      }
+
       if (!window.location.pathname.startsWith("/reset-password")) {
         console.log("[Root] Recovery tokens detected, redirecting to /reset-password...");
         window.location.replace(`/reset-password${search}${hash}`);

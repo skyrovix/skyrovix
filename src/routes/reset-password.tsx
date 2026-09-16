@@ -23,6 +23,22 @@ import {
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
+  beforeLoad: () => {
+    if (typeof window !== "undefined") {
+      const h = window.location.hostname.toLowerCase();
+      const isLocal = h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.");
+      const hasAuthParams =
+        window.location.hash.includes("access_token") ||
+        window.location.hash.includes("type=recovery") ||
+        window.location.search.includes("code=") ||
+        window.location.search.includes("token_hash=");
+
+      if (isLocal && hasAuthParams) {
+        console.log("[ResetPassword] Recovery tokens detected on localhost, forwarding to production domain https://skyrovix.in/reset-password...");
+        window.location.replace(`https://skyrovix.in/reset-password${window.location.search}${window.location.hash}`);
+      }
+    }
+  },
   head: () => ({
     meta: [
       { title: "Reset Password — Skyrovix Internship Portal" },
@@ -88,6 +104,22 @@ function ResetPasswordPage() {
     let isMounted = true;
 
     const initAuth = async () => {
+      if (typeof window !== "undefined") {
+        const h = window.location.hostname.toLowerCase();
+        const isLocal = h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.");
+        const hasAuthParams =
+          window.location.hash.includes("access_token") ||
+          window.location.hash.includes("type=recovery") ||
+          window.location.search.includes("code=") ||
+          window.location.search.includes("token_hash=");
+
+        if (isLocal && hasAuthParams) {
+          console.log("[ResetPassword] Recovery tokens detected on localhost, forwarding to production domain https://skyrovix.in/reset-password...");
+          window.location.replace(`https://skyrovix.in/reset-password${window.location.search}${window.location.hash}`);
+          return;
+        }
+      }
+
       const params = extractAuthParams();
       console.log("[ResetPassword] Inspecting URL parameters...", {
         hasError: Boolean(params.error || params.errorCode),
