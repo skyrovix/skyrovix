@@ -6,8 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Briefcase, Calendar, Code, Target, Search, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import {
+  Briefcase, Calendar, Code, Target, Search, AlertCircle, ArrowRight,
+  Loader2, Sparkles, X,
+} from "lucide-react";
 import { FadeUp } from "@/components/motion";
+import { AuroraBackground } from "@/components/AuroraBackground";
 
 // Fallback project challenges list in case database is empty or down
 const LOCAL_PROJECTS = [
@@ -90,6 +94,7 @@ export const Route = createFileRoute("/_navbar-layout/projects/")({
 
 function ProjectsIndexPage() {
   const [search, setSearch] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
 
   // 1. Fetch published project challenges
   const { data: dbProjects, isLoading, isError } = useQuery({
@@ -107,51 +112,111 @@ function ProjectsIndexPage() {
 
   const projects = dbProjects && dbProjects.length > 0 ? dbProjects : LOCAL_PROJECTS;
 
-  // Filter projects by title, industry, or tech stack
+  // Filter projects by title, industry, tech stack, and difficulty
   const filteredProjects = projects.filter((p: any) => {
-    const q = search.toLowerCase();
-    return (
+    const q = search.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
       p.title.toLowerCase().includes(q) ||
       p.industry.toLowerCase().includes(q) ||
-      p.technologies.some((tech: string) => tech.toLowerCase().includes(q))
-    );
+      p.technologies.some((tech: string) => tech.toLowerCase().includes(q));
+
+    const matchesDifficulty =
+      selectedDifficulty === "all" || p.difficulty.toLowerCase() === selectedDifficulty.toLowerCase();
+
+    return matchesSearch && matchesDifficulty;
   });
 
   return (
     <div className="w-full min-h-screen bg-background text-foreground pb-20">
       
-      {/* Header section */}
-      <section className="relative overflow-hidden bg-slate-950 text-white py-16 sm:py-20 border-b border-border/20">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/80 to-[#07284a]/50 mix-blend-multiply" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-5">
-          <FadeUp>
-            <Badge className="bg-blue-500 text-white rounded-lg text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 border-0">
-              Real-World Challenges
-            </Badge>
+      {/* ─── Hero Section ─── */}
+      <AuroraBackground className="border-b border-border/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative z-10 text-center space-y-6">
+          
+          {/* Eyebrow Badge */}
+          <FadeUp y={15} duration={0.6} delay={0.05}>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/70 dark:border-sky-400/30 bg-blue-50/90 dark:bg-sky-400/10 px-4 py-1.5 text-xs font-bold text-blue-700 dark:text-sky-300 shadow-sm backdrop-blur-md">
+              <Sparkles className="size-3.5 text-amber-500 animate-pulse" />
+              <span>INDUSTRY-DERIVED BENCHMARKS</span>
+              <span className="size-1 rounded-full bg-blue-400 dark:bg-sky-400" />
+              <span className="text-blue-600 dark:text-sky-400 font-semibold">PORTFOLIO READY</span>
+            </div>
           </FadeUp>
-          <FadeUp delay={0.1}>
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-              Project Challenges
+
+          {/* Main Headline */}
+          <FadeUp y={20} duration={0.7} delay={0.15}>
+            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#07284a] dark:text-white leading-[1.15] max-w-4xl mx-auto">
+              Real-World Project Challenges.<br />
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-sky-300 dark:via-blue-400 dark:to-indigo-300 bg-clip-text text-transparent">
+                Built for Production.
+              </span>
             </h1>
           </FadeUp>
-          <FadeUp delay={0.2}>
-            <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-300">
-              Step out of tutorial-hell and build production-ready projects derived directly from industry business requirements. Submit your solution for expert evaluation and certs.
+
+          {/* Subtitle */}
+          <FadeUp y={20} duration={0.7} delay={0.25}>
+            <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+              Step out of tutorial-hell and build production-grade software derived directly from enterprise business requirements. Submit your solution for expert code review, scorecards, and verifiable credentials.
             </p>
           </FadeUp>
         </div>
-      </section>
+      </AuroraBackground>
 
-      {/* Search Input bar */}
-      <div className="max-w-xl mx-auto px-4 relative z-20 -mt-6">
-        <div className="relative rounded-2xl overflow-hidden shadow-lg border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 backdrop-blur-md">
-          <Search className="absolute left-4 top-3.5 size-4 text-muted-foreground/60" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, industry, or tech stack..."
-            className="h-12 border-0 pl-11 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-sm"
-          />
+      {/* ─── Search & Level Filter Card ─── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-20 -mt-8">
+        <div className="rounded-3xl border border-border/60 bg-white/90 dark:bg-[#0f172a]/90 p-3 sm:p-4 shadow-xl backdrop-blur-xl space-y-3">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by project title, tech stack (React, Python, Docker), or industry..."
+              className="h-12 border-0 pl-11 pr-10 text-sm bg-slate-100/80 dark:bg-slate-800/60 rounded-2xl focus-visible:ring-1 focus-visible:ring-blue-500 placeholder:text-muted-foreground/70"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Difficulty Level Tabs */}
+          <div className="flex items-center justify-between gap-2 flex-wrap pt-1 px-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-1 sm:pb-0 scrollbar-none">
+              <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wider mr-1 hidden sm:inline">
+                Level:
+              </span>
+              {[
+                { id: "all", label: "All Levels" },
+                { id: "beginner", label: "Beginner" },
+                { id: "intermediate", label: "Intermediate" },
+                { id: "advanced", label: "Advanced" },
+                { id: "expert", label: "Expert" },
+              ].map((lvl) => (
+                <button
+                  key={lvl.id}
+                  onClick={() => setSelectedDifficulty(lvl.id)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap cursor-pointer ${
+                    selectedDifficulty === lvl.id
+                      ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  {lvl.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="text-xs font-semibold text-muted-foreground ml-auto">
+              <span className="text-foreground font-bold">{filteredProjects.length}</span> {filteredProjects.length === 1 ? "Challenge" : "Challenges"} Available
+            </div>
+          </div>
         </div>
       </div>
 

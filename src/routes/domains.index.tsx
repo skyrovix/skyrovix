@@ -317,11 +317,11 @@ function DomainsPage() {
       />
       <Navbar />
       <AuroraBackground>
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16 md:py-20">
+        <div className="mx-auto max-w-7xl px-4 pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20">
           <div className="grid lg:grid-cols-12 gap-8 items-start">
             
             {/* Left Column: Platform info & Live preview */}
-            <SlideLeft delay={0.05} className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+            <SlideLeft delay={0.05} className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
               <div>
                 <Badge variant="outline" className="mb-3 border-slate-200 dark:border-[#07284a]/15 bg-white/65 dark:bg-[#0f172a]/60 text-[#07284a] dark:text-[#60a5fa] px-3 py-1 font-semibold shadow-sm backdrop-blur">
                   <ShieldCheck className="mr-1.5 size-3.5" /> MSME Registered Platform

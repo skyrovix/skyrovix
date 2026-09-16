@@ -127,6 +127,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@skyrovix" },
       { name: "twitter:creator", content: "@skyrovix" },
       { name: "google-adsense-account", content: "ca-pub-5755024838228586" },
+      { httpEquiv: "X-Content-Type-Options", content: "nosniff" },
+      { name: "referrer", content: "strict-origin-when-cross-origin" },
       { rel: "canonical", href: SITE_URL },
     ],
     links: [
@@ -158,30 +160,70 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+function ExternalScripts() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // 1. Google AdSense (Client-side load to prevent SSR hydration mismatch)
+    if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
+      const adsScript = document.createElement("script");
+      adsScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755024838228586";
+      adsScript.async = true;
+      adsScript.crossOrigin = "anonymous";
+      document.head.appendChild(adsScript);
+    }
+
+    // 2. Google Tag Manager (gtag.js)
+    if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) {
+      const gtagScript = document.createElement("script");
+      gtagScript.src = "https://www.googletagmanager.com/gtag/js?id=G-FD15M64DX5";
+      gtagScript.async = true;
+      document.head.appendChild(gtagScript);
+
+      const win = window as any;
+      win.dataLayer = win.dataLayer || [];
+      function gtag(...args: any[]) {
+        win.dataLayer.push(args);
+      }
+      win.gtag = gtag;
+      gtag("js", new Date());
+      gtag("config", "G-FD15M64DX5", {
+        page_path: window.location.pathname,
+      });
+    }
+
+    // 3. Microsoft Clarity
+    if (!document.querySelector('script[src*="clarity.ms"]')) {
+      (function(c: any, l: any, a: any, r: any, i: any, t?: any, y?: any) {
+        c[a] = c[a] || function() { (c[a].q = c[a].q || []).push(arguments); };
+        t = l.createElement(r);
+        t.async = 1;
+        t.src = "https://www.clarity.ms/tag/" + i;
+        y = l.getElementsByTagName(r)[0];
+        y.parentNode.insertBefore(t, y);
+      })(window, document, "clarity", "script", "xd0wqj67e6");
+    }
+  }, []);
+
+  // Track SPA page navigation in Google Analytics
+  useEffect(() => {
+    return router.subscribe("onResolved", ({ toLocation }) => {
+      if (typeof (window as any).gtag === "function") {
+        (window as any).gtag("config", "G-FD15M64DX5", {
+          page_path: toLocation.pathname,
+        });
+      }
+    });
+  }, [router]);
+
+  return null;
+}
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en" dir="ltr" className="bg-[#f8fafc] dark:bg-[#070b19]" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <HeadContent />
-        <meta name="google-adsense-account" content="ca-pub-5755024838228586" />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755024838228586"
-          crossOrigin="anonymous"
-        />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-FD15M64DX5" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-FD15M64DX5',{page_path:typeof window !== 'undefined' ? window.location.pathname : ''});`,
-          }}
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","xd0wqj67e6");`,
-          }}
-        />
-        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-        <meta name="referrer" content="strict-origin-when-cross-origin" />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <OrganizationJsonLd />
@@ -224,6 +266,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ExternalScripts />
       <Outlet />
       <Toaster richColors position="top-right" />
     </QueryClientProvider>

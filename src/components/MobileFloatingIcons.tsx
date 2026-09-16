@@ -15,7 +15,7 @@ const LOGOS = [
   { top: "48%",  left: "38%",  delay: "1.9s",  sizeMd: 40, sizeSm: 26, src: "https://cdn.simpleicons.org/mysql/4479A1",              label: "MySQL" },
   { top: "50%",  left: "78%",  delay: "0.7s",  sizeMd: 46, sizeSm: 30, src: "https://cdn.simpleicons.org/docker/2496ED",             label: "Docker" },
 
-  { top: "65%",  left: "5%",   delay: "1.1s",  sizeMd: 44, sizeSm: 28, src: "https://cdn.simpleicons.org/amazonwebservices",  label: "AWS" },
+  { top: "65%",  left: "5%",   delay: "1.1s",  sizeMd: 44, sizeSm: 28, src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg",  label: "AWS" },
   { top: "63%",  left: "50%",  delay: "0.2s",  sizeMd: 42, sizeSm: 28, src: "https://cdn.simpleicons.org/git/F05032",                label: "Git" },
   { top: "65%",  left: "82%",  delay: "1.5s",  sizeMd: 44, sizeSm: 28, src: "https://cdn.simpleicons.org/firebase/FFCA28",           label: "Firebase" },
 

@@ -7,6 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -19,6 +26,15 @@ import { BackupSection } from "@/components/admin/BackupSection";
 import { ProjectSubmissionsSection } from "@/components/admin/ProjectSubmissionsSection";
 import { OfferLetterDoc, CertificateDoc, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
 import {
+  getAdminStudents,
+  getAdminCourses,
+  toggleCoursePublish,
+  deleteCourseEnrollment,
+  type AdminStudentAccount,
+  type AdminCourseItem,
+  type CourseStudentEnrollment,
+} from "@/lib/admin-service";
+import {
   LayoutDashboard, GraduationCap, BookOpen, FileText, ListChecks,
   ClipboardCheck, ClipboardList, Brain, IndianRupee, Award, Users, BarChart3,
   Settings, LogOut, Moon, Sun, Bell, Search, ChevronDown, Menu,
@@ -29,7 +45,7 @@ import {
   PanelRightOpen, FolderTree,   FileQuestion, PieChart, Percent, Briefcase,
   Loader2, Activity, Wifi, WifiOff, LogIn, Monitor, Smartphone, Tablet,
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
-  HardDrive, RotateCcw,
+  HardDrive, RotateCcw, UserCheck,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -92,10 +108,11 @@ const SIDEBAR_GROUPS = [
       { id: "project-submissions", label: "Project Submissions", icon: ClipboardList },
       { id: "verification", label: "Verification Queue", icon: Shield },
       { id: "students", label: "Students", icon: GraduationCap },
+      { id: "courses", label: "Courses", icon: BookOpen },
       { id: "certificates", label: "Certificates", icon: Award },
       { id: "payments", label: "Payments & Invoices", icon: Wallet },
       { id: "domains", label: "Internship Domains", icon: FolderTree },
-      { id: "tasks", label: "Manage Tasks", icon: BookOpen },
+      { id: "tasks", label: "Manage Tasks", icon: ListChecks },
     ]
   },
   {
@@ -123,7 +140,16 @@ const SIDEBAR_GROUPS = [
   }
 ] as const;
 
-type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "promotions" | "popup" | "certificates" | "students" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
+type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "promotions" | "popup" | "certificates" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
+
+interface AdminNotification {
+  id: string;
+  icon: any;
+  text: string;
+  time: string;
+  color: string;
+  section?: SectionId;
+}
 
 function AdminPanel() {
   const { user, isAdmin } = useAuth();
@@ -134,7 +160,7 @@ function AdminPanel() {
   const [dark, setDark] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
-  const [liveNotifs, setLiveNotifs] = useState<Array<{ icon: any; text: string; time: string; color: string }>>([]);
+  const [liveNotifs, setLiveNotifs] = useState<AdminNotification[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
 
   useEffect(() => {
@@ -151,6 +177,7 @@ function AdminPanel() {
       { table: "payments", icon: IndianRupee, color: "text-green-500 bg-green-50 dark:bg-green-950/30", label: "New payment", event: "INSERT" },
       { table: "profiles", icon: Users, color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30", label: "Student registration", event: "INSERT" },
       { table: "enrollments", icon: GraduationCap, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30", label: "Course enrollment", event: "*" },
+      { table: "courses", icon: BookOpen, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/30", label: "Course catalog update", event: "*" },
     ];
     for (const { table, icon, color, label, event } of tables) {
       channel.on("postgres_changes" as any, { event, schema: "public", table }, (payload: any) => {
@@ -161,9 +188,23 @@ function AdminPanel() {
           displayLabel = payload.eventType === "INSERT" ? "New task submission" : payload.eventType === "UPDATE" ? "Task submission updated" : "Task submission deleted";
         }
         
-        const name = payload.new?.full_name ?? payload.new?.id?.slice(0, 8) ?? "";
-        const notif = { icon, text: `${displayLabel} from ${name}`, time: "Just now", color };
-        setLiveNotifs((prev) => [notif, ...prev].slice(0, 20));
+        const name = payload.new?.full_name ?? payload.new?.name ?? payload.new?.id?.slice(0, 8) ?? "";
+        let section: SectionId = "dashboard";
+        if (table === "applications") section = event === "UPDATE" ? "verification" : "applications";
+        else if (table === "submissions") section = "submissions";
+        else if (table === "payments") section = "payments";
+        else if (table === "profiles") section = "students";
+        else if (table === "enrollments" || table === "courses") section = "courses";
+
+        const notif: AdminNotification = {
+          id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          icon,
+          text: `${displayLabel} from ${name}`,
+          time: "Just now",
+          color,
+          section,
+        };
+        setLiveNotifs((prev) => [notif, ...prev].slice(0, 30));
         toast.success(`${displayLabel} received`, { description: name, duration: 4000 });
         qc.invalidateQueries({ queryKey: ["admin-overview"] });
         qc.invalidateQueries({ queryKey: ["admin-apps"] });
@@ -171,6 +212,8 @@ function AdminPanel() {
         qc.invalidateQueries({ queryKey: ["admin-payments"] });
         qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
         qc.invalidateQueries({ queryKey: ["admin-student-sessions"] });
+        qc.invalidateQueries({ queryKey: ["admin-students-directory"] });
+        qc.invalidateQueries({ queryKey: ["admin-courses-directory"] });
         qc.invalidateQueries({ queryKey: ["admin-login-history"] });
         qc.invalidateQueries({ queryKey: ["admin-online-count"] });
         qc.invalidateQueries({ queryKey: ["admin-recent-subs-dashboard"] });
@@ -191,8 +234,15 @@ function AdminPanel() {
       if (studentId) {
         const { data: app } = await supabase.from("applications").select("full_name").eq("user_id", studentId).maybeSingle();
         const name = app?.full_name ?? studentId.slice(0, 8);
-        const notif = { icon: LogIn, text: `${name} logged in`, time: "Just now", color: "text-green-500 bg-green-50 dark:bg-green-950/30" };
-        setLiveNotifs((prev) => [notif, ...prev].slice(0, 20));
+        const notif: AdminNotification = {
+          id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          icon: LogIn,
+          text: `${name} logged in`,
+          time: "Just now",
+          color: "text-green-500 bg-green-50 dark:bg-green-950/30",
+          section: "login-history",
+        };
+        setLiveNotifs((prev) => [notif, ...prev].slice(0, 30));
         toast.success(`${name} logged in`, { description: "New student login", duration: 4000 });
       }
       const { count } = await (supabase as any).from("login_sessions").select("id", { count: "exact", head: true }).eq("status", "online");
@@ -223,15 +273,21 @@ function AdminPanel() {
     queryKey: ["admin-overview"],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const [a, s, p, c, v] = await Promise.all([
+      const [a, s, p, c, v, pr] = await Promise.all([
         supabase.from("applications").select("id", { count: "exact", head: true }),
         supabase.from("submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("payments").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("certificates").select("id", { count: "exact", head: true }),
         (supabase.from("applications") as any).select("id", { count: "exact", head: true }).eq("submission_status", "submitted"),
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
       ]);
       return {
-        apps: a.count ?? 0, subs: s.count ?? 0, pays: p.count ?? 0, certs: c.count ?? 0, pendingVerification: v.count ?? 0,
+        apps: a.count ?? 0,
+        subs: s.count ?? 0,
+        pays: p.count ?? 0,
+        certs: c.count ?? 0,
+        pendingVerification: v.count ?? 0,
+        students: pr.count ?? 0,
       };
     },
   });
@@ -352,18 +408,38 @@ function AdminPanel() {
               >
                 {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
               </button>
-              <div className="relative">
-                <button
-                  onClick={() => setNotifOpen(!notifOpen)}
-                  className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    aria-label="View notifications"
+                  >
+                    <Bell className="size-4" />
+                    {liveNotifs.length > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 shadow-sm animate-pulse">
+                        {liveNotifs.length > 9 ? "9+" : liveNotifs.length}
+                      </span>
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  side="bottom"
+                  sideOffset={8}
+                  collisionPadding={16}
+                  className="w-80 sm:w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-border/80 bg-white dark:bg-[#1E293B] shadow-2xl p-0 overflow-hidden z-[100]"
                 >
-                  <Bell className="size-4" />
-                  {liveNotifs.length > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-red-500 text-[9px] font-bold text-white">{liveNotifs.length > 9 ? "9+" : liveNotifs.length}</span>
-                  )}
-                </button>
-                {notifOpen && <NotificationsDropdown onClose={() => setNotifOpen(false)} notifs={liveNotifs} />}
-              </div>
+                  <NotificationsDropdown
+                    notifs={liveNotifs}
+                    onClear={() => setLiveNotifs([])}
+                    onDismiss={(id) => setLiveNotifs((prev) => prev.filter((n) => n.id !== id))}
+                    onNavigate={(sec) => {
+                      setActive(sec);
+                      setNotifOpen(false);
+                    }}
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div className="ml-2 flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer">
                 <div className="grid size-8 place-items-center rounded-full bg-blue-600 text-white font-bold text-xs font-display">
                   {user?.email?.charAt(0).toUpperCase() ?? "H"}
@@ -396,6 +472,7 @@ function AdminPanel() {
             {active === "popup" && <PromoPopupSection />}
             {active === "certificates" && <CertificatesSection />}
             {active === "students" && <StudentsSection />}
+            {active === "courses" && <CoursesSection />}
             {active === "login-history" && <LoginHistorySection />}
             {active === "email-logs" && <EmailLogsSection />}
             {active === "analytics" && <AnalyticsSection />}
@@ -414,23 +491,87 @@ function AdminPanel() {
 // ══════════════════════════════════════════════
 // NOTIFICATIONS DROPDOWN
 // ══════════════════════════════════════════════
-function NotificationsDropdown({ onClose, notifs }: { onClose: () => void; notifs: Array<{ icon: any; text: string; time: string; color: string }> }) {
+function NotificationsDropdown({
+  notifs,
+  onClear,
+  onDismiss,
+  onNavigate,
+}: {
+  notifs: AdminNotification[];
+  onClear: () => void;
+  onDismiss: (id: string) => void;
+  onNavigate: (section: SectionId) => void;
+}) {
   return (
-    <div className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-border/60 bg-white/90 p-4 shadow-2xl backdrop-blur-2xl dark:bg-[#1E293B]/90 dark:border-white/10" onClick={(e) => e.stopPropagation()}>
-      <p className="mb-3 text-sm font-semibold">Notifications {notifs.length > 0 && <span className="text-muted-foreground font-normal">({notifs.length})</span>}</p>
-      <div className="space-y-2 max-h-64 overflow-y-auto">
-        {notifs.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">No notifications yet.</p>}
-        {notifs.map((n, i) => (
-          <div key={i} className="flex items-start gap-3 rounded-xl p-2.5 transition hover:bg-accent/50">
-            <div className={`grid size-8 shrink-0 place-items-center rounded-lg ${n.color}`}>
-              <n.icon className="size-4" />
+    <div className="flex flex-col text-left">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border/60 bg-slate-50/90 px-4 py-3 dark:bg-slate-900/90">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-foreground">Notifications</span>
+          {notifs.length > 0 && (
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+              {notifs.length}
+            </span>
+          )}
+        </div>
+        {notifs.length > 0 && (
+          <button
+            onClick={onClear}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition hover:underline"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {/* List */}
+      <div className="max-h-80 overflow-y-auto divide-y divide-border/40 p-1">
+        {notifs.length === 0 ? (
+          <div className="px-4 py-8 text-center">
+            <div className="mx-auto mb-2 grid size-10 place-items-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+              <Bell className="size-5" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm">{n.text}</p>
-              <p className="text-xs text-muted-foreground">{n.time}</p>
-            </div>
+            <p className="text-sm font-medium text-foreground">No new notifications</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Real-time activity for registrations, courses, and payments will show here.
+            </p>
           </div>
-        ))}
+        ) : (
+          notifs.map((n) => (
+            <div
+              key={n.id}
+              onClick={() => {
+                if (n.section) onNavigate(n.section);
+              }}
+              className="group flex items-start gap-3 rounded-xl p-2.5 transition hover:bg-accent/50 cursor-pointer"
+            >
+              <div className={`grid size-8 shrink-0 place-items-center rounded-lg ${n.color}`}>
+                <n.icon className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-foreground leading-snug">{n.text}</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground">{n.time}</span>
+                  {n.section && (
+                    <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
+                      View section &rarr;
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDismiss(n.id);
+                }}
+                className="opacity-60 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition rounded-md"
+                title="Dismiss"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -535,17 +676,17 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
   };
 
   // Pie chart calculation
-  const totalApps = overview?.apps ?? 312;
-  const pendingReview = appStatusCounts?.pending ?? 18;
-  const shortlisted = (appStatusCounts?.approved ?? 0) + (appStatusCounts?.shortlisted ?? 0) || 42;
-  const accepted = (appStatusCounts?.ongoing ?? 0) + (appStatusCounts?.completed ?? 0) || 196;
-  const rejected = appStatusCounts?.rejected ?? 56;
-  const computedTotal = pendingReview + shortlisted + accepted + rejected || 312;
+  const totalApps = overview?.apps ?? 0;
+  const pendingReview = appStatusCounts?.pending ?? 0;
+  const shortlisted = (appStatusCounts?.approved ?? 0) + (appStatusCounts?.shortlisted ?? 0);
+  const accepted = (appStatusCounts?.ongoing ?? 0) + (appStatusCounts?.completed ?? 0);
+  const rejected = appStatusCounts?.rejected ?? 0;
+  const computedTotal = pendingReview + shortlisted + accepted + rejected || totalApps || 1;
 
-  const pctPending = Math.round((pendingReview / computedTotal) * 100) || 12;
-  const pctShort = Math.round((shortlisted / computedTotal) * 100) || 29;
-  const pctAccept = Math.round((accepted / computedTotal) * 100) || 48;
-  const pctReject = Math.round((rejected / computedTotal) * 100) || 11;
+  const pctPending = Math.round((pendingReview / computedTotal) * 100);
+  const pctShort = Math.round((shortlisted / computedTotal) * 100);
+  const pctAccept = Math.round((accepted / computedTotal) * 100);
+  const pctReject = Math.round((rejected / computedTotal) * 100);
 
   // Domain progress list
   const domainLabels: Record<string, string> = {
@@ -559,7 +700,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
   const domainValues = Object.entries(domainLabels).map(([key, label]) => {
     return {
       label,
-      value: domainCounts?.[key] ?? (key === "fullstack" ? 128 : key === "mern" ? 86 : key === "python" ? 52 : key === "datascience" ? 31 : 15)
+      value: domainCounts?.[key] ?? 0
     };
   }).sort((a, b) => b.value - a.value);
 
@@ -575,7 +716,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
         </div>
         <div className="hidden sm:flex items-center gap-2">
           <span className="font-mono text-xs text-slate-500 bg-white border border-slate-200 dark:border-slate-800 dark:bg-slate-900 px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-medium shadow-sm">
-            <Calendar className="size-3.5 text-blue-500" /> 22 July 2026
+            <Calendar className="size-3.5 text-blue-500" /> {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
           </span>
         </div>
       </div>
@@ -587,10 +728,10 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
           <div className="space-y-1 sm:space-y-1.5">
             <span className="text-[10px] sm:text-xs font-semibold text-slate-400">Total Students</span>
             <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-display">
-              {overview?.apps ?? 248}
+              {overview?.students ?? overview?.apps ?? 0}
             </p>
             <div className="hidden sm:flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              <TrendingUp className="size-2.5 sm:size-3" /> 12.5% <span className="text-slate-400 font-normal">vs last month</span>
+              <TrendingUp className="size-2.5 sm:size-3" /> Live <span className="text-slate-400 font-normal">registered accounts</span>
             </div>
           </div>
           <div className="grid size-10 sm:size-12 place-items-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400">
@@ -603,7 +744,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
           <div className="space-y-1 sm:space-y-1.5">
             <span className="text-[10px] sm:text-xs font-semibold text-slate-400">Applications</span>
             <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-display">
-              {overview?.apps ?? 62}
+              {overview?.apps ?? 0}
             </p>
             <span className="hidden sm:inline-block text-[10px] sm:text-[11px] font-semibold text-blue-600 dark:text-blue-400">
               {pendingReview} Pending Review
@@ -622,7 +763,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
               {accepted}
             </p>
             <div className="hidden sm:flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              <TrendingUp className="size-2.5 sm:size-3" /> 8.2% <span className="text-slate-400 font-normal">vs last month</span>
+              <TrendingUp className="size-2.5 sm:size-3" /> Live <span className="text-slate-400 font-normal">active interns</span>
             </div>
           </div>
           <div className="grid size-10 sm:size-12 place-items-center rounded-xl bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400">
@@ -635,10 +776,10 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
           <div className="space-y-1 sm:space-y-1.5">
             <span className="text-[10px] sm:text-xs font-semibold text-slate-400">Certificates Issued</span>
             <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-display">
-              {overview?.certs ?? 568}
+              {overview?.certs ?? 0}
             </p>
             <span className="hidden sm:block text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-              This month
+              Verified & Issued
             </span>
           </div>
           <div className="grid size-10 sm:size-12 place-items-center rounded-xl bg-amber-50 text-amber-600 dark:bg-[#07284a]/20 dark:text-amber-400">
@@ -1689,7 +1830,7 @@ function SubmissionsSection() {
           </button>
         </div>
 
-        <div className="relative w-64 max-w-full">
+        <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
             placeholder="Search intern name, ID, domain..."
@@ -2247,12 +2388,10 @@ function SubmissionCard({
   historyData,
 }: any) {
   if (!sub) return null;
-  const [actionsOpen, setActionsOpen] = useState(false);
   const isLoading = loadingId === sub.id;
   const taskLabel = `Task ${sub.tasks?.task_number ?? ""}: ${sub.tasks?.title ?? "Task Submission"}`;
   const userName = sub.applications?.full_name ?? "Student";
   const userMeta = `${sub.applications?.intern_id ?? ""} · ${getDomain(sub.applications?.domain)?.name ?? sub.applications?.domain ?? ""}`;
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { isResubmitted, resubmissionNumber, previousSub, prevFeedback } = subMeta || {
     isResubmitted: false,
@@ -2260,14 +2399,6 @@ function SubmissionCard({
     previousSub: null,
     prevFeedback: null,
   };
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setActionsOpen(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
 
   const actionItems = [];
   if (sub.status !== "approved") actionItems.push({ status: "approved", label: "Approve", icon: CheckCircle2, color: "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40" });
@@ -2278,7 +2409,7 @@ function SubmissionCard({
   const formattedReviewedAt = sub.reviewed_at ? new Date(sub.reviewed_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null;
 
   return (
-    <div className={`rounded-2xl border bg-white p-4 dark:bg-[#1E293B] shadow-xs transition-all ${
+    <div className={`rounded-2xl border bg-white p-4 dark:bg-[#1E293B] shadow-xs transition-all relative z-1 ${
       sub.status === "pending" && isResubmitted
         ? "border-l-4 border-l-purple-600 border-purple-200/80 bg-purple-50/20 dark:bg-purple-950/15 dark:border-purple-900/40" 
         : sub.status === "pending"
@@ -2286,95 +2417,114 @@ function SubmissionCard({
         : sub.status === "approved"
         ? "border-l-4 border-l-emerald-500 border-border/60"
         : "border-l-4 border-l-rose-500 border-border/60"
-    } ${actionsOpen ? "relative z-50 ring-2 ring-blue-500/20 shadow-xl" : "relative z-1"}`}>
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
+    }`}>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        {/* Task & Student Information */}
+        <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-sm text-foreground">{taskLabel}</p>
+            <p className="font-semibold text-sm text-foreground leading-snug break-words">{taskLabel}</p>
             {isResubmitted && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600 text-white shadow-xs">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600 text-white shadow-xs shrink-0">
                 Resubmission #{resubmissionNumber}
               </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">{userName} · {userMeta}</p>
+          <p className="text-xs text-muted-foreground break-words">{userName} · {userMeta}</p>
           {formattedSubmittedAt && (
             <p className="text-[11px] text-muted-foreground mt-0.5">
               Submitted: <span className="font-medium text-foreground">{formattedSubmittedAt}</span>
-              {formattedReviewedAt && <span className="ml-2 font-mono text-[10px] text-muted-foreground">(Reviewed: {formattedReviewedAt})</span>}
+              {formattedReviewedAt && <span className="ml-2 font-mono text-[10px] text-muted-foreground block sm:inline">(Reviewed: {formattedReviewedAt})</span>}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {isLoading ? (
-            <Badge className="text-xs font-semibold border-0 bg-slate-100 text-slate-700">Saving...</Badge>
-          ) : sub.status === "pending" && isResubmitted ? (
-            <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 font-bold border border-purple-300/60 dark:border-purple-800 text-xs px-2.5 py-1 flex items-center gap-1.5 shadow-xs">
-              <RotateCcw className="size-3 text-purple-600" /> 🔄 Resubmitted — Pending Review
-            </Badge>
-          ) : sub.status === "pending" ? (
-            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-semibold border-0 text-xs flex items-center gap-1">
-              <Clock className="size-3 text-amber-600" /> Pending Review
-            </Badge>
-          ) : sub.status === "approved" ? (
-            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold border-0 text-xs flex items-center gap-1">
-              <CheckCircle2 className="size-3 text-emerald-600" /> ✅ Approved
-            </Badge>
-          ) : (
-            <Badge className="bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 font-semibold border-0 text-xs flex items-center gap-1">
-              <XCircle className="size-3 text-rose-600" /> ❌ Rejected
-            </Badge>
-          )}
+        {/* Status Badge & Action Controls (Optimized for Mobile & Desktop) */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/30">
+          <div className="shrink-0">
+            {isLoading ? (
+              <Badge className="text-xs font-semibold border-0 bg-slate-100 text-slate-700">Saving...</Badge>
+            ) : sub.status === "pending" && isResubmitted ? (
+              <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 font-bold border border-purple-300/60 dark:border-purple-800 text-xs px-2.5 py-1 flex items-center gap-1.5 shadow-xs">
+                <RotateCcw className="size-3 text-purple-600" /> 🔄 Resubmitted — Pending Review
+              </Badge>
+            ) : sub.status === "pending" ? (
+              <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-semibold border-0 text-xs flex items-center gap-1">
+                <Clock className="size-3 text-amber-600" /> Pending Review
+              </Badge>
+            ) : sub.status === "approved" ? (
+              <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold border-0 text-xs flex items-center gap-1">
+                <CheckCircle2 className="size-3 text-emerald-600" /> ✅ Approved
+              </Badge>
+            ) : (
+              <Badge className="bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 font-semibold border-0 text-xs flex items-center gap-1">
+                <XCircle className="size-3 text-rose-600" /> ❌ Rejected
+              </Badge>
+            )}
+          </div>
 
-          {/* Quick View Submission Button */}
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 text-xs rounded-xl border-border/60 gap-1 bg-white dark:bg-slate-800 font-medium"
-            onClick={() => onViewSub(sub)}
-          >
-            <Eye className="size-3.5 text-primary" /> View Submission
-          </Button>
-
-          {/* Actions Dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <Button size="sm" variant="outline" className="h-8 text-xs rounded-xl border-border/60 gap-1 bg-white dark:bg-slate-800" onClick={() => setActionsOpen(!actionsOpen)}>
-              Actions <ChevronDown className="size-3" />
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Quick View Submission Button */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs rounded-xl border-border/60 gap-1.5 bg-white dark:bg-slate-800 font-medium hover:bg-slate-50 dark:hover:bg-slate-700/50"
+              onClick={() => onViewSub(sub)}
+            >
+              <Eye className="size-3.5 text-primary" /> View Submission
             </Button>
-            {actionsOpen && (
-              <div className="absolute right-0 top-9 z-50 w-56 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xl dark:bg-[#0F172A] dark:border-slate-800 animate-in zoom-in-95">
-                <button
-                  onClick={() => { setActionsOpen(false); onViewSub(sub); }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted transition"
+
+            {/* Actions Dropdown Menu (Portal + Collision Aware) */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs rounded-xl border-border/60 gap-1 bg-white dark:bg-slate-800 font-medium hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                >
+                  Actions <ChevronDown className="size-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                collisionPadding={16}
+                sideOffset={6}
+                className="w-56 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xl dark:bg-[#0F172A] dark:border-slate-800 z-[99999]"
+              >
+                <DropdownMenuItem
+                  onClick={() => onViewSub(sub)}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground cursor-pointer hover:bg-muted focus:bg-muted"
                 >
                   <Eye className="size-4 text-primary" /> View Submission
-                </button>
+                </DropdownMenuItem>
                 {actionItems.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <button key={item.status}
-                      onClick={() => { setActionsOpen(false); onAction(item.status, item.label, sub); }}
-                      className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition ${item.color}`}>
+                    <DropdownMenuItem
+                      key={item.status}
+                      onClick={() => onAction(item.status, item.label, sub)}
+                      className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold cursor-pointer transition focus:bg-accent/40 ${item.color}`}
+                    >
                       <Icon className="size-4" /> {item.label}
-                    </button>
+                    </DropdownMenuItem>
                   );
                 })}
                 {(isResubmitted || previousSub) && (
-                  <button
-                    onClick={() => { setActionsOpen(false); onViewPrevSub(sub, previousSub); }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition"
+                  <DropdownMenuItem
+                    onClick={() => onViewPrevSub(sub, previousSub)}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 focus:bg-purple-50 dark:focus:bg-purple-950/40 cursor-pointer transition"
                   >
                     <RotateCcw className="size-4 text-purple-600" /> View Previous Submission
-                  </button>
+                  </DropdownMenuItem>
                 )}
-                <div className="my-1 border-t border-border/40" />
-                <button onClick={() => { setActionsOpen(false); onHistory(); }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent/50 transition">
+                <DropdownMenuSeparator className="my-1 border-t border-border/40" />
+                <DropdownMenuItem
+                  onClick={() => onHistory()}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent/50 focus:bg-accent/50 cursor-pointer transition"
+                >
                   <Clock className="size-4" /> View History
-                </button>
-              </div>
-            )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -2579,6 +2729,7 @@ function PaymentsSection() {
       qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
       qc.invalidateQueries({ queryKey: ["admin-students"] });
+      qc.invalidateQueries({ queryKey: ["admin-students-directory"] });
     } catch (err: any) {
       toast.error(`Error verifying payment: ${err?.message || err}`);
     } finally {
@@ -3301,53 +3452,54 @@ function CertificatesSection() {
 }
 
 // ══════════════════════════════════════════════
-// STUDENTS
+// STUDENTS (USER ACCOUNTS)
 // ══════════════════════════════════════════════
 function StudentsSection() {
   const [search, setSearch] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
-  const { data: students } = useQuery({
-    queryKey: ["admin-students"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("applications")
-        .select("id, user_id, full_name, email, phone, college, course, year, domain, intern_id, created_at, status, offer_issued_at")
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
-  const { data: sessions } = useQuery({
-    queryKey: ["admin-student-sessions"],
+  const [filter, setFilter] = useState<"all" | "account_only" | "applied" | "online">("all");
+  const [selectedStudent, setSelectedStudent] = useState<AdminStudentAccount | null>(null);
+
+  const { data: students, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["admin-students-directory"],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const { data } = await (supabase as any)
-        .from("login_sessions")
-        .select("student_id, status, last_active, device, browser")
-        .order("last_active", { ascending: false });
+      const data = await getAdminStudents();
       return data ?? [];
     },
   });
 
-  const sessionMap = useMemo(() => {
-    const map = new Map<string, any>();
-    if (!sessions) return map;
-    for (const s of sessions) {
-      if (!map.has(s.student_id)) map.set(s.student_id, s);
-    }
-    return map;
-  }, [sessions]);
+  const counts = useMemo(() => {
+    if (!students) return { total: 0, accountOnly: 0, applied: 0, online: 0 };
+    return {
+      total: students.length,
+      accountOnly: students.filter((s) => !s.has_application).length,
+      applied: students.filter((s) => s.has_application).length,
+      online: students.filter((s) => s.is_online).length,
+    };
+  }, [students]);
 
   const filtered = useMemo(() => {
     if (!students) return [];
-    if (!search) return students;
-    const q = search.toLowerCase();
-    return students.filter((s: any) =>
+    let list = students;
+    if (filter === "account_only") {
+      list = list.filter((s) => !s.has_application);
+    } else if (filter === "applied") {
+      list = list.filter((s) => s.has_application);
+    } else if (filter === "online") {
+      list = list.filter((s) => s.is_online);
+    }
+    if (!search) return list;
+    const q = search.toLowerCase().trim();
+    return list.filter((s) =>
       s.full_name?.toLowerCase().includes(q) ||
       s.email?.toLowerCase().includes(q) ||
+      s.phone?.toLowerCase().includes(q) ||
+      s.college?.toLowerCase().includes(q) ||
+      s.course?.toLowerCase().includes(q) ||
       s.intern_id?.toLowerCase().includes(q) ||
-      s.college?.toLowerCase().includes(q)
+      s.domain?.toLowerCase().includes(q)
     );
-  }, [students, search]);
+  }, [students, filter, search]);
 
   return (
     <div className="animate-fade-in-up space-y-4">
@@ -3355,62 +3507,266 @@ function StudentsSection() {
         <StudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} />
       )}
 
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h2 className="text-2xl font-bold">Students</h2>
-        <Input placeholder="Search students..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 w-full sm:w-56 max-w-full rounded-xl border-border/60" />
+      {/* Header & Controls */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between flex-wrap">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold">Students</h2>
+            <Badge variant="secondary" className="rounded-lg text-xs font-semibold">
+              {students ? `${students.length} Accounts` : "Loading..."}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Registered student user accounts directory
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search name, email, college, phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 w-full rounded-xl pl-9 text-xs border-border/60"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="h-9 px-3 rounded-xl gap-1.5 text-xs shrink-0"
+            title="Refresh students list"
+          >
+            <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin text-blue-600" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+        </div>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <button
+          onClick={() => setFilter("all")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "all"
+              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <Users className="size-3.5" />
+          <span>All Accounts</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "all" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.total}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setFilter("account_only")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "account_only"
+              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <UserCheck className="size-3.5" />
+          <span>Account Only</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "account_only" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.accountOnly}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setFilter("applied")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "applied"
+              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <GraduationCap className="size-3.5" />
+          <span>With Application</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "applied" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.applied}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setFilter("online")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "online"
+              ? "bg-emerald-600 text-white shadow-sm"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Online Now</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "online" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.online}
+          </span>
+        </button>
+      </div>
+
+      {/* Students Table */}
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-              <th className="px-4 py-3 text-left">Student</th>
+            <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground bg-muted/20">
+              <th className="px-4 py-3 text-left">Student User</th>
               <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Domain</th>
-              <th className="px-4 py-3 text-left">College</th>
-              <th className="px-4 py-3 text-left">Intern ID</th>
-              <th className="px-4 py-3 text-left">Last Login</th>
+              <th className="px-4 py-3 text-left">Phone</th>
+              <th className="px-4 py-3 text-left">College & Education</th>
+              <th className="px-4 py-3 text-left">Internship</th>
+              <th className="px-4 py-3 text-left">Last Active</th>
               <th className="px-4 py-3 text-left">Joined</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No students found.</td></tr>
+            {isLoading ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-16 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="size-6 animate-spin text-blue-600" />
+                    <span>Loading student user accounts...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-16 text-center text-muted-foreground">
+                  No students found matching your search or filter.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((s: AdminStudentAccount) => {
+                const initialLetter = s.full_name && s.full_name !== "—" ? String(s.full_name).trim().charAt(0).toUpperCase() : "S";
+                return (
+                  <tr key={s.id} className="border-b border-border/30 transition hover:bg-accent/20">
+                    {/* Student User */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {s.photo_url ? (
+                          <img
+                            src={s.photo_url}
+                            alt={s.full_name}
+                            className="size-9 rounded-full object-cover border border-border/60 shrink-0"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="grid size-9 shrink-0 place-items-center rounded-full brand-gradient text-xs font-bold text-white shadow-sm">
+                            {initialLetter}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-semibold text-sm truncate">{s.full_name ?? "—"}</p>
+                            {!s.has_application && (
+                              <span className="rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-medium text-slate-500 px-1.5 py-0.5 border border-slate-200/50 dark:border-slate-700/50">
+                                Account
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">{s.email ?? "—"}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {s.is_online ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30">
+                          <Wifi className="size-3" /> Online
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-900/40 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800/40">
+                          <WifiOff className="size-3" /> Offline
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Phone */}
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      {s.phone && s.phone !== "—" ? s.phone : <span className="text-slate-300 dark:text-slate-600">—</span>}
+                    </td>
+
+                    {/* College & Education */}
+                    <td className="px-4 py-3 max-w-[220px]">
+                      <p className="text-xs font-medium text-foreground truncate" title={s.college ?? "—"}>
+                        {s.college && s.college !== "—" ? s.college : <span className="text-muted-foreground font-normal">—</span>}
+                      </p>
+                      {(s.course || s.year) && (s.course !== "—" || s.year !== "—") && (
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {[s.course !== "—" ? s.course : null, s.year !== "—" ? s.year : null].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
+                    </td>
+
+                    {/* Internship */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {s.has_application ? (
+                        <div className="space-y-0.5">
+                          <Badge variant="secondary" className="text-xs font-medium">
+                            {getDomain(s.domain)?.name ?? s.domain}
+                          </Badge>
+                          {s.intern_id && (
+                            <p className="font-mono text-[10px] text-muted-foreground tracking-tight">
+                              {s.intern_id}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-[11px] text-muted-foreground">
+                          No Application
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Last Active */}
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      {s.last_active
+                        ? new Date(s.last_active).toLocaleString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "—"}
+                    </td>
+
+                    {/* Joined */}
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      {s.created_at ? new Date(s.created_at).toLocaleDateString("en-IN") : "—"}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => setSelectedStudent(s)}
+                          className="grid size-8 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition"
+                          title="View Student Account Details"
+                        >
+                          <Eye className="size-4" />
+                        </button>
+                        {s.email && s.email !== "—" && (
+                          <a
+                            href={`mailto:${s.email}`}
+                            className="grid size-8 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition"
+                            title={`Send email to ${s.email}`}
+                          >
+                            <Mail className="size-4" />
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
-            {filtered.map((s: any) => {
-              const sess = sessionMap.get(s.user_id);
-              const isOnline = sess?.status === "online";
-              return (
-                <tr key={s.id} className="border-b border-border/30 transition hover:bg-accent/20">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="grid size-8 place-items-center rounded-full brand-gradient text-[10px] font-bold text-white">{s.full_name ? String(s.full_name).charAt(0).toUpperCase() : "S"}</div>
-                      <div><p className="font-medium text-sm">{s.full_name ?? "—"}</p><p className="text-xs text-muted-foreground">{s.email ?? "—"}</p></div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {isOnline ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950/30 dark:text-green-400"><Wifi className="size-3" /> Online</span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-950/30 dark:text-gray-400"><WifiOff className="size-3" /> Offline</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs"><Badge variant="secondary">{getDomain(s.domain)?.name ?? s.domain}</Badge></td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{s.college}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{s.intern_id}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    {sess?.last_active ? new Date(sess.last_active).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString("en-IN")}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <button onClick={() => setSelectedStudent(s)} className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="View"><Eye className="size-4" /></button>
-                      <a href={`mailto:${s.email}`} className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="Send Email"><Mail className="size-4" /></a>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
           </tbody>
         </table>
       </div>
@@ -3429,8 +3785,8 @@ function AnalyticsSection() {
   const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString());
   const [realtimeActive, setRealtimeActive] = useState<boolean>(true);
 
-  // Time range selector for registrations: "30d" | "6m" | "12m"
-  const [regTimeRange, setRegTimeRange] = useState<"30d" | "6m" | "12m">("12m");
+  // Time range selector for registrations: "30d" | "6m" | "12m" (default to 30d for real-time daily activity)
+  const [regTimeRange, setRegTimeRange] = useState<"30d" | "6m" | "12m">("30d");
 
   // Registration source: "profiles" (Student Accounts) | "applications" (Internship Applications)
   const [regSource, setRegSource] = useState<"profiles" | "applications">("profiles");
@@ -3447,6 +3803,26 @@ function AnalyticsSection() {
     return () => observer.disconnect();
   }, []);
 
+  // Real-time live counts across all tables for accurate pill badges
+  const { data: analyticsTotals } = useQuery({
+    queryKey: ["admin-analytics-totals"],
+    queryFn: async () => {
+      const [profRes, appRes, enrRes, courseRes] = await Promise.all([
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("applications").select("id", { count: "exact", head: true }),
+        supabase.from("enrollments").select("id", { count: "exact", head: true }),
+        supabase.from("courses").select("id", { count: "exact", head: true }),
+      ]);
+      return {
+        profiles: profRes.count ?? 0,
+        applications: appRes.count ?? 0,
+        enrollments: enrRes.count ?? 0,
+        courses: courseRes.count ?? 0,
+      };
+    },
+    ...cfg,
+  });
+
   // Real-time subscriptions across all analytics tables
   useEffect(() => {
     const channelName = `analytics-live-sync-${Math.random().toString(36).substring(2, 8)}`;
@@ -3456,6 +3832,7 @@ function AnalyticsSection() {
     for (const table of tables) {
       channel.on("postgres_changes" as any, { event: "*", schema: "public", table }, (payload: any) => {
         setLastSyncTime(new Date().toLocaleTimeString());
+        qc.refetchQueries({ queryKey: ["admin-analytics-totals"] });
         qc.refetchQueries({ queryKey: ["admin-analytics-registrations"] });
         qc.refetchQueries({ queryKey: ["admin-analytics-completion"] });
         qc.refetchQueries({ queryKey: ["admin-analytics-domains"] });
@@ -3480,6 +3857,7 @@ function AnalyticsSection() {
 
   const handleManualRefresh = () => {
     setLastSyncTime(new Date().toLocaleTimeString());
+    qc.refetchQueries({ queryKey: ["admin-analytics-totals"] });
     qc.refetchQueries({ queryKey: ["admin-analytics-registrations"] });
     qc.refetchQueries({ queryKey: ["admin-analytics-completion"] });
     qc.refetchQueries({ queryKey: ["admin-analytics-domains"] });
@@ -3519,22 +3897,20 @@ function AnalyticsSection() {
           data.forEach((p: any) => {
             if (!p.created_at) return;
             const d = new Date(p.created_at);
-            const ist = new Date(d.getTime() + 5.5 * 3600 * 1000);
-            const key = ist.toISOString().slice(0, 10);
+            const key = d.toLocaleDateString("en-CA");
             dailyMap.set(key, (dailyMap.get(key) || 0) + 1);
           });
         }
 
         for (let i = 29; i >= 0; i--) {
           const target = new Date(now.getTime() - i * 24 * 3600 * 1000);
-          const ist = new Date(target.getTime() + 5.5 * 3600 * 1000);
-          const key = ist.toISOString().slice(0, 10);
-          const monthShort = ist.toLocaleString("en-IN", { month: "short" });
-          const dayNum = ist.getDate();
+          const key = target.toLocaleDateString("en-CA");
+          const monthShort = target.toLocaleString("en-IN", { month: "short" });
+          const dayNum = target.getDate();
           points.push({
             key,
             label: `${monthShort} ${dayNum}`,
-            fullLabel: ist.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+            fullLabel: target.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
             registrations: dailyMap.get(key) || 0,
           });
         }
@@ -3552,8 +3928,7 @@ function AnalyticsSection() {
           data.forEach((p: any) => {
             if (!p.created_at) return;
             const d = new Date(p.created_at);
-            const ist = new Date(d.getTime() + 5.5 * 3600 * 1000);
-            const ymKey = `${ist.getUTCFullYear()}-${String(ist.getUTCMonth() + 1).padStart(2, "0")}`;
+            const ymKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
             monthMap.set(ymKey, (monthMap.get(ymKey) || 0) + 1);
           });
         }
@@ -3575,19 +3950,34 @@ function AnalyticsSection() {
       const total = data?.length ?? 0;
       const recent = points[points.length - 1]?.registrations ?? 0;
       const prior = points[points.length - 2]?.registrations ?? 0;
-      let pctChange: number | null = null;
-      if (prior > 0) {
-        pctChange = Math.round(((recent - prior) / prior) * 100);
-      }
+      let trendLabel: string | null = null;
 
-      console.log("Student Registration Chart Data:", points);
+      if (regTimeRange === "30d") {
+        const last7 = points.slice(-7).reduce((acc, p) => acc + p.registrations, 0);
+        const prev7 = points.slice(-14, -7).reduce((acc, p) => acc + p.registrations, 0);
+        if (prev7 > 0) {
+          const pct = Math.round(((last7 - prev7) / prev7) * 100);
+          trendLabel = `${pct >= 0 ? "+" : ""}${pct}% vs last week`;
+        } else if (last7 > 0) {
+          trendLabel = `+${last7} this week`;
+        } else if (recent > 0) {
+          trendLabel = `+${recent} today`;
+        }
+      } else {
+        if (prior > 0) {
+          const pct = Math.round(((recent - prior) / prior) * 100);
+          trendLabel = `${pct >= 0 ? "+" : ""}${pct}% vs last month`;
+        } else if (recent > 0) {
+          trendLabel = `+${recent} this month`;
+        }
+      }
 
       return {
         data: points,
         total,
         recent,
         prior,
-        pctChange,
+        trendLabel,
       };
     },
     ...cfg,
@@ -3915,7 +4305,7 @@ function AnalyticsSection() {
                         : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                     }`}
                   >
-                    User Accounts ({regSource === "profiles" ? regState?.total ?? 98 : 98})
+                    User Accounts ({analyticsTotals?.profiles ?? (regSource === "profiles" ? regState?.total : 313)})
                   </button>
                   <button
                     onClick={() => setRegSource("applications")}
@@ -3925,7 +4315,7 @@ function AnalyticsSection() {
                         : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                     }`}
                   >
-                    Applications ({regSource === "applications" ? regState?.total ?? 87 : 87})
+                    Applications ({analyticsTotals?.applications ?? (regSource === "applications" ? regState?.total : 207)})
                   </button>
                 </div>
               </div>
@@ -3970,15 +4360,10 @@ function AnalyticsSection() {
                   <div className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
                     {regState?.total ?? 0}
                   </div>
-                  {regState?.pctChange !== null && regState?.pctChange !== undefined && (
+                  {regState?.trendLabel && (
                     <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 sm:justify-end mt-1">
                       <TrendingUp className="size-3" />
-                      <span>+{regState.pctChange}% vs previous</span>
-                    </div>
-                  )}
-                  {regState?.pctChange === null && (regState?.recent ?? 0) > 0 && (
-                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 sm:justify-end mt-1">
-                      +{regState?.recent} recent
+                      <span>{regState.trendLabel}</span>
                     </div>
                   )}
                 </div>
@@ -4076,7 +4461,7 @@ function AnalyticsSection() {
                         : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                     }`}
                   >
-                    Courses ({completionSource === "courses" ? completion?.total ?? 5 : 5})
+                    Courses ({analyticsTotals?.enrollments ?? (completionSource === "courses" ? completion?.total : 20)})
                   </button>
                   <button
                     onClick={() => setCompletionSource("internships")}
@@ -4086,14 +4471,16 @@ function AnalyticsSection() {
                         : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                     }`}
                   >
-                    Internships ({completionSource === "internships" ? completion?.total ?? 87 : 87})
+                    Internships ({analyticsTotals?.applications ?? (completionSource === "internships" ? completion?.total : 207)})
                   </button>
                 </div>
               </div>
 
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700/60 dark:bg-slate-800/60 dark:text-slate-300 self-start">
                 <BookOpen className="size-3.5 text-slate-400" />
-                {completionSource === "courses" ? "Active Courses" : "Active Internships"}
+                {completionSource === "courses"
+                  ? `${analyticsTotals?.courses ?? 19} Active Courses`
+                  : "Active Internships"}
               </span>
             </div>
 
@@ -5110,7 +5497,7 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
   if (!student) return null;
 
   const userId = student.user_id || student.id || "";
-  const appId = student.id || "";
+  const appId = student.application_id || (student.is_application ? student.id : "");
 
   const { data: payments } = useQuery({
     queryKey: ["admin-student-payments", userId, appId],
@@ -5182,7 +5569,7 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
               <div className="grid size-10 place-items-center rounded-full brand-gradient text-sm font-bold text-white">{initialLetter}</div>
               <div>
                 <h3 className="font-bold text-lg">{student.full_name ?? "Student Details"}</h3>
-                <p className="text-xs text-muted-foreground">{student.email ?? "—"} · {student.intern_id ?? "—"}</p>
+                <p className="text-xs text-muted-foreground">{student.email ?? "—"} · {student.intern_id ?? "User Account"}</p>
               </div>
             </div>
             <button onClick={onClose} className="grid size-8 place-items-center rounded-lg hover:bg-accent/50"><X className="size-4" /></button>
@@ -5210,24 +5597,88 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
           {tab === "profile" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="rounded-xl bg-accent/20 p-4"><p className="text-xs text-muted-foreground mb-1">Domain</p><p className="font-medium">{getDomain(student.domain)?.name ?? student.domain ?? "—"}</p></div>
-                <div className="rounded-xl bg-accent/20 p-4"><p className="text-xs text-muted-foreground mb-1">College</p><p className="font-medium">{student.college ?? "—"}</p></div>
-                <div className="rounded-xl bg-accent/20 p-4"><p className="text-xs text-muted-foreground mb-1">Course</p><p className="font-medium">{student.course ?? "—"} ({student.year ?? "—"})</p></div>
-                <div className="rounded-xl bg-accent/20 p-4"><p className="text-xs text-muted-foreground mb-1">Phone</p><p className="font-medium">{student.phone ?? "—"}</p></div>
-                <div className="rounded-xl bg-accent/20 p-4"><p className="text-xs text-muted-foreground mb-1">Status</p><Badge>{student.status ?? "Active"}</Badge></div>
-                <div className="rounded-xl bg-accent/20 p-4"><p className="text-xs text-muted-foreground mb-1">Joined</p><p className="font-medium">{formatDate(student.created_at)}</p></div>
-                <div className="rounded-xl bg-accent/20 p-4"><p className="text-xs text-muted-foreground mb-1">Offer Issued</p><p className="font-medium">{formatDate(student.offer_issued_at)}</p></div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Account Type</p>
+                  <div>
+                    {appId ? (
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+                        Internship Enrolled
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-slate-600 dark:text-slate-400">
+                        Registered User Account
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Domain</p>
+                  <p className="font-medium">
+                    {student.domain ? (getDomain(student.domain)?.name ?? student.domain) : "No Application (Registered User)"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Intern ID</p>
+                  <p className="font-mono font-medium">{student.intern_id || "—"}</p>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">College</p>
+                  <p className="font-medium">{student.college && student.college !== "—" ? student.college : "—"}</p>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Course & Year</p>
+                  <p className="font-medium">
+                    {[student.course && student.course !== "—" ? student.course : null, student.year && student.year !== "—" ? `(${student.year})` : null].filter(Boolean).join(" ") || "—"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Phone</p>
+                  <p className="font-medium">{student.phone && student.phone !== "—" ? student.phone : "—"}</p>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Session Status</p>
+                  <div>
+                    {student.is_online ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+                        <Wifi className="size-3" /> Online
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                        <WifiOff className="size-3" /> Offline
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Registered / Joined</p>
+                  <p className="font-medium">{formatDate(student.created_at)}</p>
+                </div>
+                <div className="rounded-xl bg-accent/20 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Offer Issued</p>
+                  <p className="font-medium">{student.offer_issued_at ? formatDate(student.offer_issued_at) : "—"}</p>
+                </div>
               </div>
-              {student.email && (
-                <a href={`mailto:${student.email}`} className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"><Mail className="size-3.5" /> Send Email</a>
-              )}
+              <div className="flex items-center gap-3 pt-2">
+                {student.email && student.email !== "—" && (
+                  <a href={`mailto:${student.email}`} className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                    <Mail className="size-3.5" /> Send Email
+                  </a>
+                )}
+                <span className="text-xs font-mono text-muted-foreground">User ID: {userId}</span>
+              </div>
             </div>
           )}
 
           {/* Payments Tab */}
           {tab === "payments" && (
             <div className="space-y-3">
-              {(!payments || payments.length === 0) ? (
+              {!appId ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">
+                  <IndianRupee className="mx-auto size-8 text-slate-300 dark:text-slate-600 mb-2" />
+                  <p className="font-medium text-foreground">No payment records</p>
+                  <p className="text-xs mt-1">This user account has not submitted an internship application.</p>
+                </div>
+              ) : (!payments || payments.length === 0) ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">No payment records found.</p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/40">
@@ -5259,7 +5710,13 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
           {/* Submissions Tab */}
           {tab === "submissions" && (
             <div className="space-y-3">
-              {(!submissions || submissions.length === 0) ? (
+              {!appId ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">
+                  <ClipboardCheck className="mx-auto size-8 text-slate-300 dark:text-slate-600 mb-2" />
+                  <p className="font-medium text-foreground">No task submissions</p>
+                  <p className="text-xs mt-1">This user account has not submitted an internship application.</p>
+                </div>
+              ) : (!submissions || submissions.length === 0) ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">No task submissions found.</p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/40">
@@ -5289,7 +5746,13 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
           {/* Certificates Tab */}
           {tab === "certificates" && (
             <div className="space-y-3">
-              {(!certificates || certificates.length === 0) ? (
+              {!appId ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">
+                  <Award className="mx-auto size-8 text-slate-300 dark:text-slate-600 mb-2" />
+                  <p className="font-medium text-foreground">No certificates issued</p>
+                  <p className="text-xs mt-1">This user account has not submitted an internship application.</p>
+                </div>
+              ) : (!certificates || certificates.length === 0) ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">No certificates issued yet.</p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/40">
@@ -5462,6 +5925,955 @@ function LoginAnalyticsSection() {
 const peakHourLabels = ["Midnight", "1 AM", "2 AM", "3 AM", "4 AM", "5 AM", "6 AM", "7 AM", "8 AM", "9 AM", "10 AM", "11 AM", "Noon", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM", "9 PM", "10 PM", "11 PM"];
 
 // ══════════════════════════════════════════════
+// COURSES MANAGEMENT & ENROLLMENT ANALYTICS
+// ══════════════════════════════════════════════
+function CoursesSection() {
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "enrolled" | "published" | "draft">("all");
+  const [selectedCourseForStudents, setSelectedCourseForStudents] = useState<AdminCourseItem | null>(null);
+  const [editingCourse, setEditingCourse] = useState<AdminCourseItem | null>(null);
+  const [showCourseForm, setShowCourseForm] = useState(false);
+  const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
+  const [togglingPublishId, setTogglingPublishId] = useState<string | null>(null);
+
+  const { data: courses, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["admin-courses-directory"],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const data = await getAdminCourses();
+      return data ?? [];
+    },
+  });
+
+  const kpis = useMemo(() => {
+    if (!courses) return { totalCourses: 0, totalEnrollments: 0, inProgress: 0, completed: 0, certs: 0, avgProgress: 0 };
+    const totalCourses = courses.length;
+    let totalEnrollments = 0;
+    let inProgress = 0;
+    let completed = 0;
+    let certs = 0;
+    let totalProgressSum = 0;
+    for (const c of courses) {
+      totalEnrollments += c.enrollment_count;
+      inProgress += c.in_progress_count;
+      completed += c.completed_count;
+      certs += c.cert_count;
+      totalProgressSum += (c.avg_progress || 0) * c.enrollment_count;
+    }
+    const avgProgress = totalEnrollments > 0 ? Math.round(totalProgressSum / totalEnrollments) : 0;
+    return { totalCourses, totalEnrollments, inProgress, completed, certs, avgProgress };
+  }, [courses]);
+
+  const counts = useMemo(() => {
+    if (!courses) return { all: 0, enrolled: 0, published: 0, draft: 0 };
+    return {
+      all: courses.length,
+      enrolled: courses.filter((c) => c.enrollment_count > 0).length,
+      published: courses.filter((c) => c.is_published).length,
+      draft: courses.filter((c) => !c.is_published).length,
+    };
+  }, [courses]);
+
+  const filtered = useMemo(() => {
+    if (!courses) return [];
+    let list = courses;
+    if (filter === "enrolled") {
+      list = list.filter((c) => c.enrollment_count > 0);
+    } else if (filter === "published") {
+      list = list.filter((c) => c.is_published);
+    } else if (filter === "draft") {
+      list = list.filter((c) => !c.is_published);
+    }
+    if (!search) return list;
+    const q = search.toLowerCase().trim();
+    return list.filter((c) =>
+      c.name?.toLowerCase().includes(q) ||
+      c.slug?.toLowerCase().includes(q) ||
+      c.domain?.toLowerCase().includes(q) ||
+      c.difficulty?.toLowerCase().includes(q) ||
+      c.short_description?.toLowerCase().includes(q)
+    );
+  }, [courses, filter, search]);
+
+  const handleTogglePublish = async (course: AdminCourseItem) => {
+    setTogglingPublishId(course.id);
+    try {
+      await toggleCoursePublish({ data: { courseId: course.id, isPublished: !course.is_published } });
+      toast.success(`${course.name} is now ${!course.is_published ? "Published" : "Draft"}`);
+      qc.invalidateQueries({ queryKey: ["admin-courses-directory"] });
+      qc.invalidateQueries({ queryKey: ["admin-courses"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update publish status");
+    } finally {
+      setTogglingPublishId(null);
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!deletingCourseId) return;
+    try {
+      const { error } = await supabase.from("courses").delete().eq("id", deletingCourseId);
+      if (error) throw error;
+      toast.success("Course deleted successfully");
+      qc.invalidateQueries({ queryKey: ["admin-courses-directory"] });
+      qc.invalidateQueries({ queryKey: ["admin-courses"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete course");
+    } finally {
+      setDeletingCourseId(null);
+    }
+  };
+
+  return (
+    <div className="animate-fade-in-up space-y-6">
+      {/* Enrolled Students Modal */}
+      {selectedCourseForStudents && (
+        <CourseStudentsModal
+          course={selectedCourseForStudents}
+          onClose={() => setSelectedCourseForStudents(null)}
+          onRefresh={() => {
+            qc.invalidateQueries({ queryKey: ["admin-courses-directory"] });
+            refetch().then((res) => {
+              if (res.data) {
+                const updated = res.data.find((c) => c.id === selectedCourseForStudents.id);
+                if (updated) setSelectedCourseForStudents(updated);
+              }
+            });
+          }}
+        />
+      )}
+
+      {/* Course Form Modal */}
+      {showCourseForm && (
+        <CourseFormModal
+          course={editingCourse}
+          onClose={() => {
+            setShowCourseForm(false);
+            setEditingCourse(null);
+          }}
+          onSuccess={() => {
+            setShowCourseForm(false);
+            setEditingCourse(null);
+            qc.invalidateQueries({ queryKey: ["admin-courses-directory"] });
+            qc.invalidateQueries({ queryKey: ["admin-courses"] });
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingCourseId && (
+        <Portal>
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setDeletingCourseId(null)}>
+            <div className="w-full max-w-sm rounded-2xl border border-border/50 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:bg-[#1E293B]/95 dark:border-white/10 animate-in zoom-in-95 my-auto" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-bold mb-2">Delete Course?</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                This will permanently delete this course and all associated lessons, task submissions, and student progress records.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => setDeletingCourseId(null)}>Cancel</Button>
+                <Button variant="destructive" size="sm" onClick={handleDeleteCourse}>Delete Course</Button>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
+
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between flex-wrap">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold">Courses & Learning Tracks</h2>
+            <Badge variant="secondary" className="rounded-lg text-xs font-semibold">
+              {courses ? `${courses.length} Courses` : "Loading..."}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage course curriculum, syllabus, quizzes, and track how many users apply & learn
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search course name, slug, difficulty..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 w-full rounded-xl pl-9 text-xs border-border/60"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="h-9 px-3 rounded-xl gap-1.5 text-xs shrink-0"
+            title="Refresh courses"
+          >
+            <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin text-blue-600" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingCourse(null);
+              setShowCourseForm(true);
+            }}
+            className="brand-gradient text-white border-0 gap-1.5 h-9 px-3.5 text-xs rounded-xl shadow-sm"
+          >
+            <Plus className="size-4" /> Add Course
+          </Button>
+        </div>
+      </div>
+
+      {/* Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="rounded-2xl border border-border/50 bg-white/60 p-4 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Total Courses</span>
+            <div className="grid size-8 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+              <BookOpen className="size-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-2xl font-bold">{kpis.totalCourses}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{counts.published} published · {counts.draft} draft</p>
+        </div>
+
+        <div className="rounded-2xl border border-border/50 bg-white/60 p-4 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Total Users Applied</span>
+            <div className="grid size-8 place-items-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+              <Users className="size-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-2xl font-bold">{kpis.totalEnrollments}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{counts.enrolled} courses with active learners</p>
+        </div>
+
+        <div className="rounded-2xl border border-border/50 bg-white/60 p-4 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Completed & Certified</span>
+            <div className="grid size-8 place-items-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <Award className="size-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-2xl font-bold">{kpis.completed}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{kpis.certs} certificates issued</p>
+        </div>
+
+        <div className="rounded-2xl border border-border/50 bg-white/60 p-4 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Avg Progress</span>
+            <div className="grid size-8 place-items-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+              <BarChart3 className="size-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-2xl font-bold">{kpis.avgProgress}%</p>
+          <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="h-full rounded-full bg-amber-500" style={{ width: `${Math.min(kpis.avgProgress, 100)}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <button
+          onClick={() => setFilter("all")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "all"
+              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <BookOpen className="size-3.5" />
+          <span>All Courses</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "all" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.all}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setFilter("enrolled")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "enrolled"
+              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <Users className="size-3.5" />
+          <span>With Enrolled Users</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "enrolled" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.enrolled}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setFilter("published")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "published"
+              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <CheckCircle2 className="size-3.5 text-emerald-400" />
+          <span>Published</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "published" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.published}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setFilter("draft")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
+            filter === "draft"
+              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
+          }`}
+        >
+          <span>Draft</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "draft" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+            {counts.draft}
+          </span>
+        </button>
+      </div>
+
+      {/* Courses Table */}
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground bg-muted/20">
+              <th className="px-4 py-3 text-left">Course Track</th>
+              <th className="px-4 py-3 text-left">Users Applied / Enrolled</th>
+              <th className="px-4 py-3 text-left">Avg Progress</th>
+              <th className="px-4 py-3 text-left">Curriculum</th>
+              <th className="px-4 py-3 text-left">Duration & Quiz</th>
+              <th className="px-4 py-3 text-left">Certificates</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-16 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="size-6 animate-spin text-blue-600" />
+                    <span>Loading courses & enrollment analytics...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-16 text-center text-muted-foreground">
+                  No courses found matching your filter or search query.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((c: AdminCourseItem) => {
+                return (
+                  <tr key={c.id} className="border-b border-border/30 transition hover:bg-accent/20">
+                    {/* Course Track */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="grid size-10 place-items-center rounded-xl brand-gradient text-white shadow-sm shrink-0">
+                          {c.icon && c.icon.length <= 4 ? (
+                            <span className="text-base">{c.icon}</span>
+                          ) : (
+                            <BookOpen className="size-5 text-white" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-semibold text-sm truncate">{c.name}</p>
+                            <Badge variant="outline" className="text-[10px] font-mono capitalize">
+                              {c.difficulty || "Intermediate"}
+                            </Badge>
+                          </div>
+                          <p className="text-xs font-mono text-muted-foreground">{c.slug}</p>
+                          {c.short_description && (
+                            <p className="text-[11px] text-muted-foreground line-clamp-1 max-w-xs">{c.short_description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Users Applied / Enrolled */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {c.enrollment_count > 0 ? (
+                        <div className="space-y-1">
+                          <button
+                            onClick={() => setSelectedCourseForStudents(c)}
+                            className="group flex items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50 border border-blue-200/60 dark:border-blue-800/40"
+                            title="Click to view all enrolled students"
+                          >
+                            <Users className="size-3.5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition" />
+                            <span>{c.enrollment_count} {c.enrollment_count === 1 ? "User Applied" : "Users Applied"}</span>
+                            <ArrowUpRight className="size-3 text-blue-500 opacity-60 group-hover:opacity-100" />
+                          </button>
+                          <p className="text-[11px] text-muted-foreground pl-1">
+                            <span className="text-emerald-600 font-medium">{c.completed_count} Completed</span> · {c.in_progress_count} In Progress
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-xs text-muted-foreground">
+                          0 Users Applied
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Avg Progress */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                c.avg_progress >= 75 ? "bg-emerald-500" : c.avg_progress >= 25 ? "bg-blue-500" : "bg-slate-400"
+                              }`}
+                              style={{ width: `${Math.min(c.avg_progress, 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold">{c.avg_progress}%</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Class Average</p>
+                      </div>
+                    </td>
+
+                    {/* Curriculum */}
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      <div className="space-y-0.5">
+                        <p className="font-medium text-foreground">{c.total_topics || 0} Lessons</p>
+                        <p className="text-[11px]">{c.total_tasks || 0} Practical Tasks</p>
+                      </div>
+                    </td>
+
+                    {/* Duration & Quiz */}
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      <div className="space-y-0.5">
+                        <p className="font-medium text-foreground">{c.duration_weeks || 4} Weeks Track</p>
+                        <p className="text-[11px]">Pass: {c.pass_marks || 60}% · {c.quiz_marks || 100} Pts</p>
+                      </div>
+                    </td>
+
+                    {/* Certificates */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {c.cert_count > 0 ? (
+                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/30 dark:text-emerald-400 text-xs">
+                          <Award className="size-3 mr-1" /> {c.cert_count} Issued
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">0 Issued</span>
+                      )}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <button
+                        onClick={() => handleTogglePublish(c)}
+                        disabled={togglingPublishId === c.id}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition cursor-pointer ${
+                          c.is_published
+                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                        }`}
+                        title="Click to toggle published / draft"
+                      >
+                        <span className={`size-1.5 rounded-full ${c.is_published ? "bg-emerald-500" : "bg-slate-400"}`} />
+                        {c.is_published ? "Published" : "Draft"}
+                      </button>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <div className="flex justify-end gap-1">
+                        {c.enrollment_count > 0 && (
+                          <button
+                            onClick={() => setSelectedCourseForStudents(c)}
+                            className="grid size-8 place-items-center rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition"
+                            title="View Enrolled Students"
+                          >
+                            <Users className="size-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setEditingCourse(c);
+                            setShowCourseForm(true);
+                          }}
+                          className="grid size-8 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition"
+                          title="Edit Course"
+                        >
+                          <Edit className="size-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeletingCourseId(c.id)}
+                          className="grid size-8 place-items-center rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                          title="Delete Course"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════
+// COURSE ENROLLED STUDENTS MODAL
+// ══════════════════════════════════════════════
+function CourseStudentsModal({
+  course,
+  onClose,
+  onRefresh,
+}: {
+  course: AdminCourseItem;
+  onClose: () => void;
+  onRefresh: () => void;
+}) {
+  const [studentSearch, setStudentSearch] = useState("");
+  const [deletingEnrollmentId, setDeletingEnrollmentId] = useState<string | null>(null);
+
+  const filteredStudents = useMemo(() => {
+    if (!course.students) return [];
+    if (!studentSearch) return course.students;
+    const q = studentSearch.toLowerCase().trim();
+    return course.students.filter((s) =>
+      s.full_name?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      s.phone?.toLowerCase().includes(q) ||
+      s.college?.toLowerCase().includes(q) ||
+      s.certificate?.certificate_id?.toLowerCase().includes(q)
+    );
+  }, [course.students, studentSearch]);
+
+  const handleUnenroll = async (enrollmentId: string) => {
+    if (!confirm("Are you sure you want to unenroll this student? This will remove their progress and task submissions for this course.")) return;
+    setDeletingEnrollmentId(enrollmentId);
+    try {
+      const res = await deleteCourseEnrollment({ data: { enrollmentId } });
+      if (!res.success) throw new Error(res.error || "Failed to unenroll student");
+      toast.success("Student unenrolled successfully");
+      onRefresh();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to unenroll student");
+    } finally {
+      setDeletingEnrollmentId(null);
+    }
+  };
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <div
+          className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border/50 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:bg-[#1E293B]/95 my-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Modal Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="grid size-10 place-items-center rounded-xl brand-gradient text-white shadow-sm">
+                <BookOpen className="size-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold">Students Enrolled in {course.name}</h3>
+                  <Badge variant="secondary" className="text-xs">
+                    {course.students?.length || 0} Total
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {course.completed_count} Completed · {course.in_progress_count} In Progress · {course.avg_progress}% Class Average Progress
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose} className="grid size-8 place-items-center rounded-lg hover:bg-accent/60">
+              <X className="size-4" />
+            </button>
+          </div>
+
+          {/* Search bar inside modal */}
+          <div className="my-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search student name, email, college, certificate ID..."
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                className="h-9 w-full rounded-xl pl-9 text-xs border-border/60"
+              />
+            </div>
+          </div>
+
+          {/* Students Table */}
+          <div className="overflow-x-auto rounded-xl border border-border/40">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border/30 bg-muted/30 uppercase text-muted-foreground font-semibold">
+                  <th className="px-3 py-2.5 text-left">Student</th>
+                  <th className="px-3 py-2.5 text-left">Contact & College</th>
+                  <th className="px-3 py-2.5 text-left">Progress</th>
+                  <th className="px-3 py-2.5 text-left">Status</th>
+                  <th className="px-3 py-2.5 text-left">Enrolled Date</th>
+                  <th className="px-3 py-2.5 text-left">Certificate</th>
+                  <th className="px-3 py-2.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/20">
+                {filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-10 text-center text-muted-foreground">
+                      No enrolled students found matching your search.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStudents.map((s: CourseStudentEnrollment) => {
+                    const isCompleted = s.status === "completed" || s.progress_percent >= 100;
+                    return (
+                      <tr key={s.enrollment_id} className="hover:bg-accent/20 transition">
+                        {/* Student */}
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="grid size-7 shrink-0 place-items-center rounded-full brand-gradient text-[10px] font-bold text-white">
+                              {s.full_name ? s.full_name.charAt(0).toUpperCase() : "S"}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-foreground truncate">{s.full_name || "—"}</p>
+                              <p className="text-[11px] text-muted-foreground truncate">{s.email || "—"}</p>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Contact & College */}
+                        <td className="px-3 py-2.5 max-w-[180px]">
+                          <p className="text-foreground truncate">{s.phone && s.phone !== "—" ? s.phone : "—"}</p>
+                          <p className="text-[10px] text-muted-foreground truncate" title={s.college || ""}>
+                            {s.college && s.college !== "—" ? s.college : "—"}
+                          </p>
+                        </td>
+
+                        {/* Progress */}
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${
+                                  isCompleted ? "bg-emerald-500" : s.progress_percent > 0 ? "bg-blue-500" : "bg-slate-400"
+                                }`}
+                                style={{ width: `${Math.min(s.progress_percent, 100)}%` }}
+                              />
+                            </div>
+                            <span className="font-semibold text-[11px]">{s.progress_percent}%</span>
+                          </div>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          {isCompleted ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+                              <CheckCircle2 className="size-3" /> Completed
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
+                              <Clock className="size-3" /> In Progress
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Enrolled Date */}
+                        <td className="px-3 py-2.5 text-muted-foreground whitespace-nowrap">
+                          {s.started_at ? new Date(s.started_at).toLocaleDateString("en-IN") : "—"}
+                        </td>
+
+                        {/* Certificate */}
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          {s.certificate?.certificate_id ? (
+                            <Link
+                              to="/verify-certificate"
+                              search={{ id: s.certificate.certificate_id }}
+                              target="_blank"
+                              className="inline-flex items-center gap-1 text-emerald-600 hover:underline font-mono text-[10px]"
+                            >
+                              <Award className="size-3 shrink-0" />
+                              <span>{s.certificate.certificate_id}</span>
+                            </Link>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                          <div className="flex justify-end gap-1">
+                            {s.email && s.email !== "—" && (
+                              <a
+                                href={`mailto:${s.email}`}
+                                className="grid size-7 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition"
+                                title={`Send Email to ${s.email}`}
+                              >
+                                <Mail className="size-3.5" />
+                              </a>
+                            )}
+                            <button
+                              onClick={() => handleUnenroll(s.enrollment_id)}
+                              disabled={deletingEnrollmentId === s.enrollment_id}
+                              className="grid size-7 place-items-center rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                              title="Unenroll student"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+// ══════════════════════════════════════════════
+// COURSE ADD / EDIT MODAL
+// ══════════════════════════════════════════════
+function CourseFormModal({
+  course,
+  onClose,
+  onSuccess,
+}: {
+  course: AdminCourseItem | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [name, setName] = useState(course?.name || "");
+  const [slug, setSlug] = useState(course?.slug || "");
+  const [domainCode, setDomainCode] = useState(course?.domain || "");
+  const [icon, setIcon] = useState(course?.icon || "BookOpen");
+  const [difficulty, setDifficulty] = useState(course?.difficulty || "Intermediate");
+  const [durationWeeks, setDurationWeeks] = useState(course?.duration_weeks || 4);
+  const [totalTopics, setTotalTopics] = useState(course?.total_topics || 30);
+  const [totalTasks, setTotalTasks] = useState(course?.total_tasks || 5);
+  const [passMarks, setPassMarks] = useState(course?.pass_marks || 60);
+  const [quizMarks, setQuizMarks] = useState(course?.quiz_marks || 100);
+  const [quizDurationMin, setQuizDurationMin] = useState(course?.quiz_duration_min || 60);
+  const [description, setDescription] = useState(course?.short_description || "");
+  const [isPublished, setIsPublished] = useState(course?.is_published ?? true);
+  const [saving, setSaving] = useState(false);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !slug || !domainCode) {
+      toast.error("Please fill in Name, Slug, and Domain Code.");
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      name,
+      slug,
+      domain: domainCode,
+      icon,
+      difficulty,
+      duration_weeks: Number(durationWeeks),
+      total_topics: Number(totalTopics),
+      total_tasks: Number(totalTasks),
+      pass_marks: Number(passMarks),
+      quiz_marks: Number(quizMarks),
+      quiz_duration_min: Number(quizDurationMin),
+      short_description: description,
+      is_published: isPublished,
+    };
+
+    try {
+      if (course) {
+        const { error } = await supabase.from("courses").update(payload as any).eq("id", course.id);
+        if (error) throw error;
+        toast.success("Course updated successfully!");
+      } else {
+        const { error } = await supabase.from("courses").insert(payload as any);
+        if (error) throw error;
+        toast.success("Course created successfully!");
+      }
+      onSuccess();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save course");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+        <div
+          className="w-full max-w-xl rounded-2xl border border-border/50 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:bg-[#1E293B]/95 dark:border-white/10 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto my-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-border/50">
+            <h3 className="text-lg font-bold">{course ? "Edit Course" : "Add New Course"}</h3>
+            <button onClick={onClose} className="grid size-8 place-items-center rounded-lg hover:bg-accent/60">
+              <X className="size-4" />
+            </button>
+          </div>
+
+          <form onSubmit={save} className="space-y-4 text-xs">
+            <div>
+              <Label className="text-xs">Course Name *</Label>
+              <Input
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (!course && !slug) {
+                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "-"));
+                    setDomainCode(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""));
+                  }
+                }}
+                placeholder="e.g. Python Programming"
+                required
+                className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Slug *</Label>
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="e.g. python"
+                  required
+                  className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Domain Code *</Label>
+                <Input
+                  value={domainCode}
+                  onChange={(e) => setDomainCode(e.target.value)}
+                  placeholder="e.g. python"
+                  required
+                  className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs">Difficulty</Label>
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-transparent px-3 py-2 text-xs"
+                >
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs">Duration (Weeks)</Label>
+                <Input
+                  type="number"
+                  value={durationWeeks}
+                  onChange={(e) => setDurationWeeks(Number(e.target.value))}
+                  min={1}
+                  className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Icon (emoji / Lucide)</Label>
+                <Input
+                  value={icon}
+                  onChange={(e) => setIcon(e.target.value)}
+                  placeholder="e.g. Code2, 🐍"
+                  className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs">Total Lessons/Topics</Label>
+                <Input
+                  type="number"
+                  value={totalTopics}
+                  onChange={(e) => setTotalTopics(Number(e.target.value))}
+                  min={0}
+                  className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Total Tasks</Label>
+                <Input
+                  type="number"
+                  value={totalTasks}
+                  onChange={(e) => setTotalTasks(Number(e.target.value))}
+                  min={0}
+                  className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Pass Marks (%)</Label>
+                <Input
+                  type="number"
+                  value={passMarks}
+                  onChange={(e) => setPassMarks(Number(e.target.value))}
+                  min={1}
+                  max={100}
+                  className="mt-1 text-xs h-9 rounded-xl border-slate-200"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">Short Description</Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Brief summary of skills acquired in this course..."
+                rows={2}
+                className="mt-1 text-xs rounded-xl border-slate-200"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="isCoursePublished"
+                checked={isPublished}
+                onChange={(e) => setIsPublished(e.target.checked)}
+                className="rounded border-slate-200"
+              />
+              <Label htmlFor="isCoursePublished" className="text-xs font-semibold select-none cursor-pointer">
+                Publish Course (Make visible to students for enrollment)
+              </Label>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t border-border/50">
+              <Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving} size="sm" className="brand-gradient text-white border-0 rounded-xl px-4">
+                {saving ? "Saving..." : course ? "Update Course" : "Create Course"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+// ══════════════════════════════════════════════
 // DOMAINS MANAGEMENT SECTION
 // ══════════════════════════════════════════════
 function DomainsSection() {
@@ -5486,6 +6898,28 @@ function DomainsSection() {
       return data ?? [];
     }
   });
+
+  const { data: apps } = useQuery({
+    queryKey: ["admin-domain-apps-count"],
+    queryFn: async () => {
+      const { data } = await supabase.from("applications").select("id, domain, status");
+      return data ?? [];
+    },
+  });
+
+  const domainAppStats = useMemo(() => {
+    const map: Record<string, { total: number; approved: number; pending: number }> = {};
+    if (apps) {
+      for (const a of apps) {
+        const d = (a.domain || "").toLowerCase().trim();
+        if (!map[d]) map[d] = { total: 0, approved: 0, pending: 0 };
+        map[d].total++;
+        if (a.status === "approved" || a.status === "completed") map[d].approved++;
+        else map[d].pending++;
+      }
+    }
+    return map;
+  }, [apps]);
 
   const allowedSlugs = new Set(["fullstack", "python", "java", "mernstack", "meanstack", "aiml", "datascience", "uiux", "cybersecurity"]);
 
@@ -5566,6 +7000,7 @@ function DomainsSection() {
       toast.success(editingDomain ? "Domain updated successfully!" : "Domain created successfully!");
       setShowForm(false);
       qc.invalidateQueries({ queryKey: ["admin-courses"] });
+      qc.invalidateQueries({ queryKey: ["admin-courses-directory"] });
     }
   };
 
@@ -5577,6 +7012,7 @@ function DomainsSection() {
     } else {
       toast.success("Domain deleted successfully!");
       qc.invalidateQueries({ queryKey: ["admin-courses"] });
+      qc.invalidateQueries({ queryKey: ["admin-courses-directory"] });
     }
     setDeletingId(null);
   };
@@ -5586,7 +7022,7 @@ function DomainsSection() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Internship Domains</h2>
-          <p className="text-sm text-muted-foreground">Manage internship domains — add, edit, or remove learning tracks</p>
+          <p className="text-sm text-muted-foreground">Manage internship domains and track applicant counts</p>
         </div>
         <Button onClick={openAdd} className="brand-gradient text-white border-0 gap-1.5 h-10">
           <Plus className="size-4" /> Add Domain
@@ -5612,6 +7048,7 @@ function DomainsSection() {
               <th className="p-4">Name</th>
               <th className="p-4">Domain Code</th>
               <th className="p-4">Slug</th>
+              <th className="p-4">Internship Applicants</th>
               <th className="p-4">Status</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
@@ -5619,36 +7056,54 @@ function DomainsSection() {
           <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
             {isLoading && (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-400">Loading domains...</td>
+                <td colSpan={6} className="p-8 text-center text-slate-400">Loading domains...</td>
               </tr>
             )}
             {!isLoading && filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-400">No domains found.</td>
+                <td colSpan={6} className="p-8 text-center text-slate-400">No domains found.</td>
               </tr>
             )}
-            {!isLoading && filtered.map((d: any) => (
-              <tr key={d.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
-                <td className="p-4 font-semibold text-slate-800 dark:text-slate-200">{d.name}</td>
-                <td className="p-4 font-mono">{d.domain}</td>
-                <td className="p-4 font-mono text-slate-500">{d.slug}</td>
-                <td className="p-4">
-                  <Badge className={`text-xs ${
-                    d.is_published ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
-                  }`}>
-                    {d.is_published ? "Published" : "Draft"}
-                  </Badge>
-                </td>
-                <td className="p-4 text-right space-x-1.5">
-                  <Button size="sm" variant="outline" className="h-8 px-2 rounded-lg border-slate-200" onClick={() => openEdit(d)}>
-                    Edit
-                  </Button>
-                  <Button size="sm" variant="outline" className="h-8 px-2 rounded-lg text-rose-600 hover:text-rose-700 border-slate-200 hover:bg-rose-50" onClick={() => setDeletingId(d.id)}>
-                    Delete
-                  </Button>
-                </td>
-              </tr>
-            ))}
+            {!isLoading && filtered.map((d: any) => {
+              const code = (d.domain || "").toLowerCase().trim();
+              const appStat = domainAppStats[code] || { total: 0, approved: 0, pending: 0 };
+              return (
+                <tr key={d.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
+                  <td className="p-4 font-semibold text-slate-800 dark:text-slate-200">{d.name}</td>
+                  <td className="p-4 font-mono">{d.domain}</td>
+                  <td className="p-4 font-mono text-slate-500">{d.slug}</td>
+                  <td className="p-4">
+                    {appStat.total > 0 ? (
+                      <div className="space-y-0.5">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                          <Users className="size-3" /> {appStat.total} Applicants
+                        </span>
+                        <p className="text-[10px] text-muted-foreground">
+                          {appStat.approved} Approved · {appStat.pending} Pending
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">0 Applicants</span>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    <Badge className={`text-xs ${
+                      d.is_published ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                    }`}>
+                      {d.is_published ? "Published" : "Draft"}
+                    </Badge>
+                  </td>
+                  <td className="p-4 text-right space-x-1.5">
+                    <Button size="sm" variant="outline" className="h-8 px-2 rounded-lg border-slate-200" onClick={() => openEdit(d)}>
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-8 px-2 rounded-lg text-rose-600 hover:text-rose-700 border-slate-200 hover:bg-rose-50" onClick={() => setDeletingId(d.id)}>
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -47,9 +47,24 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-const ITEMS = [
+interface ContactInfoItem {
+  icon: any;
+  label: string;
+  value?: string;
+  href?: string | null;
+  links?: Array<{ label: string; href: string }>;
+}
+
+const ITEMS: ContactInfoItem[] = [
   { icon: Mail, label: "Email", value: COMPANY.email, href: `mailto:${COMPANY.email}` },
-  { icon: Globe, label: "Website", value: COMPANY.website, href: `https://${COMPANY.website}` },
+  {
+    icon: Globe,
+    label: "Websites",
+    links: [
+      { label: "www.skyrovix.online", href: "https://www.skyrovix.online" },
+      { label: "www.skyrovix.in", href: "https://www.skyrovix.in" },
+    ],
+  },
   { icon: MapPin, label: "Location", value: "India (Remote-First)", href: null },
   { icon: Clock, label: "Response Time", value: "1–2 business days", href: null },
 ];
@@ -100,7 +115,25 @@ function ContactPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{it.label}</p>
-                    {it.href ? (
+                    {it.links ? (
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-foreground text-sm mt-0.5">
+                        {it.links.map((link, idx) => (
+                          <span key={link.href} className="inline-flex items-center gap-2">
+                            <a
+                              href={link.href}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium text-foreground hover:text-[#07284a] dark:hover:text-[#60a5fa] hover:underline transition-colors"
+                            >
+                              {link.label}
+                            </a>
+                            {idx < it.links.length - 1 && (
+                              <span className="text-muted-foreground/50">·</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    ) : it.href ? (
                       <a href={it.href} className="truncate font-medium text-foreground hover:text-[#07284a] dark:hover:text-[#60a5fa] transition-colors">{it.value}</a>
                     ) : (
                       <p className="truncate font-medium">{it.value}</p>

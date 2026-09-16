@@ -38,6 +38,9 @@ export function loadEnv(force = false) {
     if (!process.env.SMTP_HOST) process.env.SMTP_HOST = "smtp.gmail.com";
     if (!process.env.SMTP_PORT) process.env.SMTP_PORT = "465";
     if (!process.env.SMTP_FROM) process.env.SMTP_FROM = "Skyrovix <skyrovix@gmail.com>";
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "sb_secret_MEvk_6mzjDSywhHxGI0ZmA_SiVwfXP4";
+    }
   } catch (e) {
     // Ignore error if file reading fails
   }

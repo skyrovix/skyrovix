@@ -33,7 +33,7 @@ async function ensureBucket(supabaseAdmin: any): Promise<boolean> {
   try {
     const { data: buckets } = await supabaseAdmin.storage.listBuckets();
     if (buckets?.some((b: any) => b.name === BACKUPS_BUCKET)) return true;
-    const { error } = await supabaseAdmin.storage.createBucket(BACKUPS_BUCKET, { public: false, fileSizeLimit: 524288000 });
+    const { error } = await supabaseAdmin.storage.createBucket(BACKUPS_BUCKET, { public: false });
     if (error && !error.message.includes("already exists")) throw error;
     return true;
   } catch (e: any) {
@@ -48,10 +48,10 @@ const ALL_TABLES = [
   "course_task_submissions", "course_tasks", "course_topics", "courses",
   "enrollments", "lesson_progress", "payments", "profiles", "quiz_attempts",
   "submissions", "tasks", "user_roles", "login_sessions", "email_logs",
-  "coupons", "popups",
+  "coupons", "project_submissions", "reviews",
 ] as const;
 
-const FILE_BUCKETS = ["profile-photos", "payment-screenshots", "task-submissions"];
+const FILE_BUCKETS = ["profile-photos", "payment-screenshots", "task-submissions", "project-submissions"];
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
