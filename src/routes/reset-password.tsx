@@ -23,15 +23,6 @@ import {
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
-  beforeLoad: () => {
-    if (typeof window !== "undefined") {
-      const h = window.location.hostname.toLowerCase();
-      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
-        // Enforce domain-only execution: forward tokens to production domain
-        window.location.replace(`https://skyrovix.online/reset-password${window.location.search}${window.location.hash}`);
-      }
-    }
-  },
   head: () => ({
     meta: [
       { title: "Reset Password — Skyrovix Internship Portal" },
@@ -97,15 +88,6 @@ function ResetPasswordPage() {
     let isMounted = true;
 
     const initAuth = async () => {
-      if (typeof window !== "undefined") {
-        const h = window.location.hostname.toLowerCase();
-        if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
-          console.log("[ResetPassword] Localhost detected, forwarding to live production domain...");
-          window.location.replace(`https://skyrovix.online/reset-password${window.location.search}${window.location.hash}`);
-          return;
-        }
-      }
-
       const params = extractAuthParams();
       console.log("[ResetPassword] Inspecting URL parameters...", {
         hasError: Boolean(params.error || params.errorCode),
@@ -139,6 +121,10 @@ function ResetPasswordPage() {
 
           if (data?.session) {
             console.log("[ResetPassword] Session established via setSession for:", data.session.user?.email);
+            // Securely scrub sensitive tokens from the URL bar
+            if (typeof window !== "undefined" && (window.location.hash || window.location.search)) {
+              window.history.replaceState(null, "", window.location.pathname);
+            }
             if (isMounted) setLinkStatus("valid");
             return;
           }
@@ -160,6 +146,10 @@ function ResetPasswordPage() {
 
           if (data?.session) {
             console.log("[ResetPassword] Session established via exchangeCodeForSession for:", data.session.user?.email);
+            // Securely scrub sensitive tokens from the URL bar
+            if (typeof window !== "undefined" && (window.location.hash || window.location.search)) {
+              window.history.replaceState(null, "", window.location.pathname);
+            }
             if (isMounted) setLinkStatus("valid");
             return;
           }
@@ -185,6 +175,10 @@ function ResetPasswordPage() {
 
           if (data?.session) {
             console.log("[ResetPassword] Session established via verifyOtp for:", data.session.user?.email);
+            // Securely scrub sensitive tokens from the URL bar
+            if (typeof window !== "undefined" && (window.location.hash || window.location.search)) {
+              window.history.replaceState(null, "", window.location.pathname);
+            }
             if (isMounted) setLinkStatus("valid");
             return;
           }

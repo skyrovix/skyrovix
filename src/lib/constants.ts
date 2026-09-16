@@ -30,7 +30,21 @@ export const PRODUCTION_DOMAINS = {
  * - NEVER returns localhost or 127.0.0.1 under any circumstances.
  */
 export function getProductionResetPasswordRedirectUrl(): string {
-  // 1. Check environment variable VITE_APP_URL
+  // 1. Check current browser hostname if accessing live production domain
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
+      return "https://skyrovix.in/reset-password";
+    }
+    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
+      return "https://skyrovix.online/reset-password";
+    }
+    if (!hostname.includes("localhost") && !hostname.includes("127.0.0.1") && !hostname.startsWith("192.168.")) {
+      return `${window.location.origin}/reset-password`;
+    }
+  }
+
+  // 2. Check environment variable VITE_APP_URL
   const envUrl = (
     (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_APP_URL) ||
     (typeof process !== "undefined" && process.env && (process.env.VITE_APP_URL || process.env.APP_URL)) ||
@@ -41,17 +55,6 @@ export function getProductionResetPasswordRedirectUrl(): string {
     const cleanUrl = envUrl.replace(/\/+$/, "");
     if (!cleanUrl.includes("localhost") && !cleanUrl.includes("127.0.0.1")) {
       return `${cleanUrl}/reset-password`;
-    }
-  }
-
-  // 2. Check current browser hostname if accessing live production domain
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname.toLowerCase();
-    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
-      return "https://skyrovix.in/reset-password";
-    }
-    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
-      return "https://skyrovix.online/reset-password";
     }
   }
 
@@ -68,6 +71,21 @@ export function getProductionResetPasswordRedirectUrl(): string {
  * NEVER returns localhost or 127.0.0.1 under any circumstances.
  */
 export function getProductionAuthRedirectUrl(): string {
+  // 1. Check current browser hostname if accessing live production domain
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
+      return "https://skyrovix.in/auth";
+    }
+    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
+      return "https://skyrovix.online/auth";
+    }
+    if (!hostname.includes("localhost") && !hostname.includes("127.0.0.1") && !hostname.startsWith("192.168.")) {
+      return `${window.location.origin}/auth`;
+    }
+  }
+
+  // 2. Check environment variable VITE_APP_URL
   const envUrl = (
     (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_APP_URL) ||
     (typeof process !== "undefined" && process.env && (process.env.VITE_APP_URL || process.env.APP_URL)) ||
@@ -81,16 +99,6 @@ export function getProductionAuthRedirectUrl(): string {
     }
   }
 
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname.toLowerCase();
-    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
-      return "https://skyrovix.in/auth";
-    }
-    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
-      return "https://skyrovix.online/auth";
-    }
-  }
-
   return "https://skyrovix.online/auth";
 }
 
@@ -98,6 +106,21 @@ export function getProductionAuthRedirectUrl(): string {
  * Returns the current public website origin, guaranteeing it never falls back to localhost.
  */
 export function getPublicSiteUrl(): string {
+  // 1. Check current browser hostname if accessing live production domain
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
+      return "https://skyrovix.in";
+    }
+    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
+      return "https://skyrovix.online";
+    }
+    if (!hostname.includes("localhost") && !hostname.includes("127.0.0.1") && !hostname.startsWith("192.168.")) {
+      return window.location.origin;
+    }
+  }
+
+  // 2. Check environment variable VITE_APP_URL
   const envUrl = (
     (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_APP_URL) ||
     (typeof process !== "undefined" && process.env && (process.env.VITE_APP_URL || process.env.APP_URL)) ||
@@ -108,16 +131,6 @@ export function getPublicSiteUrl(): string {
     const cleanUrl = envUrl.replace(/\/+$/, "");
     if (!cleanUrl.includes("localhost") && !cleanUrl.includes("127.0.0.1")) {
       return cleanUrl;
-    }
-  }
-
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname.toLowerCase();
-    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
-      return "https://skyrovix.in";
-    }
-    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
-      return "https://skyrovix.online";
     }
   }
 
@@ -141,18 +154,11 @@ export function isLocalhost(): boolean {
 
 /**
  * Returns the URL for Forgot Password.
- * If running on localhost, directs to the live production domain (https://skyrovix.online/forgot-password).
- * If running on a production domain (skyrovix.in or skyrovix.online), stays within that domain.
+ * Stays within current domain when in the browser.
  */
 export function getForgotPasswordUrl(): string {
   if (typeof window !== "undefined") {
-    const hostname = window.location.hostname.toLowerCase();
-    if (hostname === "skyrovix.in" || hostname.endsWith(".skyrovix.in")) {
-      return "/forgot-password";
-    }
-    if (hostname === "skyrovix.online" || hostname.endsWith(".skyrovix.online")) {
-      return "/forgot-password";
-    }
+    return "/forgot-password";
   }
   return "https://skyrovix.online/forgot-password";
 }

@@ -11,15 +11,6 @@ import { Sparkles, ArrowRight, ArrowLeft, Loader2, Mail, CheckCircle2, Shield } 
 
 export const Route = createFileRoute("/forgot-password")({
   ssr: false,
-  beforeLoad: () => {
-    if (typeof window !== "undefined") {
-      const h = window.location.hostname.toLowerCase();
-      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
-        // Enforce domain-only execution: redirect to live production domain
-        window.location.replace("https://skyrovix.online/forgot-password");
-      }
-    }
-  },
   head: () => ({
     meta: [
       { title: "Forgot Password — Skyrovix Internship Portal" },
@@ -35,15 +26,6 @@ function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const h = window.location.hostname.toLowerCase();
-      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
-        window.location.replace("https://skyrovix.online/forgot-password");
-      }
-    }
-  }, []);
-
   const validateEmail = (val: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
   };
@@ -51,14 +33,6 @@ function ForgotPasswordPage() {
   const handleResetRequest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage(null);
-
-    if (typeof window !== "undefined") {
-      const h = window.location.hostname.toLowerCase();
-      if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.")) {
-        window.location.replace("https://skyrovix.online/forgot-password");
-        return;
-      }
-    }
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail || !validateEmail(trimmedEmail)) {
@@ -70,13 +44,22 @@ function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // Dynamic production redirect URL (https://skyrovix.in/reset-password or https://skyrovix.online/reset-password)
-      // Never localhost or 127.0.0.1
-      const redirectTo = getProductionResetPasswordRedirectUrl();
-      console.log("[ForgotPassword] Requesting resetPasswordForEmail with redirectTo:", redirectTo);
+      // Dynamic production redirect URL based on current production domain
+      let redirectUrl = `${window.location.origin}/reset-password`;
+      const hostname = window.location.hostname.toLowerCase();
+      if (hostname.includes("skyrovix.in")) {
+        redirectUrl = "https://skyrovix.in/reset-password";
+      } else if (hostname.includes("skyrovix.online")) {
+        redirectUrl = "https://skyrovix.online/reset-password";
+      } else {
+        // Fallback for local development: never allow localhost to be sent to Supabase in emails
+        redirectUrl = "https://skyrovix.online/reset-password";
+      }
+
+      console.log("[ForgotPassword] Requesting resetPasswordForEmail with redirectTo:", redirectUrl);
 
       const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-        redirectTo,
+        redirectTo: redirectUrl,
       });
 
       if (error) {
