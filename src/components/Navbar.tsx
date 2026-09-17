@@ -155,6 +155,25 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
   const isDashboardPage = variant === "public" ? false : (pathname === "/dashboard" || pathname.startsWith("/review"));
   const itemsToRender = isDashboardPage ? DASHBOARD_ITEMS : NAV;
 
+  const isItemActive = (item: (typeof DASHBOARD_ITEMS)[number] | (typeof NAV)[number]) => {
+    if (isDashboardPage) {
+      if (item.to === "/") {
+        return false;
+      }
+      if (item.to === "/review") {
+        return pathname.startsWith("/review");
+      }
+      if (item.to === "/dashboard") {
+        if (pathname !== "/dashboard") return false;
+        const targetTab = "search" in item && item.search?.tab ? item.search.tab : "tasks";
+        const activeTab = currentTab || "tasks";
+        return targetTab === activeTab;
+      }
+      return false;
+    }
+    return item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/" });
@@ -199,9 +218,7 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
           {/* Center Desktop Navigation Tabs */}
           <div className="hidden lg:flex items-center justify-center gap-1 xl:gap-1.5 shrink-0">
             {itemsToRender.map((n) => {
-              const isActive = isDashboardPage
-                ? (n.to === "/" ? false : (n.search?.tab ? currentTab === n.search.tab : !currentTab))
-                : (n.to === "/" ? pathname === "/" : pathname.startsWith(n.to));
+              const isActive = isItemActive(n);
               const Icon = n.icon;
               return (
                 <Link
@@ -312,9 +329,7 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
                 <div className="flex flex-col gap-1">
                   {itemsToRender.map((item, i) => {
                     const Icon = item.icon;
-                    const active = isDashboardPage
-                      ? (item.to === "/" ? false : (item.search?.tab ? currentTab === item.search.tab : !currentTab))
-                      : (item.to === "/" ? pathname === "/" : pathname.startsWith(item.to));
+                    const active = isItemActive(item);
                     return (
                       <button
                         key={item.label}

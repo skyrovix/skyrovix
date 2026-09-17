@@ -18,14 +18,14 @@ import { ApplicationFormDialog } from "@/components/ApplicationFormDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { INDIA_STATES, STATE_DISTRICTS } from "@/lib/india-locations";
-import { DOMAINS, DURATIONS, PAYMENT, COMPANY, generateInternId, generateCertId, getDomain, getPublicSiteUrl } from "@/lib/constants";
+import { DOMAINS, DURATIONS, durationConfig, PAYMENT, COMPANY, generateInternId, generateCertId, getDomain, getPublicSiteUrl } from "@/lib/constants";
 import { validateCoupon, calculateDiscountedAmount, formatDiscount } from "@/lib/coupons";
 import type { CouponResult } from "@/lib/coupons";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { IDCard } from "@/components/IDCard";
 import { TasksSection } from "@/components/TasksSection";
-import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadIDCard, downloadPdf } from "@/components/pdf-docs";
+import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadIDCard, downloadOfferLetter, downloadPdf } from "@/components/pdf-docs";
 import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -742,7 +742,15 @@ function Dashboard() {
 
     if (active === "overview" || active === "tasks") {
       if (detailView?.type === "app") {
-        const da = appsList!.find((a) => a.id === detailView.id)!;
+        const da = appsList?.find((a) => a.id === detailView.id);
+        if (!da) {
+          return (
+            <div className="space-y-4 py-8 text-center">
+              <p className="text-sm text-muted-foreground">Internship details not found.</p>
+              <Button variant="outline" size="sm" onClick={() => setDetailView(null)}>Back to Overview</Button>
+            </div>
+          );
+        }
         const dd = getDomain(da.domain);
         const daSubs = allAppSubmissions?.filter((s: any) => s.application_id === da.id) ?? [];
         const daApproved = daSubs.filter((s: any) => s.status === "approved").length;
@@ -833,10 +841,13 @@ function Dashboard() {
                     <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white dark:bg-slate-800" onClick={() => setPreviewOfferApp(da)}>
                       <Eye className="size-3.5 text-blue-500" /> View Offer Letter
                     </Button>
-                    <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadPdf(
-                      <OfferLetterDoc fullName={da.full_name} internId={da.intern_id} domain={dd?.name ?? da.domain} issuedAt={da.offer_issued_at || da.created_at} duration={da.duration ?? 1} />,
-                      `OfferLetter_${da.intern_id}.pdf`
-                    )}>
+                    <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadOfferLetter({
+                      fullName: da.full_name,
+                      internId: da.intern_id,
+                      domain: dd?.name ?? da.domain,
+                      issuedAt: da.offer_issued_at || da.created_at,
+                      duration: da.duration ?? 1,
+                    })}>
                       <Download className="size-3.5" /> Download Offer Letter
                     </Button>
                   </div>
@@ -863,29 +874,56 @@ function Dashboard() {
 
               {/* UTR Invoice scan section if tasks done but verification pending */}
               <div className="space-y-6">
-                <UnlockedCertificateCard app={da} cert={daCert} domain={dd} />
-                <LockedCertificateCard
-                  app={da}
-                  internApproved={daApproved}
-                  internTotal={daTotal}
-                  payment={daPayment}
-                  couponResult={couponResult}
-                  validatingCoupon={validatingCoupon}
-                  couponCode={couponCode}
-                  setCouponCode={setCouponCode}
-                  handleApplyCoupon={handleApplyCoupon}
-                  handleRemoveCoupon={handleRemoveCoupon}
-                  utrNumber={utrNumber}
-                  setUtrNumber={setUtrNumber}
-                  paymentScreenshot={paymentScreenshot}
-                  setPaymentScreenshot={setPaymentScreenshot}
-                  submittingPayment={submittingPayment}
-                  handlePaymentSubmit={handlePaymentSubmit}
-                  certStatus={certStatus}
-                  doFreeCertificate={doFreeCertificate}
-                />
+                {daCert ? (
+                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} />
+                ) : (
+                  <LockedCertificateCard
+                    app={da}
+                    internApproved={daApproved}
+                    internTotal={daTotal}
+                    payment={daPayment}
+                    couponResult={couponResult}
+                    validatingCoupon={validatingCoupon}
+                    couponCode={couponCode}
+                    setCouponCode={setCouponCode}
+                    handleApplyCoupon={handleApplyCoupon}
+                    handleRemoveCoupon={handleRemoveCoupon}
+                    utrNumber={utrNumber}
+                    setUtrNumber={setUtrNumber}
+                    paymentScreenshot={paymentScreenshot}
+                    setPaymentScreenshot={setPaymentScreenshot}
+                    submittingPayment={submittingPayment}
+                    handlePaymentSubmit={handlePaymentSubmit}
+                    certStatus={certStatus}
+                    doFreeCertificate={doFreeCertificate}
+                    showPaymentModal={showPaymentModal}
+                    setShowPaymentModal={setShowPaymentModal}
+                  />
+                )}
               </div>
             </div>
+
+            {/* Quest Log / Tasks Section for Ongoing & Approved Internships (not for completed) */}
+            {da.status !== "completed" && (
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
+                    <ListChecks className="size-5 text-primary" /> Quest Log — {dd?.name ?? da.domain} Tasks
+                  </h2>
+                </div>
+                <TasksSection
+                  domainSlug={da.domain}
+                  submissions={daSubs ?? []}
+                  appId={da.id}
+                  duration={da.duration}
+                  submissionStatus={daSubmissionStatus}
+                  onChange={() => {
+                    qc.invalidateQueries({ queryKey: ["all-submissions"] });
+                    qc.invalidateQueries({ queryKey: ["my-applications"] });
+                  }}
+                />
+              </div>
+            )}
 
             {/* Task Submission history for debug/mentors */}
             {daSubs.length > 0 && (
@@ -1040,10 +1078,13 @@ function Dashboard() {
                           className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
                           onClick={(e) => {
                             e.stopPropagation();
-                            downloadPdf(
-                              <OfferLetterDoc fullName={a.full_name} internId={a.intern_id} domain={d?.name ?? a.domain} issuedAt={a.offer_issued_at || a.created_at} duration={a.duration ?? 1} />,
-                              `OfferLetter_${a.intern_id}.pdf`
-                            );
+                            downloadOfferLetter({
+                              fullName: a.full_name,
+                              internId: a.intern_id,
+                              domain: d?.name ?? a.domain,
+                              issuedAt: a.offer_issued_at || a.created_at,
+                              duration: a.duration ?? 1,
+                            });
                           }}
                         >
                           <Download className="mr-1.5 size-3.5 text-emerald-500" /> Download Offer Letter
@@ -1206,10 +1247,13 @@ function Dashboard() {
                     <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white dark:bg-slate-800" onClick={() => setPreviewOfferApp(da)}>
                       <Eye className="size-3.5 text-blue-500" /> View Offer Letter
                     </Button>
-                    <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadPdf(
-                      <OfferLetterDoc fullName={da.full_name} internId={da.intern_id} domain={dd?.name ?? da.domain} issuedAt={da.offer_issued_at || da.created_at} duration={da.duration ?? 1} />,
-                      `OfferLetter_${da.intern_id}.pdf`
-                    )}>
+                    <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadOfferLetter({
+                      fullName: da.full_name,
+                      internId: da.intern_id,
+                      domain: dd?.name ?? da.domain,
+                      issuedAt: da.offer_issued_at || da.created_at,
+                      duration: da.duration ?? 1,
+                    })}>
                       <Download className="size-3.5" /> Download Offer Letter
                     </Button>
                   </div>
@@ -1231,21 +1275,47 @@ function Dashboard() {
                 </div>
               </div>
               <div className="space-y-6">
-                <UnlockedCertificateCard app={da} cert={daCert} domain={dd} />
-                <LockedCertificateCard
-                  app={da} internApproved={daApproved} internTotal={daTotal} payment={daPayment}
-                  couponResult={couponResult} validatingCoupon={validatingCoupon} couponCode={couponCode}
-                  setCouponCode={setCouponCode} handleApplyCoupon={handleApplyCoupon}
-                  handleRemoveCoupon={handleRemoveCoupon} utrNumber={utrNumber}
-                  setUtrNumber={setUtrNumber} paymentScreenshot={paymentScreenshot}
-                  setPaymentScreenshot={setPaymentScreenshot} submittingPayment={submittingPayment}
-                  handlePaymentSubmit={handlePaymentSubmit} certStatus={certStatus}
-                  doFreeCertificate={doFreeCertificate}
-                  showPaymentModal={showPaymentModal}
-                  setShowPaymentModal={setShowPaymentModal}
-                />
+                {daCert ? (
+                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} />
+                ) : (
+                  <LockedCertificateCard
+                    app={da} internApproved={daApproved} internTotal={daTotal} payment={daPayment}
+                    couponResult={couponResult} validatingCoupon={validatingCoupon} couponCode={couponCode}
+                    setCouponCode={setCouponCode} handleApplyCoupon={handleApplyCoupon}
+                    handleRemoveCoupon={handleRemoveCoupon} utrNumber={utrNumber}
+                    setUtrNumber={setUtrNumber} paymentScreenshot={paymentScreenshot}
+                    setPaymentScreenshot={setPaymentScreenshot} submittingPayment={submittingPayment}
+                    handlePaymentSubmit={handlePaymentSubmit} certStatus={certStatus}
+                    doFreeCertificate={doFreeCertificate}
+                    showPaymentModal={showPaymentModal}
+                    setShowPaymentModal={setShowPaymentModal}
+                  />
+                )}
               </div>
             </div>
+
+            {/* Quest Log / Tasks Section for Ongoing & Approved Internships (not for completed) */}
+            {da.status !== "completed" && (
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
+                    <ListChecks className="size-5 text-primary" /> Quest Log — {dd?.name ?? da.domain} Tasks
+                  </h2>
+                </div>
+                <TasksSection
+                  domainSlug={da.domain}
+                  submissions={daSubs ?? []}
+                  appId={da.id}
+                  duration={da.duration}
+                  submissionStatus={daSubmissionStatus}
+                  onChange={() => {
+                    qc.invalidateQueries({ queryKey: ["all-submissions"] });
+                    qc.invalidateQueries({ queryKey: ["my-applications"] });
+                  }}
+                />
+              </div>
+            )}
+
             {daSubs.length > 0 && (
               <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
                 <h3 className="font-bold text-sm">Task Submissions Logs</h3>
@@ -1322,10 +1392,13 @@ function Dashboard() {
                               className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                downloadPdf(
-                                  <OfferLetterDoc fullName={a.full_name} internId={a.intern_id} domain={d?.name ?? a.domain} issuedAt={a.offer_issued_at || a.created_at} duration={a.duration ?? 1} />,
-                                  `OfferLetter_${a.intern_id}.pdf`
-                                );
+                                downloadOfferLetter({
+                                  fullName: a.full_name,
+                                  internId: a.intern_id,
+                                  domain: d?.name ?? a.domain,
+                                  issuedAt: a.offer_issued_at || a.created_at,
+                                  duration: a.duration ?? 1,
+                                });
                               }}
                             >
                               <Download className="mr-1.5 size-3.5 text-emerald-500" /> Download Offer Letter
@@ -1380,10 +1453,13 @@ function Dashboard() {
                               className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                downloadPdf(
-                                  <OfferLetterDoc fullName={a.full_name} internId={a.intern_id} domain={d?.name ?? a.domain} issuedAt={a.offer_issued_at || a.created_at} duration={a.duration ?? 1} />,
-                                  `OfferLetter_${a.intern_id}.pdf`
-                                );
+                                downloadOfferLetter({
+                                  fullName: a.full_name,
+                                  internId: a.intern_id,
+                                  domain: d?.name ?? a.domain,
+                                  issuedAt: a.offer_issued_at || a.created_at,
+                                  duration: a.duration ?? 1,
+                                });
                               }}
                             >
                               <Download className="mr-1.5 size-3.5 text-emerald-500" /> Download Offer Letter
@@ -2112,10 +2188,13 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
 
               <button
                 type="button"
-                onClick={() => downloadPdf(
-                  <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
-                  `OfferLetter_${app.intern_id}.pdf`
-                )}
+                onClick={() => downloadOfferLetter({
+                  fullName: app.full_name,
+                  internId: app.intern_id,
+                  domain: domain?.name ?? app.domain,
+                  issuedAt: app.offer_issued_at || app.created_at,
+                  duration: app.duration ?? 1,
+                })}
                 className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white/[0.08] hover:bg-white/[0.15] active:scale-90 border border-white/10 transition-all text-center group cursor-pointer shadow-sm hover:shadow-md"
               >
                 <div className="grid size-10 place-items-center rounded-xl bg-sky-500/20 text-sky-300 group-hover:scale-110 group-hover:bg-sky-500/30 transition-all">
@@ -2161,10 +2240,13 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
               </Button>
 
               <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
-                onClick={() => downloadPdf(
-                  <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
-                  `OfferLetter_${app.intern_id}.pdf`
-                )}>
+                onClick={() => downloadOfferLetter({
+                  fullName: app.full_name,
+                  internId: app.intern_id,
+                  domain: domain?.name ?? app.domain,
+                  issuedAt: app.offer_issued_at || app.created_at,
+                  duration: app.duration ?? 1,
+                })}>
                 <Download className="size-4 text-blue-300" /> Download Offer Letter
               </Button>
 
@@ -2636,6 +2718,11 @@ function TimelineSection({ steps, currentStep, setShowPaymentModal }: { steps: {
 // ─── CERTIFICATES ───
 
 function UnlockedCertificateCard({ app, cert, domain }: any) {
+  if (!cert) return null;
+  const issuedDate = cert.issued_at
+    ? new Date(cert.issued_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+    : "—";
+  const certId = cert.certificate_id || "—";
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5">
@@ -2648,13 +2735,13 @@ function UnlockedCertificateCard({ app, cert, domain }: any) {
           </div>
           <div className="flex-1 text-center md:text-left">
             <Badge className="bg-emerald-600 text-white text-[10px] rounded-lg px-2.5 py-1 mb-2 border-0"><CheckCircle2 className="mr-1 size-3" /> VERIFIED CERTIFICATE</Badge>
-            <h2 className="text-lg font-bold font-display text-foreground">{domain?.name ?? app.domain} Internship Certificate</h2>
-            <p className="text-xs text-muted-foreground mt-1">Issued to <span className="font-semibold text-foreground">{app.full_name}</span> on {new Date(cert.issued_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p>
-            <p className="text-[9px] font-mono text-muted-foreground mt-1.5">Certificate ID: {cert.certificate_id}</p>
+            <h2 className="text-lg font-bold font-display text-foreground">{domain?.name ?? app?.domain} Internship Certificate</h2>
+            <p className="text-xs text-muted-foreground mt-1">Issued to <span className="font-semibold text-foreground">{app?.full_name}</span> on {issuedDate}</p>
+            <p className="text-[9px] font-mono text-muted-foreground mt-1.5">Certificate ID: {certId}</p>
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full md:w-auto">
             <Button size="sm" className="brand-gradient text-white border-0 rounded-2xl h-10 px-6 font-semibold shadow-md gap-1.5"
-              onClick={() => downloadPdf(<CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />, `Certificate_${cert.certificate_id}.pdf`)}>
+              onClick={() => downloadPdf(<CertificateDoc fullName={app?.full_name} internId={app?.intern_id} domain={domain?.name ?? app?.domain} certId={certId} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />, `Certificate_${certId}.pdf`)}>
               <Download className="size-4" /> Download PDF
             </Button>
             <Button asChild size="sm" variant="outline" className="rounded-2xl border-border/60 h-10 px-6 font-semibold gap-1.5 bg-white/40">
@@ -2688,7 +2775,7 @@ function LockedCertificateCard({ app, internApproved, internTotal, payment, utrN
 
   useEffect(() => {
     if (isTasksDone && !hasCoupon && !isPaymentDone && payment?.status !== "pending") {
-      setShowPaymentModal(true);
+      setShowPaymentModal?.(true);
     }
   }, [isTasksDone, hasCoupon, isPaymentDone, payment, setShowPaymentModal]);
 
@@ -2849,10 +2936,13 @@ function IDCardSection({ app, onViewOfferLetter }: { app: Application | null; on
             <Eye className="mr-1 size-3 text-blue-500" /> View Offer Letter
           </Button>
           <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white dark:bg-slate-800 hover:bg-slate-100"
-            onClick={() => downloadPdf(
-              <OfferLetterDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} issuedAt={app.offer_issued_at || app.created_at} duration={app.duration ?? 1} />,
-              `OfferLetter_${app.intern_id}.pdf`
-            )}>
+            onClick={() => downloadOfferLetter({
+              fullName: app.full_name,
+              internId: app.intern_id,
+              domain: domain?.name ?? app.domain,
+              issuedAt: app.offer_issued_at || app.created_at,
+              duration: app.duration ?? 1,
+            })}>
             <Download className="mr-1 size-3 text-emerald-500" /> Download Offer Letter
           </Button>
           <Button size="sm" className="brand-gradient text-white border-0 rounded-xl h-8 text-xs font-semibold"

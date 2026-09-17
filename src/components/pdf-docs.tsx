@@ -94,7 +94,389 @@ const s = StyleSheet.create({
   footerRight: { alignItems: "flex-end", gap: 1 },
 });
 
-export function OfferLetterDoc({ fullName, internId, domain, issuedAt, duration = 1, verifyUrl, qrCodeDataUri, imageAssets }: {
+// Executive styles matching the exact reference style (guaranteed 1 full A4 page)
+const offerStyles = StyleSheet.create({
+  page: {
+    paddingTop: 24,
+    paddingBottom: 20,
+    paddingHorizontal: 26,
+    fontSize: 8.5,
+    color: "#0f172a",
+    fontFamily: "Helvetica",
+    position: "relative",
+    backgroundColor: "#ffffff",
+  },
+  frameOuter: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    right: 10,
+    bottom: 10,
+    borderWidth: 1.2,
+    borderColor: "#07284a",
+    borderRadius: 4,
+  },
+  frameInner: {
+    position: "absolute",
+    top: 12.5,
+    left: 12.5,
+    right: 12.5,
+    bottom: 12.5,
+    borderWidth: 0.5,
+    borderColor: "#0284c7",
+    opacity: 0.25,
+    borderRadius: 3,
+  },
+  watermark: {
+    position: "absolute",
+    top: 320,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    opacity: 0.02,
+  },
+  watermarkText: {
+    fontSize: 60,
+    color: "#07284a",
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 8,
+  },
+
+  // Header matching reference
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: 9,
+    borderBottomWidth: 0.75,
+    borderBottomColor: "#cbd5e1",
+    marginBottom: 11,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  brandLogo: {
+    width: 45,
+    height: 45,
+    objectFit: "contain",
+  },
+  headerDivider: {
+    width: 0.75,
+    height: 36,
+    backgroundColor: "#cbd5e1",
+    marginHorizontal: 11,
+  },
+  brandName: {
+    fontSize: 16.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#07284a",
+    letterSpacing: 0.5,
+  },
+  brandTagline: {
+    fontSize: 8.8,
+    fontFamily: "Helvetica-Bold",
+    color: "#0284c7",
+    marginTop: 0.8,
+  },
+  brandMeta: {
+    fontSize: 7.4,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  headerRight: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  refLabel: {
+    fontSize: 7,
+    color: "#64748b",
+    letterSpacing: 0.8,
+    fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase",
+  },
+  refValue: {
+    fontSize: 10.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#07284a",
+    marginTop: 0.5,
+  },
+  dateLabel: {
+    fontSize: 7,
+    color: "#64748b",
+    letterSpacing: 0.8,
+    fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase",
+    marginTop: 2.5,
+  },
+  dateValue: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: "#07284a",
+    marginTop: 0.5,
+  },
+
+  // Title Block
+  titleContainer: {
+    marginBottom: 9,
+  },
+  titleText: {
+    fontSize: 17.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#07284a",
+    letterSpacing: 1.3,
+    textTransform: "uppercase",
+  },
+  titleDate: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#b45309",
+    marginTop: 2,
+  },
+
+  // Greeting & Intro
+  greeting: {
+    fontSize: 9.8,
+    marginBottom: 5,
+    color: "#0f172a",
+  },
+  bold: {
+    fontFamily: "Helvetica-Bold",
+  },
+  bodyP: {
+    fontSize: 8.8,
+    lineHeight: 1.5,
+    color: "#334155",
+    marginBottom: 6,
+  },
+
+  // Table (8 Rows)
+  table: {
+    borderWidth: 0.5,
+    borderColor: "#cbd5e1",
+    borderRadius: 3.5,
+    overflow: "hidden",
+    marginBottom: 10,
+  },
+  tableHeader: {
+    backgroundColor: "#07284a",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  tableHeaderTitle: {
+    color: "#ffffff",
+    fontSize: 8.5,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderTopWidth: 0.5,
+    borderTopColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  tableRowAlt: {
+    flexDirection: "row",
+    borderTopWidth: 0.5,
+    borderTopColor: "#e2e8f0",
+    backgroundColor: "#f8fafc",
+  },
+  colKey: {
+    width: 180,
+    fontSize: 8.2,
+    color: "#334155",
+    paddingVertical: 4.2,
+    paddingHorizontal: 10,
+    borderRightWidth: 0.5,
+    borderRightColor: "#e2e8f0",
+  },
+  colVal: {
+    flex: 1,
+    fontSize: 8.4,
+    fontFamily: "Helvetica-Bold",
+    color: "#0f172a",
+    paddingVertical: 4.2,
+    paddingHorizontal: 10,
+  },
+
+  // Cards
+  cardBox: {
+    backgroundColor: "#f8fafc",
+    borderWidth: 0.5,
+    borderColor: "#e2e8f0",
+    borderRadius: 4,
+    paddingVertical: 7.5,
+    paddingHorizontal: 10,
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 8.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#07284a",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  termItem: {
+    fontSize: 7.8,
+    color: "#475569",
+    lineHeight: 1.4,
+    marginBottom: 2.8,
+  },
+  cardText: {
+    fontSize: 7.8,
+    color: "#475569",
+    lineHeight: 1.42,
+  },
+
+  // Acceptance Closing
+  acceptanceText: {
+    fontSize: 8.4,
+    color: "#334155",
+    lineHeight: 1.44,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+
+  // Signatures & Seal Section: Hariharan S (Left), Seal (Center), Maheshwaran S (Right) - Anchored above footer with healthy bottom clearance
+  authSection: {
+    position: "absolute",
+    bottom: 96,
+    left: 26,
+    right: 26,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  signBlockLeft: {
+    alignItems: "flex-start",
+    width: 175,
+  },
+  signBlockRight: {
+    alignItems: "flex-end",
+    width: 175,
+  },
+  centerSealBlock: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sealImage: {
+    width: 60,
+    height: 60,
+    objectFit: "contain",
+  },
+  sealLabel: {
+    fontSize: 7,
+    fontFamily: "Helvetica-Bold",
+    color: "#64748b",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    marginTop: 2,
+  },
+  signImgContainer: {
+    height: 46,
+    justifyContent: "flex-end",
+    alignItems: "flex-start",
+  },
+  signImgContainerRight: {
+    height: 46,
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+  },
+  signImg: {
+    height: 44,
+    objectFit: "contain",
+  },
+  signLine: {
+    borderTopWidth: 1.2,
+    borderTopColor: "#334155",
+    width: 165,
+    marginTop: 2,
+    marginBottom: 2.5,
+  },
+  signName: {
+    fontSize: 9.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#07284a",
+  },
+  signTitle: {
+    fontSize: 7,
+    fontFamily: "Helvetica-Bold",
+    color: "#64748b",
+    textTransform: "uppercase",
+    marginTop: 0.5,
+  },
+  signOrg: {
+    fontSize: 6.2,
+    color: "#94a3b8",
+  },
+
+  // Footer: MSME & Partner on Left, Company & UDYAM in Center, YR Tech on Right - Enlarged logos, reduced top padding, increased bottom padding
+  footer: {
+    position: "absolute",
+    bottom: 28,
+    left: 26,
+    right: 26,
+    borderTopWidth: 0.75,
+    borderTopColor: "#cbd5e1",
+    paddingTop: 4,
+    paddingBottom: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  footerLeft: {
+    width: 155,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  footerMsme: {
+    height: 36,
+    width: 76,
+    marginRight: 8,
+    objectFit: "contain",
+  },
+  footerVinix: {
+    height: 32,
+    width: 66,
+    objectFit: "contain",
+  },
+  footerCenter: {
+    flex: 1,
+    alignItems: "center",
+  },
+  footerCompanyName: {
+    fontSize: 9.8,
+    fontFamily: "Helvetica-Bold",
+    color: "#07284a",
+    letterSpacing: 0.3,
+  },
+  footerRegistry: {
+    fontSize: 8.2,
+    color: "#334155",
+    marginTop: 1.5,
+  },
+  footerContact: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: "#0284c7",
+    marginTop: 1.5,
+  },
+  footerRight: {
+    width: 155,
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  footerYrTech: {
+    height: 32,
+    width: 50,
+    objectFit: "contain",
+  },
+});
+
+export function OfferLetterDoc({ fullName, internId, domain, issuedAt, duration = 1, imageAssets }: {
   fullName: string; internId: string; domain: string; issuedAt: string; duration?: number;
   verifyUrl?: string; qrCodeDataUri?: string; imageAssets?: ImageAssets;
 }) {
@@ -102,199 +484,197 @@ export function OfferLetterDoc({ fullName, internId, domain, issuedAt, duration 
   const dateStr = date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
   const domainName = domain.charAt(0).toUpperCase() + domain.slice(1);
   const dur = durationConfig(duration);
-  const durLabel = dur?.label ?? "1 Month";
+  const durLabel = dur?.label ?? `${duration} Month${duration > 1 ? "s" : ""}`;
 
   const endDate = new Date(date);
-  if (duration > 1) endDate.setMonth(endDate.getMonth() + duration);
-  else endDate.setMonth(endDate.getMonth() + 1);
+  endDate.setMonth(endDate.getMonth() + duration);
   const endDateStr = endDate.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
 
   return (
     <Document>
-      <Page size="A4" style={s.page}>
-        <View style={s.frameOuter} />
-        <View style={s.frameInner} />
+      <Page size="A4" style={offerStyles.page}>
+        <View style={offerStyles.frameOuter} />
+        <View style={offerStyles.frameInner} />
 
-        <View style={s.watermark}>
-          <Text style={{ fontSize: 64, color: C.brand, fontFamily: "Helvetica-Bold", letterSpacing: 8 }}>SKYROVIX</Text>
+        {/* Subtle background watermark */}
+        <View style={offerStyles.watermark}>
+          <Text style={offerStyles.watermarkText}>SKYROVIX</Text>
         </View>
 
-        <View style={s.topBand} />
-        <View style={s.bottomBand} />
-
-        <View style={s.header}>
-          <View style={s.headerLeft}>
-            <Image src={imageAssets?.logo ?? logoImg} style={{ width: 32, height: 32 }} />
-            <View style={{ marginLeft: 2 }}>
-              <Text style={s.brand}>{COMPANY.name}</Text>
-              <Text style={s.headerSmall}>{COMPANY.tagline} · {COMPANY.website}</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Image src={imageAssets?.vinix ?? vinixImg} style={{ height: 24, width: 58 }} />
-            <Image src={imageAssets?.yrTech ?? yrTechImg} style={{ height: 22, width: 34 }} />
-            <View style={s.refBox}>
-              <Text style={s.refLabel}>INTERN ID</Text>
-              <Text style={s.refValue}>{internId}</Text>
-              <Text style={[s.refLabel, { marginTop: 2 }]}>ISSUE DATE</Text>
-              <Text style={s.refValue}>{dateStr}</Text>
-            </View>
-          </View>
-        </View>
-
-        <Text style={s.title}>INTERNSHIP OFFER LETTER</Text>
-        <View style={s.titleAccent} />
-
-        <Text style={s.dateLine}>Date: {dateStr}</Text>
-
-        <Text style={s.greeting}>Dear <Text style={s.bold}>{fullName}</Text>,</Text>
-
-        <Text style={s.p}>
-          We are delighted to offer you the position of <Text style={s.bold}>Virtual Intern – {domainName}</Text> at <Text style={s.bold}>Skyrovix</Text>.
-        </Text>
-
-        <Text style={s.p}>
-          After reviewing your profile, we are confident that your skills and enthusiasm make you a valuable addition to our team. We look forward to supporting your professional growth through this internship opportunity.
-        </Text>
-
-        <Text style={s.sectionHeading}>Internship Details</Text>
-
-        <View style={s.table}>
-          <View style={s.tableHeader}>
-            <Text style={[s.th, s.thKey]}>Particulars</Text>
-            <Text style={[s.th, s.thVal]}>Details</Text>
-          </View>
-          <View style={s.row}>
-            <Text style={s.key}>Full Name</Text>
-            <Text style={s.val}>{fullName}</Text>
-          </View>
-          <View style={s.rowAlt}>
-            <Text style={s.key}>Intern ID</Text>
-            <Text style={s.val}>{internId}</Text>
-          </View>
-          <View style={s.row}>
-            <Text style={s.key}>Domain</Text>
-            <Text style={s.val}>{domainName}</Text>
-          </View>
-          <View style={s.rowAlt}>
-            <Text style={s.key}>Duration</Text>
-            <Text style={s.val}>{durLabel}</Text>
-          </View>
-          <View style={s.row}>
-            <Text style={s.key}>Start Date</Text>
-            <Text style={s.val}>{dateStr}</Text>
-          </View>
-          <View style={s.rowAlt}>
-            <Text style={s.key}>End Date</Text>
-            <Text style={s.val}>{endDateStr}</Text>
-          </View>
-          <View style={s.rowLast}>
-            <Text style={s.key}>Mode of Internship</Text>
-            <Text style={s.val}>Remote / Virtual</Text>
-          </View>
-        </View>
-
-        <Text style={s.sectionHeading}>Internship Overview</Text>
-
-        <Text style={s.p}>
-          During this internship, you will have the opportunity to:
-        </Text>
-
-        <View>
-          <View style={s.overviewBullet}>
-            <Text style={s.overviewDot}>•</Text>
-            <Text style={s.overviewText}>Work on practical, real-world <Text style={s.bold}>{domainName}</Text> projects.</Text>
-          </View>
-          <View style={s.overviewBullet}>
-            <Text style={s.overviewDot}>•</Text>
-            <Text style={s.overviewText}>Gain hands-on experience with modern development tools and technologies.</Text>
-          </View>
-          <View style={s.overviewBullet}>
-            <Text style={s.overviewDot}>•</Text>
-            <Text style={s.overviewText}>Receive mentorship and guidance from experienced professionals.</Text>
-          </View>
-          <View style={s.overviewBullet}>
-            <Text style={s.overviewDot}>•</Text>
-            <Text style={s.overviewText}>Enhance your technical and problem-solving skills through project-based learning.</Text>
-          </View>
-          <View style={s.overviewBullet}>
-            <Text style={s.overviewDot}>•</Text>
-            <Text style={s.overviewText}>Participate in periodic progress reviews and feedback sessions.</Text>
-          </View>
-        </View>
-
-        <Text style={s.sectionHeading}>Certificate of Completion</Text>
-
-        <Text style={s.p}>
-          Upon successful completion of the internship and fulfillment of all assigned tasks, you will receive a <Text style={s.bold}>Certificate of Internship</Text> with QR-code verification for authenticity.
-        </Text>
-
-        <Text style={s.sectionHeading}>Terms & Conditions</Text>
-
-        <View>
-          <View style={s.termsBullet}>
-            <Text style={s.termsDot}>•</Text>
-            <Text style={s.termsText}>This internship is conducted remotely and offers flexible working hours.</Text>
-          </View>
-          <View style={s.termsBullet}>
-            <Text style={s.termsDot}>•</Text>
-            <Text style={s.termsText}>Interns are expected to maintain regular communication and submit assigned work within deadlines.</Text>
-          </View>
-          <View style={s.termsBullet}>
-            <Text style={s.termsDot}>•</Text>
-            <Text style={s.termsText}>Successful completion will be determined based on performance, project submission, and adherence to internship guidelines.</Text>
-          </View>
-        </View>
-
-        <Text style={s.p}>
-          We are excited to have you join our team and wish you a rewarding learning experience with Skyrovix.
-        </Text>
-
-        <Text style={[s.p, { marginTop: 1 }]}>
-          <Text style={s.bold}>Congratulations and Welcome to the Team!</Text>
-        </Text>
-
-        {qrCodeDataUri && (
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 10, gap: 8 }}>
-            <Image src={qrCodeDataUri} style={{ width: 60, height: 60 }} />
+        {/* Header: Left Logo + Title + Web; Right Intern ID + Issue Date */}
+        <View style={offerStyles.header}>
+          <View style={offerStyles.headerLeft}>
+            <Image src={imageAssets?.logo ?? logoImg} style={offerStyles.brandLogo} />
+            <View style={offerStyles.headerDivider} />
             <View>
-              <Text style={{ fontSize: 8, fontWeight: 700, color: C.brand }}>Digitally Verified</Text>
-              <Text style={{ fontSize: 7, color: C.muted }}>Scan QR to verify authenticity</Text>
-              {verifyUrl && <Text style={{ fontSize: 6, color: C.muted, marginTop: 1 }}>{verifyUrl}</Text>}
+              <Text style={offerStyles.brandName}>SKYROVIX</Text>
+              <Text style={offerStyles.brandTagline}>Empowering Future Innovators</Text>
+              <Text style={offerStyles.brandMeta}>www.skyrovix.in | skyrovix@gmail.com</Text>
             </View>
           </View>
-        )}
-
-        <View style={s.sigRow}>
-          <View style={s.sigBlock}>
-            <Image src={imageAssets?.sigFounder ?? sigFounderImg} style={s.sigImg} />
-            <View style={s.sigLine} />
-            <Text style={s.bold}>{COMPANY.founder.name}</Text>
-            <Text style={{ fontSize: 6.5, color: C.muted }}>{COMPANY.founder.title}</Text>
-          </View>
-          <View style={s.sigBlock}>
-            <Image src={imageAssets?.seal ?? sealImg} style={{ width: 44, height: 44, opacity: 0.7 }} />
-            <Text style={{ fontSize: 6, color: C.muted, marginTop: 1 }}>Company Seal</Text>
-          </View>
-          <View style={s.sigBlock}>
-            <Image src={imageAssets?.sigCofounder ?? sigCofounderImg} style={s.sigImg} />
-            <View style={s.sigLine} />
-            <Text style={s.bold}>{COMPANY.cofounder.name}</Text>
-            <Text style={{ fontSize: 6.5, color: C.muted }}>{COMPANY.cofounder.title}</Text>
+          <View style={offerStyles.headerRight}>
+            <Text style={offerStyles.refLabel}>INTERNSHIP ID</Text>
+            <Text style={offerStyles.refValue}>{internId}</Text>
+            <Text style={offerStyles.dateLabel}>ISSUE DATE</Text>
+            <Text style={offerStyles.dateValue}>{dateStr}</Text>
           </View>
         </View>
 
-        <View style={s.footer}>
-          <View style={s.footerLeft}>
-            <Image src={imageAssets?.msme ?? msmeImg} style={{ width: 76, height: 30 }} />
-            <Text style={s.footerText}>MSME: UDYAM-TN-17-0076606</Text>
+        {/* Title Block */}
+        <View style={offerStyles.titleContainer}>
+          <Text style={offerStyles.titleText}>INTERNSHIP OFFER LETTER</Text>
+          <Text style={offerStyles.titleDate}>Date: {dateStr}</Text>
+        </View>
+
+        {/* Salutation & Intro */}
+        <Text style={offerStyles.greeting}>Dear <Text style={offerStyles.bold}>{fullName}</Text>,</Text>
+
+        <Text style={offerStyles.bodyP}>
+          We are delighted to offer you the position of <Text style={offerStyles.bold}>Virtual Intern – {domainName}</Text> at <Text style={offerStyles.bold}>Skyrovix IT Solutions</Text> (accessible at <Text style={offerStyles.bold}>skyrovix.in</Text>). After reviewing your application, technical aptitude, and enthusiasm, we are confident that your skills make you a valuable addition to our engineering cohort.
+        </Text>
+        <Text style={offerStyles.bodyP}>
+          Your virtual internship details, work deliverables, and engagement particulars are finalized as follows:
+        </Text>
+
+        {/* Table: INTERNSHIP PROGRAM PARTICULARS (8 Rows) */}
+        <View style={offerStyles.table}>
+          <View style={offerStyles.tableHeader}>
+            <Text style={offerStyles.tableHeaderTitle}>INTERNSHIP PROGRAM PARTICULARS</Text>
           </View>
-          <View style={s.footerRight}>
-            <Text style={s.footerText}>{COMPANY.email} | {COMPANY.website}</Text>
+          <View style={offerStyles.tableRow}>
+            <Text style={offerStyles.colKey}>Internship Track</Text>
+            <Text style={offerStyles.colVal}>{domainName}</Text>
+          </View>
+          <View style={offerStyles.tableRowAlt}>
+            <Text style={offerStyles.colKey}>Intern ID</Text>
+            <Text style={offerStyles.colVal}>{internId}</Text>
+          </View>
+          <View style={offerStyles.tableRow}>
+            <Text style={offerStyles.colKey}>Program Duration</Text>
+            <Text style={offerStyles.colVal}>{durLabel}</Text>
+          </View>
+          <View style={offerStyles.tableRowAlt}>
+            <Text style={offerStyles.colKey}>Commencement Date</Text>
+            <Text style={offerStyles.colVal}>{dateStr}</Text>
+          </View>
+          <View style={offerStyles.tableRow}>
+            <Text style={offerStyles.colKey}>Estimated Completion</Text>
+            <Text style={offerStyles.colVal}>{endDateStr}</Text>
+          </View>
+          <View style={offerStyles.tableRowAlt}>
+            <Text style={offerStyles.colKey}>Stipend Specification</Text>
+            <Text style={offerStyles.colVal}>Unpaid (Performance-Based Internship)</Text>
+          </View>
+          <View style={offerStyles.tableRow}>
+            <Text style={offerStyles.colKey}>Location & Model</Text>
+            <Text style={offerStyles.colVal}>Remote / Virtual (Task-Based, Flexible Hours)</Text>
+          </View>
+          <View style={offerStyles.tableRowAlt}>
+            <Text style={offerStyles.colKey}>Official Domain Portal</Text>
+            <Text style={offerStyles.colVal}>https://skyrovix.in</Text>
+          </View>
+        </View>
+
+        {/* Card 1: GENERAL TERMS & CONDITIONS OF INTERNSHIP (5 terms) */}
+        <View style={offerStyles.cardBox}>
+          <Text style={offerStyles.cardTitle}>GENERAL TERMS & CONDITIONS OF INTERNSHIP:</Text>
+          <Text style={offerStyles.termItem}>
+            <Text style={offerStyles.bold}>1. Task Execution & Milestones: </Text>
+            You will work on production-grade tasks and project modules aligned with {domainName}. Timely submission of weekly progress updates and milestone deliverables via skyrovix.in is mandatory.
+          </Text>
+          <Text style={offerStyles.termItem}>
+            <Text style={offerStyles.bold}>2. Code of Conduct & Integrity: </Text>
+            Plagiarism, unauthorized code dissemination, or any form of professional misconduct will lead to immediate cancellation of your internship program.
+          </Text>
+          <Text style={offerStyles.termItem}>
+            <Text style={offerStyles.bold}>3. Confidentiality & Non-Disclosure: </Text>
+            Any documentation, source code, architecture designs, or mock datasets shared during this program are strictly confidential and the intellectual property of Skyrovix.
+          </Text>
+          <Text style={offerStyles.termItem}>
+            <Text style={offerStyles.bold}>4. Mentorship & Continuous Evaluation: </Text>
+            You will receive structured technical guidance and feedback throughout your tenure to foster industry-standard development capabilities.
+          </Text>
+          <Text style={offerStyles.termItem}>
+            <Text style={offerStyles.bold}>5. Certification: </Text>
+            An official Certificate of Internship Completion will be issued only upon successful submission and mentor approval of all milestone tasks.
+          </Text>
+        </View>
+
+        {/* Card 2: CERTIFICATE OF COMPLETION */}
+        <View style={offerStyles.cardBox}>
+          <Text style={offerStyles.cardTitle}>CERTIFICATE OF COMPLETION</Text>
+          <Text style={offerStyles.cardText}>
+            Upon successful completion of the internship tenure and fulfillment of all assigned tasks, you will receive an official Certificate of Internship from Skyrovix, verifiable on our official domain at skyrovix.in/verify-certificate.
+          </Text>
+        </View>
+
+        {/* Formal Acceptance closing sentence matching Reference */}
+        <Text style={offerStyles.acceptanceText}>
+          Please return the signed copy of this letter as a token of your formal acceptance of this offer. We look forward to a mutually rewarding learning experience.
+        </Text>
+
+        {/* Signatures & Seal Section: Hariharan S (Founder & CEO), Seal (Center), Maheshwaran S (Co-Founder) */}
+        <View style={offerStyles.authSection}>
+          {/* Founder & CEO on Left */}
+          <View style={offerStyles.signBlockLeft}>
+            <View style={offerStyles.signImgContainer}>
+              <Image src={imageAssets?.sigFounder ?? sigFounderImg} style={offerStyles.signImg} />
+            </View>
+            <View style={offerStyles.signLine} />
+            <Text style={offerStyles.signName}>Hariharan S</Text>
+            <Text style={offerStyles.signTitle}>Founder & CEO</Text>
+            <Text style={offerStyles.signOrg}>Skyrovix</Text>
+          </View>
+
+          {/* Company Seal in Center */}
+          <View style={offerStyles.centerSealBlock}>
+            <Image src={imageAssets?.seal ?? sealImg} style={offerStyles.sealImage} />
+            <Text style={offerStyles.sealLabel}>COMPANY SEAL</Text>
+          </View>
+
+          {/* Co-Founder on Right */}
+          <View style={offerStyles.signBlockRight}>
+            <View style={offerStyles.signImgContainerRight}>
+              <Image src={imageAssets?.sigCofounder ?? sigCofounderImg} style={offerStyles.signImg} />
+            </View>
+            <View style={offerStyles.signLine} />
+            <Text style={offerStyles.signName}>Maheshwaran S</Text>
+            <Text style={offerStyles.signTitle}>Co-Founder</Text>
+            <Text style={offerStyles.signOrg}>Skyrovix</Text>
+          </View>
+        </View>
+
+        {/* Footer: MSME & Partner on Left, Company & UDYAM in Center, YR Tech on Right */}
+        <View style={offerStyles.footer}>
+          <View style={offerStyles.footerLeft}>
+            <Image src={imageAssets?.msme ?? msmeImg} style={offerStyles.footerMsme} />
+            <Image src={imageAssets?.vinix ?? vinixImg} style={offerStyles.footerVinix} />
+          </View>
+          <View style={offerStyles.footerCenter}>
+            <Text style={offerStyles.footerCompanyName}>SKYROVIX IT Solutions Private Limited</Text>
+            <Text style={offerStyles.footerRegistry}>UDYAM Registry: UDYAM-TN-17-0076606</Text>
+            <Text style={offerStyles.footerContact}>skyrovix@gmail.com | www.skyrovix.in</Text>
+          </View>
+          <View style={offerStyles.footerRight}>
+            <Image src={imageAssets?.yrTech ?? yrTechImg} style={offerStyles.footerYrTech} />
           </View>
         </View>
       </Page>
     </Document>
+  );
+}
+
+export async function downloadOfferLetter(params: {
+  fullName: string;
+  internId: string;
+  domain: string;
+  issuedAt: string;
+  duration?: number;
+  imageAssets?: ImageAssets;
+}) {
+  await downloadPdf(
+    <OfferLetterDoc {...params} />,
+    `OfferLetter_${params.internId}.pdf`
   );
 }
 
