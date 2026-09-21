@@ -127,7 +127,7 @@ function ContactPage() {
                             >
                               {link.label}
                             </a>
-                            {idx < it.links.length - 1 && (
+                            {idx < (it.links?.length ?? 0) - 1 && (
                               <span className="text-muted-foreground/50">·</span>
                             )}
                           </span>

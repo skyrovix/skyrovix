@@ -28,7 +28,7 @@ function Portal({ children }: { children: React.ReactNode }) {
 }
 
 const defaultForm = {
-  code: "", description: "", discount_type: "percentage" as "percentage" | "fixed",
+  code: "", description: "", discount_type: "percentage" as "percentage" | "fixed" | "free",
   discount_value: 10, max_uses: 0, min_amount: 0, max_discount_amount: "",
   expires_at: "", applicable_domains: [] as string[],
 };
@@ -46,7 +46,7 @@ export function PromotionsSection() {
     queryKey: ["admin-coupons"],
     queryFn: async () => {
       const { data } = await supabase.from("coupons" as any).select("*").order("created_at" as any, { ascending: false });
-      return (data ?? []) as CouponRow[];
+      return (data ?? []) as unknown as CouponRow[];
     },
   });
 
@@ -128,10 +128,10 @@ export function PromotionsSection() {
     setForm({
       code: c.code,
       description: c.description,
-      discount_type: c.discount_type,
+      discount_type: (c.discount_type as any) ?? "percentage",
       discount_value: c.discount_value,
       max_uses: c.max_uses,
-      min_amount: c.min_amount,
+      min_amount: c.min_amount ?? 0,
       max_discount_amount: c.max_discount_amount?.toString() ?? "",
       expires_at: c.expires_at ? new Date(c.expires_at).toISOString().slice(0, 16) : "",
       applicable_domains: c.applicable_domains ?? [],
@@ -140,7 +140,7 @@ export function PromotionsSection() {
   };
 
   const toggleActive = async (c: CouponRow) => {
-    const { error } = await supabase.from("coupons" as any).update({ is_active: !c.is_active }).eq("id" as any, c.id);
+    const { error } = await (supabase.from("coupons" as any) as any).update({ is_active: !c.is_active }).eq("id", c.id);
     if (error) { toast.error(error.message); return; }
     toast.success(`Coupon ${c.is_active ? "deactivated" : "activated"}`);
     qc.invalidateQueries({ queryKey: ["admin-coupons"] });
@@ -148,7 +148,7 @@ export function PromotionsSection() {
 
   const deleteCoupon = async (c: CouponRow) => {
     if (!confirm(`Delete coupon "${c.code}"? This cannot be undone.`)) return;
-    const { error } = await supabase.from("coupons" as any).delete().eq("id" as any, c.id);
+    const { error } = await (supabase.from("coupons" as any) as any).delete().eq("id", c.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Coupon deleted");
     qc.invalidateQueries({ queryKey: ["admin-coupons"] });
@@ -177,11 +177,11 @@ export function PromotionsSection() {
       };
 
       if (editId) {
-        const { error } = await supabase.from("coupons" as any).update(payload).eq("id" as any, editId);
+        const { error } = await (supabase.from("coupons" as any) as any).update(payload).eq("id", editId);
         if (error) throw error;
         toast.success("Coupon updated");
       } else {
-        const { error } = await supabase.from("coupons" as any).insert(payload);
+        const { error } = await (supabase.from("coupons" as any) as any).insert(payload);
         if (error) throw error;
         toast.success("Coupon created");
       }

@@ -26,7 +26,7 @@ export const trackLogin = createServerFn({ method: "POST" })
     const { studentId, internId, studentName, email, domain, college, device, browser, os } = data;
     if (!studentId) return { success: false, error: "Student ID required" };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { dbQuery } = await import("@/lib/db.server");
 
     const headers = request?.headers;
     const ip = headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim()
@@ -45,31 +45,33 @@ export const trackLogin = createServerFn({ method: "POST" })
       } catch {}
     }
 
-    const { data: session, error } = await (supabaseAdmin
-      .from("login_sessions" as any) as any)
-      .insert({
-        student_id: studentId,
-        intern_id: internId || null,
-        student_name: studentName || null,
-        email: email || null,
-        domain: domain || null,
-        college: college || null,
-        login_time: new Date().toISOString(),
-        last_active: new Date().toISOString(),
-        status: "online",
-        ip_address: ip || null,
-        device: device || null,
-        browser: browser || null,
-        os: os || null,
-        country: country || null,
-        state: state || null,
-        city: city || null,
-      })
-      .select("id")
-      .single();
-
-    if (error) return { success: false, error: error.message };
-    return { success: true, sessionId: session?.id };
+    try {
+      const res = await dbQuery(
+        `INSERT INTO public.login_sessions 
+         (student_id, intern_id, student_name, email, domain, college, login_time, last_active, status, ip_address, device, browser, os, country, state, city)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), 'online', $7, $8, $9, $10, $11, $12, $13)
+         RETURNING id`,
+        [
+          studentId,
+          internId || null,
+          studentName || null,
+          email || null,
+          domain || null,
+          college || null,
+          ip || null,
+          device || null,
+          browser || null,
+          os || null,
+          country || null,
+          state || null,
+          city || null,
+        ]
+      );
+      return { success: true, sessionId: res.rows[0]?.id };
+    } catch (err: any) {
+      console.error("[login-tracker] Error tracking login:", err);
+      return { success: false, error: err.message };
+    }
   });
 
 export const heartbeat = createServerFn({ method: "POST" })
@@ -78,13 +80,13 @@ export const heartbeat = createServerFn({ method: "POST" })
     const { sessionId } = data;
     if (!sessionId) return { success: false };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await (supabaseAdmin
-      .from("login_sessions" as any) as any)
-      .update({ last_active: new Date().toISOString() })
-      .eq("id", sessionId);
-
-    return { success: true };
+    try {
+      const { dbQuery } = await import("@/lib/db.server");
+      await dbQuery("UPDATE public.login_sessions SET last_active = NOW() WHERE id = $1", [sessionId]);
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   });
 
 export const markOffline = createServerFn({ method: "POST" })
@@ -93,32 +95,29 @@ export const markOffline = createServerFn({ method: "POST" })
     const { sessionId } = data;
     if (!sessionId) return { success: false };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await (supabaseAdmin
-      .from("login_sessions" as any) as any)
-      .update({
-        status: "offline",
-        logout_time: new Date().toISOString(),
-        last_active: new Date().toISOString(),
-      })
-      .eq("id", sessionId);
-
-    return { success: true };
+    try {
+      const { dbQuery } = await import("@/lib/db.server");
+      await dbQuery(
+        "UPDATE public.login_sessions SET status = 'offline', logout_time = NOW(), last_active = NOW() WHERE id = $1",
+        [sessionId]
+      );
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   });
 
 export const markStaleSessionsOffline = createServerFn({ method: "POST" })
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-
-    const { data: stale } = await (supabaseAdmin
-      .from("login_sessions" as any) as any)
-      .update({
-        status: "offline",
-      })
-      .eq("status", "online")
-      .lt("last_active", cutoff)
-      .select("id");
-
-    return { success: true, markedCount: stale?.length ?? 0 };
+    try {
+      const { dbQuery } = await import("@/lib/db.server");
+      const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      const res = await dbQuery(
+        "UPDATE public.login_sessions SET status = 'offline' WHERE status = 'online' AND last_active < $1 RETURNING id",
+        [cutoff]
+      );
+      return { success: true, markedCount: res.rowCount ?? 0 };
+    } catch {
+      return { success: false, markedCount: 0 };
+    }
   });

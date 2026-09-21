@@ -9,7 +9,11 @@ function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_URL;
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || DEFAULT_ANON_KEY;
+  let SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+
+  if (!SUPABASE_PUBLISHABLE_KEY || (!SUPABASE_PUBLISHABLE_KEY.startsWith("eyJ") && !SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_"))) {
+    SUPABASE_PUBLISHABLE_KEY = DEFAULT_ANON_KEY;
+  }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {

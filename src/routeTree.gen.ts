@@ -23,6 +23,9 @@ import { Route as NavbarLayoutRouteImport } from './routes/_navbar-layout'
 import { Route as DomainsIndexRouteImport } from './routes/domains.index'
 import { Route as NavbarLayoutIndexRouteImport } from './routes/_navbar-layout/index'
 import { Route as DomainsSlugRouteImport } from './routes/domains.$slug'
+import { Route as AdminPaymentVerificationRouteImport } from './routes/admin.payment-verification'
+import { Route as AdminFeeSettingsRouteImport } from './routes/admin.fee-settings'
+import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as NavbarLayoutFounderRouteImport } from './routes/_navbar-layout/founder'
 import { Route as NavbarLayoutAboutRouteImport } from './routes/_navbar-layout/about'
 import { Route as NavbarLayoutAuthenticatedRouteRouteImport } from './routes/_navbar-layout/_authenticated/route'
@@ -106,6 +109,22 @@ const DomainsSlugRoute = DomainsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => DomainsRoute,
 } as any)
+const AdminPaymentVerificationRoute =
+  AdminPaymentVerificationRouteImport.update({
+    id: '/payment-verification',
+    path: '/payment-verification',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminFeeSettingsRoute = AdminFeeSettingsRouteImport.update({
+  id: '/fee-settings',
+  path: '/fee-settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCouponsRoute = AdminCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
+  getParentRoute: () => AdminRoute,
+} as any)
 const NavbarLayoutFounderRoute = NavbarLayoutFounderRouteImport.update({
   id: '/founder',
   path: '/founder',
@@ -181,7 +200,7 @@ const NavbarLayoutCoursesSlugDetailsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof NavbarLayoutIndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/domains': typeof DomainsRouteWithChildren
@@ -193,6 +212,9 @@ export interface FileRoutesByFullPath {
   '/verify-certificate': typeof VerifyCertificateRoute
   '/about': typeof NavbarLayoutAboutRoute
   '/founder': typeof NavbarLayoutFounderRoute
+  '/admin/coupons': typeof AdminCouponsRoute
+  '/admin/fee-settings': typeof AdminFeeSettingsRoute
+  '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
   '/domains/': typeof DomainsIndexRoute
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
@@ -207,7 +229,7 @@ export interface FileRoutesByFullPath {
   '/projects/$id/submit': typeof NavbarLayoutProjectsIdSubmitRoute
 }
 export interface FileRoutesByTo {
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -219,6 +241,9 @@ export interface FileRoutesByTo {
   '/': typeof NavbarLayoutIndexRoute
   '/about': typeof NavbarLayoutAboutRoute
   '/founder': typeof NavbarLayoutFounderRoute
+  '/admin/coupons': typeof AdminCouponsRoute
+  '/admin/fee-settings': typeof AdminFeeSettingsRoute
+  '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
   '/domains': typeof DomainsIndexRoute
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
@@ -235,7 +260,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_navbar-layout': typeof NavbarLayoutRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/domains': typeof DomainsRouteWithChildren
@@ -248,6 +273,9 @@ export interface FileRoutesById {
   '/_navbar-layout/_authenticated': typeof NavbarLayoutAuthenticatedRouteRouteWithChildren
   '/_navbar-layout/about': typeof NavbarLayoutAboutRoute
   '/_navbar-layout/founder': typeof NavbarLayoutFounderRoute
+  '/admin/coupons': typeof AdminCouponsRoute
+  '/admin/fee-settings': typeof AdminFeeSettingsRoute
+  '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
   '/_navbar-layout/': typeof NavbarLayoutIndexRoute
   '/domains/': typeof DomainsIndexRoute
@@ -278,6 +306,9 @@ export interface FileRouteTypes {
     | '/verify-certificate'
     | '/about'
     | '/founder'
+    | '/admin/coupons'
+    | '/admin/fee-settings'
+    | '/admin/payment-verification'
     | '/domains/$slug'
     | '/domains/'
     | '/dashboard'
@@ -304,6 +335,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/founder'
+    | '/admin/coupons'
+    | '/admin/fee-settings'
+    | '/admin/payment-verification'
     | '/domains/$slug'
     | '/domains'
     | '/dashboard'
@@ -332,6 +366,9 @@ export interface FileRouteTypes {
     | '/_navbar-layout/_authenticated'
     | '/_navbar-layout/about'
     | '/_navbar-layout/founder'
+    | '/admin/coupons'
+    | '/admin/fee-settings'
+    | '/admin/payment-verification'
     | '/domains/$slug'
     | '/_navbar-layout/'
     | '/domains/'
@@ -349,7 +386,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   NavbarLayoutRoute: typeof NavbarLayoutRouteWithChildren
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DomainsRoute: typeof DomainsRouteWithChildren
@@ -461,6 +498,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/domains/$slug'
       preLoaderRoute: typeof DomainsSlugRouteImport
       parentRoute: typeof DomainsRoute
+    }
+    '/admin/payment-verification': {
+      id: '/admin/payment-verification'
+      path: '/payment-verification'
+      fullPath: '/admin/payment-verification'
+      preLoaderRoute: typeof AdminPaymentVerificationRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/fee-settings': {
+      id: '/admin/fee-settings'
+      path: '/fee-settings'
+      fullPath: '/admin/fee-settings'
+      preLoaderRoute: typeof AdminFeeSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/coupons': {
+      id: '/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_navbar-layout/founder': {
       id: '/_navbar-layout/founder'
@@ -606,6 +664,20 @@ const NavbarLayoutRouteWithChildren = NavbarLayoutRoute._addFileChildren(
   NavbarLayoutRouteChildren,
 )
 
+interface AdminRouteChildren {
+  AdminCouponsRoute: typeof AdminCouponsRoute
+  AdminFeeSettingsRoute: typeof AdminFeeSettingsRoute
+  AdminPaymentVerificationRoute: typeof AdminPaymentVerificationRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCouponsRoute: AdminCouponsRoute,
+  AdminFeeSettingsRoute: AdminFeeSettingsRoute,
+  AdminPaymentVerificationRoute: AdminPaymentVerificationRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface DomainsRouteChildren {
   DomainsSlugRoute: typeof DomainsSlugRoute
   DomainsIndexRoute: typeof DomainsIndexRoute
@@ -621,7 +693,7 @@ const DomainsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   NavbarLayoutRoute: NavbarLayoutRouteWithChildren,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DomainsRoute: DomainsRouteWithChildren,

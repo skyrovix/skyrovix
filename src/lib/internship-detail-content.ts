@@ -114,7 +114,7 @@ function detail(
       { question: "How long does the internship last?", answer: "You can choose from 1 to 6 months depending on your availability and learning goals." },
       { question: "Is this a remote internship?", answer: "Yes, the internship is fully remote with flexible timings. You can work from anywhere." },
       { question: "Will I get mentor support?", answer: "Yes, you will be assigned a dedicated mentor who will guide you throughout the internship." },
-      { question: "Do I need to pay for the internship?", answer: "The internship is free to start. A nominal certificate fee applies upon completion." },
+      { question: "Do I need to pay for the internship?", answer: "A nominal application processing fee applies at the time of application. The certificate is provided 100% FREE of charge after successful completion and admin verification of all tasks." },
     ],
     mentors: o.mentors ?? [
       { name: "Hariharan S", title: "Founder & Lead Mentor" },
@@ -450,4 +450,145 @@ export const INTERNSHIP_DETAILS: Record<string, InternshipDetail> = {
     ],
     skills: ["Blender", "3D Modeling", "UV Unwrapping", "PBR Texturing", "Lighting", "Rendering", "Compositing", "Sculpting"],
   }),
+  genai: detail({
+    tagline: "Harness LLMs, OpenAI API, prompt engineering, and generative AI workflow development.",
+    longDescription: "Generative AI is revolutionizing how software is built. In this internship, you will design advanced prompt architectures, integrate state-of-the-art LLM APIs, build autonomous AI assistants, implement retrieval-augmented generation (RAG), and create production-ready generative AI applications.",
+    projects: [
+      { title: "AI Chatbot", description: "Build an intelligent chatbot with context handling and prompt optimization.", difficulty: "Beginner" },
+      { title: "AI Resume & Study Assistant", description: "AI-powered document and interview preparation tools.", difficulty: "Intermediate" },
+      { title: "AI Code & Content Generator", description: "Multi-purpose generation platform with structured output validation.", difficulty: "Intermediate" },
+      { title: "AI Document Q&A Assistant", description: "Enterprise RAG document question answering system.", difficulty: "Advanced" },
+    ],
+    skills: ["Prompt Engineering", "OpenAI API", "LangChain", "LLMs", "RAG", "Embeddings", "Python", "Vector Databases"],
+  }),
+  powerbi: detail({
+    tagline: "Create interactive business intelligence dashboards, DAX measures, and enterprise analytics.",
+    longDescription: "Power BI transforms fragmented data into rich visual stories that empower executive decision-making. Learn data ingestion with Power Query, complex DAX calculations, dimensional data modeling, custom KPI scorecards, and interactive dashboard publishing.",
+    projects: [
+      { title: "Sales Performance Dashboard", description: "Executive KPI sales dashboard with slicers, trend lines, and forecast views.", difficulty: "Beginner" },
+      { title: "HR & Finance Analytics", description: "Departmental performance, headcount turnover, and financial cashflow dashboards.", difficulty: "Intermediate" },
+      { title: "Hospital & Healthcare KPI Portal", description: "Patient admission, bed occupancy, and treatment outcome monitoring.", difficulty: "Intermediate" },
+      { title: "Executive KPI Dashboard (Capstone)", description: "Cross-functional enterprise intelligence suite with automated drill-down reports.", difficulty: "Advanced" },
+    ],
+    skills: ["Power BI", "DAX", "Power Query", "Data Modeling", "Business Intelligence", "KPI Dashboards", "Excel", "SQL"],
+  }),
+  devops: detail({
+    tagline: "Master CI/CD pipelines, Docker containerization, automated deployments, and infrastructure monitoring.",
+    longDescription: "Bridge the gap between development and operations. Gain practical experience writing automated GitHub Actions / Jenkins CI/CD pipelines, containerizing multi-tier applications with Docker, managing releases, and configuring monitoring with Prometheus and Grafana.",
+    projects: [
+      { title: "Git Workflow & CI/CD Pipeline", description: "Automated linting, testing, and artifact building on code push.", difficulty: "Beginner" },
+      { title: "Dockerized Web App", description: "Multi-container application packaging with Docker Compose.", difficulty: "Intermediate" },
+      { title: "Infrastructure Monitoring System", description: "System metrics collection, health dashboards, and alert triggers.", difficulty: "Intermediate" },
+      { title: "Automated Backup & Release Pipeline (Capstone)", description: "Zero-downtime deployment pipeline with automated database backups.", difficulty: "Advanced" },
+    ],
+    skills: ["Git & GitHub", "Docker", "Kubernetes", "CI/CD", "GitHub Actions", "Linux", "Nginx", "Monitoring"],
+  }),
+  softwaretesting: detail({
+    tagline: "Master manual testing, test automation, Selenium, API testing, and defect tracking.",
+    longDescription: "Quality assurance is critical to shipping reliable software. Master test plan development, test case authoring, boundary value analysis, automated browser testing with Selenium/Cypress, Postman API verification, regression cycles, and bug lifecycle reporting.",
+    projects: [
+      { title: "Test Plan & Test Suite for E-Commerce", description: "Comprehensive test scenario catalog covering cart, checkout, and inventory.", difficulty: "Beginner" },
+      { title: "API & Login Testing Suite", description: "Automated endpoint validation, payload checks, and authentication security tests.", difficulty: "Intermediate" },
+      { title: "Cross-Browser & Performance Testing", description: "Multi-browser matrix test automation and load response profiling.", difficulty: "Intermediate" },
+      { title: "End-to-End Test Automation Demo (Capstone)", description: "Automated test runner integrated with CI pipeline and defect reporting.", difficulty: "Advanced" },
+    ],
+    skills: ["Manual Testing", "Test Automation", "Selenium", "Postman", "API Testing", "Bug Tracking", "Regression Testing", "Test Reporting"],
+  }),
+  mobileapp: detail({
+    tagline: "Build high-performance, responsive mobile apps with clean navigation and API integration.",
+    longDescription: "Learn modern mobile application development from the ground up. Design fluid, responsive mobile interfaces, implement persistent local storage, connect to REST APIs, manage complex client state, and package apps for Android and iOS distribution.",
+    projects: [
+      { title: "Student Management App", description: "Mobile interface for student records, timetable, and attendance tracking.", difficulty: "Beginner" },
+      { title: "Expense Tracker & Notes App", description: "Offline-first mobile utilities with local database storage and charts.", difficulty: "Intermediate" },
+      { title: "Food Ordering & Event App", description: "Interactive product feeds, checkout workflows, and location services.", difficulty: "Intermediate" },
+      { title: "Appointment Booking App (Capstone)", description: "Real-time service booking app with notifications and profile management.", difficulty: "Advanced" },
+    ],
+    skills: ["Mobile UI", "React Native / Android", "TypeScript", "REST APIs", "State Management", "Local Storage", "Push Notifications"],
+  }),
+  flutter: detail({
+    tagline: "Build stunning, natively compiled cross-platform apps using Dart and the Flutter framework.",
+    longDescription: "Flutter allows you to craft beautiful, natively compiled applications for mobile, web, and desktop from a single codebase. Master Flutter widgets, reactive state management, animations, HTTP networking, and Firebase backend integration.",
+    projects: [
+      { title: "Flutter Expense Tracker", description: "Cross-platform personal finance tracker with custom widgets and animations.", difficulty: "Beginner" },
+      { title: "Flutter Quiz & Notes App", description: "Interactive quiz game and markdown note manager with local persistence.", difficulty: "Intermediate" },
+      { title: "Flutter Food Ordering & E-Commerce UI", description: "Modern catalog navigation, cart management, and checkout flows.", difficulty: "Intermediate" },
+      { title: "Flutter Appointment & Task Manager (Capstone)", description: "Production-grade multi-screen appointment scheduling application.", difficulty: "Advanced" },
+    ],
+    skills: ["Flutter", "Dart", "Widgets", "State Management", "Provider / Bloc", "Firebase Integration", "REST APIs", "Mobile UI"],
+  }),
+  socialmedia: detail({
+    tagline: "Develop data-driven social media growth campaigns, publishing strategies, and engagement analytics.",
+    longDescription: "Social media management is essential for modern business growth. Learn audience persona profiling, content calendar scheduling, hashtag optimization, engagement growth strategies, social media audits, and monthly analytics reporting across Instagram, LinkedIn, and YouTube.",
+    projects: [
+      { title: "Instagram Content Calendar & Hashtag Plan", description: "Structured 30-day posting schedule with targeted hashtag research.", difficulty: "Beginner" },
+      { title: "LinkedIn & YouTube Strategy", description: "B2B thought leadership content matrix and video publishing roadmap.", difficulty: "Intermediate" },
+      { title: "Brand Page Setup & Audit", description: "Comprehensive brand page optimization, bio copywriting, and competitor benchmark.", difficulty: "Intermediate" },
+      { title: "Monthly Social Media Growth Report (Capstone)", description: "Full-funnel organic engagement analysis with ROI insights and recommendations.", difficulty: "Advanced" },
+    ],
+    skills: ["Social Media Strategy", "Content Calendars", "Audience Growth", "Analytics & Insights", "Copywriting", "Hashtag Research", "Campaign Management"],
+  }),
+  contentwriting: detail({
+    tagline: "Master SEO content writing, technology blogging, copywriting, and technical documentation.",
+    longDescription: "High-impact writing drives traffic, educates users, and converts prospects. Learn search-engine-optimized blogging, product storytelling, persuasive landing page copywriting, technical API documentation, email newsletters, and thought leadership articles.",
+    projects: [
+      { title: "SEO Blog Series & Technology Articles", description: "Keyword-researched, high-ranking long-form technical tutorials.", difficulty: "Beginner" },
+      { title: "Landing Page Copy & Social Content Pack", description: "Conversion-optimized headline, value proposition, and CTA copywriting.", difficulty: "Intermediate" },
+      { title: "Press Release & Technical Documentation", description: "Structured developer documentation and formal brand announcements.", difficulty: "Intermediate" },
+      { title: "Comprehensive Case Study & Portfolio (Capstone)", description: "In-depth corporate case study showcasing problem, solution, and quantifiable results.", difficulty: "Advanced" },
+    ],
+    skills: ["SEO Writing", "Content Strategy", "Copywriting", "Technical Writing", "Keyword Research", "Editing & Proofreading", "Blogging"],
+  }),
+  wordpress: detail({
+    tagline: "Design and customize responsive WordPress websites, WooCommerce stores, and custom themes.",
+    longDescription: "Powering over 40% of the web, WordPress is a powerhouse CMS. Learn theme customization, visual page builders, dynamic custom post types, WooCommerce digital store configuration, contact form workflows, performance optimization, and search engine SEO.",
+    projects: [
+      { title: "Business & Portfolio Website", description: "Mobile-responsive company showcase with custom branding and inquiry forms.", difficulty: "Beginner" },
+      { title: "Blog & Restaurant Portal", description: "Dynamic content categorization, table reservation system, and menu displays.", difficulty: "Intermediate" },
+      { title: "E-Commerce Store (WooCommerce)", description: "Product catalog, shopping cart, coupon system, and payment gateway setup.", difficulty: "Intermediate" },
+      { title: "Service Booking & Agency Platform (Capstone)", description: "Full-featured client booking and agency showcase with speed optimization.", difficulty: "Advanced" },
+    ],
+    skills: ["WordPress", "WooCommerce", "Theme Customization", "Elementor", "SEO Best Practices", "Speed Optimization", "Plugin Configuration"],
+  }),
+  databasemanagement: detail({
+    tagline: "Master relational schema design, SQL query optimization, transaction integrity, and backups.",
+    longDescription: "Databases form the backbone of every serious software application. Dive deep into third-normal-form relational schema design, entity relationship diagrams (ERDs), complex multi-table SQL joins, stored procedures, indexing for high performance, and backup disaster recovery.",
+    projects: [
+      { title: "Library & Student Database Schema", description: "Normalized relational schemas with primary/foreign keys and validation constraints.", difficulty: "Beginner" },
+      { title: "E-Commerce & Hospital Database", description: "Multi-entity transactional database with order processing and inventory ledgers.", difficulty: "Intermediate" },
+      { title: "Vehicle Rental & Hotel Booking System", description: "Availability checking queries, conflict resolution, and reporting views.", difficulty: "Intermediate" },
+      { title: "Database Backup & Reporting Suite (Capstone)", description: "Automated scheduled backup procedures, data audit logs, and analytical reports.", difficulty: "Advanced" },
+    ],
+    skills: ["PostgreSQL", "MySQL", "SQL Queries", "Schema Design", "Normalization", "Indexing & Optimization", "Database Administration", "Data Integrity"],
+  }),
+  gamedevelopment: detail({
+    tagline: "Build interactive 2D and 3D games with physics engines, sound effects, and gameplay loops.",
+    longDescription: "Step into the exciting world of game engineering. Learn game loop architecture, sprite animation, player input handling, 2D physics and collision detection, audio soundscapes, high-score tracking, and level design across puzzle, arcade, and adventure genres.",
+    projects: [
+      { title: "2D Platformer & Arcade Game", description: "Classic physics-based jumping mechanics, tilemaps, collectibles, and enemy AI.", difficulty: "Beginner" },
+      { title: "Snake, Memory & Puzzle Games", description: "Grid-based logic games with state saving, timers, and difficulty scaling.", difficulty: "Intermediate" },
+      { title: "Space Shooter & Car Racing Demo", description: "Fast-paced action gameplay with particle explosions and scoreboards.", difficulty: "Intermediate" },
+      { title: "Chess & Educational Game (Capstone)", description: "Strategic rule-based board game with move validation and polished UI.", difficulty: "Advanced" },
+    ],
+    skills: ["Game Mechanics", "Game Loop Architecture", "Physics & Collisions", "2D/3D Math", "UI & Controls", "Game Design", "Audio Integration"],
+  }),
 };
+
+export function getInternshipDetail(slug: string): InternshipDetail | undefined {
+  if (!slug) return undefined;
+  const direct = INTERNSHIP_DETAILS[slug];
+  if (direct) return direct;
+
+  const aliases: Record<string, string> = {
+    generativeai: "genai",
+    promptengineering: "genai",
+    flutterdevelopment: "flutter",
+    androiddevelopment: "mobileapp",
+    reactnative: "mobileapp",
+  };
+  const aliasedKey = aliases[slug.toLowerCase()];
+  if (aliasedKey && INTERNSHIP_DETAILS[aliasedKey]) {
+    return INTERNSHIP_DETAILS[aliasedKey];
+  }
+
+  return undefined;
+}

@@ -66,21 +66,17 @@ export function ProjectSubmissionsSection() {
     queryKey: ["admin-project-submissions"],
     queryFn: async () => {
       const [subsRes, appsRes, evalsRes, certsRes, awardsRes] = await Promise.all([
-        supabase
-          .from("project_submissions")
+        (supabase.from("project_submissions" as any) as any)
           .select("*, project_challenges(id, title, project_id, technologies, industry)")
           .order("updated_at", { ascending: false }),
         supabase
           .from("applications")
           .select("user_id, full_name, intern_id, college, email"),
-        supabase
-          .from("project_evaluations")
+        (supabase.from("project_evaluations" as any) as any)
           .select("*"),
-        supabase
-          .from("project_certificates")
+        (supabase.from("project_certificates" as any) as any)
           .select("*"),
-        supabase
-          .from("project_awards")
+        (supabase.from("project_awards" as any) as any)
           .select("*")
       ]);
 
@@ -90,10 +86,10 @@ export function ProjectSubmissionsSection() {
       if (certsRes.error) throw certsRes.error;
       if (awardsRes.error) throw awardsRes.error;
 
-      const appMap = new Map(appsRes.data?.map(a => [a.user_id, a]) ?? []);
-      const evalMap = new Map(evalsRes.data?.map(e => [e.submission_id, e]) ?? []);
-      const certMap = new Map(certsRes.data?.map(c => [c.submission_id, c]) ?? []);
-      const awardMap = new Map(awardsRes.data?.map(a => [a.submission_id, a]) ?? []);
+      const appMap = new Map(appsRes.data?.map((a: any) => [a.user_id, a]) ?? []);
+      const evalMap = new Map(evalsRes.data?.map((e: any) => [e.submission_id, e]) ?? []);
+      const certMap = new Map(certsRes.data?.map((c: any) => [c.submission_id, c]) ?? []);
+      const awardMap = new Map(awardsRes.data?.map((a: any) => [a.submission_id, a]) ?? []);
 
       return (subsRes.data ?? []).map((s: any) => ({
         ...s,
@@ -150,15 +146,15 @@ export function ProjectSubmissionsSection() {
         ...scores
       };
 
-      const { error: evalError } = await supabase
-        .from("project_evaluations")
+      const { error: evalError } = await (supabase
+        .from("project_evaluations" as any) as any)
         .upsert(evalData, { onConflict: "submission_id" });
 
       if (evalError) throw evalError;
 
       // 3. Update project_submissions status to approved and store final_score
-      const { error: subError } = await supabase
-        .from("project_submissions")
+      const { error: subError } = await (supabase
+        .from("project_submissions" as any) as any)
         .update({
           status: "approved",
           final_score: calculatedTotal,
@@ -172,8 +168,8 @@ export function ProjectSubmissionsSection() {
       // 4. Automatically generate or update completion certificate
       if (gradingSub.certificate) {
         // Update existing certificate score
-        const { error: certErr } = await supabase
-          .from("project_certificates")
+        const { error: certErr } = await (supabase
+          .from("project_certificates" as any) as any)
           .update({ final_score: calculatedTotal })
           .eq("submission_id", gradingSub.id);
         if (certErr) throw certErr;
@@ -183,8 +179,8 @@ export function ProjectSubmissionsSection() {
           throw new Error("Student profile details missing; cannot generate certificate.");
         }
         const cert_id = generateProjectCertId();
-        const { error: certErr } = await supabase
-          .from("project_certificates")
+        const { error: certErr } = await (supabase
+          .from("project_certificates" as any) as any)
           .insert({
             cert_id,
             submission_id: gradingSub.id,
@@ -221,8 +217,8 @@ export function ProjectSubmissionsSection() {
     setSubmittingReject(true);
 
     try {
-      const { error } = await supabase
-        .from("project_submissions")
+      const { error } = await (supabase
+        .from("project_submissions" as any) as any)
         .update({
           status: "rejected",
           notes: `[Rejection Notes] ${rejectReason}\n\nOriginal Notes: ${rejectingSub.notes || ""}`,
@@ -252,8 +248,8 @@ export function ProjectSubmissionsSection() {
 
     try {
       const cert_id = generateProjectCertId();
-      const { error } = await supabase
-        .from("project_certificates")
+      const { error } = await (supabase
+        .from("project_certificates" as any) as any)
         .insert({
           cert_id,
           submission_id: sub.id,
@@ -314,8 +310,8 @@ export function ProjectSubmissionsSection() {
 
     try {
       const award_id = generateAwardId();
-      const { error } = await supabase
-        .from("project_awards")
+      const { error } = await (supabase
+        .from("project_awards" as any) as any)
         .insert({
           award_id,
           user_id: awardingSub.user_id,

@@ -11,590 +11,3980 @@ export type DomainTasks = {
   name: string;
   icon: string;
   color: string;
+  description?: string;
   tasks: TaskData[];
 };
 
 export const ALL_DOMAINS_TASKS: DomainTasks[] = [
   {
-    slug: "fullstack",
-    name: "Full Stack Development",
-    icon: "FS",
-    color: "from-fuchsia-500 to-[#07284a]",
-    tasks: [
-      { taskNumber: 1, title: "Personal Portfolio Website", description: "Build a responsive portfolio website showcasing your projects, skills, experience, and resume.", features: ["React Frontend", "Node.js Backend", "Contact Form", "Responsive UI"], outcome: "Create a professional online presence and learn full-stack deployment workflows." },
-      { taskNumber: 2, title: "To-Do List Application", description: "Develop a task management application with user authentication and CRUD operations.", features: ["User Login/Register", "Task CRUD", "Due Dates & Priorities", "MongoDB Database"], outcome: "Understand authentication, database integration, and REST APIs." },
-      { taskNumber: 3, title: "Notes Management System", description: "Create a secure notes application where users can organize personal notes.", features: ["Secure Authentication", "Rich Text Notes", "Search & Filter", "Categories"], outcome: "Learn secure data management and CRUD functionality." },
-      { taskNumber: 4, title: "Expense Tracker", description: "Build an application to track income, expenses, and monthly budgets.", features: ["Income & Expense Tracking", "Charts & Reports", "Budget Management", "Export Data"], outcome: "Gain experience with data visualization and financial dashboards." },
-      { taskNumber: 5, title: "Student Management System", description: "Develop a portal to manage students, courses, attendance, and grades.", features: ["Student CRUD", "Attendance Management", "Grade Reports", "Admin Dashboard"], outcome: "Learn role-based access control and relational database concepts." },
-      { taskNumber: 6, title: "E-Commerce Store", description: "Create a complete online shopping platform with payment integration.", features: ["Product Catalog", "Shopping Cart", "Order Management", "Payment Gateway"], outcome: "Build a production-ready e-commerce application." },
-      { taskNumber: 7, title: "Blogging Platform", description: "Develop a full-featured blogging platform with user authentication.", features: ["User Authentication", "Blog CRUD", "Comments", "Rich Text Editor"], outcome: "Understand content management systems and user interactions." },
-      { taskNumber: 8, title: "Job Portal", description: "Build a recruitment portal connecting job seekers and employers.", features: ["Employer Dashboard", "Job Listings", "Resume Upload", "Application Tracking"], outcome: "Learn multi-user systems and workflow management." },
-      { taskNumber: 9, title: "Real-Time Chat Application", description: "Create a messaging platform supporting instant communication.", features: ["Real-Time Messaging", "Online Status", "File Sharing", "Notifications"], outcome: "Implement WebSockets and real-time application architecture." },
-      { taskNumber: 10, title: "Food Ordering System", description: "Develop an online food ordering platform for restaurants.", features: ["Restaurant Listings", "Menu Management", "Order Tracking", "Payment Integration"], outcome: "Build a scalable ordering and delivery workflow." },
-      { taskNumber: 11, title: "Learning Management System (LMS)", description: "Create an online learning platform for students and instructors.", features: ["Course Management", "Video Lessons", "Assignments", "Progress Tracking"], outcome: "Learn educational platform architecture and user roles." },
-      { taskNumber: 12, title: "AI-Powered Project Management System (Capstone)", description: "Build a professional project management platform with AI-powered features for teams.", features: ["Authentication & Roles", "Project & Task Management", "Team Collaboration", "AI Task Suggestions", "Analytics Dashboard", "File Uploads", "Notifications", "Deployment"], outcome: "Develop an enterprise-level full-stack application integrating frontend, backend, database, authentication, APIs, and AI capabilities to demonstrate industry-ready skills." },
-    ],
+    "slug": "fullstack",
+    "name": "Full Stack Development",
+    "icon": "FS",
+    "color": "from-fuchsia-500 to-[#07284a]",
+    "description": "End-to-end web apps with frontend, backend, databases, and APIs.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Library Management System",
+        "description": "Build a library management system as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working library management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Student Management Portal",
+        "description": "Build a student management portal as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working student management portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Online Course Platform",
+        "description": "Build a online course platform as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working online course platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "E-Commerce Website",
+        "description": "Build a e-commerce website as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working e-commerce website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Job Portal",
+        "description": "Build a job portal as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working job portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Hospital Management System",
+        "description": "Build a hospital management system as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working hospital management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Event Management Platform",
+        "description": "Build a event management platform as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working event management platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Food Delivery Website",
+        "description": "Build a food delivery website as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working food delivery website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Expense Tracker",
+        "description": "Build a expense tracker as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working expense tracker with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Inventory Management System",
+        "description": "Build a inventory management system as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working inventory management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Real Estate Listing Platform",
+        "description": "Build a real estate listing platform as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working real estate listing platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Online Appointment System",
+        "description": "Build a online appointment system as a practical virtual internship project using full stack development concepts.",
+        "features": [
+          "Responsive interface",
+          "database integration",
+          "CRUD operations",
+          "search and validation"
+        ],
+        "outcome": "Complete a working online appointment system with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "frontend",
-    name: "Frontend Development",
-    icon: "FE",
-    color: "from-pink-500 to-rose-600",
-    tasks: [
-      { taskNumber: 1, title: "Personal Portfolio Website", description: "Build a modern and responsive portfolio website to showcase your skills, projects, resume, and contact details.", features: ["Responsive Design", "Dark/Light Mode", "Animations", "Contact Form UI"], outcome: "Learn responsive web design, UI components, and frontend deployment." },
-      { taskNumber: 2, title: "Landing Page Design", description: "Design a professional landing page for a startup or product.", features: ["Hero Section", "Pricing Cards", "Testimonials", "Responsive Layout"], outcome: "Master layout design and responsive UI development." },
-      { taskNumber: 3, title: "To-Do List Application", description: "Develop a task management application with local storage.", features: ["Add/Edit/Delete Tasks", "Search Tasks", "Filters", "Local Storage"], outcome: "Learn state management and CRUD operations in frontend applications." },
-      { taskNumber: 4, title: "Weather Dashboard", description: "Build a weather application using a public API.", features: ["Weather API Integration", "Current Forecast", "7-Day Forecast", "Location Search"], outcome: "Understand API integration and asynchronous programming." },
-      { taskNumber: 5, title: "E-Commerce UI", description: "Design the frontend of an online shopping platform.", features: ["Product Listing", "Product Details", "Shopping Cart UI", "Wishlist"], outcome: "Learn component-based architecture and modern UI design." },
-      { taskNumber: 6, title: "Admin Dashboard", description: "Create a professional analytics dashboard.", features: ["Sidebar Navigation", "Charts & Graphs", "Tables", "Responsive Dashboard"], outcome: "Build reusable dashboard components and data visualization interfaces." },
-      { taskNumber: 7, title: "Movie Search Application", description: "Develop a movie browsing application using a movie API.", features: ["Search Movies", "Movie Details", "Trending Movies", "Favorites"], outcome: "Practice API consumption and dynamic rendering." },
-      { taskNumber: 8, title: "Food Delivery UI", description: "Build the frontend interface for a food ordering application.", features: ["Restaurant Listings", "Menu Display", "Cart UI", "Checkout Page"], outcome: "Develop real-world responsive frontend interfaces." },
-      { taskNumber: 9, title: "Social Media Dashboard", description: "Create a frontend interface for a social networking platform.", features: ["User Profile", "News Feed", "Stories", "Notifications UI"], outcome: "Learn advanced UI layouts and component management." },
-      { taskNumber: 10, title: "Chat Application UI", description: "Design a responsive messaging application interface.", features: ["Chat Window", "Contact List", "Typing Indicator", "Responsive Layout"], outcome: "Build modern chat interfaces with responsive design." },
-      { taskNumber: 11, title: "Learning Management System (LMS) UI", description: "Develop the frontend for an online learning platform.", features: ["Course Pages", "Video Player", "Student Dashboard", "Progress Tracker"], outcome: "Create a professional educational platform interface." },
-      { taskNumber: 12, title: "Enterprise SaaS Dashboard (Capstone)", description: "Build a production-ready frontend application for an enterprise SaaS platform.", features: ["Authentication UI", "Advanced Dashboard", "Charts & Analytics", "Theme Customization", "Responsive Design", "API Integration", "State Management", "Deployment"], outcome: "Develop an industry-standard frontend application demonstrating HTML5, CSS3, JavaScript, React/Next.js, Tailwind CSS, API integration, state management, responsive design, performance optimization, and deployment skills suitable for a professional portfolio." },
-    ],
+    "slug": "python",
+    "name": "Python Development",
+    "icon": "Py",
+    "color": "from-emerald-500 to-teal-600",
+    "description": "Versatile Python development for web apps, automation, and backend APIs.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Library Automation Tool",
+        "description": "Build a library automation tool as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working library automation tool with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Student Result Analyzer",
+        "description": "Build a student result analyzer as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working student result analyzer with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "File Management Utility",
+        "description": "Build a file management utility as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working file management utility with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Weather Dashboard",
+        "description": "Build a weather dashboard as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working weather dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Expense Tracker",
+        "description": "Build a expense tracker as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working expense tracker with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "QR Code Generator",
+        "description": "Build a qr code generator as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working qr code generator with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Password Manager Demo",
+        "description": "Build a password manager demo as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working password manager demo with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Web Scraping Dashboard",
+        "description": "Build a web scraping dashboard as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working web scraping dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Invoice Generator",
+        "description": "Build a invoice generator as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working invoice generator with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Email Automation Tool",
+        "description": "Build a email automation tool as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working email automation tool with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Employee Management System",
+        "description": "Build a employee management system as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working employee management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Python REST API",
+        "description": "Build a python rest api as a practical virtual internship project using python development concepts.",
+        "features": [
+          "Python modules",
+          "input validation",
+          "data processing",
+          "error handling"
+        ],
+        "outcome": "Complete a working python rest api with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "backend",
-    name: "Backend Development",
-    icon: "BE",
-    color: "from-blue-500 to-indigo-600",
-    tasks: [
-      { taskNumber: 1, title: "REST API for Portfolio", description: "Build a backend API to manage portfolio projects, skills, contact messages, and resume details.", features: ["RESTful APIs", "CRUD Operations", "Database Integration", "API Documentation"], outcome: "Learn backend fundamentals, API design, and database connectivity." },
-      { taskNumber: 2, title: "Authentication & Authorization API", description: "Develop a secure authentication system with user registration and login.", features: ["JWT Authentication", "Password Hashing", "Role-Based Access", "Refresh Tokens"], outcome: "Understand secure authentication and authorization practices." },
-      { taskNumber: 3, title: "Task Management API", description: "Create a backend service for managing tasks and projects.", features: ["CRUD APIs", "Task Status", "Due Dates", "Search & Filtering"], outcome: "Master REST APIs and database operations." },
-      { taskNumber: 4, title: "File Upload & Storage Service", description: "Build a backend service for uploading and managing files.", features: ["File Upload API", "Image Validation", "Cloud Storage Integration", "Download API"], outcome: "Learn file handling and cloud storage integration." },
-      { taskNumber: 5, title: "Blog Management API", description: "Develop a backend API for a blogging platform.", features: ["Blog CRUD", "Categories", "Comments API", "Search & Pagination"], outcome: "Understand CMS backend architecture." },
-      { taskNumber: 6, title: "Student Management System API", description: "Build backend services for managing students, courses, and attendance.", features: ["Student CRUD", "Course Management", "Attendance APIs", "Report Generation"], outcome: "Gain experience in relational data management and business logic." },
-      { taskNumber: 7, title: "E-Commerce Backend", description: "Develop backend services for an online shopping platform.", features: ["Product APIs", "Shopping Cart", "Order Management", "Payment Integration"], outcome: "Learn scalable backend architecture for e-commerce applications." },
-      { taskNumber: 8, title: "Online Examination API", description: "Create backend services for conducting online exams.", features: ["Question Bank", "Exam Management", "Auto Evaluation", "Result Generation"], outcome: "Understand secure examination workflows and automation." },
-      { taskNumber: 9, title: "Real-Time Chat Server", description: "Develop a backend server for instant messaging applications.", features: ["WebSocket Integration", "Real-Time Messaging", "Online Presence", "Notifications"], outcome: "Learn real-time communication using WebSockets." },
-      { taskNumber: 10, title: "Notification Service", description: "Build a centralized notification system for web applications.", features: ["Email Notifications", "SMS Integration", "Push Notifications", "Scheduled Jobs"], outcome: "Understand background processing and messaging services." },
-      { taskNumber: 11, title: "Microservices API Gateway", description: "Develop multiple backend services connected through an API Gateway.", features: ["API Gateway", "Service Discovery", "Authentication", "Logging & Monitoring"], outcome: "Learn microservices architecture and scalable backend systems." },
-      { taskNumber: 12, title: "Enterprise ERP Backend (Capstone)", description: "Build a production-ready backend for an Enterprise Resource Planning (ERP) system.", features: ["Authentication & RBAC", "Employee Management", "Inventory APIs", "Sales & Purchase APIs", "Payroll Management", "Reporting APIs", "Audit Logs", "Deployment & API Documentation"], outcome: "Develop an enterprise-grade backend application demonstrating Node.js/Express (or similar backend framework), RESTful APIs, database design, authentication, security, file handling, logging, caching, microservices concepts, and cloud deployment suitable for industry-level backend development." },
-    ],
+    "slug": "java",
+    "name": "Java Development",
+    "icon": "Jv",
+    "color": "from-red-500 to-orange-600",
+    "description": "Enterprise-grade software and backend systems with Java and Spring Boot.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Library Management System",
+        "description": "Build a library management system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working library management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Banking Management System",
+        "description": "Build a banking management system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working banking management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Student Management System",
+        "description": "Build a student management system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working student management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Employee Payroll System",
+        "description": "Build a employee payroll system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working employee payroll system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Inventory Management System",
+        "description": "Build a inventory management system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working inventory management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Online Examination System",
+        "description": "Build a online examination system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working online examination system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Hospital Management System",
+        "description": "Build a hospital management system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working hospital management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Hotel Booking System",
+        "description": "Build a hotel booking system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working hotel booking system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Vehicle Rental System",
+        "description": "Build a vehicle rental system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working vehicle rental system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Ticket Booking System",
+        "description": "Build a ticket booking system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working ticket booking system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Complaint Management System",
+        "description": "Build a complaint management system as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working complaint management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Java REST API",
+        "description": "Build a java rest api as a practical virtual internship project using java development concepts.",
+        "features": [
+          "OOP structure",
+          "database connectivity",
+          "validation",
+          "exception handling"
+        ],
+        "outcome": "Complete a working java rest api with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "datascience",
-    name: "Data Science",
-    icon: "DS",
-    color: "from-cyan-500 to-blue-600",
-    tasks: [
-      { taskNumber: 1, title: "Sales Data Analysis Dashboard", description: "Analyze sales data to identify trends, customer behavior, and business performance using Python.", features: ["Data Cleaning", "Exploratory Data Analysis (EDA)", "Sales Visualization", "Business Insights"], outcome: "Learn data preprocessing, visualization, and business analysis." },
-      { taskNumber: 2, title: "COVID-19 Data Analysis", description: "Analyze COVID-19 datasets to understand infection trends, recovery rates, and regional statistics.", features: ["Data Collection", "Trend Analysis", "Interactive Charts", "Statistical Summary"], outcome: "Understand real-world data analysis and visualization." },
-      { taskNumber: 3, title: "Student Performance Analytics", description: "Analyze student academic performance and identify factors affecting results.", features: ["Data Cleaning", "Correlation Analysis", "Performance Dashboard", "Report Generation"], outcome: "Learn educational data analysis techniques." },
-      { taskNumber: 4, title: "Customer Segmentation", description: "Segment customers into different groups based on purchasing behavior.", features: ["Data Preprocessing", "Clustering (K-Means)", "Customer Profiles", "Interactive Visualization"], outcome: "Understand unsupervised learning and customer analytics." },
-      { taskNumber: 5, title: "Stock Market Data Analysis", description: "Analyze historical stock market data to identify trends and investment insights.", features: ["Financial Data Analysis", "Time Series Visualization", "Technical Indicators", "Performance Reports"], outcome: "Learn financial data analytics and time-series analysis." },
-      { taskNumber: 6, title: "Employee Attrition Analysis", description: "Analyze HR data to identify factors contributing to employee turnover.", features: ["Employee Analytics", "Attrition Reports", "Data Visualization", "Insight Generation"], outcome: "Understand HR analytics and business intelligence." },
-      { taskNumber: 7, title: "Healthcare Data Analytics", description: "Analyze healthcare datasets to identify disease trends and patient statistics.", features: ["Medical Data Cleaning", "Disease Trend Analysis", "Interactive Dashboard", "Statistical Reports"], outcome: "Learn healthcare data analysis and reporting." },
-      { taskNumber: 8, title: "Social Media Sentiment Analysis", description: "Analyze social media posts to understand public sentiment using NLP techniques.", features: ["Text Preprocessing", "Sentiment Analysis", "Word Cloud", "Trend Visualization"], outcome: "Learn text analytics and Natural Language Processing." },
-      { taskNumber: 9, title: "Business Intelligence Dashboard", description: "Create a business intelligence dashboard to monitor KPIs and company performance.", features: ["KPI Dashboard", "Interactive Charts", "Business Reports", "Data Filtering"], outcome: "Develop professional business analytics dashboards." },
-      { taskNumber: 10, title: "E-Commerce Data Analytics", description: "Analyze e-commerce sales, customer behavior, and product performance.", features: ["Customer Analytics", "Product Performance", "Sales Forecasting", "Revenue Dashboard"], outcome: "Learn retail analytics and decision-making techniques." },
-      { taskNumber: 11, title: "Data Pipeline & ETL System", description: "Develop an automated ETL pipeline for collecting, transforming, and storing data.", features: ["Data Extraction", "Data Transformation", "Data Loading", "Automated Scheduling", "Data Validation"], outcome: "Learn data engineering fundamentals and ETL workflows." },
-      { taskNumber: 12, title: "Enterprise Data Science Platform (Capstone)", description: "Build a complete enterprise-level data science platform for collecting, processing, analyzing, and visualizing business data to generate actionable insights.", features: ["Automated ETL Pipeline", "Data Cleaning & Feature Engineering", "Exploratory Data Analysis (EDA)", "Interactive Dashboard", "Predictive Analytics", "Business Intelligence Reports", "Data Visualization", "Deployment"], outcome: "Build an industry-ready Data Science project demonstrating Python, Pandas, NumPy, Matplotlib, Plotly, Scikit-learn, SQL, ETL pipelines, statistical analysis, business intelligence, predictive analytics, dashboard development, and deployment suitable for a professional portfolio." },
-    ],
+    "slug": "mernstack",
+    "name": "MERN Stack Development",
+    "icon": "ME",
+    "color": "from-teal-500 to-cyan-600",
+    "description": "Full-stack JavaScript applications with MongoDB, Express, React, and Node.js.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Library Management System",
+        "description": "Build a library management system as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working library management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "E-Commerce Platform",
+        "description": "Build a e-commerce platform as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working e-commerce platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Student Portal",
+        "description": "Build a student portal as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working student portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Job Portal",
+        "description": "Build a job portal as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working job portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Food Ordering Platform",
+        "description": "Build a food ordering platform as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working food ordering platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Event Booking System",
+        "description": "Build a event booking system as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working event booking system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Expense Management App",
+        "description": "Build a expense management app as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working expense management app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Hospital Appointment System",
+        "description": "Build a hospital appointment system as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working hospital appointment system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Real Estate Portal",
+        "description": "Build a real estate portal as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working real estate portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Inventory Dashboard",
+        "description": "Build a inventory dashboard as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working inventory dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Learning Management System",
+        "description": "Build a learning management system as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working learning management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Car Rental Platform",
+        "description": "Build a car rental platform as a practical virtual internship project using mern stack development concepts.",
+        "features": [
+          "React UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working car rental platform with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "aiml",
-    name: "AI & Machine Learning",
-    icon: "AI",
-    color: "from-violet-500 to-[#07284a]",
-    tasks: [
-      { taskNumber: 1, title: "AI Chatbot", description: "Build an intelligent chatbot capable of answering user queries using Natural Language Processing (NLP).", features: ["Intent Recognition", "Context-Aware Responses", "Chat History", "User Authentication"], outcome: "Learn NLP fundamentals and chatbot development using Python." },
-      { taskNumber: 2, title: "House Price Prediction", description: "Develop a machine learning model to predict house prices based on historical data.", features: ["Data Preprocessing", "Feature Engineering", "Regression Models", "Performance Evaluation"], outcome: "Understand supervised learning and regression algorithms." },
-      { taskNumber: 3, title: "Student Performance Prediction", description: "Build a model to predict student academic performance.", features: ["Data Cleaning", "Classification Models", "Accuracy Evaluation", "Prediction Dashboard"], outcome: "Learn classification algorithms and model evaluation." },
-      { taskNumber: 4, title: "Face Recognition Attendance System", description: "Create an AI-powered attendance system using facial recognition.", features: ["Face Detection", "Face Recognition", "Attendance Logging", "Report Generation"], outcome: "Gain experience with OpenCV and computer vision." },
-      { taskNumber: 5, title: "Sentiment Analysis System", description: "Develop an NLP application that analyzes customer reviews and social media sentiment.", features: ["Text Preprocessing", "Sentiment Classification", "Data Visualization", "Report Dashboard"], outcome: "Learn text analytics and NLP techniques." },
-      { taskNumber: 6, title: "Medical Disease Prediction", description: "Build an AI system that predicts diseases based on patient symptoms.", features: ["Medical Dataset", "Disease Prediction", "Probability Scores", "Recommendation Module"], outcome: "Understand healthcare AI applications and classification models." },
-      { taskNumber: 7, title: "Recommendation System", description: "Develop a recommendation engine for movies, books, or products.", features: ["Content-Based Filtering", "Collaborative Filtering", "Personalized Recommendations", "User Profiles"], outcome: "Learn recommendation algorithms used in industry." },
-      { taskNumber: 8, title: "Object Detection System", description: "Create a real-time object detection application using deep learning.", features: ["YOLO/SSD Model", "Real-Time Camera Detection", "Bounding Boxes", "Confidence Scores"], outcome: "Gain hands-on experience in computer vision and deep learning." },
-      { taskNumber: 9, title: "Resume Screening System", description: "Build an AI-powered resume screening system for recruitment.", features: ["Resume Parsing", "Skill Extraction", "Candidate Ranking", "Job Matching"], outcome: "Learn document processing and NLP-based information extraction." },
-      { taskNumber: 10, title: "AI Voice Assistant", description: "Develop a virtual voice assistant capable of understanding and responding to voice commands.", features: ["Speech Recognition", "Text-to-Speech", "Voice Commands", "AI Responses"], outcome: "Understand speech processing and conversational AI." },
-      { taskNumber: 11, title: "AI Interview Evaluation System", description: "Build an AI platform that evaluates candidate interviews using speech and text analysis.", features: ["Speech-to-Text", "Emotion Analysis", "Confidence Score", "Performance Report", "AI Feedback"], outcome: "Learn multimodal AI, speech analysis, and candidate evaluation techniques." },
-      { taskNumber: 12, title: "AI-Powered Business Intelligence Platform (Capstone)", description: "Develop an enterprise AI platform that predicts business trends and generates intelligent insights from large datasets.", features: ["Machine Learning Pipeline", "Predictive Analytics", "Data Visualization Dashboard", "NLP-Based Report Generation", "Recommendation Engine", "Real-Time Prediction API", "Model Deployment", "User Authentication"], outcome: "Build an enterprise-grade AI & Machine Learning application demonstrating data preprocessing, feature engineering, supervised and unsupervised learning, deep learning, NLP, computer vision, model evaluation, deployment (Flask/FastAPI), and MLOps concepts suitable for an industry-ready portfolio." },
-    ],
+    "slug": "meanstack",
+    "name": "MEAN Stack Development",
+    "icon": "MA",
+    "color": "from-red-500 to-rose-600",
+    "description": "Modern web development with MongoDB, Express, Angular, and Node.js.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Library Management System",
+        "description": "Build a library management system as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working library management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "E-Commerce Platform",
+        "description": "Build a e-commerce platform as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working e-commerce platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Student Management Portal",
+        "description": "Build a student management portal as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working student management portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Employee Management System",
+        "description": "Build a employee management system as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working employee management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Online Course Platform",
+        "description": "Build a online course platform as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working online course platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Hospital Management System",
+        "description": "Build a hospital management system as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working hospital management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Event Management Platform",
+        "description": "Build a event management platform as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working event management platform with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Inventory Management System",
+        "description": "Build a inventory management system as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working inventory management system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Job Recruitment Portal",
+        "description": "Build a job recruitment portal as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working job recruitment portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Hotel Booking System",
+        "description": "Build a hotel booking system as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working hotel booking system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Vehicle Rental System",
+        "description": "Build a vehicle rental system as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working vehicle rental system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Service Booking Platform",
+        "description": "Build a service booking platform as a practical virtual internship project using mean stack development concepts.",
+        "features": [
+          "Angular UI",
+          "Node/Express API",
+          "MongoDB",
+          "CRUD and validation"
+        ],
+        "outcome": "Complete a working service booking platform with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "uiux",
-    name: "UI / UX Design",
-    icon: "UX",
-    color: "from-amber-500 to-orange-600",
-    tasks: [
-      { taskNumber: 1, title: "Mobile App Design", description: "Design a complete mobile app UI in Figma with multiple screens and interactive prototypes.", features: ["Wireframes", "High-fidelity mockups", "Interactive prototype", "Design system"], outcome: "Master mobile UI design patterns and create professional app mockups." },
-      { taskNumber: 2, title: "Website Redesign", description: "Redesign an existing website with modern UI patterns, improved UX, and better accessibility.", features: ["UX audit", "Wireframing", "Visual redesign", "Accessibility improvements"], outcome: "Apply UX research methods and redesign thinking to improve existing products." },
-      { taskNumber: 3, title: "Design System", description: "Create a comprehensive design system with colors, typography, components, and usage guidelines.", features: ["Color palette", "Typography scale", "Component library", "Documentation"], outcome: "Build scalable design systems that ensure consistency across products." },
-      { taskNumber: 4, title: "Dashboard UI", description: "Design a modern admin dashboard interface with data visualization and complex navigation.", features: ["Dashboard layout", "Data charts", "Navigation patterns", "Dark mode"], outcome: "Design complex data-heavy interfaces with intuitive information architecture." },
-      { taskNumber: 5, title: "Case Study", description: "Complete a full UX case study from research through prototyping and user testing.", features: ["User research", "Problem definition", "Solution design", "Usability testing"], outcome: "Document and present a complete UX design process with professional deliverables." },
-      { taskNumber: 6, title: "User Research & Testing", description: "Conduct user research with surveys, interviews, and usability testing sessions.", features: ["User surveys", "Interviews", "Usability testing", "Research synthesis"], outcome: "Apply user research methodologies to validate design decisions with real users." },
-      { taskNumber: 7, title: "Motion Design & Prototyping", description: "Create advanced prototypes with micro-interactions, Lottie animations, and transitions.", features: ["Micro-interactions", "Lottie animations", "Transition flows", "Prototype testing"], outcome: "Design engaging motion experiences that enhance usability and delight users." },
-      { taskNumber: 8, title: "Accessibility Audit & Improvements", description: "Audit designs for WCAG 2.1 compliance and implement accessibility improvements.", features: ["WCAG audit", "Color contrast", "Screen reader testing", "Keyboard navigation"], outcome: "Create inclusive designs that meet accessibility standards and serve all users." },
-      { taskNumber: 9, title: "Design Operations & Handoff", description: "Establish design ops workflows with version control, handoff specs, and developer collaboration.", features: ["Design versioning", "Developer handoff", "Spec documentation", "Asset management"], outcome: "Streamline design-to-development workflows with efficient design operations." },
-      { taskNumber: 10, title: "Cross-Platform Design Strategy", description: "Design a cohesive experience across web, mobile, and tablet with adaptive layouts.", features: ["Responsive adaptation", "Platform guidelines", "Consistent UX", "Design rationale"], outcome: "Create unified cross-platform experiences that feel native on every device." },
-      { taskNumber: 11, title: "Enterprise Design System", description: "Build a comprehensive enterprise design system with advanced components, patterns, and guidelines.", features: ["Advanced components", "Interaction patterns", "Accessibility baked in", "Usage analytics"], outcome: "Architect and deliver enterprise-scale design systems for large product teams." },
-      { taskNumber: 12, title: "Portfolio & Documentation", description: "Create a professional portfolio website showcasing all projects and a detailed UX case study.", features: ["Portfolio website", "Case study presentation", "Process documentation", "Client presentation"], outcome: "Present a compelling portfolio demonstrating end-to-end UX design expertise." },
-    ],
+    "slug": "aiml",
+    "name": "AI & Machine Learning",
+    "icon": "AI",
+    "color": "from-violet-500 to-[#07284a]",
+    "description": "Build intelligent systems with machine learning models and predictive algorithms.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "House Price Prediction",
+        "description": "Build a house price prediction as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working house price prediction with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Student Performance Prediction",
+        "description": "Build a student performance prediction as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working student performance prediction with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Spam Detection System",
+        "description": "Build a spam detection system as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working spam detection system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Customer Churn Prediction",
+        "description": "Build a customer churn prediction as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working customer churn prediction with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Sentiment Analysis App",
+        "description": "Build a sentiment analysis app as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working sentiment analysis app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Movie Recommendation System",
+        "description": "Build a movie recommendation system as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working movie recommendation system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Disease Risk Prediction Demo",
+        "description": "Build a disease risk prediction demo as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working disease risk prediction demo with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Credit Risk Prediction",
+        "description": "Build a credit risk prediction as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working credit risk prediction with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Sales Forecasting System",
+        "description": "Build a sales forecasting system as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working sales forecasting system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Image Classification App",
+        "description": "Build a image classification app as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working image classification app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Customer Segmentation",
+        "description": "Build a customer segmentation as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working customer segmentation with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Fraud Detection Demo",
+        "description": "Build a fraud detection demo as a practical virtual internship project using ai & machine learning concepts.",
+        "features": [
+          "Data preprocessing",
+          "model training",
+          "evaluation",
+          "prediction interface"
+        ],
+        "outcome": "Complete a working fraud detection demo with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "python",
-    name: "Python Development",
-    icon: "Py",
-    color: "from-emerald-500 to-teal-600",
-    tasks: [
-      { taskNumber: 1, title: "Calculator App", description: "Build a feature-rich CLI calculator with support for arithmetic operations and history.", features: ["CLI interface", "Arithmetic operations", "History tracking", "Error handling"], outcome: "Strengthen Python fundamentals and build clean command-line applications." },
-      { taskNumber: 2, title: "Web Scraper", description: "Build a web scraper using BeautifulSoup to extract and store data from websites.", features: ["HTML parsing", "Data extraction", "CSV export", "Rate limiting"], outcome: "Learn web scraping techniques and ethical data collection practices." },
-      { taskNumber: 3, title: "Expense Tracker", description: "Track personal expenses with SQLite database, categories, and spending insights.", features: ["SQLite database", "Category management", "Spending reports", "Budget alerts"], outcome: "Build database-driven applications with SQL and data analysis capabilities." },
-      { taskNumber: 4, title: "Automation Script", description: "Create an automation script to organize files, rename batches, and schedule tasks.", features: ["File operations", "Batch processing", "Scheduling", "Logging"], outcome: "Automate repetitive tasks and build efficient file processing pipelines." },
-      { taskNumber: 5, title: "Flask Web Application", description: "Build a full CRUD web application using Flask framework with database integration.", features: ["Flask routes", "Database ORM", "Form validation", "Template rendering"], outcome: "Develop web applications with Python using the Flask micro-framework." },
-      { taskNumber: 6, title: "Data Pipeline & ETL", description: "Build an ETL pipeline to extract, transform, and load data from multiple sources.", features: ["Data extraction", "Transformation logic", "Database loading", "Scheduled runs"], outcome: "Design and implement robust ETL pipelines for data integration workflows." },
-      { taskNumber: 7, title: "FastAPI Web Service", description: "Build a high-performance async REST API using FastAPI with automatic docs.", features: ["FastAPI routes", "Async endpoints", "Pydantic validation", "Auto-generated docs"], outcome: "Build modern, high-performance APIs with automatic interactive documentation." },
-      { taskNumber: 8, title: "Async Programming & WebSockets", description: "Implement async I/O operations and real-time WebSocket communication.", features: ["Asyncio patterns", "WebSocket server", "Concurrent tasks", "Event handling"], outcome: "Master asynchronous Python programming for high-concurrency applications." },
-      { taskNumber: 9, title: "Testing & Code Quality", description: "Write comprehensive tests with pytest and set up linting, type checking, and coverage.", features: ["Pytest suite", "Type hints (mypy)", "Linting (ruff)", "Coverage reports"], outcome: "Ensure code quality with comprehensive testing and static analysis tooling." },
-      { taskNumber: 10, title: "Package Distribution", description: "Package the application as a pip-installable module with setup.py and publish to PyPI.", features: ["Package structure", "Setup configuration", "PyPI publishing", "Version management"], outcome: "Distribute Python packages professionally through the Python Package Index." },
-      { taskNumber: 11, title: "Enterprise Python Application", description: "Build a multi-module enterprise application with proper architecture and design patterns.", features: ["Modular architecture", "Design patterns", "Configuration management", "Logging system"], outcome: "Architect large-scale Python applications using enterprise design patterns." },
-      { taskNumber: 12, title: "CI/CD & Documentation", description: "Set up GitHub Actions CI/CD, generate Sphinx docs, and create deployment scripts.", features: ["GitHub Actions", "Sphinx documentation", "Deployment scripts", "Release management"], outcome: "Deliver production-ready Python applications with automated CI/CD and documentation." },
-    ],
+    "slug": "genai",
+    "name": "Generative AI & Prompt Engineering",
+    "icon": "GA",
+    "color": "from-purple-500 to-indigo-600",
+    "description": "Harness LLMs, generative AI workflows, and advanced prompt engineering.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "AI Chatbot",
+        "description": "Build a ai chatbot as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai chatbot with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "AI Resume Assistant",
+        "description": "Build a ai resume assistant as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai resume assistant with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "AI Study Assistant",
+        "description": "Build a ai study assistant as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai study assistant with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "AI Content Generator",
+        "description": "Build a ai content generator as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai content generator with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "AI Email Writer",
+        "description": "Build a ai email writer as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai email writer with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "AI Code Assistant",
+        "description": "Build a ai code assistant as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai code assistant with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "AI FAQ Generator",
+        "description": "Build a ai faq generator as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai faq generator with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "AI Interview Assistant",
+        "description": "Build a ai interview assistant as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai interview assistant with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "AI Summarization Tool",
+        "description": "Build a ai summarization tool as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai summarization tool with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "AI Presentation Assistant",
+        "description": "Build a ai presentation assistant as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai presentation assistant with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "AI Prompt Library",
+        "description": "Build a ai prompt library as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai prompt library with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "AI Document Q&A Assistant",
+        "description": "Build a ai document q&a assistant as a practical virtual internship project using generative ai & prompt engineering concepts.",
+        "features": [
+          "Prompt design",
+          "AI API integration",
+          "context handling",
+          "response generation"
+        ],
+        "outcome": "Complete a working ai document q&a assistant with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "java",
-    name: "Java Development",
-    icon: "Jv",
-    color: "from-red-500 to-orange-600",
-    tasks: [
-      { taskNumber: 1, title: "Student Management System", description: "Build a student management system using Java with MySQL database connectivity.", features: ["CRUD operations", "MySQL integration", "Search functionality", "Reports generation"], outcome: "Master Java database connectivity and build desktop database applications." },
-      { taskNumber: 2, title: "Banking Application", description: "Build a banking application demonstrating OOP concepts like inheritance and polymorphism.", features: ["Account management", "Transactions", "OOP design", "Exception handling"], outcome: "Apply object-oriented programming principles to build real-world applications." },
-      { taskNumber: 3, title: "REST API using Spring Boot", description: "Build a complete REST API with Spring Boot, JPA, and PostgreSQL integration.", features: ["Spring Boot", "JPA repositories", "REST endpoints", "PostgreSQL database"], outcome: "Develop production-ready REST APIs using the Spring Boot framework." },
-      { taskNumber: 4, title: "Library Management System", description: "Build a library management system with book inventory and member management features.", features: ["Book catalog", "Member management", "Issue/Return tracking", "Fine calculation"], outcome: "Build complete management systems with complex business logic and workflows." },
-      { taskNumber: 5, title: "E-Commerce Backend", description: "Build an e-commerce backend using Spring Boot with MySQL and RESTful APIs.", features: ["Product APIs", "Cart management", "Order processing", "Spring Security"], outcome: "Build enterprise-grade backends with Spring Boot and security integration." },
-      { taskNumber: 6, title: "Microservices with Spring Cloud", description: "Decompose into microservices with Eureka, API Gateway, and Spring Cloud Config.", features: ["Eureka discovery", "Spring Cloud Gateway", "Config server", "Feign clients"], outcome: "Implement microservices architecture using the Spring Cloud ecosystem." },
-      { taskNumber: 7, title: "Message Queue Integration", description: "Integrate RabbitMQ or Kafka for asynchronous messaging and event-driven communication.", features: ["RabbitMQ setup", "Message producers", "Message consumers", "Retry & DLQ"], outcome: "Build event-driven systems with message queue integration for decoupled services." },
-      { taskNumber: 8, title: "Docker & Containerization", description: "Containerize Java/Spring Boot applications with Docker and orchestrate with Compose.", features: ["Dockerfile creation", "Docker Compose", "Multi-stage builds", "Container networking"], outcome: "Containerize Java applications for consistent development and deployment environments." },
-      { taskNumber: 9, title: "Performance & Caching", description: "Implement Redis caching, connection pooling, and JVM performance tuning.", features: ["Redis caching", "Hibernate optimization", "Connection pooling", "JVM tuning"], outcome: "Optimize Java application performance with caching and JVM configuration expertise." },
-      { taskNumber: 10, title: "GraphQL with Spring", description: "Build a GraphQL API layer using Spring for GraphQL with data loaders and subscriptions.", features: ["GraphQL schema", "Data loaders", "Subscriptions", "Security integration"], outcome: "Build efficient GraphQL APIs with Spring, solving N+1 query problems." },
-      { taskNumber: 11, title: "Enterprise Microservices Application", description: "Build a comprehensive enterprise app with microservices, event sourcing, and CQRS.", features: ["Event sourcing", "CQRS pattern", "Saga orchestration", "Distributed tracing"], outcome: "Architect complex enterprise systems with advanced microservices patterns." },
-      { taskNumber: 12, title: "Deployment & Documentation", description: "Deploy to Kubernetes, set up Jenkins CI/CD, create Swagger docs, and monitor with Grafana.", features: ["Kubernetes deployment", "Jenkins pipeline", "Swagger/OpenAPI", "Grafana monitoring"], outcome: "Deliver production-ready Java applications with complete CI/CD and monitoring." },
-    ],
+    "slug": "datascience",
+    "name": "Data Science",
+    "icon": "DS",
+    "color": "from-cyan-500 to-blue-600",
+    "description": "Transform raw datasets into actionable insights, data stories, and analytical models.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Sales Data Analysis",
+        "description": "Build a sales data analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working sales data analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Customer Behavior Analysis",
+        "description": "Build a customer behavior analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working customer behavior analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Student Performance Analysis",
+        "description": "Build a student performance analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working student performance analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Retail Analytics",
+        "description": "Build a retail analytics as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working retail analytics with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Movie Dataset Analysis",
+        "description": "Build a movie dataset analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working movie dataset analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "E-Commerce Data Analysis",
+        "description": "Build a e-commerce data analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working e-commerce data analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Healthcare Data Analysis",
+        "description": "Build a healthcare data analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working healthcare data analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Financial Data Analysis",
+        "description": "Build a financial data analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working financial data analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Social Media Analytics",
+        "description": "Build a social media analytics as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working social media analytics with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Weather Data Analysis",
+        "description": "Build a weather data analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working weather data analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Sports Data Analysis",
+        "description": "Build a sports data analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working sports data analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Survey Data Analysis",
+        "description": "Build a survey data analysis as a practical virtual internship project using data science concepts.",
+        "features": [
+          "Data cleaning",
+          "analysis",
+          "charts",
+          "insights",
+          "report generation"
+        ],
+        "outcome": "Complete a working survey data analysis with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "cybersecurity",
-    name: "Cyber Security",
-    icon: "CS",
-    color: "from-green-500 to-emerald-600",
-    tasks: [
-      { taskNumber: 1, title: "Password Strength Analyzer", description: "Develop a tool to evaluate password strength and recommend secure passwords.", features: ["Password Strength Checker", "Complexity Analysis", "Password Generator", "Security Recommendations"], outcome: "Learn password security principles and secure authentication practices." },
-      { taskNumber: 2, title: "File Encryption & Decryption Tool", description: "Build an application to securely encrypt and decrypt files using modern encryption algorithms.", features: ["AES Encryption", "Secure Key Management", "File Protection", "Integrity Verification"], outcome: "Understand cryptography fundamentals and secure data protection." },
-      { taskNumber: 3, title: "Network Port Scanner", description: "Develop a network scanning tool to identify open ports and active services.", features: ["TCP Port Scanning", "Service Detection", "Scan Reports", "Multi-threaded Scanning"], outcome: "Learn networking concepts and security assessment techniques." },
-      { taskNumber: 4, title: "Vulnerability Scanner", description: "Create a system to identify common vulnerabilities in web applications and networks.", features: ["Vulnerability Detection", "Risk Assessment", "Scan Reports", "Security Recommendations"], outcome: "Understand vulnerability assessment methodologies." },
-      { taskNumber: 5, title: "Security Information & Log Analyzer", description: "Develop a platform to monitor and analyze security logs for suspicious activities.", features: ["Log Collection", "Threat Detection", "Event Filtering", "Alert Dashboard"], outcome: "Learn log analysis and security monitoring." },
-      { taskNumber: 6, title: "Phishing Detection System", description: "Build a tool that detects phishing URLs and suspicious emails using machine learning and rule-based techniques.", features: ["URL Analysis", "Email Classification", "Threat Detection", "Risk Score"], outcome: "Understand phishing attack detection and cybersecurity analytics." },
-      { taskNumber: 7, title: "Secure File Sharing System", description: "Develop a secure platform for encrypted file sharing between users.", features: ["User Authentication", "Encrypted File Upload", "Secure Download", "Access Control"], outcome: "Learn secure communication and access management." },
-      { taskNumber: 8, title: "Intrusion Detection System (IDS)", description: "Create an application that monitors network traffic for malicious activities.", features: ["Traffic Monitoring", "Threat Detection", "Alert System", "Activity Logs"], outcome: "Understand intrusion detection and network security." },
-      { taskNumber: 9, title: "Security Operations Center (SOC) Dashboard", description: "Build a dashboard for monitoring and visualizing security events across systems.", features: ["Threat Dashboard", "Security Alerts", "Incident Tracking", "Risk Analytics"], outcome: "Gain experience with SOC monitoring and security reporting." },
-      { taskNumber: 10, title: "Web Application Security Testing Platform", description: "Develop a platform to identify common web application security issues.", features: ["Authentication Testing", "Input Validation Checks", "Session Security Analysis", "Security Reports"], outcome: "Learn secure web application assessment and reporting." },
-      { taskNumber: 11, title: "Digital Forensics & Incident Response Tool", description: "Build a system to collect, analyze, and report digital forensic evidence for security incidents.", features: ["Evidence Collection", "Log Analysis", "Timeline Generation", "Incident Reports"], outcome: "Understand digital forensics and incident response workflows." },
-      { taskNumber: 12, title: "Enterprise Security Monitoring & Threat Intelligence Platform (Capstone)", description: "Develop a production-ready cybersecurity platform that monitors enterprise systems, detects security threats, analyzes vulnerabilities, and generates real-time security intelligence.", features: ["User Authentication & RBAC", "Threat Intelligence Dashboard", "Real-Time Log Monitoring", "Intrusion Detection", "Vulnerability Assessment", "Security Incident Management", "Automated Alerting", "Analytics & Reporting", "Deployment"], outcome: "Build an enterprise-grade Cyber Security application demonstrating secure software development, cryptography, authentication, network security, vulnerability assessment, digital forensics, log analysis, threat detection, incident response, and security monitoring suitable for an industry-ready cybersecurity portfolio." },
-    ],
+    "slug": "dataanalytics",
+    "name": "Data Analytics",
+    "icon": "DA",
+    "color": "from-blue-500 to-indigo-600",
+    "description": "Analyze business metrics, build KPI dashboards, and drive data-informed decisions.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Sales Dashboard",
+        "description": "Build a sales dashboard as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working sales dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Customer Analytics Dashboard",
+        "description": "Build a customer analytics dashboard as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working customer analytics dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Inventory Analytics",
+        "description": "Build a inventory analytics as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working inventory analytics with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "HR Analytics Dashboard",
+        "description": "Build a hr analytics dashboard as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working hr analytics dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Marketing Campaign Analysis",
+        "description": "Build a marketing campaign analysis as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working marketing campaign analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Website Traffic Analysis",
+        "description": "Build a website traffic analysis as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working website traffic analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Financial KPI Dashboard",
+        "description": "Build a financial kpi dashboard as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working financial kpi dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Student Analytics Dashboard",
+        "description": "Build a student analytics dashboard as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working student analytics dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Retail Performance Dashboard",
+        "description": "Build a retail performance dashboard as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working retail performance dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Support Ticket Analysis",
+        "description": "Build a support ticket analysis as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working support ticket analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Delivery Performance Analysis",
+        "description": "Build a delivery performance analysis as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working delivery performance analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Business KPI Dashboard",
+        "description": "Build a business kpi dashboard as a practical virtual internship project using data analytics concepts.",
+        "features": [
+          "Data preparation",
+          "KPIs",
+          "filters",
+          "charts",
+          "actionable insights"
+        ],
+        "outcome": "Complete a working business kpi dashboard with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "digitalmarketing",
-    name: "Digital Marketing",
-    icon: "DM",
-    color: "from-yellow-500 to-amber-600",
-    tasks: [
-      { taskNumber: 1, title: "SEO Audit", description: "Perform a complete SEO audit of a website and provide optimization recommendations.", features: ["Site analysis", "Keyword research", "Meta tag audit", "Performance check"], outcome: "Master SEO best practices and learn to optimize websites for search engines." },
-      { taskNumber: 2, title: "Social Media Campaign", description: "Create a comprehensive social media campaign strategy with content calendar and KPIs.", features: ["Platform strategy", "Content calendar", "KPI tracking", "Budget planning"], outcome: "Design data-driven social media campaigns that drive engagement and conversions." },
-      { taskNumber: 3, title: "Google Ads Campaign", description: "Plan and set up a Google Ads PPC campaign with keyword targeting and performance tracking.", features: ["Keyword planning", "Ad copywriting", "Budget optimization", "Conversion tracking"], outcome: "Run effective PPC campaigns with optimized budgets and measurable ROI." },
-      { taskNumber: 4, title: "Email Marketing System", description: "Create professional email marketing templates and automation workflows.", features: ["Email templates", "Automation workflows", "A/B testing", "Analytics tracking"], outcome: "Build email marketing systems with automation and performance optimization." },
-      { taskNumber: 5, title: "Analytics Dashboard", description: "Build a dashboard to track website traffic, user behavior, and marketing conversions.", features: ["Traffic tracking", "Conversion funnel", "User behavior", "Custom reports"], outcome: "Analyze marketing data and create dashboards that drive data-informed decisions." },
-      { taskNumber: 6, title: "Content Marketing Strategy", description: "Develop a comprehensive content marketing plan with blog, video, and downloadable assets.", features: ["Content calendar", "Blog strategy", "Video marketing", "Lead magnets"], outcome: "Create content marketing strategies that attract, engage, and convert target audiences." },
-      { taskNumber: 7, title: "Influencer Marketing Campaign", description: "Design an influencer marketing campaign with outreach, negotiation, and ROI tracking.", features: ["Influencer research", "Outreach templates", "Campaign tracking", "ROI analysis"], outcome: "Plan and execute influencer marketing campaigns with measurable business impact." },
-      { taskNumber: 8, title: "Marketing Automation", description: "Set up marketing automation workflows using HubSpot or ActiveCampaign for lead nurturing.", features: ["CRM integration", "Automation workflows", "Lead scoring", "Email sequences"], outcome: "Build marketing automation systems that nurture leads through the sales funnel." },
-      { taskNumber: 9, title: "Conversion Rate Optimization", description: "Run A/B tests on landing pages and funnels to improve conversion rates.", features: ["A/B test design", "Landing page optimization", "Funnel analysis", "Heatmap analysis"], outcome: "Apply CRO methodologies to systematically improve conversion rates across channels." },
-      { taskNumber: 10, title: "Marketing Analytics & Attribution", description: "Build attribution models to measure marketing channel performance and customer LTV.", features: ["Attribution modeling", "CAC/LTV analysis", "Channel performance", "Dashboard reporting"], outcome: "Master marketing analytics with attribution models that demonstrate channel ROI." },
-      { taskNumber: 11, title: "Full Marketing Strategy", description: "Develop a complete 360-degree marketing strategy with budget allocation and growth roadmap.", features: ["Market research", "Channel mix", "Budget allocation", "Growth roadmap"], outcome: "Create comprehensive marketing strategies that align with business goals and growth targets." },
-      { taskNumber: 12, title: "Portfolio & Case Studies", description: "Build a professional portfolio website showcasing all campaigns with detailed case studies.", features: ["Portfolio website", "Campaign case studies", "Results showcase", "Client testimonials"], outcome: "Present a compelling portfolio demonstrating measurable marketing results and expertise." },
-    ],
+    "slug": "powerbi",
+    "name": "Power BI & Business Intelligence",
+    "icon": "BI",
+    "color": "from-amber-500 to-yellow-600",
+    "description": "Interactive dashboards, DAX modeling, and enterprise business intelligence.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Sales Performance Dashboard",
+        "description": "Build a sales performance dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working sales performance dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "HR Analytics Dashboard",
+        "description": "Build a hr analytics dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working hr analytics dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Finance Dashboard",
+        "description": "Build a finance dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working finance dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Inventory Dashboard",
+        "description": "Build a inventory dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working inventory dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Marketing Dashboard",
+        "description": "Build a marketing dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working marketing dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Customer Insights Dashboard",
+        "description": "Build a customer insights dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working customer insights dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Hospital KPI Dashboard",
+        "description": "Build a hospital kpi dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working hospital kpi dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Education Dashboard",
+        "description": "Build a education dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working education dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Retail Dashboard",
+        "description": "Build a retail dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working retail dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Project Performance Dashboard",
+        "description": "Build a project performance dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working project performance dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Supply Chain Dashboard",
+        "description": "Build a supply chain dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working supply chain dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Executive KPI Dashboard",
+        "description": "Build a executive kpi dashboard as a practical virtual internship project using power bi & business intelligence concepts.",
+        "features": [
+          "Interactive dashboard",
+          "KPIs",
+          "slicers",
+          "charts",
+          "business insights"
+        ],
+        "outcome": "Complete a working executive kpi dashboard with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "cprogramming",
-    name: "C Programming",
-    icon: "C",
-    color: "from-slate-500 to-gray-700",
-    tasks: [
-      { taskNumber: 1, title: "Basic Programs", description: "Write fundamental C programs covering variables, data types, operators, and input/output.", features: ["Variables & data types", "Arithmetic operators", "Formatted I/O", "Type casting"], outcome: "Master C language fundamentals and build confidence with syntax and basic logic." },
-      { taskNumber: 2, title: "Pattern Printing", description: "Print star, number, and character patterns using nested loops.", features: ["Nested loops", "Star patterns", "Number patterns", "Alphabet patterns"], outcome: "Develop strong logical thinking and loop control mastery." },
-      { taskNumber: 3, title: "Arrays & Strings", description: "Implement array operations and string manipulation algorithms.", features: ["Array traversal", "Sorting algorithms", "String operations", "Search algorithms"], outcome: "Understand memory layout and efficient data manipulation in C." },
-      { taskNumber: 4, title: "Functions & Recursion", description: "Write modular programs using functions, scope, and recursive solutions.", features: ["Function design", "Recursion", "Scope & lifetime", "Stack frames"], outcome: "Build modular, reusable code with proper function design." },
-      { taskNumber: 5, title: "File Handling", description: "Read, write, and process files using C file I/O operations.", features: ["File pointers", "Read/Write operations", "File modes", "Error handling"], outcome: "Handle persistent data storage and file processing efficiently." },
-      { taskNumber: 6, title: "Structures & Unions", description: "Model complex data using structures, unions, and typedef.", features: ["Struct definition", "Nested structures", "Unions", "Memory allocation"], outcome: "Design custom data types for real-world data modeling." },
-      { taskNumber: 7, title: "Linked List Implementation", description: "Implement singly, doubly, and circular linked lists from scratch.", features: ["Node creation", "Insert & delete", "Traversal", "Memory management"], outcome: "Master dynamic data structures and pointer-based memory management." },
-      { taskNumber: 8, title: "Stack Implementation", description: "Build stack data structure with array and linked list approaches.", features: ["Push/Pop operations", "Peek & display", "Stack overflow handling", "Expression evaluation"], outcome: "Implement LIFO data structures and apply them to expression parsing." },
-      { taskNumber: 9, title: "Queue Implementation", description: "Implement queue, circular queue, and priority queue.", features: ["Enqueue/Dequeue", "Circular queue", "Priority queue", "Overflow handling"], outcome: "Build FIFO data structures for scheduling and processing systems." },
-      { taskNumber: 10, title: "Mini Banking System", description: "Build a console-based banking system with account management and transactions.", features: ["Account creation", "Deposit/Withdraw", "Balance inquiry", "Transaction history"], outcome: "Apply C programming to build a complete console application with file persistence." },
-      { taskNumber: 11, title: "Student Management System", description: "Create a full student database system with records, search, and reporting.", features: ["CRUD operations", "File storage", "Search & sort", "Report generation"], outcome: "Develop a comprehensive management system using all learned C concepts." },
-      { taskNumber: 12, title: "Final Project & Documentation", description: "Build a capstone project combining all concepts with proper documentation.", features: ["Project planning", "Modular design", "Testing", "Documentation"], outcome: "Deliver a complete C project demonstrating mastery of all core concepts." },
-    ],
+    "slug": "uiux",
+    "name": "UI/UX Design",
+    "icon": "UX",
+    "color": "from-pink-500 to-purple-600",
+    "description": "Human-centered digital product design, wireframes, and interactive prototypes.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Library App UI",
+        "description": "Build a library app ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working library app ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "E-Commerce App UI",
+        "description": "Build a e-commerce app ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working e-commerce app ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Food Delivery UI",
+        "description": "Build a food delivery ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working food delivery ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Banking App UI",
+        "description": "Build a banking app ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working banking app ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Travel Booking UI",
+        "description": "Build a travel booking ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working travel booking ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Education Platform UI",
+        "description": "Build a education platform ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working education platform ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Healthcare App UI",
+        "description": "Build a healthcare app ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working healthcare app ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Job Portal UI",
+        "description": "Build a job portal ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working job portal ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Car Rental UI",
+        "description": "Build a car rental ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working car rental ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Fitness App UI",
+        "description": "Build a fitness app ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working fitness app ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Event Booking UI",
+        "description": "Build a event booking ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working event booking ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Portfolio Website UI",
+        "description": "Build a portfolio website ui as a practical virtual internship project using ui/ux design concepts.",
+        "features": [
+          "Wireframes",
+          "component design",
+          "responsive screens",
+          "prototype flow"
+        ],
+        "outcome": "Complete a working portfolio website ui with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "cppprogramming",
-    name: "C++ Programming",
-    icon: "C+",
-    color: "from-blue-600 to-indigo-700",
-    tasks: [
-      { taskNumber: 1, title: "OOP Concepts", description: "Implement classes, objects, constructors, and destructors in C++.", features: ["Class design", "Constructors", "Destructors", "Access modifiers"], outcome: "Understand object-oriented programming fundamentals in C++." },
-      { taskNumber: 2, title: "Classes & Objects", description: "Build programs demonstrating encapsulation, abstraction, and data hiding.", features: ["Encapsulation", "Getter/setter methods", "Friend functions", "Static members"], outcome: "Apply OOP principles to design clean, maintainable code." },
-      { taskNumber: 3, title: "Inheritance Project", description: "Implement single, multiple, multilevel, and hierarchical inheritance.", features: ["Single inheritance", "Multiple inheritance", "Virtual functions", "Runtime polymorphism"], outcome: "Master inheritance hierarchies and polymorphic behavior." },
-      { taskNumber: 4, title: "File Handling", description: "Perform file I/O operations including sequential and random access.", features: ["fstream operations", "Sequential access", "Random access", "File modes"], outcome: "Handle persistent data storage with C++ file streams." },
-      { taskNumber: 5, title: "STL Practice", description: "Use Standard Template Library containers, iterators, and algorithms.", features: ["Vectors & lists", "Maps & sets", "Iterators", "STL algorithms"], outcome: "Leverage STL for efficient, generic programming solutions." },
-      { taskNumber: 6, title: "Library Management", description: "Build a library system with OOP, STL, and file handling.", features: ["Book catalog", "Member management", "Issue/Return", "Search & report"], outcome: "Combine OOP and STL to build a complete management system." },
-      { taskNumber: 7, title: "Banking System", description: "Create a banking application with classes, inheritance, and polymorphism.", features: ["Account classes", "Transaction processing", "Interest calculation", "Polymorphic display"], outcome: "Design complex systems using advanced OOP patterns." },
-      { taskNumber: 8, title: "Inventory Management", description: "Build an inventory system with real-time stock tracking and reporting.", features: ["Product catalog", "Stock tracking", "Purchase orders", "Low stock alerts"], outcome: "Develop practical business applications with data management." },
-      { taskNumber: 9, title: "Employee Management", description: "Create an HR system with employee records, payroll, and department management.", features: ["Employee records", "Payroll system", "Department management", "Report generation"], outcome: "Build enterprise-grade applications with complex data relationships." },
-      { taskNumber: 10, title: "Mini Game Development", description: "Develop a console-based game using OOP, loops, and random number generation.", features: ["Game logic", "Player interaction", "Score tracking", "Level progression"], outcome: "Apply programming concepts to build interactive entertainment." },
-      { taskNumber: 11, title: "Console Application", description: "Build a feature-rich console application with menus, file I/O, and error handling.", features: ["Menu-driven UI", "File operations", "Exception handling", "Input validation"], outcome: "Create polished command-line applications with professional UX." },
-      { taskNumber: 12, title: "Final Project & Documentation", description: "Develop a capstone C++ project with OOP, STL, and complete documentation.", features: ["Architecture design", "OOP implementation", "Testing suite", "Technical docs"], outcome: "Deliver a production-quality C++ project demonstrating comprehensive skills." },
-    ],
+    "slug": "graphicdesign",
+    "name": "Graphic Design",
+    "icon": "GD",
+    "color": "from-rose-500 to-orange-500",
+    "description": "Brand identities, digital visual assets, marketing creatives, and layouts.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Brand Identity Kit",
+        "description": "Build a brand identity kit as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working brand identity kit with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Social Media Post Set",
+        "description": "Build a social media post set as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working social media post set with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Internship Poster",
+        "description": "Build a internship poster as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working internship poster with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Business Flyer",
+        "description": "Build a business flyer as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working business flyer with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Certificate Design",
+        "description": "Build a certificate design as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working certificate design with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Event Poster",
+        "description": "Build a event poster as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working event poster with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Product Advertisement",
+        "description": "Build a product advertisement as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working product advertisement with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "YouTube Thumbnail Set",
+        "description": "Build a youtube thumbnail set as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working youtube thumbnail set with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Instagram Campaign Kit",
+        "description": "Build a instagram campaign kit as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working instagram campaign kit with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Company Brochure",
+        "description": "Build a company brochure as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working company brochure with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Business Card Design",
+        "description": "Build a business card design as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working business card design with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Presentation Design",
+        "description": "Build a presentation design as a practical virtual internship project using graphic design concepts.",
+        "features": [
+          "Layout",
+          "typography",
+          "branding",
+          "visual hierarchy",
+          "export-ready assets"
+        ],
+        "outcome": "Complete a working presentation design with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "mernstack",
-    name: "MERN Stack Development",
-    icon: "ME",
-    color: "from-teal-500 to-cyan-600",
-    tasks: [
-      { taskNumber: 1, title: "MERN Portfolio Website", description: "Build a professional portfolio website with an admin panel to manage projects, skills, blogs, and contact messages.", features: ["React Frontend", "Express & Node.js Backend", "MongoDB Database", "Admin Dashboard"], outcome: "Learn the fundamentals of the MERN stack and deployment." },
-      { taskNumber: 2, title: "Authentication System", description: "Develop a secure authentication system with user registration, login, and profile management.", features: ["JWT Authentication", "Password Encryption", "Forgot Password", "User Profile"], outcome: "Understand authentication and authorization in MERN." },
-      { taskNumber: 3, title: "MERN To-Do Application", description: "Create a task management application with authentication and task organization.", features: ["Task CRUD", "Categories", "Due Dates", "Search & Filter"], outcome: "Master CRUD operations and REST APIs." },
-      { taskNumber: 4, title: "Expense Tracker", description: "Build a personal finance management application.", features: ["Income & Expense Tracking", "Monthly Reports", "Charts", "Export Reports"], outcome: "Learn data visualization and financial analytics." },
-      { taskNumber: 5, title: "Blog Management System", description: "Develop a blogging platform with admin moderation.", features: ["Blog CRUD", "Comments", "Rich Text Editor", "Categories"], outcome: "Gain experience building CMS applications." },
-      { taskNumber: 6, title: "Student Management System", description: "Create an academic management system for schools and colleges.", features: ["Student Records", "Attendance", "Marks Management", "Dashboard"], outcome: "Understand role-based applications and data management." },
-      { taskNumber: 7, title: "E-Commerce Website", description: "Develop a complete online shopping platform.", features: ["Product Management", "Shopping Cart", "Orders", "Payment Integration"], outcome: "Build a production-ready e-commerce application." },
-      { taskNumber: 8, title: "Job Portal", description: "Build a recruitment platform for employers and job seekers.", features: ["Employer Dashboard", "Resume Upload", "Job Applications", "Search Filters"], outcome: "Learn workflow automation and multi-user systems." },
-      { taskNumber: 9, title: "Real-Time Chat Application", description: "Create a modern messaging application.", features: ["Socket.io", "Private Chat", "Group Chat", "File Sharing"], outcome: "Implement real-time communication using WebSockets." },
-      { taskNumber: 10, title: "Social Media Platform", description: "Develop a mini social networking application.", features: ["User Profiles", "Posts & Likes", "Comments", "Follow System"], outcome: "Learn scalable social media architecture." },
-      { taskNumber: 11, title: "Learning Management System (LMS)", description: "Build an online education platform for instructors and students.", features: ["Course Management", "Video Lessons", "Assignments", "Progress Tracking"], outcome: "Develop a complete educational platform using MERN." },
-      { taskNumber: 12, title: "Enterprise Project Management System (Capstone)", description: "Build an enterprise-grade project management platform for organizations.", features: ["Authentication & Authorization", "Project & Task Management", "Team Collaboration", "Real-Time Notifications", "File Uploads", "Analytics Dashboard", "Role-Based Access Control", "Deployment (Frontend + Backend)"], outcome: "Build a portfolio-ready enterprise MERN application demonstrating React, Node.js, Express.js, MongoDB, REST APIs, authentication, file handling, real-time communication, and cloud deployment." },
-    ],
+    "slug": "cybersecurity",
+    "name": "Cyber Security",
+    "icon": "CS",
+    "color": "from-green-500 to-emerald-600",
+    "description": "Security auditing, vulnerability analysis, secure coding, and threat mitigation.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Secure Login System",
+        "description": "Build a secure login system as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working secure login system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Password Strength Analyzer",
+        "description": "Build a password strength analyzer as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working password strength analyzer with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Phishing Awareness Page",
+        "description": "Build a phishing awareness page as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working phishing awareness page with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Security Audit Checklist",
+        "description": "Build a security audit checklist as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working security audit checklist with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Web Vulnerability Demo",
+        "description": "Build a web vulnerability demo as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working web vulnerability demo with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "File Integrity Checker",
+        "description": "Build a file integrity checker as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working file integrity checker with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Network Monitoring Dashboard",
+        "description": "Build a network monitoring dashboard as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working network monitoring dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Secure API Demo",
+        "description": "Build a secure api demo as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working secure api demo with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Role-Based Access Control",
+        "description": "Build a role-based access control as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working role-based access control with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Security Log Analyzer",
+        "description": "Build a security log analyzer as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working security log analyzer with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Cyber Awareness Portal",
+        "description": "Build a cyber awareness portal as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working cyber awareness portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Incident Reporting System",
+        "description": "Build a incident reporting system as a practical virtual internship project using cyber security concepts.",
+        "features": [
+          "Authentication concepts",
+          "input validation",
+          "security checks",
+          "logging",
+          "awareness"
+        ],
+        "outcome": "Complete a working incident reporting system with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "meanstack",
-    name: "MEAN Stack Development",
-    icon: "MA",
-    color: "from-red-500 to-rose-600",
-    tasks: [
-      { taskNumber: 1, title: "MEAN Portfolio Website", description: "Build a professional portfolio website with an admin panel to manage projects, skills, blogs, and contact information.", features: ["Angular Frontend", "Express.js Backend", "Node.js Server", "MongoDB Database"], outcome: "Learn the complete MEAN stack architecture and deployment." },
-      { taskNumber: 2, title: "Authentication & User Management", description: "Develop a secure authentication system with user registration and profile management.", features: ["JWT Authentication", "Role-Based Access", "Password Encryption", "User Profile Management"], outcome: "Understand authentication, authorization, and security best practices." },
-      { taskNumber: 3, title: "Task Management System", description: "Create a project and task management application for individuals and teams.", features: ["Task CRUD", "Project Categories", "Due Dates", "Progress Tracking"], outcome: "Master Angular services, REST APIs, and MongoDB CRUD operations." },
-      { taskNumber: 4, title: "Inventory Management System", description: "Build a web application to manage products, stock, suppliers, and inventory transactions.", features: ["Product Management", "Stock Tracking", "Supplier Management", "Inventory Reports"], outcome: "Learn enterprise inventory workflows and database design." },
-      { taskNumber: 5, title: "Blog Content Management System", description: "Develop a blogging platform with an admin dashboard and content moderation.", features: ["Blog CRUD", "Rich Text Editor", "Categories & Tags", "Comments"], outcome: "Understand CMS architecture using the MEAN stack." },
-      { taskNumber: 6, title: "Hospital Management System", description: "Create a hospital portal for managing patients, doctors, appointments, and medical records.", features: ["Patient Registration", "Appointment Booking", "Doctor Dashboard", "Medical Records"], outcome: "Build a real-world healthcare management application." },
-      { taskNumber: 7, title: "E-Commerce Platform", description: "Develop a fully functional online shopping website.", features: ["Product Catalog", "Shopping Cart", "Order Management", "Payment Integration"], outcome: "Gain experience building scalable e-commerce solutions." },
-      { taskNumber: 8, title: "Online Examination System", description: "Build a platform for conducting online exams with automated evaluation.", features: ["Question Bank", "Timed Exams", "Automatic Scoring", "Result Dashboard"], outcome: "Learn assessment workflows and secure exam systems." },
-      { taskNumber: 9, title: "Real-Time Chat Application", description: "Develop a modern messaging application using WebSockets.", features: ["Socket.io Integration", "Private & Group Chat", "Online Users", "File Sharing"], outcome: "Implement real-time communication with Angular and Node.js." },
-      { taskNumber: 10, title: "CRM (Customer Relationship Management)", description: "Create a CRM platform for managing customers, leads, and sales activities.", features: ["Customer Management", "Lead Tracking", "Sales Pipeline", "Reports & Analytics"], outcome: "Understand business workflow automation using the MEAN stack." },
-      { taskNumber: 11, title: "Learning Management System (LMS)", description: "Develop an online education platform for students and instructors.", features: ["Course Management", "Video Lessons", "Assignments", "Progress Tracking"], outcome: "Build a complete educational platform with Angular, Express, Node.js, and MongoDB." },
-      { taskNumber: 12, title: "Enterprise Resource Planning (ERP) System (Capstone)", description: "Build a complete enterprise ERP platform integrating multiple business modules.", features: ["User Authentication & RBAC", "Employee Management", "HR & Payroll", "Inventory Management", "Sales & Purchase Modules", "Reports & Analytics", "Real-Time Notifications", "Cloud Deployment"], outcome: "Develop an enterprise-grade MEAN stack application demonstrating Angular, Express.js, Node.js, MongoDB, REST APIs, authentication, dashboards, reporting, and scalable architecture suitable for professional portfolios and industry use." },
-    ],
+    "slug": "cloudcomputing",
+    "name": "Cloud Computing",
+    "icon": "CC",
+    "color": "from-sky-500 to-blue-600",
+    "description": "Cloud infrastructure, serverless architectures, storage, and cloud deployments.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Cloud File Storage App",
+        "description": "Build a cloud file storage app as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud file storage app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Static Website Deployment",
+        "description": "Build a static website deployment as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working static website deployment with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Cloud Database App",
+        "description": "Build a cloud database app as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud database app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Serverless API",
+        "description": "Build a serverless api as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working serverless api with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Cloud Monitoring Dashboard",
+        "description": "Build a cloud monitoring dashboard as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud monitoring dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Cloud Backup System",
+        "description": "Build a cloud backup system as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud backup system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Scalable Web App",
+        "description": "Build a scalable web app as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working scalable web app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Cloud Authentication System",
+        "description": "Build a cloud authentication system as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud authentication system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Containerized Web App",
+        "description": "Build a containerized web app as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working containerized web app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Cloud Image Storage",
+        "description": "Build a cloud image storage as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud image storage with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Cloud Notification Service",
+        "description": "Build a cloud notification service as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud notification service with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Cloud Cost Dashboard",
+        "description": "Build a cloud cost dashboard as a practical virtual internship project using cloud computing concepts.",
+        "features": [
+          "Cloud deployment",
+          "storage/database integration",
+          "access control",
+          "monitoring"
+        ],
+        "outcome": "Complete a working cloud cost dashboard with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "dataanalytics",
-    name: "Data Analytics",
-    icon: "DA",
-    color: "from-indigo-500 to-blue-600",
-    tasks: [
-      { taskNumber: 1, title: "Excel Dashboard", description: "Build an interactive Excel dashboard with pivot tables, charts, and conditional formatting.", features: ["Pivot tables", "Charts", "Conditional formatting", "Data validation"], outcome: "Master Excel for data analysis and business reporting." },
-      { taskNumber: 2, title: "SQL Queries", description: "Write complex SQL queries with joins, subqueries, window functions, and CTEs.", features: ["JOIN operations", "Window functions", "CTEs", "Aggregation"], outcome: "Extract insights from databases using advanced SQL techniques." },
-      { taskNumber: 3, title: "Power BI Dashboard", description: "Create interactive Power BI dashboards with DAX measures and data modeling.", features: ["DAX formulas", "Data modeling", "Interactive visuals", "Publishing"], outcome: "Build professional BI dashboards that drive business decisions." },
-      { taskNumber: 4, title: "Tableau Dashboard", description: "Design stunning Tableau visualizations with calculated fields and parameters.", features: ["Calculated fields", "Parameters", "Filters & actions", "Storytelling"], outcome: "Create compelling data stories with Tableau visualizations." },
-      { taskNumber: 5, title: "Data Cleaning", description: "Clean messy datasets using Python Pandas — handle missing values, outliers, and duplicates.", features: ["Missing values", "Outlier detection", "Deduplication", "Data types"], outcome: "Prepare clean, analysis-ready datasets from raw data." },
-      { taskNumber: 6, title: "KPI Analysis", description: "Define and track key performance indicators with visual dashboards.", features: ["KPI definition", "Trend analysis", "Target tracking", "Alert systems"], outcome: "Measure and monitor business performance with data-driven KPIs." },
-      { taskNumber: 7, title: "Sales Report", description: "Build comprehensive sales reports with revenue analysis and forecasting.", features: ["Revenue analysis", "Trend forecasting", "Regional breakdown", "Product analysis"], outcome: "Generate actionable sales insights through data analysis." },
-      { taskNumber: 8, title: "Customer Analysis", description: "Analyze customer behavior, segmentation, and lifetime value metrics.", features: ["RFM analysis", "Cohort analysis", "Churn prediction", "CLV calculation"], outcome: "Understand customer behavior to drive retention and growth strategies." },
-      { taskNumber: 9, title: "Business Insights", description: "Derive actionable business insights from complex datasets with statistical analysis.", features: ["Statistical tests", "Correlation analysis", "Trend identification", "Recommendations"], outcome: "Transform data into strategic business recommendations." },
-      { taskNumber: 10, title: "Dashboard Optimization", description: "Optimize dashboards for performance, usability, and mobile responsiveness.", features: ["Query optimization", "Layout improvements", "Mobile design", "Load testing"], outcome: "Deliver fast, responsive dashboards that work across devices." },
-      { taskNumber: 11, title: "Report Presentation", description: "Present data findings with clear narratives, visualizations, and executive summaries.", features: ["Data storytelling", "Executive summary", "Visual hierarchy", "Presentation skills"], outcome: "Communicate data insights effectively to stakeholders." },
-      { taskNumber: 12, title: "Final Analytics Project", description: "Complete an end-to-end analytics project from data collection to actionable insights.", features: ["Data collection", "Analysis pipeline", "Dashboard creation", "Business impact"], outcome: "Deliver a comprehensive analytics project with measurable business impact." },
-    ],
+    "slug": "devops",
+    "name": "DevOps",
+    "icon": "DO",
+    "color": "from-orange-500 to-amber-600",
+    "description": "CI/CD pipelines, containerization, automated deployments, and infrastructure monitoring.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Git Workflow Project",
+        "description": "Build a git workflow project as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working git workflow project with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "CI/CD Pipeline",
+        "description": "Build a ci/cd pipeline as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working ci/cd pipeline with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Dockerized Web App",
+        "description": "Build a dockerized web app as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working dockerized web app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Automated Testing Pipeline",
+        "description": "Build a automated testing pipeline as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working automated testing pipeline with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Deployment Automation",
+        "description": "Build a deployment automation as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working deployment automation with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Infrastructure Monitoring",
+        "description": "Build a infrastructure monitoring as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working infrastructure monitoring with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Log Management Setup",
+        "description": "Build a log management setup as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working log management setup with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Container Orchestration Demo",
+        "description": "Build a container orchestration demo as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working container orchestration demo with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Release Management Pipeline",
+        "description": "Build a release management pipeline as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working release management pipeline with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Environment Configuration System",
+        "description": "Build a environment configuration system as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working environment configuration system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "DevOps Dashboard",
+        "description": "Build a devops dashboard as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working devops dashboard with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Automated Backup Pipeline",
+        "description": "Build a automated backup pipeline as a practical virtual internship project using devops concepts.",
+        "features": [
+          "Git workflow",
+          "automation",
+          "CI/CD",
+          "deployment",
+          "monitoring"
+        ],
+        "outcome": "Complete a working automated backup pipeline with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "machinelearning",
-    name: "Machine Learning",
-    icon: "ML",
-    color: "from-purple-500 to-violet-600",
-    tasks: [
-      { taskNumber: 1, title: "Data Preprocessing", description: "Clean and prepare datasets with feature scaling, encoding, and imputation.", features: ["Missing values", "Feature encoding", "Feature scaling", "Data splitting"], outcome: "Master data preparation techniques essential for ML pipelines." },
-      { taskNumber: 2, title: "Regression Model", description: "Build linear and polynomial regression models for prediction tasks.", features: ["Linear regression", "Polynomial features", "R² evaluation", "Residual analysis"], outcome: "Understand regression algorithms and evaluation metrics." },
-      { taskNumber: 3, title: "Classification Model", description: "Build classifiers using logistic regression, decision trees, and random forests.", features: ["Logistic regression", "Decision trees", "Random forests", "Confusion matrix"], outcome: "Implement classification algorithms for real-world prediction problems." },
-      { taskNumber: 4, title: "Clustering", description: "Apply K-Means, DBSCAN, and hierarchical clustering for unsupervised learning.", features: ["K-Means", "DBSCAN", "Hierarchical clustering", "Silhouette score"], outcome: "Discover hidden patterns in data using clustering techniques." },
-      { taskNumber: 5, title: "Feature Engineering", description: "Create and select features using PCA, correlation analysis, and feature importance.", features: ["PCA", "Feature selection", "Feature importance", "Correlation matrix"], outcome: "Improve model performance through intelligent feature engineering." },
-      { taskNumber: 6, title: "Model Evaluation", description: "Evaluate models using cross-validation, ROC curves, precision, recall, and F1.", features: ["Cross-validation", "ROC/AUC", "Precision/Recall", "Bias-variance tradeoff"], outcome: "Select the best models using rigorous evaluation methodologies." },
-      { taskNumber: 7, title: "Hyperparameter Tuning", description: "Optimize models with GridSearch, RandomizedSearch, and Bayesian optimization.", features: ["GridSearchCV", "RandomizedSearch", "Bayesian optimization", "Learning curves"], outcome: "Fine-tune models to achieve optimal performance." },
-      { taskNumber: 8, title: "Model Deployment", description: "Deploy ML models as REST APIs with Flask/FastAPI and Docker containerization.", features: ["Flask/FastAPI", "Model serialization", "Docker", "API testing"], outcome: "Productionize ML models for real-world consumption." },
-      { taskNumber: 9, title: "Prediction API", description: "Build a complete prediction API with input validation, batch processing, and monitoring.", features: ["Input validation", "Batch predictions", "Health checks", "Rate limiting"], outcome: "Build robust ML APIs ready for production traffic." },
-      { taskNumber: 10, title: "ML Dashboard", description: "Create a dashboard to visualize model performance, metrics, and predictions.", features: ["Performance metrics", "Prediction visualizations", "Model comparison", "Real-time monitoring"], outcome: "Monitor and visualize ML model performance in production." },
-      { taskNumber: 11, title: "Documentation", description: "Document ML pipelines, model cards, and reproducible experiment reports.", features: ["Model cards", "Pipeline docs", "Experiment tracking", "API documentation"], outcome: "Communicate ML work clearly for technical and non-technical stakeholders." },
-      { taskNumber: 12, title: "Final ML Project", description: "Build an end-to-end ML pipeline from data collection through deployment and monitoring.", features: ["Full pipeline", "Model registry", "A/B testing", "Production monitoring"], outcome: "Deliver a complete ML system with reproducible pipelines and monitoring." },
-    ],
+    "slug": "softwaretesting",
+    "name": "Software Testing & QA",
+    "icon": "QA",
+    "color": "from-lime-500 to-green-600",
+    "description": "Manual and automated testing, test suites, bug tracking, and quality assurance.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Test Plan for E-Commerce",
+        "description": "Build a test plan for e-commerce as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working test plan for e-commerce with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Library System Test Suite",
+        "description": "Build a library system test suite as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working library system test suite with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "API Testing Project",
+        "description": "Build a api testing project as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working api testing project with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Login Testing Suite",
+        "description": "Build a login testing suite as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working login testing suite with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Payment Flow Testing",
+        "description": "Build a payment flow testing as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working payment flow testing with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Form Validation Testing",
+        "description": "Build a form validation testing as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working form validation testing with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Mobile App Test Plan",
+        "description": "Build a mobile app test plan as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working mobile app test plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Regression Testing Project",
+        "description": "Build a regression testing project as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working regression testing project with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Bug Tracking System",
+        "description": "Build a bug tracking system as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working bug tracking system with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Performance Testing Demo",
+        "description": "Build a performance testing demo as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working performance testing demo with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Cross-Browser Testing Plan",
+        "description": "Build a cross-browser testing plan as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working cross-browser testing plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Test Automation Demo",
+        "description": "Build a test automation demo as a practical virtual internship project using software testing & qa concepts.",
+        "features": [
+          "Test cases",
+          "test execution",
+          "defect reporting",
+          "regression",
+          "test summary"
+        ],
+        "outcome": "Complete a working test automation demo with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "deeplearning",
-    name: "Deep Learning",
-    icon: "DL",
-    color: "from-rose-500 to-pink-600",
-    tasks: [
-      { taskNumber: 1, title: "Neural Networks", description: "Build feedforward neural networks from scratch and with Keras/TensorFlow.", features: ["Perceptrons", "Activation functions", "Backpropagation", "Keras Sequential"], outcome: "Understand neural network fundamentals and forward/backward propagation." },
-      { taskNumber: 2, title: "TensorFlow Basics", description: "Master TensorFlow operations, tensors, automatic differentiation, and Keras API.", features: ["Tensor operations", "GradientTape", "Keras layers", "Model API"], outcome: "Build fluency with TensorFlow for deep learning projects." },
-      { taskNumber: 3, title: "CNN Model", description: "Build convolutional neural networks for image classification and feature extraction.", features: ["Conv2D layers", "Pooling layers", "Data augmentation", "Transfer learning"], outcome: "Apply CNNs to solve computer vision problems." },
-      { taskNumber: 4, title: "Image Classification", description: "Classify images using deep CNNs on standard datasets like CIFAR-10 and custom data.", features: ["Dataset loading", "CNN architecture", "Training pipeline", "Accuracy evaluation"], outcome: "Build image classifiers that achieve high accuracy on real datasets." },
-      { taskNumber: 5, title: "Object Detection", description: "Implement object detection using YOLO or pre-trained detection models.", features: ["YOLO model", "Bounding boxes", "Non-max suppression", "Real-time inference"], outcome: "Detect and locate objects in images and video streams." },
-      { taskNumber: 6, title: "RNN Basics", description: "Build recurrent neural networks for sequence data and time series.", features: ["SimpleRNN", "LSTM cells", "Sequence prediction", "Batch processing"], outcome: "Understand recurrent architectures for sequential data processing." },
-      { taskNumber: 7, title: "LSTM Project", description: "Build LSTM models for text generation, sentiment analysis, or time series.", features: ["LSTM layers", "Embedding layers", "Sequence modeling", "Text generation"], outcome: "Apply LSTMs to real-world sequence prediction tasks." },
-      { taskNumber: 8, title: "Transfer Learning", description: "Fine-tune pre-trained models (ResNet, VGG) for custom classification tasks.", features: ["Pre-trained models", "Fine-tuning", "Feature extraction", "Domain adaptation"], outcome: "Leverage pre-trained models to solve problems with limited data." },
-      { taskNumber: 9, title: "Model Optimization", description: "Optimize models with pruning, quantization, learning rate scheduling, and regularization.", features: ["Pruning", "Quantization", "Learning rate scheduling", "Regularization"], outcome: "Improve model efficiency and reduce deployment footprint." },
-      { taskNumber: 10, title: "Deployment", description: "Deploy deep learning models with TensorFlow Serving, ONNX, or FastAPI.", features: ["TF Serving", "ONNX export", "FastAPI serving", "Docker deployment"], outcome: "Serve deep learning models in production environments." },
-      { taskNumber: 11, title: "Documentation", description: "Document model architectures, training procedures, and performance benchmarks.", features: ["Model architecture docs", "Training logs", "Benchmark reports", "Reproducibility guide"], outcome: "Communicate deep learning work with clear documentation." },
-      { taskNumber: 12, title: "Final DL Project", description: "Build and deploy a complete deep learning system from data to production API.", features: ["End-to-end pipeline", "Model training", "API deployment", "Monitoring"], outcome: "Deliver a production-ready deep learning application." },
-    ],
+    "slug": "mobileapp",
+    "name": "Mobile App Development",
+    "icon": "MB",
+    "color": "from-indigo-500 to-blue-600",
+    "description": "Native and cross-platform mobile applications with responsive mobile interfaces.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Student Management App",
+        "description": "Build a student management app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working student management app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Expense Tracker App",
+        "description": "Build a expense tracker app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working expense tracker app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Notes App",
+        "description": "Build a notes app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working notes app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Weather App",
+        "description": "Build a weather app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working weather app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Food Ordering App",
+        "description": "Build a food ordering app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working food ordering app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Event Booking App",
+        "description": "Build a event booking app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working event booking app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Library App",
+        "description": "Build a library app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working library app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Task Management App",
+        "description": "Build a task management app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working task management app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Car Rental App",
+        "description": "Build a car rental app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working car rental app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "News Reader App",
+        "description": "Build a news reader app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working news reader app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Quiz App",
+        "description": "Build a quiz app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working quiz app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Appointment Booking App",
+        "description": "Build a appointment booking app as a practical virtual internship project using mobile app development concepts.",
+        "features": [
+          "Responsive mobile screens",
+          "navigation",
+          "local/API data",
+          "validation"
+        ],
+        "outcome": "Complete a working appointment booking app with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "generativeai",
-    name: "Generative AI",
-    icon: "GAI",
-    color: "from-fuchsia-500 to-purple-600",
-    tasks: [
-      { taskNumber: 1, title: "Prompt Engineering Basics", description: "Master the fundamentals of crafting effective prompts for LLMs.", features: ["Prompt structures", "Temperature control", "Token management", "System prompts"], outcome: "Write prompts that consistently produce high-quality AI outputs." },
-      { taskNumber: 2, title: "OpenAI API Integration", description: "Build applications using OpenAI GPT APIs with streaming and function calling.", features: ["API authentication", "Chat completions", "Streaming responses", "Error handling"], outcome: "Integrate LLM capabilities into production applications." },
-      { taskNumber: 3, title: "AI Content Generator", description: "Build a content generation tool for blogs, social media, and marketing copy.", features: ["Content templates", "Tone adjustment", "SEO optimization", "Batch generation"], outcome: "Create AI-powered content tools that save hours of writing time." },
-      { taskNumber: 4, title: "AI Image Generator", description: "Integrate DALL-E or Stable Diffusion for AI-powered image creation.", features: ["DALL-E API", "Image prompts", "Style control", "Gallery display"], outcome: "Build applications that generate images from text descriptions." },
-      { taskNumber: 5, title: "AI Chatbot", description: "Build an intelligent chatbot with context memory and multi-turn conversations.", features: ["Conversation history", "Context window", "Intent recognition", "Persona design"], outcome: "Create chatbots that handle complex, multi-turn conversations." },
-      { taskNumber: 6, title: "RAG Basics", description: "Implement Retrieval-Augmented Generation for accurate, grounded responses.", features: ["Document loading", "Text chunking", "Retrieval pipeline", "Context injection"], outcome: "Build systems that combine LLMs with external knowledge bases." },
-      { taskNumber: 7, title: "Vector Database", description: "Integrate Pinecone, Weaviate, or ChromaDB for semantic search and retrieval.", features: ["Vector embeddings", "Similarity search", "Index management", "Metadata filtering"], outcome: "Use vector databases to power semantic search and RAG systems." },
-      { taskNumber: 8, title: "AI Document Assistant", description: "Build an AI assistant that answers questions from uploaded documents.", features: ["PDF parsing", "Q&A interface", "Source citation", "Accuracy scoring"], outcome: "Create document intelligence tools that extract insights from files." },
-      { taskNumber: 9, title: "AI Workflow Automation", description: "Automate business workflows using AI agents and tool integration.", features: ["Agent loops", "Tool calling", "Workflow orchestration", "Error recovery"], outcome: "Build AI agents that automate complex multi-step tasks." },
-      { taskNumber: 10, title: "AI Agent Development", description: "Build autonomous AI agents with planning, reasoning, and tool use.", features: ["Agent architecture", "Planning algorithms", "Memory systems", "Tool integration"], outcome: "Develop AI agents that can reason, plan, and execute tasks independently." },
-      { taskNumber: 11, title: "AI Deployment", description: "Deploy GenAI applications with caching, rate limiting, and cost optimization.", features: ["Response caching", "Rate limiting", "Cost monitoring", "Performance tuning"], outcome: "Deploy production GenAI apps that are cost-effective and scalable." },
-      { taskNumber: 12, title: "Final GenAI Project", description: "Build a complete Generative AI application from concept to production deployment.", features: ["Full-stack GenAI", "RAG pipeline", "Agent system", "Production deployment"], outcome: "Deliver a production-ready Generative AI application solving real problems." },
-    ],
+    "slug": "flutter",
+    "name": "Flutter Development",
+    "icon": "FL",
+    "color": "from-cyan-500 to-teal-600",
+    "description": "High-performance multi-platform applications using Dart and Flutter framework.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Flutter Expense Tracker",
+        "description": "Build a flutter expense tracker as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter expense tracker with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Flutter Notes App",
+        "description": "Build a flutter notes app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter notes app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Flutter Weather App",
+        "description": "Build a flutter weather app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter weather app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Flutter Quiz App",
+        "description": "Build a flutter quiz app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter quiz app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Flutter E-Commerce UI",
+        "description": "Build a flutter e-commerce ui as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter e-commerce ui with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Flutter Food Ordering App",
+        "description": "Build a flutter food ordering app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter food ordering app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Flutter Library App",
+        "description": "Build a flutter library app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter library app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Flutter Event Booking App",
+        "description": "Build a flutter event booking app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter event booking app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Flutter Task Manager",
+        "description": "Build a flutter task manager as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter task manager with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Flutter Car Rental App",
+        "description": "Build a flutter car rental app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter car rental app with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Flutter Student Portal",
+        "description": "Build a flutter student portal as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter student portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Flutter Appointment App",
+        "description": "Build a flutter appointment app as a practical virtual internship project using flutter development concepts.",
+        "features": [
+          "Flutter widgets",
+          "navigation",
+          "state handling",
+          "responsive UI"
+        ],
+        "outcome": "Complete a working flutter appointment app with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "promptengineering",
-    name: "Prompt Engineering",
-    icon: "PE",
-    color: "from-orange-500 to-red-600",
-    tasks: [
-      { taskNumber: 1, title: "Prompt Fundamentals", description: "Learn core prompt engineering techniques — role, context, instruction, and output format.", features: ["Role prompting", "Context setting", "Clear instructions", "Output formatting"], outcome: "Build a strong foundation in effective prompt construction." },
-      { taskNumber: 2, title: "Zero-shot Prompting", description: "Master zero-shot prompting for classification, summarization, and extraction tasks.", features: ["Zero-shot classification", "Summarization", "Data extraction", "Format control"], outcome: "Solve diverse tasks without examples using zero-shot techniques." },
-      { taskNumber: 3, title: "Few-shot Prompting", description: "Use few-shot examples to guide LLM behavior for complex tasks.", features: ["Example selection", "Pattern demonstration", "Consistency control", "Output tuning"], outcome: "Improve LLM accuracy by providing task-specific examples." },
-      { taskNumber: 4, title: "Chain-of-Thought Prompting", description: "Implement chain-of-thought reasoning for complex problem-solving.", features: ["Step-by-step reasoning", "Logical decomposition", "Verification prompts", "Self-consistency"], outcome: "Guide LLMs through complex reasoning chains for accurate results." },
-      { taskNumber: 5, title: "AI Research Assistant", description: "Build a prompt system that helps researchers analyze papers and extract insights.", features: ["Paper summarization", "Key findings extraction", "Citation generation", "Literature review"], outcome: "Create AI-powered research tools that accelerate knowledge work." },
-      { taskNumber: 6, title: "AI Coding Assistant", description: "Design prompts for code generation, debugging, and code review.", features: ["Code generation", "Bug detection", "Code review prompts", "Refactoring suggestions"], outcome: "Build AI-assisted coding tools with effective prompt strategies." },
-      { taskNumber: 7, title: "AI Marketing Assistant", description: "Create prompts for marketing copy, ad campaigns, and content strategies.", features: ["Copywriting prompts", "Ad generation", "Content strategy", "Brand voice"], outcome: "Develop AI marketing tools that produce on-brand content." },
-      { taskNumber: 8, title: "AI Resume Builder", description: "Build a prompt system that generates tailored resumes and cover letters.", features: ["Resume templates", "Job matching", "Cover letter generation", "Skills optimization"], outcome: "Create AI-powered career tools with personalized outputs." },
-      { taskNumber: 9, title: "Prompt Optimization", description: "Systematically test and optimize prompts for accuracy, cost, and latency.", features: ["A/B testing", "Cost analysis", "Latency measurement", "Quality metrics"], outcome: "Optimize prompts for production use with measurable improvements." },
-      { taskNumber: 10, title: "Prompt Evaluation", description: "Build evaluation frameworks to measure prompt quality and LLM output reliability.", features: ["Evaluation metrics", "Test suites", "Automated scoring", "Benchmark comparisons"], outcome: "Measure and improve prompt quality with systematic evaluation." },
-      { taskNumber: 11, title: "AI Workflow Design", description: "Design multi-step AI workflows combining multiple prompts and tools.", features: ["Workflow orchestration", "Error handling", "Chain composition", "Tool integration"], outcome: "Build complex AI systems using composable prompt chains." },
-      { taskNumber: 12, title: "Final Prompt Portfolio", description: "Create a comprehensive portfolio showcasing prompt engineering projects and techniques.", features: ["Project showcase", "Technique library", "Best practices guide", "Live demos"], outcome: "Present a professional portfolio demonstrating prompt engineering expertise." },
-    ],
+    "slug": "digitalmarketing",
+    "name": "Digital Marketing",
+    "icon": "DM",
+    "color": "from-violet-500 to-fuchsia-600",
+    "description": "SEO optimization, performance marketing, content strategy, and digital campaigns.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "SEO Audit Project",
+        "description": "Build a seo audit project as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working seo audit project with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Social Media Campaign",
+        "description": "Build a social media campaign as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working social media campaign with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Content Marketing Plan",
+        "description": "Build a content marketing plan as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working content marketing plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Google Ads Campaign Plan",
+        "description": "Build a google ads campaign plan as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working google ads campaign plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Email Marketing Campaign",
+        "description": "Build a email marketing campaign as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working email marketing campaign with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Brand Awareness Campaign",
+        "description": "Build a brand awareness campaign as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working brand awareness campaign with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Competitor Analysis",
+        "description": "Build a competitor analysis as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working competitor analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Keyword Research Project",
+        "description": "Build a keyword research project as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working keyword research project with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Influencer Campaign Plan",
+        "description": "Build a influencer campaign plan as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working influencer campaign plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Website Conversion Analysis",
+        "description": "Build a website conversion analysis as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working website conversion analysis with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Digital Marketing Report",
+        "description": "Build a digital marketing report as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working digital marketing report with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "30-Day Content Calendar",
+        "description": "Build a 30-day content calendar as a practical virtual internship project using digital marketing concepts.",
+        "features": [
+          "Research",
+          "campaign planning",
+          "SEO/social strategy",
+          "analytics report"
+        ],
+        "outcome": "Complete a working 30-day content calendar with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "cloudcomputing",
-    name: "Cloud Computing",
-    icon: "CC",
-    color: "from-sky-500 to-blue-600",
-    tasks: [
-      { taskNumber: 1, title: "Cloud Fundamentals", description: "Learn cloud computing concepts — IaaS, PaaS, SaaS, and cloud service models.", features: ["Cloud models", "Service comparison", "Pricing models", "Global infrastructure"], outcome: "Understand cloud computing architecture and service offerings." },
-      { taskNumber: 2, title: "Virtual Machine Setup", description: "Launch and configure virtual machines on AWS EC2 or Azure VMs.", features: ["EC2 instances", "Security groups", "Key pair auth", "Storage volumes"], outcome: "Provision and manage cloud compute resources effectively." },
-      { taskNumber: 3, title: "Storage Configuration", description: "Configure S3, Blob Storage, or Cloud Storage for object and file storage.", features: ["S3 buckets", "Access policies", "Versioning", "Lifecycle rules"], outcome: "Manage cloud storage with proper access control and optimization." },
-      { taskNumber: 4, title: "Networking Basics", description: "Set up VPCs, subnets, load balancers, and DNS configurations.", features: ["VPC setup", "Subnet routing", "Load balancers", "DNS management"], outcome: "Design and implement cloud networking architectures." },
-      { taskNumber: 5, title: "IAM Users & Roles", description: "Configure identity and access management with users, groups, and roles.", features: ["IAM users", "Role-based access", "Policy documents", "MFA setup"], outcome: "Implement cloud security through proper identity management." },
-      { taskNumber: 6, title: "Static Website Hosting", description: "Host a static website on S3/CloudFront with custom domain and SSL.", features: ["S3 static hosting", "CloudFront CDN", "Custom domain", "SSL certificate"], outcome: "Deploy fast, secure static websites on cloud infrastructure." },
-      { taskNumber: 7, title: "Database Service", description: "Deploy managed databases (RDS, CosmosDB, Cloud SQL) with backups and scaling.", features: ["RDS setup", "Backup automation", "Read replicas", "Auto-scaling"], outcome: "Manage cloud databases with high availability and disaster recovery." },
-      { taskNumber: 8, title: "Monitoring", description: "Set up CloudWatch/Azure Monitor for infrastructure and application monitoring.", features: ["Metrics & alarms", "Log groups", "Dashboards", "Auto-scaling triggers"], outcome: "Monitor cloud infrastructure with proactive alerting and dashboards." },
-      { taskNumber: 9, title: "CI/CD Deployment", description: "Build CI/CD pipelines with CodePipeline, GitHub Actions, or Azure DevOps.", features: ["Pipeline design", "Build stages", "Deploy stages", "Rollback strategies"], outcome: "Automate application deployment with reliable CI/CD pipelines." },
-      { taskNumber: 10, title: "Cloud Security", description: "Implement cloud security with WAF, encryption, VPC, and compliance checks.", features: ["WAF rules", "Encryption at rest/transit", "VPC security", "Compliance audits"], outcome: "Secure cloud infrastructure against threats and meet compliance standards." },
-      { taskNumber: 11, title: "Cost Optimization", description: "Optimize cloud costs with reserved instances, spot instances, and right-sizing.", features: ["Cost analysis", "Reserved instances", "Spot instances", "Right-sizing"], outcome: "Reduce cloud spending while maintaining performance and reliability." },
-      { taskNumber: 12, title: "Final Cloud Project", description: "Deploy a complete application with monitoring, security, and cost optimization.", features: ["Full deployment", "Security hardening", "Monitoring setup", "Cost report"], outcome: "Deliver a production cloud deployment with best practices applied." },
-    ],
+    "slug": "socialmedia",
+    "name": "Social Media Management",
+    "icon": "SM",
+    "color": "from-pink-500 to-rose-500",
+    "description": "Social media strategies, content scheduling, audience growth, and engagement analytics.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Instagram Content Calendar",
+        "description": "Build a instagram content calendar as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working instagram content calendar with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "LinkedIn Content Strategy",
+        "description": "Build a linkedin content strategy as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working linkedin content strategy with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "YouTube Content Plan",
+        "description": "Build a youtube content plan as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working youtube content plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Facebook Campaign Plan",
+        "description": "Build a facebook campaign plan as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working facebook campaign plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Social Media Audit",
+        "description": "Build a social media audit as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working social media audit with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Hashtag Strategy",
+        "description": "Build a hashtag strategy as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working hashtag strategy with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Engagement Growth Plan",
+        "description": "Build a engagement growth plan as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working engagement growth plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Brand Page Setup",
+        "description": "Build a brand page setup as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working brand page setup with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Social Media Analytics Report",
+        "description": "Build a social media analytics report as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working social media analytics report with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Reels Content Plan",
+        "description": "Build a reels content plan as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working reels content plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Community Management Plan",
+        "description": "Build a community management plan as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working community management plan with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Monthly Social Media Report",
+        "description": "Build a monthly social media report as a practical virtual internship project using social media management concepts.",
+        "features": [
+          "Content planning",
+          "publishing strategy",
+          "engagement tracking",
+          "analytics"
+        ],
+        "outcome": "Complete a working monthly social media report with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "ethicalhacking",
-    name: "Ethical Hacking",
-    icon: "EH",
-    color: "from-lime-500 to-green-600",
-    tasks: [
-      { taskNumber: 1, title: "Kali Linux Setup", description: "Set up Kali Linux with essential ethical hacking tools and configurations.", features: ["Kali installation", "Tool configuration", "Network setup", "VM environment"], outcome: "Prepare a professional penetration testing environment." },
-      { taskNumber: 2, title: "Reconnaissance", description: "Perform passive and active reconnaissance to gather target information.", features: ["OSINT gathering", "Whois lookup", "DNS enumeration", "Social engineering recon"], outcome: "Master information gathering techniques for security assessments." },
-      { taskNumber: 3, title: "Nmap Scanning", description: "Use Nmap for network discovery, port scanning, and service detection.", features: ["Port scanning", "Service detection", "OS fingerprinting", "Script scanning"], outcome: "Perform comprehensive network scanning with Nmap." },
-      { taskNumber: 4, title: "Enumeration", description: "Enumerate services, shares, users, and vulnerabilities on target systems.", features: ["SMB enumeration", "SNMP enumeration", "User enumeration", "Service mapping"], outcome: "Extract detailed information from target systems through enumeration." },
-      { taskNumber: 5, title: "Web Application Testing", description: "Test web applications for common vulnerabilities using Burp Suite and manual techniques.", features: ["Burp Suite", "Manual testing", "Request interception", "Vulnerability identification"], outcome: "Identify web application vulnerabilities through systematic testing." },
-      { taskNumber: 6, title: "SQL Injection Lab", description: "Practice SQL injection attacks and learn defensive coding practices.", features: ["Union-based injection", "Blind injection", "Error-based injection", "Prevention techniques"], outcome: "Understand SQL injection vulnerabilities and how to prevent them." },
-      { taskNumber: 7, title: "XSS Lab", description: "Practice cross-site scripting attacks and implement security headers for defense.", features: ["Reflected XSS", "Stored XSS", "DOM-based XSS", "CSP headers"], outcome: "Learn XSS attack vectors and implement effective defenses." },
-      { taskNumber: 8, title: "Burp Suite Basics", description: "Master Burp Suite for web application security testing and vulnerability scanning.", features: ["Proxy setup", "Spider crawling", "Scanner", "Intruder attacks"], outcome: "Use Burp Suite professionally for penetration testing engagements." },
-      { taskNumber: 9, title: "Password Auditing", description: "Perform password attacks with Hydra, John the Ripper, and wordlists.", features: ["Brute force attacks", "Dictionary attacks", "Rainbow tables", "Password policy"], outcome: "Test password security and implement stronger authentication." },
-      { taskNumber: 10, title: "CTF Lab", description: "Complete Capture The Flag challenges covering multiple attack vectors.", features: ["Web exploitation", "Crypto challenges", "Forensics", "Reverse engineering"], outcome: "Apply hacking skills in competitive CTF scenarios." },
-      { taskNumber: 11, title: "Vulnerability Report", description: "Write professional vulnerability assessment reports with risk ratings and remediation.", features: ["Report writing", "Risk rating (CVSS)", "Remediation steps", "Executive summary"], outcome: "Communicate security findings professionally with actionable recommendations." },
-      { taskNumber: 12, title: "Final Ethical Hacking Lab", description: "Conduct a complete penetration test from reconnaissance to reporting.", features: ["Full engagement", "Exploitation", "Post-exploitation", "Final report"], outcome: "Perform end-to-end penetration testing following industry methodologies." },
-    ],
+    "slug": "contentwriting",
+    "name": "Content Writing",
+    "icon": "CW",
+    "color": "from-amber-500 to-orange-600",
+    "description": "SEO blogging, copywriting, technical documentation, and professional writing.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Company Website Content",
+        "description": "Build a company website content as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working company website content with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Technology Blog Series",
+        "description": "Build a technology blog series as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working technology blog series with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Product Descriptions",
+        "description": "Build a product descriptions as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working product descriptions with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "SEO Blog Article",
+        "description": "Build a seo blog article as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working seo blog article with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Internship Landing Page Copy",
+        "description": "Build a internship landing page copy as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working internship landing page copy with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Social Media Content Pack",
+        "description": "Build a social media content pack as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working social media content pack with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Email Newsletter",
+        "description": "Build a email newsletter as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working email newsletter with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Press Release Draft",
+        "description": "Build a press release draft as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working press release draft with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Technical Documentation",
+        "description": "Build a technical documentation as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working technical documentation with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "FAQ Content",
+        "description": "Build a faq content as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working faq content with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Case Study Article",
+        "description": "Build a case study article as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working case study article with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Portfolio Content",
+        "description": "Build a portfolio content as a practical virtual internship project using content writing concepts.",
+        "features": [
+          "Research",
+          "structured writing",
+          "SEO basics",
+          "editing",
+          "publishing"
+        ],
+        "outcome": "Complete a working portfolio content with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "androiddevelopment",
-    name: "Android Development",
-    icon: "AD",
-    color: "from-green-500 to-teal-600",
-    tasks: [
-      { taskNumber: 1, title: "Android Studio Setup", description: "Set up Android Studio with emulator, SDK, and project configuration.", features: ["Android Studio install", "Emulator setup", "SDK management", "Project structure"], outcome: "Prepare a professional Android development environment." },
-      { taskNumber: 2, title: "UI Design", description: "Build Android UIs with XML layouts, Material Design components, and constraint layouts.", features: ["XML layouts", "Material Design", "ConstraintLayout", "Themes & styles"], outcome: "Create professional Android interfaces following Material Design guidelines." },
-      { taskNumber: 3, title: "Navigation", description: "Implement navigation with Navigation Component, bottom navigation, and drawer menus.", features: ["Nav Component", "Bottom navigation", "Drawer menu", "Deep links"], outcome: "Build intuitive navigation flows in Android applications." },
-      { taskNumber: 4, title: "SQLite Database", description: "Implement local data storage with Room database and CRUD operations.", features: ["Room database", "Entity design", "DAO operations", "Migration"], outcome: "Manage local data persistence with Room's ORM." },
-      { taskNumber: 5, title: "API Integration", description: "Connect Android apps to REST APIs with Retrofit and handle network responses.", features: ["Retrofit setup", "JSON parsing", "Error handling", "Coroutines"], outcome: "Integrate backend services into Android applications." },
-      { taskNumber: 6, title: "Authentication", description: "Implement login, registration, and token-based authentication in Android.", features: ["Login screen", "Token storage", "Session management", "OAuth integration"], outcome: "Build secure authentication flows for Android apps." },
-      { taskNumber: 7, title: "Firebase Integration", description: "Integrate Firebase for authentication, Firestore database, and cloud messaging.", features: ["Firebase Auth", "Firestore", "FCM push notifications", "Analytics"], outcome: "Leverage Firebase services for rapid Android development." },
-      { taskNumber: 8, title: "Notifications", description: "Implement local and push notifications with channels and scheduling.", features: ["Local notifications", "FCM push", "Notification channels", "Scheduling"], outcome: "Engage users with timely, well-designed notifications." },
-      { taskNumber: 9, title: "Maps Integration", description: "Integrate Google Maps with markers, directions, and location services.", features: ["Map display", "Markers & polylines", "Location tracking", "Places API"], outcome: "Add location-aware features to Android applications." },
-      { taskNumber: 10, title: "App Testing", description: "Write unit tests, UI tests, and perform manual testing on Android apps.", features: ["JUnit tests", "Espresso UI tests", "Manual testing", "Bug reporting"], outcome: "Ensure app quality through comprehensive testing strategies." },
-      { taskNumber: 11, title: "Play Store Preparation", description: "Prepare app for Play Store — signing, listing, screenshots, and privacy policy.", features: ["App signing", "Store listing", "Screenshots", "Privacy policy"], outcome: "Prepare professional Play Store submissions." },
-      { taskNumber: 12, title: "Final Android App", description: "Build and publish a complete Android application with all features.", features: ["Full app development", "Performance optimization", "Play Store deploy", "Documentation"], outcome: "Deliver a published Android app on the Google Play Store." },
-    ],
+    "slug": "videoediting",
+    "name": "Video Editing",
+    "icon": "VE",
+    "color": "from-red-500 to-pink-600",
+    "description": "Cinematic editing, reels production, motion graphics, and audio-video mastering.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Short-Form Reel",
+        "description": "Build a short-form reel as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working short-form reel with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "YouTube Intro Video",
+        "description": "Build a youtube intro video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working youtube intro video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Product Promo Video",
+        "description": "Build a product promo video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working product promo video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Company Introduction Video",
+        "description": "Build a company introduction video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working company introduction video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Internship Promo Video",
+        "description": "Build a internship promo video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working internship promo video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Educational Video",
+        "description": "Build a educational video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working educational video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Social Media Ad Video",
+        "description": "Build a social media ad video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working social media ad video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Event Highlight Video",
+        "description": "Build a event highlight video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working event highlight video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Tutorial Video",
+        "description": "Build a tutorial video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working tutorial video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "YouTube Thumbnail + Video Package",
+        "description": "Build a youtube thumbnail + video package as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working youtube thumbnail + video package with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Brand Motion Video",
+        "description": "Build a brand motion video as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working brand motion video with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Short Documentary Edit",
+        "description": "Build a short documentary edit as a practical virtual internship project using video editing concepts.",
+        "features": [
+          "Editing timeline",
+          "transitions",
+          "captions",
+          "audio cleanup",
+          "export"
+        ],
+        "outcome": "Complete a working short documentary edit with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "flutterdevelopment",
-    name: "Flutter Development",
-    icon: "FD",
-    color: "from-sky-500 to-indigo-600",
-    tasks: [
-      { taskNumber: 1, title: "Flutter Basics", description: "Learn Flutter fundamentals — Dart, widgets, hot reload, and project structure.", features: ["Dart language", "Widget tree", "Hot reload", "Project setup"], outcome: "Master Flutter fundamentals and build your first mobile app." },
-      { taskNumber: 2, title: "Widgets Practice", description: "Build UIs with Flutter's widget catalog — Material, Cupertino, and custom widgets.", features: ["Material widgets", "Cupertino widgets", "Custom widgets", "Layout builders"], outcome: "Create rich, responsive UIs using Flutter's widget system." },
-      { taskNumber: 3, title: "Navigation", description: "Implement routing with Navigator 2.0, named routes, and page transitions.", features: ["Navigator 2.0", "Named routes", "Page transitions", "Deep linking"], outcome: "Build sophisticated navigation flows in Flutter apps." },
-      { taskNumber: 4, title: "State Management", description: "Manage app state with Provider, Riverpod, or Bloc pattern.", features: ["Provider/Riverpod", "Bloc pattern", "State sharing", "Reactive updates"], outcome: "Implement scalable state management for Flutter applications." },
-      { taskNumber: 5, title: "API Integration", description: "Connect Flutter apps to REST APIs with Dio and handle async data.", features: ["Dio HTTP client", "JSON serialization", "Error handling", "Loading states"], outcome: "Integrate backend services into Flutter applications." },
-      { taskNumber: 6, title: "Firebase Authentication", description: "Implement Firebase Auth with email, Google, and social login.", features: ["Email/password auth", "Google Sign-In", "Social login", "Session management"], outcome: "Add secure authentication to Flutter apps with Firebase." },
-      { taskNumber: 7, title: "CRUD Application", description: "Build a complete CRUD app with Firebase Firestore and reactive updates.", features: ["Firestore CRUD", "Real-time updates", "Form validation", "List views"], outcome: "Build data-driven Flutter apps with cloud backend." },
-      { taskNumber: 8, title: "Payment Integration", description: "Integrate payment gateways like Razorpay or Stripe in Flutter.", features: ["Razorpay SDK", "Payment flow", "Transaction handling", "Receipt generation"], outcome: "Add secure payment processing to Flutter applications." },
-      { taskNumber: 9, title: "Responsive Design", description: "Build responsive layouts that work across phones, tablets, and desktop.", features: ["MediaQuery", "LayoutBuilder", "Responsive grids", "Platform adaptation"], outcome: "Create Flutter apps that look great on every screen size." },
-      { taskNumber: 10, title: "Deployment", description: "Build and deploy Flutter apps to Google Play Store and Apple App Store.", features: ["App signing", "Build release", "Play Store deploy", "App Store deploy"], outcome: "Publish Flutter apps to both major app stores." },
-      { taskNumber: 11, title: "Documentation", description: "Write comprehensive documentation, API references, and user guides.", features: ["Code documentation", "README guide", "API references", "User manual"], outcome: "Document Flutter projects professionally for developers and users." },
-      { taskNumber: 12, title: "Final Flutter Project", description: "Build and deploy a complete Flutter application with all features.", features: ["Full app development", "Testing", "Performance tuning", "App store publish"], outcome: "Deliver a published Flutter app showcasing all skills." },
-    ],
+    "slug": "wordpress",
+    "name": "WordPress Development",
+    "icon": "WP",
+    "color": "from-blue-600 to-indigo-700",
+    "description": "Custom themes, plugin integrations, CMS customization, and e-commerce setups.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Business Website",
+        "description": "Build a business website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working business website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Portfolio Website",
+        "description": "Build a portfolio website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working portfolio website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Blog Website",
+        "description": "Build a blog website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working blog website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Restaurant Website",
+        "description": "Build a restaurant website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working restaurant website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "College Website",
+        "description": "Build a college website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working college website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "E-Commerce Website",
+        "description": "Build a e-commerce website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working e-commerce website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Agency Website",
+        "description": "Build a agency website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working agency website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "News Website",
+        "description": "Build a news website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working news website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Internship Portal",
+        "description": "Build a internship portal as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working internship portal with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Real Estate Website",
+        "description": "Build a real estate website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working real estate website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Event Website",
+        "description": "Build a event website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working event website with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Service Booking Website",
+        "description": "Build a service booking website as a practical virtual internship project using wordpress development concepts.",
+        "features": [
+          "Theme customization",
+          "pages",
+          "forms",
+          "responsive layout",
+          "SEO basics"
+        ],
+        "outcome": "Complete a working service booking website with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "reactnative",
-    name: "React Native Development",
-    icon: "RN",
-    color: "from-cyan-500 to-teal-600",
-    tasks: [
-      { taskNumber: 1, title: "React Native Basics", description: "Set up React Native environment and learn core components and JSX.", features: ["Expo setup", "Core components", "JSX syntax", "Styling"], outcome: "Build your first cross-platform mobile app with React Native." },
-      { taskNumber: 2, title: "Navigation", description: "Implement navigation with React Navigation — stacks, tabs, and drawers.", features: ["Stack navigator", "Tab navigator", "Drawer navigator", "Deep linking"], outcome: "Create smooth navigation flows across mobile screens." },
-      { taskNumber: 3, title: "Components", description: "Build reusable custom components with props, state, and styling.", features: ["Custom components", "Props passing", "State management", "StyleSheet"], outcome: "Develop a reusable component library for React Native apps." },
-      { taskNumber: 4, title: "API Integration", description: "Connect React Native apps to REST APIs with fetch and Axios.", features: ["Fetch API", "Axios client", "Error handling", "Loading states"], outcome: "Integrate backend services into React Native applications." },
-      { taskNumber: 5, title: "Authentication", description: "Implement secure authentication with JWT tokens and secure storage.", features: ["Login/register", "JWT tokens", "SecureStore", "Auto-login"], outcome: "Build secure authentication flows for mobile apps." },
-      { taskNumber: 6, title: "Firebase", description: "Integrate Firebase for auth, Firestore, push notifications, and analytics.", features: ["Firebase Auth", "Firestore", "FCM", "Analytics"], outcome: "Leverage Firebase for rapid React Native development." },
-      { taskNumber: 7, title: "Push Notifications", description: "Implement push notifications with Firebase Cloud Messaging.", features: ["FCM setup", "Notification handling", "Background messages", "Topics"], outcome: "Engage users with timely push notifications." },
-      { taskNumber: 8, title: "Maps Integration", description: "Add interactive maps with markers, regions, and location services.", features: ["react-native-maps", "Markers", "Location tracking", "Directions"], outcome: "Build location-aware features in React Native apps." },
-      { taskNumber: 9, title: "Local Storage", description: "Implement local data persistence with AsyncStorage and SQLite.", features: ["AsyncStorage", "SQLite", "Data models", "Offline support"], outcome: "Manage local data storage for offline-capable apps." },
-      { taskNumber: 10, title: "Deployment", description: "Build and deploy React Native apps to App Store and Play Store.", features: ["EAS Build", "App signing", "Play Store deploy", "App Store deploy"], outcome: "Publish React Native apps to both major app stores." },
-      { taskNumber: 11, title: "Documentation", description: "Write project documentation, component guides, and deployment instructions.", features: ["README docs", "Component docs", "API references", "User guide"], outcome: "Document React Native projects professionally." },
-      { taskNumber: 12, title: "Final Mobile App", description: "Build and publish a complete React Native application.", features: ["Full app development", "Testing", "Performance", "App store publish"], outcome: "Deliver a published React Native app with all features." },
-    ],
+    "slug": "databasemanagement",
+    "name": "Database Management",
+    "icon": "DB",
+    "color": "from-emerald-600 to-cyan-700",
+    "description": "Relational schema design, SQL optimization, data integrity, and backup workflows.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "Library Database",
+        "description": "Build a library database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working library database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Student Database",
+        "description": "Build a student database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working student database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Employee Database",
+        "description": "Build a employee database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working employee database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Inventory Database",
+        "description": "Build a inventory database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working inventory database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Hospital Database",
+        "description": "Build a hospital database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working hospital database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "E-Commerce Database",
+        "description": "Build a e-commerce database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working e-commerce database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Hotel Booking Database",
+        "description": "Build a hotel booking database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working hotel booking database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Vehicle Rental Database",
+        "description": "Build a vehicle rental database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working vehicle rental database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Course Management Database",
+        "description": "Build a course management database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working course management database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Customer Database",
+        "description": "Build a customer database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working customer database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Sales Database",
+        "description": "Build a sales database as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working sales database with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Database Backup & Reporting System",
+        "description": "Build a database backup & reporting system as a practical virtual internship project using database management concepts.",
+        "features": [
+          "Schema design",
+          "relationships",
+          "queries",
+          "CRUD operations",
+          "backup/reporting"
+        ],
+        "outcome": "Complete a working database backup & reporting system with documented workflow, testing, and project submission."
+      }
+    ]
   },
   {
-    slug: "graphicdesign",
-    name: "Graphic Design",
-    icon: "GD",
-    color: "from-pink-500 to-fuchsia-600",
-    tasks: [
-      { taskNumber: 1, title: "Typography Practice", description: "Master typography fundamentals — font pairing, hierarchy, and layout principles.", features: ["Font pairing", "Type hierarchy", "Kerning & leading", "Responsive type"], outcome: "Apply professional typography to all design projects." },
-      { taskNumber: 2, title: "Color Theory", description: "Understand color psychology, palettes, and accessibility in design.", features: ["Color psychology", "Palette creation", "Contrast ratios", "Accessible colors"], outcome: "Use color effectively to communicate and evoke emotions." },
-      { taskNumber: 3, title: "Social Media Post", description: "Design eye-catching social media posts for Instagram, LinkedIn, and Twitter.", features: ["Platform specs", "Visual hierarchy", "Brand consistency", "CTA design"], outcome: "Create scroll-stopping social media graphics." },
-      { taskNumber: 4, title: "Poster Design", description: "Create professional event and marketing posters with balanced layouts.", features: ["Layout composition", "Visual balance", "Print specs", "File formats"], outcome: "Design impactful posters that communicate clearly." },
-      { taskNumber: 5, title: "Logo Design", description: "Design memorable logos with concept development and brand alignment.", features: ["Concept development", "Sketching", "Vector design", "Brand alignment"], outcome: "Create distinctive logos that represent brand identity." },
-      { taskNumber: 6, title: "Brochure Design", description: "Design multi-page brochures with consistent branding and print-ready output.", features: ["Page layout", "Grid systems", "Print production", "Brand guidelines"], outcome: "Design professional marketing collateral with print-ready quality." },
-      { taskNumber: 7, title: "Brand Identity Kit", description: "Create a complete brand identity — logo, colors, fonts, and usage guidelines.", features: ["Brand strategy", "Logo variations", "Color palette", "Brand book"], outcome: "Develop comprehensive brand identities from concept to guidelines." },
-      { taskNumber: 8, title: "Packaging Design", description: "Design product packaging with 3D mockups and print specifications.", features: ["3D mockups", "Die-cut templates", "Print specs", "Material selection"], outcome: "Create retail-ready packaging designs with production specs." },
-      { taskNumber: 9, title: "Banner Design", description: "Design web banners, ads, and promotional graphics in multiple sizes.", features: ["Multi-size export", "Animation basics", "Ad platform specs", "A/B variations"], outcome: "Create effective advertising graphics for web and social." },
-      { taskNumber: 10, title: "Business Card", description: "Design professional business cards with print-ready specifications.", features: ["Card layout", "Typography selection", "Print specs", "QR code integration"], outcome: "Design memorable business cards that leave lasting impressions." },
-      { taskNumber: 11, title: "Portfolio Design", description: "Design a professional graphic design portfolio showcasing all work.", features: ["Portfolio layout", "Case study design", "Web & print versions", "Personal branding"], outcome: "Present your design work in a compelling, professional portfolio." },
-      { taskNumber: 12, title: "Final Branding Project", description: "Complete a full branding project from research through final deliverables.", features: ["Brand research", "Concept development", "Full identity system", "Brand guidelines"], outcome: "Deliver a complete branding project demonstrating design mastery." },
-    ],
-  },
-  {
-    slug: "motiongraphics",
-    name: "Motion Graphics",
-    icon: "MG",
-    color: "from-violet-500 to-indigo-600",
-    tasks: [
-      { taskNumber: 1, title: "After Effects Basics", description: "Learn After Effects fundamentals — layers, keyframes, and the timeline.", features: ["Layer management", "Keyframe animation", "Timeline editing", "Workspace setup"], outcome: "Master After Effects basics for motion graphics creation." },
-      { taskNumber: 2, title: "Logo Animation", description: "Animate logos with reveal effects, morphing, and kinetic energy.", features: ["Logo reveal", "Shape morphing", "Motion paths", "Easing curves"], outcome: "Create professional logo animations that captivate audiences." },
-      { taskNumber: 3, title: "Lower Third Animation", description: "Design and animate lower third graphics for video production.", features: ["Lower third design", "Text animation", "Shape layers", "Brand colors"], outcome: "Build a library of broadcast-ready lower third animations." },
-      { taskNumber: 4, title: "Kinetic Typography", description: "Create dynamic text animations with kinetic typography effects.", features: ["Text animators", "Expression controls", "Motion paths", "Timing techniques"], outcome: "Bring words to life with compelling text animations." },
-      { taskNumber: 5, title: "Social Media Animation", description: "Create animated content optimized for Instagram, TikTok, and YouTube.", features: ["Platform formats", "Loop animations", "Trending styles", "Export settings"], outcome: "Produce scroll-stopping animated social media content." },
-      { taskNumber: 6, title: "Intro Video", description: "Create professional intro videos for YouTube channels and brands.", features: ["Intro design", "Sound sync", "Brand elements", "Template creation"], outcome: "Design memorable video intros that establish brand identity." },
-      { taskNumber: 7, title: "Promo Video", description: "Create promotional videos with motion graphics, transitions, and call-to-action.", features: ["Promo structure", "Transitions", "CTA design", "Music sync"], outcome: "Produce engaging promotional videos that drive conversions." },
-      { taskNumber: 8, title: "Product Animation", description: "Animate product features, benefits, and showcase reels.", features: ["Product reveal", "Feature highlights", "3D camera moves", "Clean transitions"], outcome: "Create product showcase animations that sell." },
-      { taskNumber: 9, title: "Character Animation", description: "Animate characters with walk cycles, expressions, and lip sync.", features: ["Walk cycles", "Facial expressions", "Lip sync", "Body mechanics"], outcome: "Bring characters to life with expressive animations." },
-      { taskNumber: 10, title: "Motion Reel", description: "Compile your best motion work into a professional showreel.", features: ["Work selection", "Reel editing", "Pacing & rhythm", "Music selection"], outcome: "Present a compelling motion graphics portfolio reel." },
-      { taskNumber: 11, title: "Client Project", description: "Complete a client-style motion graphics project with brief and deliverables.", features: ["Brief analysis", "Storyboard creation", "Production", "Client revisions"], outcome: "Handle real-world motion projects from concept to delivery." },
-      { taskNumber: 12, title: "Final Motion Project", description: "Create an ambitious motion graphics piece showcasing all learned techniques.", features: ["Creative concept", "Advanced techniques", "Sound design", "Final render"], outcome: "Deliver a show-stopping motion graphics project." },
-    ],
-  },
-  {
-    slug: "videoediting",
-    name: "Video Editing",
-    icon: "VE",
-    color: "from-red-500 to-rose-700",
-    tasks: [
-      { taskNumber: 1, title: "Editing Basics", description: "Learn video editing fundamentals — cutting, trimming, transitions, and timeline.", features: ["Cutting & trimming", "Timeline editing", "Transitions", "Keyboard shortcuts"], outcome: "Master video editing basics for efficient production workflows." },
-      { taskNumber: 2, title: "Color Correction", description: "Color correct and grade footage for professional, cinematic looks.", features: ["Color correction", "LUTs application", "Color grading", "Scopes reading"], outcome: "Transform footage with professional color correction techniques." },
-      { taskNumber: 3, title: "Audio Enhancement", description: "Enhance audio with noise reduction, EQ, compression, and music mixing.", features: ["Noise reduction", "EQ & compression", "Music mixing", "Voice clarity"], outcome: "Deliver professional-quality audio in video projects." },
-      { taskNumber: 4, title: "YouTube Video Edit", description: "Edit a complete YouTube video with intros, outros, B-roll, and graphics.", features: ["Intro/outro design", "B-roll integration", "Graphics overlays", "Export settings"], outcome: "Produce polished YouTube videos ready for publication." },
-      { taskNumber: 5, title: "Instagram Reel", description: "Create engaging short-form vertical videos optimized for Instagram Reels.", features: ["Vertical format", "Fast pacing", "Trending effects", "Text overlays"], outcome: "Create viral-worthy short-form content for social media." },
-      { taskNumber: 6, title: "Subtitle Editing", description: "Add and style subtitles with proper timing, fonts, and accessibility.", features: ["Subtitle timing", "Font styling", "Auto-captioning", "SRT export"], outcome: "Make videos accessible with professional subtitles." },
-      { taskNumber: 7, title: "Green Screen Editing", description: "Key out green screen backgrounds and composite scenes realistically.", features: ["Chroma keying", "Spill suppression", "Background replacement", "Lighting matching"], outcome: "Create realistic composites using green screen techniques." },
-      { taskNumber: 8, title: "Motion Effects", description: "Add motion graphics, text animations, and visual effects to videos.", features: ["Text animations", "Tracking & stabilization", "Speed ramping", "Visual effects"], outcome: "Enhance videos with professional motion effects and VFX." },
-      { taskNumber: 9, title: "Promotional Video", description: "Edit a professional promotional video with compelling narrative and pacing.", features: ["Story structure", "Pacing & rhythm", "Music selection", "CTA placement"], outcome: "Produce promotional videos that engage and convert." },
-      { taskNumber: 10, title: "Documentary Edit", description: "Edit a documentary-style video with interviews, B-roll, and narrative flow.", features: ["Interview editing", "B-roll sequencing", "Narrative structure", "Sound design"], outcome: "Tell compelling stories through documentary-style editing." },
-      { taskNumber: 11, title: "Portfolio Reel", description: "Create a professional video editing portfolio reel showcasing best work.", features: ["Work selection", "Reel pacing", "Music sync", "Multiple styles"], outcome: "Present a compelling editing portfolio that wins clients." },
-      { taskNumber: 12, title: "Final Video Project", description: "Produce a complete video project from raw footage to final delivery.", features: ["Full post-production", "Color grade", "Sound mix", "Multiple formats"], outcome: "Deliver a broadcast-quality video from raw footage to final export." },
-    ],
-  },
-  {
-    slug: "animation",
-    name: "Animation",
-    icon: "AN",
-    color: "from-amber-500 to-yellow-600",
-    tasks: [
-      { taskNumber: 1, title: "Animation Principles", description: "Learn the 12 principles of animation — squash, stretch, timing, and spacing.", features: ["12 principles", "Timing & spacing", "Ease in/out", "Arc motion"], outcome: "Master foundational animation principles for all animation work." },
-      { taskNumber: 2, title: "Character Design", description: "Design original characters with personality, proportion, and expression sheets.", features: ["Character sheets", "Expression guide", "Proportion drawing", "Turnaround views"], outcome: "Create distinctive characters ready for animation." },
-      { taskNumber: 3, title: "Storyboarding", description: "Create storyboards with shot composition, camera angles, and pacing.", features: ["Shot composition", "Camera angles", "Storyboard panels", "Timing notes"], outcome: "Plan and visualize animation projects with professional storyboards." },
-      { taskNumber: 4, title: "Frame-by-Frame Animation", description: "Create hand-drawn frame-by-frame animations with timing and spacing.", features: ["Onion skinning", "Key poses", "In-betweens", "Timing charts"], outcome: "Master the art of traditional frame-by-frame animation." },
-      { taskNumber: 5, title: "2D Animation", description: "Build 2D animations using Toon Boom, Krita, or OpenToonz.", features: ["Software tools", "Rigging basics", "Bone animation", "Layer management"], outcome: "Create professional 2D animations using industry tools." },
-      { taskNumber: 6, title: "Character Walk Cycle", description: "Animate realistic and stylized walk cycles with proper weight and timing.", features: ["Walk cycle phases", "Weight transfer", "Arm swing", "Style variation"], outcome: "Animate convincing character locomotion." },
-      { taskNumber: 7, title: "Explainer Video", description: "Create an animated explainer video with narration, graphics, and transitions.", features: ["Script to screen", "Motion graphics", "Voiceover sync", "Scene transitions"], outcome: "Produce engaging explainer videos that simplify complex topics." },
-      { taskNumber: 8, title: "Lip Sync Animation", description: "Animate character lip sync with phoneme matching and facial expressions.", features: ["Phoneme chart", "Lip sync technique", "Facial animation", "Expression timing"], outcome: "Bring characters to life with synchronized dialogue animation." },
-      { taskNumber: 9, title: "Short Animated Film", description: "Create a complete short animated film with story, characters, and sound.", features: ["Story development", "Character animation", "Sound design", "Final compositing"], outcome: "Produce a complete animated short from concept to final render." },
-      { taskNumber: 10, title: "Visual Effects", description: "Add visual effects — particles, fire, water, and environmental effects.", features: ["Particle systems", "Environmental VFX", "Compositing", "Layer effects"], outcome: "Enhance animations with stunning visual effects." },
-      { taskNumber: 11, title: "Animation Reel", description: "Compile your best animation work into a professional demo reel.", features: ["Reel curation", "Pacing", "Music selection", "Title cards"], outcome: "Present a compelling animation portfolio for career opportunities." },
-      { taskNumber: 12, title: "Final Animation Project", description: "Create an ambitious animated piece demonstrating mastery of all techniques.", features: ["Creative concept", "Full production", "Sound design", "Final render"], outcome: "Deliver a showcase animation project demonstrating all learned skills." },
-    ],
-  },
-  {
-    slug: "threeddesign",
-    name: "3D Design (Blender)",
-    icon: "3D",
-    color: "from-orange-500 to-red-600",
-    tasks: [
-      { taskNumber: 1, title: "Blender Interface", description: "Navigate Blender's interface — viewport, tools, shortcuts, and workspace setup.", features: ["Viewport navigation", "Tool palette", "Hotkeys", "Workspace customization"], outcome: "Gain fluency with Blender's interface for efficient 3D workflow." },
-      { taskNumber: 2, title: "Basic Modeling", description: "Model 3D objects using mesh editing, modifiers, and boolean operations.", features: ["Mesh editing", "Modifiers", "Boolean ops", "Snap tools"], outcome: "Create 3D models using fundamental modeling techniques." },
-      { taskNumber: 3, title: "Hard Surface Modeling", description: "Build precise mechanical and architectural models with hard surface techniques.", features: ["Edge loops", "Bevel & chamfer", "Surface details", "CAD-like precision"], outcome: "Model precise hard surface objects for products and environments." },
-      { taskNumber: 4, title: "Material & Texturing", description: "Apply materials, textures, and PBR shaders to 3D models.", features: ["PBR materials", "UV unwrapping", "Texture painting", "Procedural textures"], outcome: "Bring 3D models to life with realistic materials and textures." },
-      { taskNumber: 5, title: "Lighting Setup", description: "Light 3D scenes with area lights, HDRI, and three-point lighting.", features: ["Three-point lighting", "HDRI environment", "Light linking", "Shadow control"], outcome: "Create dramatic, professional lighting for 3D scenes." },
-      { taskNumber: 6, title: "Camera Animation", description: "Animate cameras with path animation, focus pulls, and cinematic movements.", features: ["Camera paths", "Depth of field", "Keyframe animation", "Cinematic moves"], outcome: "Create cinematic camera work for 3D animations and renders." },
-      { taskNumber: 7, title: "Product Rendering", description: "Create photorealistic product renders with studio lighting and materials.", features: ["Studio lighting", "Product materials", "Turntable renders", "HDRI reflections"], outcome: "Produce photorealistic product visualizations." },
-      { taskNumber: 8, title: "Interior Modeling", description: "Model and render interior spaces with furniture, lighting, and materials.", features: ["Room modeling", "Furniture assets", "Interior lighting", "Material variety"], outcome: "Create photorealistic architectural interior visualizations." },
-      { taskNumber: 9, title: "Character Modeling", description: "Model stylized or realistic characters with proper topology and proportions.", features: ["Character topology", "Proportions", "Sculpting basics", "Retopology"], outcome: "Model characters ready for rigging and animation." },
-      { taskNumber: 10, title: "Environment Design", description: "Build immersive 3D environments with terrain, vegetation, and atmosphere.", features: ["Terrain sculpting", "Vegetation scatter", "Atmosphere", "World building"], outcome: "Create expansive 3D worlds with environmental storytelling." },
-      { taskNumber: 11, title: "Portfolio Render", description: "Create a stunning portfolio of 3D renders with post-processing.", features: ["Render setup", "Compositing", "Post-processing", "Presentation layout"], outcome: "Present 3D work in a professional, compelling portfolio." },
-      { taskNumber: 12, title: "Final 3D Project", description: "Complete a full 3D project from concept through modeling, texturing, and final render.", features: ["Concept art", "Full production", "Render farm", "Final composite"], outcome: "Deliver a showcase 3D project demonstrating comprehensive Blender skills." },
-    ],
-  },
+    "slug": "gamedevelopment",
+    "name": "Game Development",
+    "icon": "GM",
+    "color": "from-purple-600 to-pink-600",
+    "description": "2D and 3D game mechanics, physics engines, user interaction, and gameplay design.",
+    "tasks": [
+      {
+        "taskNumber": 1,
+        "title": "2D Platform Game",
+        "description": "Build a 2d platform game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working 2d platform game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 2,
+        "title": "Quiz Game",
+        "description": "Build a quiz game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working quiz game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 3,
+        "title": "Memory Game",
+        "description": "Build a memory game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working memory game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 4,
+        "title": "Tic-Tac-Toe Game",
+        "description": "Build a tic-tac-toe game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working tic-tac-toe game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 5,
+        "title": "Snake Game",
+        "description": "Build a snake game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working snake game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 6,
+        "title": "Puzzle Game",
+        "description": "Build a puzzle game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working puzzle game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 7,
+        "title": "Space Shooter Demo",
+        "description": "Build a space shooter demo as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working space shooter demo with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 8,
+        "title": "Car Racing Game",
+        "description": "Build a car racing game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working car racing game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 9,
+        "title": "Endless Runner",
+        "description": "Build a endless runner as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working endless runner with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 10,
+        "title": "Maze Game",
+        "description": "Build a maze game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working maze game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 11,
+        "title": "Chess Game",
+        "description": "Build a chess game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working chess game with documented workflow, testing, and project submission."
+      },
+      {
+        "taskNumber": 12,
+        "title": "Educational Game",
+        "description": "Build a educational game as a practical virtual internship project using game development concepts.",
+        "features": [
+          "Game mechanics",
+          "UI",
+          "scoring",
+          "controls",
+          "testing"
+        ],
+        "outcome": "Complete a working educational game with documented workflow, testing, and project submission."
+      }
+    ]
+  }
 ];
 
 export const LINKEDIN_TASK: TaskData = {
@@ -610,12 +4000,29 @@ export const LINKEDIN_TASK: TaskData = {
   outcome: "Build your professional brand on LinkedIn and showcase your internship journey with your network.",
 };
 
+const DOMAIN_TASK_ALIASES: Record<string, string> = {
+  generativeai: "genai",
+  promptengineering: "genai",
+  flutterdevelopment: "flutter",
+  androiddevelopment: "mobileapp",
+  reactnative: "mobileapp",
+  frontend: "fullstack",
+  backend: "fullstack",
+  cprogramming: "fullstack",
+  cppprogramming: "fullstack",
+};
+
 export function getDomainTasks(slug: string): DomainTasks | undefined {
-  return ALL_DOMAINS_TASKS.find((d) => d.slug === slug);
+  if (!slug) return undefined;
+  const direct = ALL_DOMAINS_TASKS.find((d) => d.slug === slug);
+  if (direct) return direct;
+  const aliased = DOMAIN_TASK_ALIASES[slug.toLowerCase()];
+  if (aliased) return ALL_DOMAINS_TASKS.find((d) => d.slug === aliased);
+  return undefined;
 }
 
 export function getTasksByDuration(slug: string, durationMonths: number): TaskData[] {
-  const domain = ALL_DOMAINS_TASKS.find((d) => d.slug === slug);
+  const domain = getDomainTasks(slug);
   if (!domain) return [];
   const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
   const limit = taskLimits[durationMonths] ?? 5;

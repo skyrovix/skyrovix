@@ -24,6 +24,9 @@ import { PromotionsSection } from "@/components/admin/PromotionsSection";
 import { PromoPopupSection } from "@/components/admin/PromoPopupSection";
 import { BackupSection } from "@/components/admin/BackupSection";
 import { ProjectSubmissionsSection } from "@/components/admin/ProjectSubmissionsSection";
+import { PaymentVerificationSection } from "@/components/admin/PaymentVerificationSection";
+import { CouponManagementSection } from "@/components/admin/CouponManagementSection";
+import { FeeSettingsSection } from "@/components/admin/FeeSettingsSection";
 import { OfferLetterDoc, CertificateDoc, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
 import {
   getAdminStudents,
@@ -45,7 +48,7 @@ import {
   PanelRightOpen, FolderTree,   FileQuestion, PieChart, Percent, Briefcase,
   Loader2, Activity, Wifi, WifiOff, LogIn, Monitor, Smartphone, Tablet,
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
-  HardDrive, RotateCcw, UserCheck,
+  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -66,7 +69,7 @@ export const Route = createFileRoute("/admin")({
   ssr: false,
   beforeLoad: async () => {
     const { data: sessionData } = await supabase.auth.getSession();
-    let user = sessionData?.session?.user;
+    let user: any = sessionData?.session?.user;
     if (!user) {
       const { data: userData } = await supabase.auth.getUser();
       user = userData?.user;
@@ -110,7 +113,9 @@ const SIDEBAR_GROUPS = [
       { id: "students", label: "Students", icon: GraduationCap },
       { id: "courses", label: "Courses", icon: BookOpen },
       { id: "certificates", label: "Certificates", icon: Award },
-      { id: "payments", label: "Payments & Invoices", icon: Wallet },
+      { id: "payments", label: "Payment Verification", icon: ShieldCheck },
+      { id: "coupons", label: "Coupons & Discounts", icon: Tag },
+      { id: "fee-settings", label: "Fee Management", icon: IndianRupee },
       { id: "domains", label: "Internship Domains", icon: FolderTree },
       { id: "tasks", label: "Manage Tasks", icon: ListChecks },
     ]
@@ -140,7 +145,7 @@ const SIDEBAR_GROUPS = [
   }
 ] as const;
 
-type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "promotions" | "popup" | "certificates" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
+type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "promotions" | "popup" | "certificates" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
 
 interface AdminNotification {
   id: string;
@@ -467,7 +472,9 @@ function AdminPanel() {
             {active === "submissions" && <SubmissionsSection />}
             {active === "project-submissions" && <ProjectSubmissionsSection />}
             {active === "verification" && <VerificationSection />}
-            {active === "payments" && <PaymentsSection />}
+            {active === "payments" && <PaymentVerificationSection adminId={user?.id || ""} />}
+            {active === "coupons" && <CouponManagementSection adminId={user?.id || ""} />}
+            {active === "fee-settings" && <FeeSettingsSection adminId={user?.id || ""} />}
             {active === "promotions" && <PromotionsSection />}
             {active === "popup" && <PromoPopupSection />}
             {active === "certificates" && <CertificatesSection />}
@@ -1188,7 +1195,7 @@ function ApplicationsSection() {
       const { data: pendingApps, error } = await supabase
         .from("applications")
         .select("id, offer_issued_at, created_at")
-        .neq("email_status", "sent")
+        .neq("email_status" as any, "sent")
         .not("offer_issued_at", "is", null);
 
       if (error) throw error;
@@ -1494,12 +1501,12 @@ function ApplicationsSection() {
                     }`}>{a.status}</Badge>
                   </td>
                   <td className="px-4 py-3">
-                    {a.email_status === "sent" ? (
+                    {(a as any).email_status === "sent" ? (
                       <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-0 text-[11px] gap-1 font-medium">
                         <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" /> Sent
                       </Badge>
-                    ) : a.email_status === "failed" ? (
-                      <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border-0 text-[11px] gap-1 font-medium" title={a.email_error || "Email delivery failed"}>
+                    ) : (a as any).email_status === "failed" ? (
+                      <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border-0 text-[11px] gap-1 font-medium" title={(a as any).email_error || "Email delivery failed"}>
                         <XCircle className="size-3 text-rose-600 dark:text-rose-400" /> Failed
                       </Badge>
                     ) : (
@@ -1515,15 +1522,15 @@ function ApplicationsSection() {
                         onClick={() => handleSendOfferLetter(a)}
                         disabled={sendingOfferId === a.id}
                         className={`grid size-8 place-items-center rounded-lg transition disabled:opacity-50 ${
-                          a.email_status === "failed"
+                          (a as any).email_status === "failed"
                             ? "text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
                             : "text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                         }`}
-                        title={a.email_status === "failed" ? "Retry Email" : a.email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter to Gmail"}
+                        title={(a as any).email_status === "failed" ? "Retry Email" : (a as any).email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter to Gmail"}
                       >
                         {sendingOfferId === a.id ? (
                           <Loader2 className="size-4 animate-spin" />
-                        ) : a.email_status === "failed" ? (
+                        ) : (a as any).email_status === "failed" ? (
                           <RefreshCw className="size-4" />
                         ) : (
                           <Mail className="size-4" />
@@ -1761,16 +1768,31 @@ function SubmissionsSection() {
   const changeStatus = async (id: string, newStatus: string, feedbackText?: string) => {
     setLoadingId(id);
     const reason = feedbackText !== undefined ? feedbackText : rejectReason;
+    const currentSub = data?.find((s: any) => s.id === id);
     const { error } = await supabase.from(tableName as any).update({ status: newStatus, feedback: reason || null, reviewed_at: new Date().toISOString() }).eq("id", id);
     if (error) { setLoadingId(null); return toast.error(error.message); }
     await (supabase.from("submission_history" as any) as any).insert({
       submission_id: id,
       table_name: tableName,
-      previous_status: data?.find((s: any) => s.id === id)?.status ?? null,
+      previous_status: currentSub?.status ?? null,
       new_status: newStatus,
       changed_by: (await supabase.auth.getUser()).data.user?.id,
       reason: reason || null,
     });
+
+    // Automatically check and sync application completion condition & certificate payment unlock
+    if (currentSub?.application_id) {
+      try {
+        const { syncApplicationTaskStatusServer } = await import("@/lib/fee-service");
+        const syncRes = await syncApplicationTaskStatusServer({ data: { applicationId: currentSub.application_id } });
+        if (syncRes.verified) {
+          toast.success("🎉 All required tasks verified! Certificate payment unlocked for student.");
+        }
+      } catch (syncErr) {
+        console.warn("Could not sync task status:", syncErr);
+      }
+    }
+
     setLoadingId(null);
     setConfirmAction(null);
     setViewingSub(null);
@@ -1778,6 +1800,7 @@ function SubmissionsSection() {
     toast.success(`Submission marked as ${newStatus}`);
     qc.invalidateQueries({ queryKey: ["admin-subs"] });
     qc.invalidateQueries({ queryKey: ["admin-sub-history-all"] });
+    qc.invalidateQueries({ queryKey: ["admin-applications"] });
   };
 
   return (
@@ -3710,7 +3733,7 @@ function StudentsSection() {
                       {s.has_application ? (
                         <div className="space-y-0.5">
                           <Badge variant="secondary" className="text-xs font-medium">
-                            {getDomain(s.domain)?.name ?? s.domain}
+                            {getDomain(s.domain || "")?.name ?? s.domain ?? "—"}
                           </Badge>
                           {s.intern_id && (
                             <p className="font-mono text-[10px] text-muted-foreground tracking-tight">
@@ -6914,7 +6937,7 @@ function DomainsSection() {
         const d = (a.domain || "").toLowerCase().trim();
         if (!map[d]) map[d] = { total: 0, approved: 0, pending: 0 };
         map[d].total++;
-        if (a.status === "approved" || a.status === "completed") map[d].approved++;
+        if (a.status === "approved" || (a.status as string) === "completed") map[d].approved++;
         else map[d].pending++;
       }
     }

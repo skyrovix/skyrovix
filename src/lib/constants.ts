@@ -126,21 +126,54 @@ export const PAYMENT = {
 };
 
 export const DOMAINS = [
-  { slug: "fullstack", name: "Full Stack Development", icon: "FS", description: "End-to-end web apps with React, Node.js, and databases.", color: "from-fuchsia-500 to-[#07284a]" },
-  { slug: "python", name: "Python Development", icon: "Py", description: "Versatile Python for web, automation, and data.", color: "from-emerald-500 to-teal-600" },
-  { slug: "java", name: "Java Development", icon: "Jv", description: "Enterprise-grade backends with Spring Boot.", color: "from-red-500 to-orange-600" },
-  { slug: "mernstack", name: "MERN Stack Development", icon: "ME", description: "MongoDB, Express, React, Node.js full-stack apps.", color: "from-teal-500 to-cyan-600" },
-  { slug: "meanstack", name: "MEAN Stack Development", icon: "MA", description: "MongoDB, Express, Angular, Node.js web apps.", color: "from-red-500 to-rose-600" },
-  { slug: "aiml", name: "AI & Machine Learning", icon: "AI", description: "Build intelligent systems with ML and LLMs.", color: "from-violet-500 to-[#07284a]" },
-  { slug: "datascience", name: "Data Science", icon: "DS", description: "Turn raw data into actionable insights.", color: "from-cyan-500 to-blue-600" },
-  { slug: "uiux", name: "UI UX Designer", icon: "UX", description: "Human-centered design that delights users.", color: "from-amber-500 to-orange-600" },
-  { slug: "cybersecurity", name: "Cyber Security", icon: "CS", description: "Defend systems, hunt vulnerabilities.", color: "from-green-500 to-emerald-600" },
+  { slug: "fullstack", name: "Full Stack Development", icon: "FS", description: "End-to-end web apps with frontend, backend, databases, and APIs.", color: "from-fuchsia-500 to-[#07284a]" },
+  { slug: "python", name: "Python Development", icon: "Py", description: "Versatile Python development for web apps, automation, and backend APIs.", color: "from-emerald-500 to-teal-600" },
+  { slug: "java", name: "Java Development", icon: "Jv", description: "Enterprise-grade software and backend systems with Java and Spring Boot.", color: "from-red-500 to-orange-600" },
+  { slug: "mernstack", name: "MERN Stack Development", icon: "ME", description: "Full-stack JavaScript applications with MongoDB, Express, React, and Node.js.", color: "from-teal-500 to-cyan-600" },
+  { slug: "meanstack", name: "MEAN Stack Development", icon: "MA", description: "Modern web development with MongoDB, Express, Angular, and Node.js.", color: "from-red-500 to-rose-600" },
+  { slug: "aiml", name: "AI & Machine Learning", icon: "AI", description: "Build intelligent systems with machine learning models and predictive algorithms.", color: "from-violet-500 to-[#07284a]" },
+  { slug: "genai", name: "Generative AI & Prompt Engineering", icon: "GA", description: "Harness LLMs, generative AI workflows, and advanced prompt engineering.", color: "from-purple-500 to-indigo-600" },
+  { slug: "datascience", name: "Data Science", icon: "DS", description: "Transform raw datasets into actionable insights, data stories, and analytical models.", color: "from-cyan-500 to-blue-600" },
+  { slug: "dataanalytics", name: "Data Analytics", icon: "DA", description: "Analyze business metrics, build KPI dashboards, and drive data-informed decisions.", color: "from-blue-500 to-indigo-600" },
+  { slug: "powerbi", name: "Power BI & Business Intelligence", icon: "BI", description: "Interactive dashboards, DAX modeling, and enterprise business intelligence.", color: "from-amber-500 to-yellow-600" },
+  { slug: "uiux", name: "UI/UX Design", icon: "UX", description: "Human-centered digital product design, wireframes, and interactive prototypes.", color: "from-pink-500 to-purple-600" },
+  { slug: "graphicdesign", name: "Graphic Design", icon: "GD", description: "Brand identities, digital visual assets, marketing creatives, and layouts.", color: "from-rose-500 to-orange-500" },
+  { slug: "cybersecurity", name: "Cyber Security", icon: "CS", description: "Security auditing, vulnerability analysis, secure coding, and threat mitigation.", color: "from-green-500 to-emerald-600" },
+  { slug: "cloudcomputing", name: "Cloud Computing", icon: "CC", description: "Cloud infrastructure, serverless architectures, storage, and cloud deployments.", color: "from-sky-500 to-blue-600" },
+  { slug: "devops", name: "DevOps", icon: "DO", description: "CI/CD pipelines, containerization, automated deployments, and infrastructure monitoring.", color: "from-orange-500 to-amber-600" },
+  { slug: "softwaretesting", name: "Software Testing & QA", icon: "QA", description: "Manual and automated testing, test suites, bug tracking, and quality assurance.", color: "from-lime-500 to-green-600" },
+  { slug: "mobileapp", name: "Mobile App Development", icon: "MB", description: "Native and cross-platform mobile applications with responsive mobile interfaces.", color: "from-indigo-500 to-blue-600" },
+  { slug: "flutter", name: "Flutter Development", icon: "FL", description: "High-performance multi-platform applications using Dart and Flutter framework.", color: "from-cyan-500 to-teal-600" },
+  { slug: "digitalmarketing", name: "Digital Marketing", icon: "DM", description: "SEO optimization, performance marketing, content strategy, and digital campaigns.", color: "from-violet-500 to-fuchsia-600" },
+  { slug: "socialmedia", name: "Social Media Management", icon: "SM", description: "Social media strategies, content scheduling, audience growth, and engagement analytics.", color: "from-pink-500 to-rose-500" },
+  { slug: "contentwriting", name: "Content Writing", icon: "CW", description: "SEO blogging, copywriting, technical documentation, and professional writing.", color: "from-amber-500 to-orange-600" },
+  { slug: "videoediting", name: "Video Editing", icon: "VE", description: "Cinematic editing, reels production, motion graphics, and audio-video mastering.", color: "from-red-500 to-pink-600" },
+  { slug: "wordpress", name: "WordPress Development", icon: "WP", description: "Custom themes, plugin integrations, CMS customization, and e-commerce setups.", color: "from-blue-600 to-indigo-700" },
+  { slug: "databasemanagement", name: "Database Management", icon: "DB", description: "Relational schema design, SQL optimization, data integrity, and backup workflows.", color: "from-emerald-600 to-cyan-700" },
+  { slug: "gamedevelopment", name: "Game Development", icon: "GM", description: "2D and 3D game mechanics, physics engines, user interaction, and gameplay design.", color: "from-purple-600 to-pink-600" },
 ] as const;
+
+export const DOMAIN_ALIASES: Record<string, string> = {
+  generativeai: "genai",
+  promptengineering: "genai",
+  flutterdevelopment: "flutter",
+  androiddevelopment: "mobileapp",
+  reactnative: "mobileapp",
+  frontend: "fullstack",
+  backend: "fullstack",
+  cprogramming: "fullstack",
+  cppprogramming: "fullstack",
+};
 
 export const DOMAIN_MAP = Object.fromEntries(DOMAINS.map((d) => [d.slug, d]));
 
 export function getDomain(slug: string) {
-  return DOMAIN_MAP[slug];
+  if (!slug) return undefined;
+  const direct = DOMAIN_MAP[slug];
+  if (direct) return direct;
+  const aliased = DOMAIN_ALIASES[slug.toLowerCase()];
+  if (aliased) return DOMAIN_MAP[aliased];
+  return undefined;
 }
 
 export const DURATIONS = [

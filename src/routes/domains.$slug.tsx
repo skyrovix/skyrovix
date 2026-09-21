@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DOMAINS, getDomain } from "@/lib/constants";
 import { useAuth } from "@/lib/auth";
 import { FadeUp, Reveal, ScaleIn } from "@/components/motion";
-import { INTERNSHIP_DETAILS } from "@/lib/internship-detail-content";
+import { INTERNSHIP_DETAILS, getInternshipDetail } from "@/lib/internship-detail-content";
 import { getDomainTasks, getTasksByDuration } from "@/lib/tasks-data";
 import {
   BookOpen, GraduationCap, Trophy, Clock, Star, BarChart3,
@@ -29,32 +29,40 @@ import {
 
 const DOMAIN_IMAGES: Record<string, string> = {
   fullstack: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=600&fit=crop&auto=format",
-  frontend: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=600&fit=crop&auto=format",
-  backend: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=600&fit=crop&auto=format",
-  datascience: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop&auto=format",
-  aiml: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=600&fit=crop&auto=format",
-  uiux: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1200&h=600&fit=crop&auto=format",
   python: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=1200&h=600&fit=crop&auto=format",
   java: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&h=600&fit=crop&auto=format",
-  cybersecurity: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&h=600&fit=crop&auto=format",
-  digitalmarketing: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=600&fit=crop&auto=format",
-  cprogramming: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format",
-  cppprogramming: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200&h=600&fit=crop&auto=format",
   mernstack: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=1200&h=600&fit=crop&auto=format",
   meanstack: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=1200&h=600&fit=crop&auto=format",
+  aiml: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=600&fit=crop&auto=format",
+  genai: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=600&fit=crop&auto=format",
+  generativeai: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=600&fit=crop&auto=format",
+  datascience: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop&auto=format",
   dataanalytics: "https://images.unsplash.com/photo-1543286386-713bdd548da4?w=1200&h=600&fit=crop&auto=format",
-  machinelearning: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&h=600&fit=crop&auto=format",
-  deeplearning: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&h=600&fit=crop&auto=format",
-  generativeai: "https://picsum.photos/seed/genai/600/338",
-  promptengineering: "https://images.unsplash.com/photo-1676299081847-824916de030a?w=1200&h=600&fit=crop&auto=format",
-  cloudcomputing: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=600&fit=crop&auto=format",
-  ethicalhacking: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&h=600&fit=crop&auto=format",
-  androiddevelopment: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=1200&h=600&fit=crop&auto=format",
-  flutterdevelopment: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&h=600&fit=crop&auto=format",
-  reactnative: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=600&fit=crop&auto=format",
+  powerbi: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=600&fit=crop&auto=format",
+  uiux: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1200&h=600&fit=crop&auto=format",
   graphicdesign: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&h=600&fit=crop&auto=format",
-  motiongraphics: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=600&fit=crop&auto=format",
+  cybersecurity: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&h=600&fit=crop&auto=format",
+  cloudcomputing: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=600&fit=crop&auto=format",
+  devops: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&h=600&fit=crop&auto=format",
+  softwaretesting: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200&h=600&fit=crop&auto=format",
+  mobileapp: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&h=600&fit=crop&auto=format",
+  flutter: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&h=600&fit=crop&auto=format",
+  flutterdevelopment: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&h=600&fit=crop&auto=format",
+  digitalmarketing: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=600&fit=crop&auto=format",
+  socialmedia: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=1200&h=600&fit=crop&auto=format",
+  contentwriting: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&h=600&fit=crop&auto=format",
   videoediting: "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=1200&h=600&fit=crop&auto=format",
+  wordpress: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=1200&h=600&fit=crop&auto=format",
+  databasemanagement: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=1200&h=600&fit=crop&auto=format",
+  gamedevelopment: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=600&fit=crop&auto=format",
+  frontend: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=600&fit=crop&auto=format",
+  backend: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=600&fit=crop&auto=format",
+  cprogramming: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format",
+  cppprogramming: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200&h=600&fit=crop&auto=format",
+  promptengineering: "https://images.unsplash.com/photo-1676299081847-824916de030a?w=1200&h=600&fit=crop&auto=format",
+  androiddevelopment: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=1200&h=600&fit=crop&auto=format",
+  reactnative: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=600&fit=crop&auto=format",
+  motiongraphics: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=600&fit=crop&auto=format",
   animation: "https://picsum.photos/seed/animation/600/338",
   threeddesign: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=600&fit=crop&auto=format",
 };
@@ -122,8 +130,8 @@ function InternshipDetailsPage() {
   const [applying, setApplying] = useState(false);
 
   const domain = getDomain(slug);
-  const detail = INTERNSHIP_DETAILS[slug];
-  const heroImage = DOMAIN_IMAGES[slug];
+  const detail = getInternshipDetail(slug) || (domain ? getInternshipDetail(domain.slug) : undefined);
+  const heroImage = DOMAIN_IMAGES[slug] || (domain ? DOMAIN_IMAGES[domain.slug] : undefined) || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=600&fit=crop&auto=format";
 
   const { data: userApplication } = useQuery({
     queryKey: ["my-application-duration", slug],
@@ -534,13 +542,13 @@ function InternshipDetailsPage() {
           <SectionHeading icon={GraduationCap} title="Related Internships" />
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {INTERN_SLUGS.filter((s) => s !== slug).slice(0, 3).map((s) => {
-              const d = INTERNSHIP_DETAILS[s];
               const dom = getDomain(s);
+              const d = getInternshipDetail(s) || (dom ? getInternshipDetail(dom.slug) : undefined);
               if (!d || !dom) return null;
               return (
                 <Link key={s} to="/domains/$slug" params={{ slug: s }} className="group block rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                   <div className={`relative h-28 overflow-hidden bg-gradient-to-br ${dom.color}`}>
-                    <img src={DOMAIN_IMAGES[s]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500" />
+                    <img src={DOMAIN_IMAGES[s] || DOMAIN_IMAGES[dom.slug]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                     <div className="absolute bottom-2 left-3">
                       <div className="size-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center text-sm font-bold text-white">{dom.icon}</div>

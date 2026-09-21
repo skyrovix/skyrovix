@@ -9,13 +9,12 @@ if (typeof setInterval !== "undefined") {
   const STALE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
   setInterval(async () => {
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { dbQuery } = await import("@/lib/db.server");
       const cutoff = new Date(Date.now() - STALE_TIMEOUT).toISOString();
-      await (supabaseAdmin as any)
-        .from("login_sessions")
-        .update({ status: "offline" })
-        .eq("status", "online")
-        .lt("last_active", cutoff);
+      await dbQuery(
+        "UPDATE public.login_sessions SET status = 'offline' WHERE status = 'online' AND last_active < $1",
+        [cutoff]
+      );
     } catch (e) {
       console.error("[Cleanup] Failed to mark stale sessions:", e);
     }

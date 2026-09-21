@@ -78,7 +78,7 @@ export function ProjectCompletionCert({
             </View>
 
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
-              <Image source={{ data: `data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}` }} style={{ width: 44, height: 44 }} />
+              <Image src={`data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}` as any} style={{ width: 44, height: 44 }} />
               <View>
                 <Text style={{ fontSize: 8, fontWeight: 700, color: C.brand }}>Digitally Verified</Text>
                 <Text style={{ fontSize: 7, color: C.muted }}>Scan QR to verify authenticity</Text>
@@ -167,7 +167,7 @@ export function ProjectAwardCert({
             </View>
 
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
-              <Image source={{ data: `data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}` }} style={{ width: 44, height: 44 }} />
+              <Image src={`data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}` as any} style={{ width: 44, height: 44 }} />
               <View>
                 <Text style={{ fontSize: 8, fontWeight: 700, color: C.brand }}>Digitally Verified</Text>
                 <Text style={{ fontSize: 7, color: C.muted }}>Scan QR to verify authenticity</Text>
@@ -209,7 +209,7 @@ export function ProjectAwardCert({
 }
 
 export async function downloadPdfBlob(doc: React.ReactElement) {
-  return pdf(doc).toBlob();
+  return pdf(doc as any).toBlob();
 }
 
 export async function downloadPdf(doc: React.ReactElement, filename: string) {

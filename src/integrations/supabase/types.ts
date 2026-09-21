@@ -30,6 +30,23 @@ export type Database = {
           status: Database["public"]["Enums"]["application_status"]
           user_id: string
           year: string | null
+          certificate_offer_eligible?: boolean | null
+          certificate_offer_id?: string | null
+          certificate_offer_amount?: number | null
+          certificate_offer_snapshot?: Json | null
+          certificate_offer_granted_at?: string | null
+          certificate_offer_expires_at?: string | null
+          all_tasks_verified?: boolean | null
+          certificate_payment_unlocked?: boolean | null
+          certificate_payment_status?: string | null
+          application_fee_required?: boolean | null
+          application_fee_status?: string | null
+          submission_status?: string | null
+          submitted_at?: string | null
+          verified?: boolean | null
+          certificate_generated?: boolean | null
+          total_tasks?: number | null
+          duration?: number | null
         }
         Insert: {
           college?: string | null
@@ -46,6 +63,23 @@ export type Database = {
           status?: Database["public"]["Enums"]["application_status"]
           user_id: string
           year?: string | null
+          certificate_offer_eligible?: boolean | null
+          certificate_offer_id?: string | null
+          certificate_offer_amount?: number | null
+          certificate_offer_snapshot?: Json | null
+          certificate_offer_granted_at?: string | null
+          certificate_offer_expires_at?: string | null
+          all_tasks_verified?: boolean | null
+          certificate_payment_unlocked?: boolean | null
+          certificate_payment_status?: string | null
+          application_fee_required?: boolean | null
+          application_fee_status?: string | null
+          submission_status?: string | null
+          submitted_at?: string | null
+          verified?: boolean | null
+          certificate_generated?: boolean | null
+          total_tasks?: number | null
+          duration?: number | null
         }
         Update: {
           college?: string | null
@@ -62,6 +96,74 @@ export type Database = {
           status?: Database["public"]["Enums"]["application_status"]
           user_id?: string
           year?: string | null
+          certificate_offer_eligible?: boolean | null
+          certificate_offer_id?: string | null
+          certificate_offer_amount?: number | null
+          certificate_offer_snapshot?: Json | null
+          certificate_offer_granted_at?: string | null
+          certificate_offer_expires_at?: string | null
+          all_tasks_verified?: boolean | null
+          certificate_payment_unlocked?: boolean | null
+          certificate_payment_status?: string | null
+          application_fee_required?: boolean | null
+          application_fee_status?: string | null
+          submission_status?: string | null
+          submitted_at?: string | null
+          verified?: boolean | null
+          certificate_generated?: boolean | null
+          total_tasks?: number | null
+          duration?: number | null
+        }
+        Relationships: []
+      }
+      fee_settings: {
+        Row: {
+          id: string
+          fee_type: string
+          amount: number
+          is_enabled: boolean
+          upi_id: string
+          payee_name: string
+          qr_code_url: string | null
+          offer_enabled: boolean
+          offer_amount: number
+          offer_name: string
+          offer_start_at: string | null
+          offer_end_at: string | null
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          fee_type: string
+          amount?: number
+          is_enabled?: boolean
+          upi_id?: string
+          payee_name?: string
+          qr_code_url?: string | null
+          offer_enabled?: boolean
+          offer_amount?: number
+          offer_name?: string
+          offer_start_at?: string | null
+          offer_end_at?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          fee_type?: string
+          amount?: number
+          is_enabled?: boolean
+          upi_id?: string
+          payee_name?: string
+          qr_code_url?: string | null
+          offer_enabled?: boolean
+          offer_amount?: number
+          offer_name?: string
+          offer_start_at?: string | null
+          offer_end_at?: string | null
+          updated_by?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

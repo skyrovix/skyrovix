@@ -28,7 +28,7 @@ export interface OfferLetterPreviewApp {
   full_name: string;
   email?: string;
   domain: string;
-  duration?: number;
+  duration?: number | null;
   offer_issued_at?: string;
   created_at: string;
   status?: string;

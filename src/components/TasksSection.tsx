@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { getDomainTasks, getTasksByDuration, LINKEDIN_TASK } from "@/lib/tasks-data";
 import {
+  Lock,
   Search,
   SlidersHorizontal,
   ArrowUpDown,
@@ -192,6 +194,11 @@ export function TasksSection({
   appId,
   duration,
   submissionStatus,
+  isAppFeeRequired = false,
+  appFeeAmount = 0,
+  appFeePayment = null,
+  onOpenAppPayment,
+  onNavigateCertificates,
   onChange,
 }: {
   domainSlug: string;
@@ -199,6 +206,11 @@ export function TasksSection({
   appId: string;
   duration?: number;
   submissionStatus?: string;
+  isAppFeeRequired?: boolean;
+  appFeeAmount?: number;
+  appFeePayment?: any;
+  onOpenAppPayment?: () => void;
+  onNavigateCertificates?: () => void;
   onChange: () => void;
 }) {
   const [search, setSearch] = useState("");
@@ -230,6 +242,8 @@ export function TasksSection({
     return () => { cancelled = true; };
   }, [domainSlug, duration]);
 
+  const isAppFeeLocked = Boolean(isAppFeeRequired && appFeeAmount > 0 && appFeePayment?.status !== "approved");
+
   const tasksWithMeta = useMemo(() => {
     const getLatestSub = (tId: string) => {
       const matches = (rawSubmissions || []).filter((s) => s.task_id === tId);
@@ -241,6 +255,8 @@ export function TasksSection({
     const linkedinSub = linkedinId ? getLatestSub(linkedinId) : undefined;
     const linkedinDue = computeDueDate(1);
     const linkedinStatus = getTaskStatus(linkedinSub, linkedinDue);
+    const linkedinDone = linkedinStatus === "completed"; // Approved
+
     const linkedinMeta = {
       ...LINKEDIN_TASK,
       id: linkedinId,
@@ -248,15 +264,41 @@ export function TasksSection({
       dueDate: linkedinDue,
       status: linkedinStatus,
       remaining: daysRemaining(linkedinDue),
+      isLocked: isAppFeeLocked || submissionStatus === "submitted" || submissionStatus === "approved",
+      lockReason: isAppFeeLocked
+        ? "Your internship tasks will unlock after your application fee payment is verified by the admin."
+        : "Internship submitted for verification — tasks are locked.",
     };
-    const linkedinDone = linkedinStatus === "completed";
 
-    const domainTasks = allTasks.map((t) => {
+    let prevTaskApproved = linkedinDone; // Task 1 unlocks if LinkedIn is done & App fee is paid
+    const domainTasks = allTasks.map((t, idx) => {
       const id = taskIdMap[t.taskNumber] ?? `${domainSlug}-${t.taskNumber}`;
       const sub = getLatestSub(id);
       const dueDate = computeDueDate(t.taskNumber);
       const status = getTaskStatus(sub, dueDate);
       const remaining = daysRemaining(dueDate);
+
+      let isLocked = false;
+      let lockReason = "";
+
+      if (isAppFeeLocked) {
+        isLocked = true;
+        lockReason = "Your internship tasks will unlock after your application fee payment is verified by the admin.";
+      } else if (!linkedinDone && t.taskNumber > 0) {
+        isLocked = true;
+        lockReason = "Complete the LinkedIn post task first to unlock.";
+      } else if (!prevTaskApproved && t.taskNumber > 1) {
+        isLocked = true;
+        const prevTaskNum = allTasks[idx - 1]?.taskNumber ?? (t.taskNumber - 1);
+        lockReason = `Complete and get admin approval for Task ${prevTaskNum} to unlock.`;
+      } else if (submissionStatus === "submitted" || submissionStatus === "approved") {
+        isLocked = true;
+        lockReason = "Internship submitted for verification — tasks are locked.";
+      }
+
+      // Track approved status for next task (status === 'completed' means submission.status === 'approved')
+      prevTaskApproved = status === "completed";
+
       return {
         ...t,
         id,
@@ -264,12 +306,13 @@ export function TasksSection({
         dueDate,
         status,
         remaining,
-        lockedByLinkedin: !linkedinDone,
+        isLocked,
+        lockReason,
       };
     });
 
     return [linkedinMeta, ...domainTasks];
-  }, [allTasks, rawSubmissions, taskIdMap, domainSlug]);
+  }, [allTasks, rawSubmissions, taskIdMap, domainSlug, isAppFeeLocked, submissionStatus]);
 
   const stats = useMemo(() => {
     const completed = tasksWithMeta.filter((t) => t.status === "completed").length;
@@ -346,6 +389,94 @@ export function TasksSection({
           />
         </div>
       </div>
+
+      {/* Application Fee Payment Task (Required when Fee > 0) */}
+      {isAppFeeRequired && appFeeAmount > 0 && (
+        <div className={`mb-6 rounded-2xl border p-5 shadow-sm transition-all ${
+          appFeePayment?.status === "approved"
+            ? "border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/20 dark:to-slate-900/40"
+            : "border-amber-300/80 bg-gradient-to-br from-amber-50/90 to-white dark:from-amber-950/20 dark:to-slate-900/40"
+        }`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className={`grid size-11 place-items-center rounded-2xl shrink-0 shadow-sm ${
+                appFeePayment?.status === "approved"
+                  ? "bg-emerald-500 text-white"
+                  : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+              }`}>
+                {appFeePayment?.status === "approved" ? (
+                  <CheckCircle2 className="size-6" />
+                ) : (
+                  <Lock className="size-6" />
+                )}
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                    1. First Required Task
+                  </span>
+                  <h3 className="font-bold text-base text-foreground">
+                    Application Fee Payment (₹{appFeeAmount})
+                  </h3>
+                  <Badge className={
+                    appFeePayment?.status === "approved"
+                      ? "bg-emerald-600 text-white font-bold text-xs"
+                      : appFeePayment?.status === "pending" || appFeePayment?.status === "under_review"
+                      ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-bold text-xs"
+                      : appFeePayment?.status === "rejected"
+                      ? "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 font-bold text-xs"
+                      : appFeePayment?.status === "resubmission_required"
+                      ? "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300 font-bold text-xs"
+                      : "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 font-bold text-xs"
+                  }>
+                    {appFeePayment?.status === "approved"
+                      ? "✅ Approved"
+                      : appFeePayment?.status === "pending" || appFeePayment?.status === "under_review"
+                      ? "⏳ Under Review"
+                      : appFeePayment?.status === "rejected"
+                      ? "❌ Rejected"
+                      : appFeePayment?.status === "resubmission_required"
+                      ? "🔄 Resubmission Required"
+                      : "🔴 Pending Payment"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  {appFeePayment?.status === "approved"
+                    ? "Your application fee has been verified and approved by admin. Internship tasks are unlocked!"
+                    : appFeePayment?.status === "pending" || appFeePayment?.status === "under_review"
+                    ? "Your application payment proof (UTR: " + (appFeePayment?.utr_number || "—") + ") is currently under admin verification. Tasks will unlock immediately after approval."
+                    : appFeePayment?.status === "rejected" || appFeePayment?.status === "resubmission_required"
+                    ? `Admin Note: ${appFeePayment?.admin_note || "Please submit a clear UPI receipt screenshot and valid UTR."}`
+                    : "Your internship tasks will unlock after your application fee payment is verified by the admin."}
+                </p>
+
+                {/* Mandatory Skyrovix Disclaimer */}
+                <div className="mt-3 rounded-xl border border-blue-200/80 bg-blue-50/70 dark:border-blue-900/40 dark:bg-blue-950/30 p-2.5 text-[11px] text-blue-900 dark:text-blue-200 leading-relaxed space-y-1">
+                  <div className="font-bold text-blue-800 dark:text-blue-300">
+                    Application Processing Fee — Not a Certification Fee
+                  </div>
+                  <p>
+                    Application processing fee only. This charge is applicable only to your internship application. It is NOT a certification fee.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {appFeePayment?.status !== "approved" && onOpenAppPayment && (
+              <Button
+                onClick={onOpenAppPayment}
+                className="shrink-0 rounded-xl h-10 px-5 text-xs font-bold brand-gradient text-white border-0 shadow-md gap-2"
+              >
+                {appFeePayment?.status === "pending" || appFeePayment?.status === "under_review"
+                  ? "View Payment Status"
+                  : appFeePayment?.status === "rejected" || appFeePayment?.status === "resubmission_required"
+                  ? "Resubmit Payment"
+                  : "Go to Payment"}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Search + Filter + Sort */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -843,7 +974,8 @@ function TaskCard({
     dueDate: Date;
     status: TaskStatus;
     remaining: number;
-    lockedByLinkedin?: boolean;
+    isLocked?: boolean;
+    lockReason?: string;
   };
   domain: { slug: string; name: string; icon: string; color: string } | undefined;
   appId: string;
@@ -854,9 +986,8 @@ function TaskCard({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const { submission, status, dueDate, remaining, lockedByLinkedin } = task;
+  const { submission, status, dueDate, remaining, isLocked, lockReason } = task;
   const isOverdue = status === "overdue";
-  const isLocked = (lockedByLinkedin && task.taskNumber > 0) || submissionStatus === "submitted" || submissionStatus === "approved";
 
   const loadHistory = async () => {
     if (!submission) return;
@@ -881,8 +1012,8 @@ function TaskCard({
         onSubmitted={onSubmitted}
       />
       <div
-        className={`group relative flex flex-col overflow-hidden rounded-2xl border border-border/40 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.03),0_6px_20px_rgba(0,0,0,0.05)] transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] hover:-translate-y-1.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.06),0_16px_36px_rgba(0,0,0,0.08)] ${
-          isLocked ? "opacity-65 pointer-events-none" : ""
+        className={`group relative flex flex-col overflow-hidden rounded-2xl border border-border/40 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.03),0_6px_20px_rgba(0,0,0,0.05)] transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] ${
+          isLocked ? "opacity-75 bg-slate-50/50 dark:bg-slate-900/30" : "hover:-translate-y-1.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.06),0_16px_36px_rgba(0,0,0,0.08)]"
         }`}
         style={{ borderLeft: `5px solid ${borderColor}` }}
       >
@@ -908,7 +1039,7 @@ function TaskCard({
           </div>
           <div className="flex items-center gap-1.5 font-medium">
             {status === "completed" ? (
-              <><CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" /><span className="text-emerald-700 font-semibold">Submitted on track</span></>
+              <><CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" /><span className="text-emerald-700 font-semibold">Admin Verified ✅</span></>
             ) : status === "ongoing" ? (
               <><CheckCircle2 className="size-3.5 text-blue-500 shrink-0" /><span className="text-blue-600 font-semibold">Submitted for review</span></>
             ) : isOverdue ? (
@@ -960,14 +1091,13 @@ function TaskCard({
           {status === "completed" ? (
             <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2.5 text-xs font-bold text-emerald-700">
               <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
-              <span>Completed Successfully!</span>
+              <span>Admin Verified & Passed!</span>
             </div>
           ) : isLocked ? (
-            <p className="text-center text-xs text-muted-foreground py-2 font-medium">
-              {submissionStatus === "submitted" || submissionStatus === "approved"
-                ? "Internship submitted for verification — tasks are locked."
-                : "Complete the LinkedIn post task first to unlock."}
-            </p>
+            <div className="flex items-center justify-center gap-2 rounded-xl bg-muted/40 border border-border/40 py-3 px-3 text-xs text-muted-foreground font-medium text-center">
+              <Lock className="size-4 shrink-0 text-muted-foreground" />
+              <span>{lockReason || "Task is locked."}</span>
+            </div>
           ) : (
             <div className="space-y-3">
               {/* Feedback banner on task card */}

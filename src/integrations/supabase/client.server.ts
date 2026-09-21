@@ -7,11 +7,16 @@ import type { Database } from './types';
 import { loadEnv } from '@/lib/env.server';
 
 const DEFAULT_URL = "https://eesiuqeswydlmwhecrcy.supabase.co";
+const DEFAULT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlc2l1cWVzd3lkbG13aGVjcmN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODI0OTAsImV4cCI6MjA5Nzc1ODQ5MH0.56yomVN0MzIVwLbBZarmZVaJyKwC8cs_KJPEil3usY0";
 
 function createSupabaseAdminClient() {
   loadEnv();
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "sb_secret_MEvk_6mzjDSywhHxGI0ZmA_SiVwfXP4";
+  let SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_SERVICE_ROLE_KEY.startsWith("eyJ")) {
+    SUPABASE_SERVICE_ROLE_KEY = DEFAULT_ANON_KEY;
+  }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {

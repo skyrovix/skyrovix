@@ -9,8 +9,10 @@ import { DOMAINS, DURATIONS, durationConfig, generateInternId, getDomain } from 
 import { validateCoupon } from "@/lib/coupons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
+import { getPublicFeeSettings, submitApplicationServer, type PublicFeeSettings } from "@/lib/fee-service";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { Loader2, CheckCircle2, Sparkles, IndianRupee } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { INDIA_STATES, STATE_DISTRICTS } from "@/lib/india-locations";
 
@@ -40,6 +42,12 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
   const [pincode, setPincode] = useState("");
   const [hearAbout, setHearAbout] = useState("");
   const [referralName, setReferralName] = useState("");
+
+  const { data: feeSettings } = useQuery<PublicFeeSettings>({
+    queryKey: ["public-fee-settings"],
+    queryFn: () => getPublicFeeSettings(),
+    staleTime: 30_000,
+  });
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -145,46 +153,52 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
 
       const intern_id = generateInternId();
       const dur = durationConfig(applyDuration);
-      const payload: Record<string, any> = {
-        user_id: currentUser.id,
-        domain,
-        duration: applyDuration,
-        total_tasks: dur?.tasks ?? 5,
-        intern_id,
-        full_name: String(fd.get("full_name")),
-        email: currentUser.email ?? "",
-        phone: String(fd.get("phone")),
-        college: String(fd.get("college")),
-        course: String(fd.get("course")),
-        year: String(fd.get("year")),
-        photo_url,
-        coupon_code: couponApplied?.code ?? null,
-        status: "approved",
-        submission_status: "in_progress",
-        offer_issued_at: new Date().toISOString(),
-        email_status: "pending",
-        country,
-        state,
-        district,
-        city,
-        pincode,
-        hear_about: hearAbout,
-        referral_name: (hearAbout === "Friend / Classmate" || hearAbout === "Existing Skyrovix Intern") ? referralName : null,
-      };
-      const { error: insertError } = await (supabase.from("applications" as any) as any).insert(payload);
-      if (insertError) throw insertError;
 
-      await supabase.from("profiles").upsert({
-        id: currentUser.id,
-        full_name: payload.full_name,
-        phone: payload.phone,
-        college: payload.college,
-        course: payload.course,
-        year: payload.year,
-        photo_url,
+      const appResult = await submitApplicationServer({
+        data: {
+          userId: currentUser.id,
+          domain,
+          duration: applyDuration,
+          totalTasks: dur?.tasks ?? 5,
+          internId: intern_id,
+          fullName: String(fd.get("full_name")),
+          email: currentUser.email ?? "",
+          phone: String(fd.get("phone")),
+          college: String(fd.get("college")),
+          course: String(fd.get("course")),
+          year: String(fd.get("year")),
+          photoUrl: photo_url,
+          couponCode: couponApplied?.code ?? null,
+          country,
+          state,
+          district,
+          city,
+          pincode,
+          hearAbout,
+          referralName:
+            hearAbout === "Friend / Classmate" || hearAbout === "Existing Skyrovix Intern"
+              ? referralName
+              : null,
+        },
       });
 
-      const studentEmail = (currentUser.email || payload.email || "").trim();
+      const appId = appResult.application.id;
+      const requiresAppFee = appResult.requiresAppFee;
+
+      if (appResult.isOfferEligible) {
+        toast.success("🎉 You qualified for the Certificate Free Offer! Your certificate is ₹0 upon task completion.");
+      }
+
+      if (requiresAppFee) {
+        onOpenChange(false);
+        reset();
+        onSuccess?.();
+        toast.info(`Application created! Please complete your ₹${appResult.appFeeAmount} application fee payment to proceed.`);
+        navigate({ to: "/dashboard", search: { tab: "payment" } as any });
+        return;
+      }
+
+      const studentEmail = (currentUser.email || appResult.application.email || "").trim();
       const domainObj = getDomain(domain);
       const domainName = domainObj?.name ?? domain;
 
@@ -194,7 +208,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
           const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
           const result = await sendOfferLetterEmail({
             to: studentEmail,
-            studentName: payload.full_name,
+            studentName: appResult.application.full_name,
             studentId: currentUser.id,
             internId: intern_id,
             domainName,
@@ -257,6 +271,19 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
           <DialogDescription className="text-xs sm:text-sm">Fill in your details. You'll get your offer letter and ID card instantly.</DialogDescription>
         </DialogHeader>
         <form onSubmit={submitApplication} className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+          {feeSettings?.certificateOffer?.isActive && (
+            <div className="col-span-2 rounded-2xl border border-emerald-300/80 bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white dark:from-emerald-950/30 dark:to-slate-900/40 p-3 flex items-start gap-2.5">
+              <Sparkles className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <p className="font-bold text-emerald-900 dark:text-emerald-300">
+                  🎉 Certificate Free Offer Active
+                </p>
+                <p className="text-emerald-800/80 dark:text-emerald-400/80 text-[11px] mt-0.5 leading-relaxed">
+                  Applications submitted now qualify for a <strong>₹0 Free Certificate</strong> upon successful admin verification of required tasks.
+                </p>
+              </div>
+            </div>
+          )}
           <div className="col-span-2">
             <Label className="text-xs sm:text-sm">Full Name</Label>
             <Input name="full_name" defaultValue={user?.user_metadata?.full_name ?? ""} required className="mt-1 rounded-xl h-9 sm:h-10 text-sm" />
@@ -411,7 +438,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
                 </SelectTrigger>
                 <SelectContent>
                   {DOMAINS.map((d) => (
-                    <SelectItem key={d.slug} value={d.slug}>{d.icon} {d.name}</SelectItem>
+                    <SelectItem key={d.slug} value={d.slug}>{d.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -467,7 +494,11 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
             )}
           </div>
           <Button type="submit" className="w-full col-span-2 rounded-xl bg-[#07284a] hover:bg-[#07284a]/90 text-white border-0 h-10 sm:h-11 text-sm" disabled={applying}>
-            {applying ? "Submitting..." : "Submit Application"}
+            {applying ? "Submitting..." : (
+              feeSettings?.applicationFee?.isEnabled && feeSettings.applicationFee.amount > 0
+                ? `Continue to Pay Fee (₹${feeSettings.applicationFee.amount})`
+                : "Submit Application"
+            )}
           </Button>
         </form>
       </DialogContent>

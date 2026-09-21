@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DOMAINS, DURATIONS, durationConfig, generateInternId, getDomain } from "@/lib/constants";
 import { validateCoupon } from "@/lib/coupons";
+import { getPublicFeeSettings, submitApplicationServer, type PublicFeeSettings } from "@/lib/fee-service";
+import { ManualUpiPaymentDialog } from "@/components/ManualUpiPaymentDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -113,6 +115,16 @@ function DomainsPage() {
     }
   }, [profile]);
 
+  const { data: feeSettings } = useQuery<PublicFeeSettings>({
+    queryKey: ["public-fee-settings"],
+    queryFn: () => getPublicFeeSettings(),
+    staleTime: 30_000,
+  });
+
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [createdAppId, setCreatedAppId] = useState<string | null>(null);
+  const [createdUserId, setCreatedUserId] = useState<string | null>(null);
+
   useEffect(() => {
     if (search.apply && DOMAINS.some((d) => d.slug === search.apply)) {
       setApplyDomain(search.apply);
@@ -207,46 +219,53 @@ function DomainsPage() {
 
       const intern_id = generateInternId();
       const dur = durationConfig(applyDuration);
-      const payload: Record<string, any> = {
-        user_id: currentUser.id,
-        domain: applyDomain,
-        duration: applyDuration,
-        total_tasks: dur?.tasks ?? 5,
-        intern_id,
-        full_name: String(fd.get("full_name")),
-        email: currentUser.email ?? "",
-        phone: String(fd.get("phone")),
-        college: String(fd.get("college")),
-        course: String(fd.get("course")),
-        year: String(fd.get("year")),
-        photo_url,
-        coupon_code: couponApplied?.code ?? null,
-        status: "approved",
-        submission_status: "in_progress",
-        offer_issued_at: new Date().toISOString(),
-        email_status: "pending",
-        country,
-        state,
-        district,
-        city,
-        pincode,
-        hear_about: hearAbout,
-        referral_name: (hearAbout === "Friend / Classmate" || hearAbout === "Existing Skyrovix Intern") ? referralName : null,
-      };
-      const { error: insertError } = await supabase.from("applications").insert(payload);
-      if (insertError) throw insertError;
+      const studentFullName = String(fd.get("full_name"));
+      const studentPhone = String(fd.get("phone"));
+      const studentCollege = String(fd.get("college"));
+      const studentCourse = String(fd.get("course"));
+      const studentYear = String(fd.get("year"));
 
-      await supabase.from("profiles").upsert({
-        id: currentUser.id,
-        full_name: payload.full_name,
-        phone: payload.phone,
-        college: payload.college,
-        course: payload.course,
-        year: payload.year,
-        photo_url,
+      const appResult = await submitApplicationServer({
+        data: {
+          userId: currentUser.id,
+          domain: applyDomain,
+          duration: applyDuration,
+          totalTasks: dur?.tasks ?? 5,
+          internId: intern_id,
+          fullName: studentFullName,
+          email: currentUser.email ?? "",
+          phone: studentPhone,
+          college: studentCollege,
+          course: studentCourse,
+          year: studentYear,
+          photoUrl: photo_url,
+          couponCode: couponApplied?.code ?? null,
+          country,
+          state,
+          district,
+          city,
+          pincode,
+          hearAbout,
+          referralName: (hearAbout === "Friend / Classmate" || hearAbout === "Existing Skyrovix Intern") ? referralName : null,
+        },
       });
 
-      const studentEmail = (currentUser.email || payload.email || "").trim();
+      if (!appResult.success) {
+        throw new Error("Application creation failed on server.");
+      }
+
+      const appId = appResult.application.id;
+      const requiresAppFee = appResult.requiresAppFee;
+
+      if (requiresAppFee) {
+        setCreatedAppId(appId);
+        setCreatedUserId(currentUser.id);
+        setPaymentDialogOpen(true);
+        toast.info(`Application submitted! Please complete the ₹${feeSettings?.applicationFee?.amount} application fee payment.`);
+        return;
+      }
+
+      const studentEmail = (currentUser.email || "").trim();
       const domainObj = getDomain(applyDomain);
       const domainName = domainObj?.name ?? applyDomain;
 
@@ -256,7 +275,7 @@ function DomainsPage() {
           const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
           const result = await sendOfferLetterEmail({
             to: studentEmail,
-            studentName: payload.full_name,
+            studentName: studentFullName,
             studentId: currentUser.id,
             internId: intern_id,
             domainName,
@@ -679,6 +698,29 @@ function DomainsPage() {
           </div>
         </div>
       </AuroraBackground>
+
+      {paymentDialogOpen && createdAppId && createdUserId && feeSettings && (
+        <ManualUpiPaymentDialog
+          open={paymentDialogOpen}
+          onOpenChange={(o) => {
+            setPaymentDialogOpen(o);
+            if (!o) navigate({ to: "/dashboard" });
+          }}
+          title="Application Fee Payment"
+          description={`Please complete the ₹${feeSettings.applicationFee.amount} application fee payment to proceed with admin verification.`}
+          paymentType="application"
+          amount={feeSettings.applicationFee.amount}
+          upiId={feeSettings.upi.upiId}
+          payeeName={feeSettings.upi.payeeName}
+          qrCodeUrl={feeSettings.upi.qrCodeUrl}
+          applicationId={createdAppId}
+          userId={createdUserId}
+          onSuccess={() => {
+            navigate({ to: "/dashboard" });
+          }}
+        />
+      )}
+
       <Footer />
     </div>
   );

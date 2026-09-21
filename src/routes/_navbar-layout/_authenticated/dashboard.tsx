@@ -21,10 +21,14 @@ import { INDIA_STATES, STATE_DISTRICTS } from "@/lib/india-locations";
 import { DOMAINS, DURATIONS, durationConfig, PAYMENT, COMPANY, generateInternId, generateCertId, getDomain, getPublicSiteUrl } from "@/lib/constants";
 import { validateCoupon, calculateDiscountedAmount, formatDiscount } from "@/lib/coupons";
 import type { CouponResult } from "@/lib/coupons";
+import { getPublicFeeSettings, claimFreeCouponCertificate, claimFreeCertificate, submitPaymentProof, submitApplicationServer } from "@/lib/fee-service";
+import { ManualUpiPaymentCard } from "@/components/ManualUpiPaymentCard";
+import { APPLICATION_FEE_DISCLAIMER, APPLICATION_FEE_BADGE, getCertificateDisclaimer } from "@/lib/fee-helpers";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { IDCard } from "@/components/IDCard";
 import { TasksSection } from "@/components/TasksSection";
+import { InternshipProgressTracker } from "@/components/InternshipProgressTracker";
 import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadIDCard, downloadOfferLetter, downloadPdf } from "@/components/pdf-docs";
 import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,7 +38,7 @@ import {
   Phone, Calendar, ChevronRight, ExternalLink, Shield, Bell, Trophy,
   Target, BarChart3, Layers, Brain, Linkedin, Play, ChevronLeft,
   ListChecks, LayoutDashboard, Flag, AlertTriangle, AlertCircle, Zap, Hash, Circle, Loader2,
-  TrendingUp, Lock, Eye, LogOut,
+  TrendingUp, Lock, Unlock, Eye, LogOut,
   Settings, Wallet, CreditCard, ScrollText, Briefcase, Code2,
   Share2, HelpCircle, Package, Users, Instagram,
 } from "lucide-react";
@@ -130,17 +134,31 @@ type Application = {
   college: string | null; course: string | null; year: string | null;
   photo_url: string | null; offer_issued_at: string;
   created_at: string; status: string; completed_at?: string | null;
-  duration?: number; total_tasks?: number;
+  duration?: number | null; total_tasks?: number | null;
   coupon_code?: string | null;
-  submission_status?: string;
+  submission_status?: string | null;
   submitted_at?: string | null;
-  verified?: boolean;
+  verified?: boolean | null;
   verified_by?: string | null;
   verified_at?: string | null;
   verification_notes?: string | null;
   rejection_reason?: string | null;
-  certificate_generated?: boolean;
+  certificate_generated?: boolean | null;
   certificate_generated_at?: string | null;
+  application_fee_required?: boolean | null;
+  application_fee_status?: string | null;
+  all_tasks_verified?: boolean | null;
+  certificate_payment_unlocked?: boolean | null;
+  certificate_payment_status?: string | null;
+  certificate_offer_eligible?: boolean | null;
+  certificate_offer_id?: string | null;
+  certificate_offer_amount?: number | null;
+  certificate_offer_snapshot?: any;
+  certificate_offer_granted_at?: string | null;
+  certificate_offer_expires_at?: string | null;
+  email_status?: string | null;
+  email_sent_at?: string | null;
+  email_error?: string | null;
 };
 
 function Dashboard() {
@@ -163,6 +181,12 @@ function Dashboard() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => {
         qc.invalidateQueries({ queryKey: ["all-payments"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "fee_settings" }, () => {
+        qc.invalidateQueries({ queryKey: ["public-fee-settings"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payment_records" }, () => {
+        qc.invalidateQueries({ queryKey: ["all-payment-records"] });
       })
       .subscribe();
     return () => {
@@ -302,10 +326,106 @@ function Dashboard() {
     placeholderData: (prev) => prev,
   });
 
+  const { data: feeSettings } = useQuery({
+    queryKey: ["public-fee-settings"],
+    queryFn: async () => {
+      try {
+        const { data: rows, error } = await (supabase.from("fee_settings" as any) as any)
+          .select("*")
+          .order("fee_type");
+        if (!error && rows && rows.length > 0) {
+          const appRow = rows.find((r: any) => r.fee_type === "application");
+          const certRow = rows.find((r: any) => r.fee_type === "certificate");
+          const defaultUpiId = certRow?.upi_id || appRow?.upi_id || PAYMENT.upiId;
+          const defaultPayeeName = certRow?.payee_name || appRow?.payee_name || PAYMENT.payeeName;
+          return {
+            applicationFee: {
+              isEnabled: Boolean(appRow?.is_enabled),
+              enabled: Boolean(appRow?.is_enabled),
+              amount: Number(appRow?.amount ?? 0),
+              upi_id: appRow?.upi_id || defaultUpiId,
+              payee_name: appRow?.payee_name || defaultPayeeName,
+              qr_code_url: appRow?.qr_code_url || null,
+            },
+            certificateFee: {
+              isEnabled: Boolean(certRow?.is_enabled),
+              enabled: Boolean(certRow?.is_enabled),
+              amount: Number(certRow?.amount ?? 0),
+              upi_id: certRow?.upi_id || defaultUpiId,
+              payee_name: certRow?.payee_name || defaultPayeeName,
+              qr_code_url: certRow?.qr_code_url || null,
+            },
+            upi: {
+              upiId: defaultUpiId,
+              payeeName: defaultPayeeName,
+              qrCodeUrl: certRow?.qr_code_url || appRow?.qr_code_url || null,
+            },
+          };
+        }
+      } catch (err) {
+        console.warn("[dashboard] Direct fee_settings fetch error:", err);
+      }
+      return getPublicFeeSettings();
+    },
+    staleTime: 10_000,
+    refetchInterval: 15_000,
+  });
+
+  const { data: allPaymentRecords } = useQuery({
+    queryKey: ["all-payment-records", appsList?.map((a) => a.id)],
+    queryFn: async () => {
+      if (!appsList?.length) return [];
+      const ids = appsList.map((a) => a.id);
+      const { data } = await (supabase.from("payment_records" as any) as any)
+        .select("*")
+        .in("application_id", ids)
+        .order("created_at", { ascending: false });
+      return (data as any[]) ?? [];
+    },
+    enabled: !!appsList?.length,
+    refetchInterval: 10_000,
+    placeholderData: (prev) => prev,
+  });
+
   const payment = useMemo(() => {
     if (!app || !allPayments) return null;
     return allPayments.find((p: any) => p.application_id === app.id) ?? null;
   }, [allPayments, app]);
+
+  const certFeeConfig = feeSettings?.certificateFee ?? {
+    enabled: false,
+    amount: 0,
+    upi_id: PAYMENT.upiId,
+    payee_name: PAYMENT.payeeName,
+    qr_code_url: null,
+  };
+  const certFeeAmount = certFeeConfig.enabled ? certFeeConfig.amount : 0;
+
+  const appFeeConfig = feeSettings?.applicationFee ?? {
+    enabled: false,
+    amount: 0,
+    upi_id: PAYMENT.upiId,
+    payee_name: PAYMENT.payeeName,
+    qr_code_url: null,
+  };
+  const appFeeAmount = appFeeConfig.enabled ? appFeeConfig.amount : 0;
+
+  const appPayment = useMemo(() => {
+    if (!app || !allPaymentRecords) return null;
+    return (allPaymentRecords as any[]).find((p) => p.application_id === app.id && p.payment_type === "application") ?? null;
+  }, [allPaymentRecords, app]);
+
+  const certPaymentRecord = useMemo(() => {
+    if (!app || !allPaymentRecords) return null;
+    return (allPaymentRecords as any[]).find((p) => p.application_id === app.id && p.payment_type === "certificate") ?? null;
+  }, [allPaymentRecords, app]);
+
+  const isAppFeeRequired = Boolean(appFeeConfig.enabled && appFeeAmount > 0);
+  const isAppFeeApproved = Boolean(
+    appPayment?.status === "approved" ||
+    app?.application_fee_status === "approved"
+  );
+  const isAppFeeLocked = isAppFeeRequired && !isAppFeeApproved;
 
   const cert = certificate;
   const domain = app ? getDomain(app.domain) : null;
@@ -343,61 +463,70 @@ function Dashboard() {
   const [utrNumber, setUtrNumber] = useState("");
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [submittingPayment, setSubmittingPayment] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<"celebration" | "checkout">("celebration");
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [autoApplied, setAutoApplied] = useState(false);
   const [certStatus, setCertStatus] = useState<"idle" | "generating" | "done" | "error">("idle");
+  const [generatingCert, setGeneratingCert] = useState(false);
+  const [claimingFreeCert, setClaimingFreeCert] = useState(false);
   const certTriggered = useRef(false);
 
   const submissionStatus = app?.submission_status ?? "in_progress";
-  const hasCouponApp = Boolean(
-    (app?.coupon_code && app.coupon_code.trim() !== "") ||
-    (payment && ((payment as any).coupon_code || payment.utr_number === "FREE_COUPON" || payment.amount === 0)) ||
-    couponResult?.valid
-  );
-
+  const requiredTasks = Number(app?.total_tasks) || 5;
   const isTasksCompleted = Boolean(
     app && (
+      app.all_tasks_verified === true ||
       (internTotal > 0 && internApproved >= internTotal) ||
-      (internApproved >= (taskLimits[app?.duration ?? 1] ?? 5))
+      (internApproved >= (taskLimits[app?.duration ?? 1] ?? 5) && internApproved > 0)
     )
   );
 
-  const hasAutoTriggeredRef = useRef<Record<string, boolean>>({});
+  type CertPaymentState =
+    | "LOCKED"
+    | "NOT_REQUIRED"
+    | "FREE_OFFER"
+    | "PAYMENT_REQUIRED"
+    | "PENDING"
+    | "APPROVED"
+    | "WAIVED"
+    | "RESUBMISSION_REQUIRED"
+    | "REJECTED";
 
-  useEffect(() => {
-    if (showPaymentModal) {
-      setPaymentStep("celebration");
-    }
-  }, [showPaymentModal]);
+  const certPaymentState: CertPaymentState = useMemo(() => {
+    if (!isTasksCompleted) return "LOCKED";
+    if (app?.certificate_offer_eligible === true) return "FREE_OFFER";
+    if (!certFeeConfig.enabled || certFeeAmount === 0) return "NOT_REQUIRED";
+    if (certPaymentRecord?.status === "approved" || app?.certificate_payment_status === "approved") return "APPROVED";
+    if (certPaymentRecord?.status === "waived" || app?.certificate_payment_status === "waived") return "WAIVED";
+    if (certPaymentRecord?.status === "resubmission_required") return "RESUBMISSION_REQUIRED";
+    if (certPaymentRecord?.status === "rejected") return "REJECTED";
+    if (certPaymentRecord?.status === "pending" || certPaymentRecord?.status === "under_review") return "PENDING";
+    return "PAYMENT_REQUIRED";
+  }, [isTasksCompleted, app?.certificate_offer_eligible, app?.certificate_payment_status, certFeeConfig.enabled, certFeeAmount, certPaymentRecord]);
 
-  useEffect(() => {
-    if (
-      app &&
-      isTasksCompleted &&
-      !hasCouponApp &&
-      payment?.status !== "verified" &&
-      !hasAutoTriggeredRef.current[app.id]
-    ) {
-      hasAutoTriggeredRef.current[app.id] = true;
-      setShowPaymentModal(true);
-    }
-  }, [app, isTasksCompleted, hasCouponApp, payment]);
-  const timelineSteps = hasCouponApp
-    ? [
-        { label: "Application Submitted", done: !!app },
-        { label: "Tasks Completed & Approved", done: internTotal > 0 && internApproved >= (taskLimits[app?.duration ?? 1] ?? 5) },
-        { label: "Certificate Generated", done: !!certificate },
-      ]
-    : [
-        { label: "Application Submitted", done: !!app },
-        { label: "Tasks Completed & Approved", done: internTotal > 0 && internApproved >= (taskLimits[app?.duration ?? 1] ?? 5) },
-        { label: "Payment Verification (₹100)", done: payment?.status === "verified" },
-        { label: "Certificate Generated", done: !!certificate },
-      ];
+  const isCertPaymentVerified = Boolean(
+    certPaymentState === "FREE_OFFER" ||
+    certPaymentState === "APPROVED" ||
+    certPaymentState === "WAIVED" ||
+    certPaymentState === "NOT_REQUIRED"
+  );
+
+  const hasCouponApp = Boolean(
+    (app?.coupon_code && app.coupon_code.trim() !== "") ||
+    (certPaymentRecord && (certPaymentRecord.status === "waived" || certPaymentRecord.amount === 0)) ||
+    certPaymentState === "WAIVED" ||
+    couponResult?.valid
+  );
+
+  const timelineSteps = [
+    { label: "Application Submitted", done: !!app },
+    ...(isAppFeeRequired
+      ? [{ label: `Application Fee (₹${appFeeAmount})`, done: isAppFeeApproved }]
+      : []),
+    { label: "Tasks Completed & Approved", done: isTasksCompleted },
+    { label: "Certificate", done: !!certificate },
+  ];
   const currentStep = timelineSteps.findIndex((s) => !s.done);
 
   // New Domain Application Form states
@@ -469,82 +598,88 @@ function Dashboard() {
     try {
       const intern_id = generateInternId();
       const dur = durationConfig(newDuration);
-      const payload: Record<string, any> = {
-        user_id: user!.id,
-        domain: newDomain,
-        duration: newDuration,
-        total_tasks: dur?.tasks ?? 5,
-        intern_id,
-        full_name: app?.full_name || user?.user_metadata?.full_name || "",
-        email: user?.email || app?.email || "",
-        phone: app?.phone ?? "",
-        college: app?.college ?? "",
-        course: app?.course ?? "",
-        year: app?.year ?? "",
-        photo_url: app?.photo_url ?? null,
-        coupon_code: newCouponApplied?.code ?? null,
-        status: "approved",
-        submission_status: "in_progress",
-        offer_issued_at: new Date().toISOString(),
-        email_status: "pending",
-        country: newCountry,
-        state: newState,
-        district: newDistrict,
-        city: newCity,
-        pincode: newPincode,
-        hear_about: newHearAbout,
-        referral_name: (newHearAbout === "Friend / Classmate" || newHearAbout === "Existing Skyrovix Intern") ? newReferralName : null,
-      };
 
-      const { error: insertError } = await (supabase.from("applications" as any) as any).insert(payload);
-      if (insertError) throw insertError;
+      const appResult = await submitApplicationServer({
+        data: {
+          userId: user!.id,
+          domain: newDomain,
+          duration: newDuration,
+          totalTasks: dur?.tasks ?? 5,
+          internId: intern_id,
+          fullName: app?.full_name || user?.user_metadata?.full_name || "",
+          email: user?.email || app?.email || "",
+          phone: app?.phone ?? "",
+          college: app?.college ?? "",
+          course: app?.course ?? "",
+          year: app?.year ?? "",
+          photoUrl: app?.photo_url ?? null,
+          couponCode: newCouponApplied?.code ?? null,
+          country: newCountry,
+          state: newState,
+          district: newDistrict,
+          city: newCity,
+          pincode: newPincode,
+          hearAbout: newHearAbout,
+          referralName: (newHearAbout === "Friend / Classmate" || newHearAbout === "Existing Skyrovix Intern") ? newReferralName : null,
+        },
+      });
 
       // Invalidate queries to refresh list
       qc.invalidateQueries({ queryKey: ["my-applications", user?.id] });
-      
-      const studentEmail = (user?.email || payload.email || "").trim();
-      const domainObj = getDomain(newDomain);
-      const domainName = domainObj?.name ?? newDomain;
 
-      if (studentEmail) {
-        toast.loading(`Sending your Offer Letter to ${studentEmail}...`, { id: "offer-letter-delivery" });
-        try {
-          const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
-          const result = await sendOfferLetterEmail({
-            to: studentEmail,
-            studentName: payload.full_name,
-            studentId: user!.id,
-            internId: intern_id,
-            domainName,
-            duration: newDuration,
-          });
-          if (result.success) {
-            await (supabase.from("applications" as any) as any).update({
-              email_status: "sent",
-              email_sent_at: new Date().toISOString(),
-              email_error: null,
-              offer_issued_at: new Date().toISOString(),
-            }).eq("intern_id", intern_id);
-            qc.invalidateQueries({ queryKey: ["my-applications", user?.id] });
-            toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
-          } else {
-            console.warn("[Email] Delivery warning:", result.error);
+      if (appResult.isOfferEligible) {
+        toast.success("🎉 You qualified for the Certificate Free Offer! Your certificate is ₹0 upon task completion.");
+      }
+
+      if (appResult.requiresAppFee) {
+        toast.info(`Application created! Please complete your ₹${appResult.appFeeAmount} application fee payment to proceed.`);
+        navigate({ search: { tab: "payment" } as any });
+      } else {
+        const studentEmail = (user?.email || appResult.application.email || "").trim();
+        const domainObj = getDomain(newDomain);
+        const domainName = domainObj?.name ?? newDomain;
+
+        if (studentEmail) {
+          toast.loading(`Sending your Offer Letter to ${studentEmail}...`, { id: "offer-letter-delivery" });
+          try {
+            const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
+            const result = await sendOfferLetterEmail({
+              to: studentEmail,
+              studentName: appResult.application.full_name,
+              studentId: user!.id,
+              internId: intern_id,
+              domainName,
+              duration: newDuration,
+            });
+            if (result.success) {
+              await (supabase.from("applications" as any) as any).update({
+                email_status: "sent",
+                email_sent_at: new Date().toISOString(),
+                email_error: null,
+                offer_issued_at: new Date().toISOString(),
+              }).eq("intern_id", intern_id);
+              qc.invalidateQueries({ queryKey: ["my-applications", user?.id] });
+              toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
+            } else {
+              console.warn("[Email] Delivery warning:", result.error);
+              await (supabase.from("applications" as any) as any).update({
+                email_status: "failed",
+                email_error: result.error || "Email delivery failed",
+              }).eq("intern_id", intern_id);
+              toast.success("Application submitted successfully! You can view and download your Offer Letter from your Dashboard.", { id: "offer-letter-delivery", duration: 8000 });
+            }
+          } catch (e: any) {
+            console.warn("Failed to send offer letter email for new domain:", e);
             await (supabase.from("applications" as any) as any).update({
               email_status: "failed",
-              email_error: result.error || "Email delivery failed",
+              email_error: e?.message || "Email delivery failed",
             }).eq("intern_id", intern_id);
             toast.success("Application submitted successfully! You can view and download your Offer Letter from your Dashboard.", { id: "offer-letter-delivery", duration: 8000 });
           }
-        } catch (e: any) {
-          console.warn("Failed to send offer letter email for new domain:", e);
-          await (supabase.from("applications" as any) as any).update({
-            email_status: "failed",
-            email_error: e?.message || "Email delivery failed",
-          }).eq("intern_id", intern_id);
-          toast.success("Application submitted successfully! You can view and download your Offer Letter from your Dashboard.", { id: "offer-letter-delivery", duration: 8000 });
+        } else {
+          toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { duration: 8000 });
         }
-      } else {
-        toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { duration: 8000 });
+        navigate({ search: { tab: "tasks" } as any });
       }
 
       // Reset form
@@ -571,11 +706,11 @@ function Dashboard() {
     if (app?.coupon_code && !autoApplied && !couponResult) {
       setAutoApplied(true);
       setCouponCode(app.coupon_code);
-      validateCoupon(app.coupon_code, app.domain).then((result) => {
+      validateCoupon(app.coupon_code, app.domain, certFeeAmount, user?.id, "certificate").then((result) => {
         if (result.valid) setCouponResult(result);
       });
     }
-  }, [app?.coupon_code, app?.domain, autoApplied]);
+  }, [app?.coupon_code, app?.domain, autoApplied, certFeeAmount, user?.id]);
 
   // No auto-certificate generation — certificate is only issued after admin approval
 
@@ -583,10 +718,14 @@ function Dashboard() {
     if (!couponCode.trim()) return;
     setValidatingCoupon(true);
     try {
-      const result = await validateCoupon(couponCode.trim(), app?.domain);
+      const result = await validateCoupon(couponCode.trim(), app?.domain, certFeeAmount, user?.id, "certificate");
       if (result.valid) {
         setCouponResult(result);
-        toast.success(`Coupon applied! You save ₹${result.discountAmount}`);
+        if (result.finalAmount === 0) {
+          toast.success("100% FREE Certificate Waiver Applied! Click Claim to activate.");
+        } else {
+          toast.success(`Coupon applied! You save ₹${result.discountAmount}`);
+        }
       } else {
         setCouponResult(null);
         toast.error(result.error || "Invalid coupon");
@@ -612,8 +751,8 @@ function Dashboard() {
       if (paymentScreenshot) {
         try {
           const ext = paymentScreenshot.name.split(".").pop() ?? "png";
-          const path = `${user!.id}/${Date.now()}.${ext}`;
-          const { error: uploadErr } = await supabase.storage.from("payment-screenshots").upload(path, paymentScreenshot);
+          const path = `${user!.id}/${Date.now()}_certificate.${ext}`;
+          const { error: uploadErr } = await supabase.storage.from("payment-screenshots").upload(path, paymentScreenshot, { upsert: true });
           if (uploadErr) throw uploadErr;
           const { data: urlData } = supabase.storage.from("payment-screenshots").getPublicUrl(path);
           screenshotUrl = urlData.publicUrl;
@@ -622,22 +761,25 @@ function Dashboard() {
           toast.warning("Screenshot upload failed, but payment will still be submitted.");
         }
       }
-      const { error } = await (supabase.from("payments" as any) as any).insert({
-        application_id: app.id,
-        utr_number: utrNumber.trim(),
-        screenshot_url: screenshotUrl,
-        amount: couponResult?.finalAmount ?? PAYMENT.amount,
-        coupon_code: couponResult?.code ?? null,
-        discount_amount: couponResult?.discountAmount ?? 0,
-        status: "pending",
+      
+      await submitPaymentProof({
+        data: {
+          userId: user!.id,
+          applicationId: app.id,
+          paymentType: "certificate",
+          utrNumber: utrNumber.trim(),
+          screenshotUrl,
+          couponCode: couponResult?.code ?? null,
+        },
       });
-      if (error) throw error;
-      toast.success("Payment submitted successfully! Awaiting verification.");
+
+      toast.success("Payment submitted successfully! Awaiting admin verification.");
       setUtrNumber("");
       setPaymentScreenshot(null);
       setCouponCode("");
       setCouponResult(null);
       qc.invalidateQueries({ queryKey: ["all-payments"] });
+      qc.invalidateQueries({ queryKey: ["all-payment-records"] });
     } catch (err: any) {
       toast.error(err.message || "Failed to submit payment");
     } finally {
@@ -645,27 +787,24 @@ function Dashboard() {
     }
   };
 
-  // Only creates a free payment record - certificate is generated by admin on approval
-  const doFreeCertificate = async (coupon: CouponResult, applicationId: string) => {
+  const handleGenerateFreeCert = async (targetAppId?: string) => {
+    const aid = targetAppId || app?.id;
+    if (!aid || !user) return;
+    setGeneratingCert(true);
     try {
-      const { data: existingPay } = await (supabase.from("payments" as any) as any).select("id").eq("application_id", applicationId).maybeSingle();
-      if (!existingPay) {
-        const { error: payErr } = await (supabase.from("payments" as any) as any).insert({
-          application_id: applicationId,
-          utr_number: "FREE_COUPON",
-          screenshot_url: null,
-          amount: 0,
-          coupon_code: coupon.code,
-          discount_amount: coupon.discountAmount,
-          status: "verified",
-          verified_at: new Date().toISOString(),
-        });
-        if (payErr) throw payErr;
-      }
-      toast.success("Free internship applied!");
-      qc.invalidateQueries({ queryKey: ["all-payments"] });
+      const res = await claimFreeCertificate({
+        data: {
+          userId: user.id,
+          applicationId: aid,
+        },
+      });
+      toast.success(res.message || "Certificate generated successfully! 🎓");
+      await qc.invalidateQueries({ queryKey: ["all-certs"] });
+      await qc.invalidateQueries({ queryKey: ["my-applications"] });
     } catch (err: any) {
-      toast.error(err.message || "Failed to process free internship");
+      toast.error(err.message || "Failed to generate certificate");
+    } finally {
+      setGeneratingCert(false);
     }
   };
 
@@ -756,25 +895,49 @@ function Dashboard() {
         const daApproved = daSubs.filter((s: any) => s.status === "approved").length;
         const daTotal = allTasksByDomain?.[da.domain]?.length ?? 5;
         const daCert = allAppCerts?.find((c: any) => c.application_id === da.id) ?? null;
-        const daPayment = allPayments?.find((p: any) => p.application_id === da.id) ?? null;
         
-        const daSubmissionStatus = da.submission_status ?? "in_progress";
-        const hasCouponDa = Boolean(
-          (da.coupon_code && da.coupon_code.trim() !== "") ||
-          (daPayment && ((daPayment as any).coupon_code || daPayment.utr_number === "FREE_COUPON" || daPayment.amount === 0))
+        const daAppPayment = (allPaymentRecords as any[])?.find((p) => p.application_id === da.id && p.payment_type === "application") ?? null;
+        const daCertPayment = (allPaymentRecords as any[])?.find((p) => p.application_id === da.id && p.payment_type === "certificate") ?? null;
+        const daIsAppFeeRequired = Boolean(appFeeConfig.enabled && appFeeAmount > 0);
+        const daIsAppFeeApproved = Boolean(
+          daAppPayment?.status === "approved" ||
+          da.application_fee_status === "approved"
         );
-        const daSteps = hasCouponDa
-          ? [
-              { label: "Application Submitted", done: true },
-              { label: "Tasks Completed & Approved", done: daApproved >= daTotal },
-              { label: "Certificate Issued", done: !!daCert },
-            ]
-          : [
-              { label: "Application Submitted", done: true },
-              { label: "Tasks Completed & Approved", done: daApproved >= daTotal },
-              { label: "Payment Verification (₹100)", done: daPayment?.status === "verified" },
-              { label: "Certificate Issued", done: !!daCert },
-            ];
+        const daTasksCompleted = Boolean(
+          da.all_tasks_verified === true ||
+          (daApproved >= daTotal && daApproved > 0)
+        );
+
+        let daCertPaymentState: CertPaymentState = "LOCKED";
+        if (!daTasksCompleted) {
+          daCertPaymentState = "LOCKED";
+        } else if (da.certificate_offer_eligible === true) {
+          daCertPaymentState = "FREE_OFFER";
+        } else if (!certFeeConfig.enabled || certFeeAmount === 0) {
+          daCertPaymentState = "NOT_REQUIRED";
+        } else if (daCertPayment?.status === "approved" || da.certificate_payment_status === "approved") {
+          daCertPaymentState = "APPROVED";
+        } else if (daCertPayment?.status === "waived" || da.certificate_payment_status === "waived") {
+          daCertPaymentState = "WAIVED";
+        } else if (daCertPayment?.status === "resubmission_required") {
+          daCertPaymentState = "RESUBMISSION_REQUIRED";
+        } else if (daCertPayment?.status === "rejected") {
+          daCertPaymentState = "REJECTED";
+        } else if (daCertPayment?.status === "pending" || daCertPayment?.status === "under_review") {
+          daCertPaymentState = "PENDING";
+        } else {
+          daCertPaymentState = "PAYMENT_REQUIRED";
+        }
+
+        const daSubmissionStatus = da.submission_status ?? "in_progress";
+        const daSteps = [
+          { label: "Application Submitted", done: true },
+          ...(daIsAppFeeRequired
+            ? [{ label: `Application Fee (₹${appFeeAmount})`, done: daIsAppFeeApproved }]
+            : []),
+          { label: "Tasks Completed & Approved", done: daTasksCompleted },
+          { label: "Certificate", done: !!daCert },
+        ];
         const daCurrentStep = daSteps.findIndex((s) => !s.done);
 
         return (
@@ -861,12 +1024,12 @@ function Dashboard() {
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">End Date</p><p className="font-semibold mt-0.5">{da.completed_at ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
-                      <p className="text-muted-foreground">Payment Details</p>
-                      {daPayment ? (
-                        <span className={`font-semibold mt-0.5 inline-flex items-center gap-1 ${daPayment.status === "verified" ? "text-emerald-600" : "text-amber-500"}`}>
-                          {daPayment.status === "verified" ? "Verified" : "Pending"}
+                      <p className="text-muted-foreground">App Fee Status</p>
+                      {daIsAppFeeRequired ? (
+                        <span className={`font-semibold mt-0.5 inline-flex items-center gap-1 ${daIsAppFeeApproved ? "text-emerald-600" : "text-amber-500"}`}>
+                          {daIsAppFeeApproved ? "Verified" : daAppPayment?.status === "pending" ? "Pending" : "Required"}
                         </span>
-                      ) : <p className="font-semibold mt-0.5 text-muted-foreground">—</p>}
+                      ) : <p className="font-semibold mt-0.5 text-muted-foreground">Not Required</p>}
                     </div>
                   </div>
                 </div>
@@ -881,23 +1044,11 @@ function Dashboard() {
                     app={da}
                     internApproved={daApproved}
                     internTotal={daTotal}
-                    payment={daPayment}
-                    couponResult={couponResult}
-                    validatingCoupon={validatingCoupon}
-                    couponCode={couponCode}
-                    setCouponCode={setCouponCode}
-                    handleApplyCoupon={handleApplyCoupon}
-                    handleRemoveCoupon={handleRemoveCoupon}
-                    utrNumber={utrNumber}
-                    setUtrNumber={setUtrNumber}
-                    paymentScreenshot={paymentScreenshot}
-                    setPaymentScreenshot={setPaymentScreenshot}
-                    submittingPayment={submittingPayment}
-                    handlePaymentSubmit={handlePaymentSubmit}
-                    certStatus={certStatus}
-                    doFreeCertificate={doFreeCertificate}
-                    showPaymentModal={showPaymentModal}
-                    setShowPaymentModal={setShowPaymentModal}
+                    certFeeAmount={certFeeAmount}
+                    certFeeConfig={certFeeConfig}
+                    certPaymentRecord={daCertPayment}
+                    onGenerateCert={() => handleGenerateFreeCert(da.id)}
+                    generatingCert={generatingCert}
                   />
                 )}
               </div>
@@ -906,6 +1057,40 @@ function Dashboard() {
             {/* Quest Log / Tasks Section for Ongoing & Approved Internships (not for completed) */}
             {da.status !== "completed" && (
               <div className="space-y-4 pt-2">
+                <InternshipProgressTracker
+                  app={da}
+                  isAppFeeRequired={daIsAppFeeRequired}
+                  appFeeAmount={appFeeAmount}
+                  appFeeStatus={
+                    daIsAppFeeApproved
+                      ? "approved"
+                      : daAppPayment?.status === "pending" || daAppPayment?.status === "under_review"
+                      ? "pending"
+                      : daIsAppFeeRequired
+                      ? "pending"
+                      : "not_required"
+                  }
+                  tasksWithMeta={(allTasksByDomain?.[da.domain] ?? []).map((t: any) => {
+                    const sub = (daSubs ?? []).find((s: any) => s.task_id === t.id);
+                    return {
+                      taskNumber: t.task_number,
+                      title: `Task ${t.task_number}`,
+                      status: sub?.status === "approved" ? "completed" : sub?.status === "pending" ? "pending" : "ongoing",
+                      isLocked: daIsAppFeeRequired && !daIsAppFeeApproved,
+                      submission: sub,
+                    };
+                  })}
+                  allTasksApproved={daTasksCompleted}
+                  certFeeAmount={certFeeAmount}
+                  certPaymentStatus={daCertPaymentState.toLowerCase()}
+                  onOpenAppPayment={() => {
+                    navigate({ search: { tab: "payment" } as any });
+                  }}
+                  onOpenCertPayment={() => {
+                    navigate({ search: { tab: daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED" ? "certificates" : "payment" } as any });
+                  }}
+                />
+
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
                     <ListChecks className="size-5 text-primary" /> Quest Log — {dd?.name ?? da.domain} Tasks
@@ -915,8 +1100,14 @@ function Dashboard() {
                   domainSlug={da.domain}
                   submissions={daSubs ?? []}
                   appId={da.id}
-                  duration={da.duration}
+                  duration={da.duration ?? undefined}
                   submissionStatus={daSubmissionStatus}
+                  isAppFeeRequired={daIsAppFeeRequired}
+                  appFeeAmount={appFeeAmount}
+                  appFeePayment={daAppPayment}
+                  onOpenAppPayment={() => {
+                    navigate({ search: { tab: "payment" } as any });
+                  }}
                   onChange={() => {
                     qc.invalidateQueries({ queryKey: ["all-submissions"] });
                     qc.invalidateQueries({ queryKey: ["my-applications"] });
@@ -950,14 +1141,176 @@ function Dashboard() {
 
       return (
         <div className="space-y-6">
+          {/* Application Fee Payment Status Banner (when application is pending review/payment) */}
+          {app.status === "pending" && (
+            <div className="space-y-4">
+              {appPayment?.status === "resubmission_required" ? (
+                <div className="rounded-3xl border border-amber-300/80 bg-gradient-to-br from-amber-500/10 via-amber-50/50 to-white p-6 shadow-md dark:from-amber-950/30 dark:to-slate-900/60 dark:border-amber-700/50">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/20">
+                        <AlertCircle className="size-6" />
+                      </div>
+                      <div>
+                        <Badge className="bg-amber-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          Resubmission Required
+                        </Badge>
+                        <h3 className="text-base font-extrabold text-foreground">Application Fee Payment Resubmission Requested</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                          Admin Note: <span className="font-semibold text-amber-800 dark:text-amber-300">"{appPayment.admin_note || "Please upload a clearer payment proof with visible UTR."}"</span>
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate({ search: { tab: "payment" } as any })}
+                      className="rounded-xl brand-gradient text-white font-bold text-xs h-10 px-5 shrink-0 shadow-md cursor-pointer"
+                    >
+                      Resubmit Payment Proof
+                    </Button>
+                  </div>
+                </div>
+              ) : appPayment?.status === "rejected" ? (
+                <div className="rounded-3xl border border-red-300/80 bg-gradient-to-br from-red-500/10 via-red-50/50 to-white p-6 shadow-md dark:from-red-950/30 dark:to-slate-900/60 dark:border-red-700/50">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-red-500 text-white shadow-md shadow-red-500/20">
+                        <AlertCircle className="size-6" />
+                      </div>
+                      <div>
+                        <Badge className="bg-red-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          Payment Rejected
+                        </Badge>
+                        <h3 className="text-base font-extrabold text-foreground">Application Fee Payment Rejected</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                          Admin Note: <span className="font-semibold text-red-800 dark:text-red-300">"{appPayment.admin_note || "Invalid transaction reference."}"</span>
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate({ search: { tab: "payment" } as any })}
+                      className="rounded-xl brand-gradient text-white font-bold text-xs h-10 px-5 shrink-0 shadow-md cursor-pointer"
+                    >
+                      Submit New Payment
+                    </Button>
+                  </div>
+                </div>
+              ) : appPayment?.status === "pending" ? (
+                <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                        <Clock className="size-6 animate-pulse" />
+                      </div>
+                      <div>
+                        <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          Under Review
+                        </Badge>
+                        <h3 className="text-base font-extrabold text-foreground">Application Under Review — Verification in Progress</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                          Your payment proof (UTR: <span className="font-mono font-bold text-foreground">{appPayment.utr_number}</span>, Amount: <span className="font-bold text-emerald-600">₹{appPayment.amount}</span>) is being verified by the Skyrovix Admin team. Your Offer Letter, ID Card, and internship tasks will be automatically unlocked once approved!
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate({ search: { tab: "payment" } as any })}
+                      variant="outline"
+                      className="rounded-xl text-xs h-9 px-4 shrink-0 cursor-pointer"
+                    >
+                      View Payment Status
+                    </Button>
+                  </div>
+                </div>
+              ) : appFeeAmount > 0 ? (
+                <div className="rounded-3xl border border-amber-300/80 bg-gradient-to-br from-amber-500/10 via-amber-50/50 to-white p-6 shadow-md dark:from-amber-950/30 dark:to-slate-900/60 dark:border-amber-700/50">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/20">
+                        <CreditCard className="size-6" />
+                      </div>
+                      <div>
+                        <Badge className="bg-amber-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          {APPLICATION_FEE_BADGE}
+                        </Badge>
+                        <h3 className="text-base font-extrabold text-foreground">Application Fee Payment Required</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                          {APPLICATION_FEE_DISCLAIMER}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate({ search: { tab: "payment" } as any })}
+                      className="rounded-xl brand-gradient text-white font-bold text-xs h-10 px-5 shrink-0 shadow-md cursor-pointer"
+                    >
+                      Go to Payment (₹{appFeeAmount})
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40">
+                  <div className="flex items-start gap-3.5">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                      <Clock className="size-6" />
+                    </div>
+                    <div>
+                      <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                        Pending Approval
+                      </Badge>
+                      <h3 className="text-base font-extrabold text-foreground">Application Awaiting Admin Approval</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                        Your application has been submitted and is awaiting administrator verification. Your Offer Letter and tasks will be activated shortly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Welcome Banner */}
-          <HeroSection app={app} internApproved={internApproved} durationLimit={internTotal} cert={cert} payment={payment} setShowPaymentModal={setShowPaymentModal} onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)} />
+          <HeroSection app={app} internApproved={internApproved} durationLimit={internTotal} cert={cert} payment={payment} onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)} />
           
           {/* Stats details card row */}
-          <StatsCards internApproved={internApproved} internPending={internPending} durationLimit={internTotal} cert={cert} payment={payment} setShowPaymentModal={setShowPaymentModal} />
+          <StatsCards internApproved={internApproved} internPending={internPending} durationLimit={internTotal} cert={cert} payment={payment} onNavigateCertificates={() => navigate({ search: { tab: "certificates" } as any })} onNavigateTasks={() => navigate({ search: { tab: "tasks" } as any })} />
           
           {/* Stepper progress timeline */}
-          <TimelineSection steps={timelineSteps} currentStep={currentStep} setShowPaymentModal={setShowPaymentModal} />
+          <TimelineSection steps={timelineSteps} currentStep={currentStep} />
+
+          {/* Internship Workflow Progress Tracker */}
+          {app && (
+            <InternshipProgressTracker
+              app={app}
+              isAppFeeRequired={isAppFeeRequired}
+              appFeeAmount={appFeeAmount}
+              appFeeStatus={
+                isAppFeeApproved
+                  ? "approved"
+                  : appPayment?.status === "pending" || appPayment?.status === "under_review"
+                  ? "pending"
+                  : isAppFeeRequired
+                  ? "pending"
+                  : "not_required"
+              }
+              tasksWithMeta={(internTasks || []).map((t: any) => {
+                const sub = (internSubmissions || []).find((s: any) => s.task_id === t.id);
+                return {
+                  taskNumber: t.task_number,
+                  title: `Task ${t.task_number}`,
+                  status: sub?.status === "approved" ? "completed" : sub?.status === "pending" ? "pending" : "ongoing",
+                  isLocked: isAppFeeLocked,
+                  submission: sub,
+                };
+              })}
+              allTasksApproved={isTasksCompleted}
+              certFeeAmount={certFeeAmount}
+              certPaymentStatus={certPaymentState.toLowerCase()}
+              onOpenAppPayment={() => {
+                navigate({ search: { tab: "payment" } as any });
+              }}
+              onOpenCertPayment={() => {
+                navigate({ search: { tab: certPaymentState === "APPROVED" || certPaymentState === "WAIVED" || certPaymentState === "FREE_OFFER" || certPaymentState === "NOT_REQUIRED" ? "certificates" : "payment" } as any });
+              }}
+            />
+          )}
 
           {/* Quest Log: Active Tasks grid list */}
           <div className="space-y-3">
@@ -970,8 +1323,14 @@ function Dashboard() {
               domainSlug={app.domain}
               submissions={internSubmissions ?? []}
               appId={app.id}
-              duration={app.duration}
+              duration={app.duration ?? undefined}
               submissionStatus={submissionStatus}
+              isAppFeeRequired={isAppFeeRequired}
+              appFeeAmount={appFeeAmount}
+              appFeePayment={appPayment}
+              onOpenAppPayment={() => {
+                navigate({ search: { tab: "payment" } as any });
+              }}
               onChange={() => {
                 qc.invalidateQueries({ queryKey: ["all-submissions"] });
                 qc.invalidateQueries({ queryKey: ["my-applications"] });
@@ -1110,23 +1469,11 @@ function Dashboard() {
               app={app} 
               internApproved={internApproved} 
               internTotal={internTotal} 
-              payment={payment} 
-              couponResult={couponResult} 
-              validatingCoupon={validatingCoupon} 
-              couponCode={couponCode} 
-              setCouponCode={setCouponCode} 
-              handleApplyCoupon={handleApplyCoupon} 
-              handleRemoveCoupon={handleRemoveCoupon} 
-              utrNumber={utrNumber} 
-              setUtrNumber={setUtrNumber} 
-              paymentScreenshot={paymentScreenshot} 
-              setPaymentScreenshot={setPaymentScreenshot} 
-              submittingPayment={submittingPayment} 
-              handlePaymentSubmit={handlePaymentSubmit}
-              certStatus={certStatus}
-              doFreeCertificate={doFreeCertificate}
-              showPaymentModal={showPaymentModal}
-              setShowPaymentModal={setShowPaymentModal}
+              certFeeAmount={certFeeAmount}
+              certFeeConfig={certFeeConfig}
+              certPaymentRecord={certPaymentRecord}
+              onGenerateCert={() => handleGenerateFreeCert(app.id)}
+              generatingCert={generatingCert}
             />
           </div>
         );
@@ -1178,24 +1525,46 @@ function Dashboard() {
         const daApproved = daSubs.filter((s: any) => s.status === "approved").length;
         const daTotal = allTasksByDomain?.[da.domain]?.length ?? 5;
         const daCert = allAppCerts?.find((c: any) => c.application_id === da.id) ?? null;
-        const daPayment = allPayments?.find((p: any) => p.application_id === da.id) ?? null;
-        const daSubmissionStatus = da.submission_status ?? "in_progress";
-        const hasCouponDa2 = Boolean(
-          (da.coupon_code && da.coupon_code.trim() !== "") ||
-          (daPayment && ((daPayment as any).coupon_code || daPayment.utr_number === "FREE_COUPON" || daPayment.amount === 0))
+        const daAppPayment = (allPaymentRecords as any[])?.find((p) => p.application_id === da.id && p.payment_type === "application") ?? null;
+        const daCertPayment = (allPaymentRecords as any[])?.find((p) => p.application_id === da.id && p.payment_type === "certificate") ?? null;
+        const daIsAppFeeRequired = Boolean(appFeeConfig.enabled && appFeeAmount > 0);
+        const daIsAppFeeApproved = Boolean(
+          daAppPayment?.status === "approved" ||
+          da.application_fee_status === "approved"
         );
-        const daSteps = hasCouponDa2
-          ? [
-              { label: "Application Submitted", done: true },
-              { label: "Tasks Completed & Approved", done: daApproved >= daTotal },
-              { label: "Certificate Issued", done: !!daCert },
-            ]
-          : [
-              { label: "Application Submitted", done: true },
-              { label: "Tasks Completed & Approved", done: daApproved >= daTotal },
-              { label: "Payment Verification (₹100)", done: daPayment?.status === "verified" },
-              { label: "Certificate Issued", done: !!daCert },
-            ];
+        const daTasksCompleted = Boolean(
+          da.all_tasks_verified === true ||
+          (daApproved >= daTotal && daApproved > 0)
+        );
+
+        let daCertPaymentState: CertPaymentState = "LOCKED";
+        if (!daTasksCompleted) {
+          daCertPaymentState = "LOCKED";
+        } else if (!certFeeConfig.enabled || certFeeAmount === 0) {
+          daCertPaymentState = "NOT_REQUIRED";
+        } else if (daCertPayment?.status === "approved" || da.certificate_payment_status === "approved") {
+          daCertPaymentState = "APPROVED";
+        } else if (daCertPayment?.status === "waived" || da.certificate_payment_status === "waived") {
+          daCertPaymentState = "WAIVED";
+        } else if (daCertPayment?.status === "resubmission_required") {
+          daCertPaymentState = "RESUBMISSION_REQUIRED";
+        } else if (daCertPayment?.status === "rejected") {
+          daCertPaymentState = "REJECTED";
+        } else if (daCertPayment?.status === "pending" || daCertPayment?.status === "under_review") {
+          daCertPaymentState = "PENDING";
+        } else {
+          daCertPaymentState = "PAYMENT_REQUIRED";
+        }
+
+        const daSubmissionStatus = da.submission_status ?? "in_progress";
+        const daSteps = [
+          { label: "Application Submitted", done: true },
+          ...(daIsAppFeeRequired
+            ? [{ label: `Application Fee (₹${appFeeAmount})`, done: daIsAppFeeApproved }]
+            : []),
+          { label: "Tasks Completed & Approved", done: daTasksCompleted },
+          { label: "Certificate — FREE", done: !!daCert || daTasksCompleted },
+        ];
         const daCurrentStep = daSteps.findIndex((s) => !s.done);
 
         return (
@@ -1266,10 +1635,12 @@ function Dashboard() {
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">End Date</p><p className="font-semibold mt-0.5">{da.completed_at ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
-                      <p className="text-muted-foreground">Payment Details</p>
-                      {daPayment ? (
-                        <span className={`font-semibold mt-0.5 inline-flex items-center gap-1 ${daPayment.status === "verified" ? "text-emerald-600" : "text-amber-500"}`}>{daPayment.status === "verified" ? "Verified" : "Pending"}</span>
-                      ) : <p className="font-semibold mt-0.5 text-muted-foreground">—</p>}
+                      <p className="text-muted-foreground">App Fee Status</p>
+                      {daIsAppFeeRequired ? (
+                        <span className={`font-semibold mt-0.5 inline-flex items-center gap-1 ${daIsAppFeeApproved ? "text-emerald-600" : "text-amber-500"}`}>
+                          {daIsAppFeeApproved ? "Verified" : daAppPayment?.status === "pending" ? "Pending" : "Required"}
+                        </span>
+                      ) : <p className="font-semibold mt-0.5 text-muted-foreground">Not Required</p>}
                     </div>
                   </div>
                 </div>
@@ -1279,16 +1650,17 @@ function Dashboard() {
                   <UnlockedCertificateCard app={da} cert={daCert} domain={dd} />
                 ) : (
                   <LockedCertificateCard
-                    app={da} internApproved={daApproved} internTotal={daTotal} payment={daPayment}
-                    couponResult={couponResult} validatingCoupon={validatingCoupon} couponCode={couponCode}
-                    setCouponCode={setCouponCode} handleApplyCoupon={handleApplyCoupon}
-                    handleRemoveCoupon={handleRemoveCoupon} utrNumber={utrNumber}
-                    setUtrNumber={setUtrNumber} paymentScreenshot={paymentScreenshot}
-                    setPaymentScreenshot={setPaymentScreenshot} submittingPayment={submittingPayment}
-                    handlePaymentSubmit={handlePaymentSubmit} certStatus={certStatus}
-                    doFreeCertificate={doFreeCertificate}
-                    showPaymentModal={showPaymentModal}
-                    setShowPaymentModal={setShowPaymentModal}
+                    app={da}
+                    internApproved={daApproved}
+                    internTotal={daTotal}
+                    certFeeAmount={certFeeAmount}
+                    certFeeConfig={certFeeConfig}
+                    certPaymentRecord={daCertPayment}
+                    onGenerateCert={() => handleGenerateFreeCert(da.id)}
+                    generatingCert={generatingCert}
+                    onOpenCertPayment={() => {
+                      navigate({ search: { tab: "payment" } as any });
+                    }}
                   />
                 )}
               </div>
@@ -1297,6 +1669,46 @@ function Dashboard() {
             {/* Quest Log / Tasks Section for Ongoing & Approved Internships (not for completed) */}
             {da.status !== "completed" && (
               <div className="space-y-4 pt-2">
+                <InternshipProgressTracker
+                  app={da}
+                  isAppFeeRequired={daIsAppFeeRequired}
+                  appFeeAmount={appFeeAmount}
+                  appFeeStatus={
+                    daIsAppFeeApproved
+                      ? "approved"
+                      : daAppPayment?.status === "pending" || daAppPayment?.status === "under_review"
+                      ? "pending"
+                      : daIsAppFeeRequired
+                      ? "pending"
+                      : "not_required"
+                  }
+                  tasksWithMeta={(allTasksByDomain?.[da.domain] ?? []).map((t: any) => {
+                    const sub = (daSubs ?? []).find((s: any) => s.task_id === t.id);
+                    return {
+                      taskNumber: t.task_number,
+                      title: `Task ${t.task_number}`,
+                      status: sub?.status === "approved" ? "completed" : sub?.status === "pending" ? "pending" : "ongoing",
+                      isLocked: daIsAppFeeRequired && !daIsAppFeeApproved,
+                      submission: sub,
+                    };
+                  })}
+                  allTasksApproved={daTasksCompleted}
+                  certFeeAmount={certFeeAmount}
+                  certPaymentStatus={daCertPaymentState.toLowerCase()}
+                  onOpenAppPayment={() => {
+                    navigate({ search: { tab: "payment" } as any });
+                  }}
+                  onOpenCertPayment={() => {
+                    navigate({ search: { tab: daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED" ? "certificates" : "payment" } as any });
+                  }}
+                  onNavigateTasks={() => {
+                    navigate({ search: { tab: "tasks" } as any });
+                  }}
+                  onNavigateCertificates={() => {
+                    navigate({ search: { tab: "certificates" } as any });
+                  }}
+                />
+
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
                     <ListChecks className="size-5 text-primary" /> Quest Log — {dd?.name ?? da.domain} Tasks
@@ -1306,8 +1718,17 @@ function Dashboard() {
                   domainSlug={da.domain}
                   submissions={daSubs ?? []}
                   appId={da.id}
-                  duration={da.duration}
+                  duration={da.duration ?? undefined}
                   submissionStatus={daSubmissionStatus}
+                  isAppFeeRequired={daIsAppFeeRequired}
+                  appFeeAmount={appFeeAmount}
+                  appFeePayment={daAppPayment}
+                  onOpenAppPayment={() => {
+                    navigate({ search: { tab: "payment" } as any });
+                  }}
+                  onNavigateCertificates={() => {
+                    navigate({ search: { tab: "certificates" } as any });
+                  }}
                   onChange={() => {
                     qc.invalidateQueries({ queryKey: ["all-submissions"] });
                     qc.invalidateQueries({ queryKey: ["my-applications"] });
@@ -1509,7 +1930,7 @@ function Dashboard() {
                       const isEnrolled = enrolledSlugsForNew.has(d.slug);
                       return (
                         <SelectItem key={d.slug} value={d.slug} disabled={isEnrolled}>
-                          {d.icon} {d.name} {isEnrolled && "(Already Enrolled)"}
+                          {d.name} {isEnrolled && "(Already Enrolled)"}
                         </SelectItem>
                       );
                     })}
@@ -1677,166 +2098,278 @@ function Dashboard() {
     }
 
     if (active === "payment") {
-      const isPaymentDone = payment?.status === "verified";
+      const isAppPaymentPending = Boolean(appPayment?.status === "pending" || appPayment?.status === "under_review");
+      const isAppPaymentRejected = Boolean(appPayment?.status === "rejected");
+      const isAppPaymentResubmission = Boolean(appPayment?.status === "resubmission_required");
+
       return (
         <div className="space-y-6">
-          <DashboardHero badge="Payment" title="Payment" description="View your payment status and submit payment proof for your certificate." icon={CreditCard} />
+          <DashboardHero badge="Payment" title="Payment Management" description="View and manage your internship application fee and certificate issuance fee payments." icon={CreditCard} />
 
-          {/* Status Banner */}
-          {isPaymentDone ? (
-            <div className="rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/80 to-white p-6 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30">
-              <div className="flex items-center gap-3">
-                <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
-                  <CheckCircle2 className="size-6" />
-                </div>
-                <div>
-                  <p className="font-bold text-base text-foreground">Payment Verified</p>
-                  <p className="text-xs text-muted-foreground">Your payment has been received and verified.</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs pt-4 mt-4 border-t border-emerald-200/40">
-                <div><p className="text-muted-foreground">Status</p><p className="font-bold text-emerald-600 mt-0.5 capitalize">{payment?.status}</p></div>
-                <div><p className="text-muted-foreground">UTR / Reference</p><p className="font-bold font-mono mt-0.5">{payment?.utr_number || "—"}</p></div>
-                <div><p className="text-muted-foreground">Verified On</p><p className="font-bold mt-0.5">{payment?.verified_at ? new Date(payment.verified_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-amber-200/60 bg-gradient-to-br from-amber-50/80 to-white p-6 backdrop-blur-xl dark:from-amber-950/20 dark:to-slate-900/60 dark:border-amber-800/30">
-              <div className="flex items-center gap-3">
-                <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-600">
-                  <Clock className="size-6" />
-                </div>
-                <div>
-                  <p className="font-bold text-base text-foreground">Payment Pending</p>
-                  <p className="text-xs text-muted-foreground">Complete your certification fee payment to proceed with verification.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* QR Code & Payment Form — always visible */}
-          <div className="rounded-3xl border border-border/40 bg-white/60 p-6 sm:p-8 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-6">
-            <div>
-              <h3 className="flex items-center gap-2 font-bold text-base text-foreground"><CreditCard className="size-5 text-primary" /> Certificate Fee Payment</h3>
-              <p className="text-xs text-muted-foreground mt-1">Scan the QR code or use the UPI ID below to pay the certification fee.</p>
-            </div>
-
-            <div className="grid md:grid-cols-12 gap-8 items-start">
-              {/* QR Code Section */}
-              <div className="md:col-span-5 rounded-2xl border border-border/30 bg-gradient-to-br from-slate-50/50 to-white p-6 flex flex-col items-center text-center gap-4 relative overflow-hidden shadow-sm dark:from-slate-800/30 dark:to-slate-900/30">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">Scan QR Code via GPay, PhonePe, Paytm or BHIM</span>
-
-                {/* High Contrast Clean QR Code Container for Google Pay & All UPI Apps */}
-                <div className="p-4 bg-white rounded-2xl shadow-md border border-slate-200 flex items-center justify-center">
-                  <QRCodeSVG 
-                    value={`upi://pay?pa=${PAYMENT.upiId}&pn=${encodeURIComponent(PAYMENT.payeeName)}&am=${couponResult?.valid ? couponResult.finalAmount : PAYMENT.amount}&cu=INR&tn=${encodeURIComponent("Certificate Fee")}`} 
-                    size={220} 
-                    includeMargin={true}
-                    level="M"
-                    bgColor="#ffffff"
-                    fgColor="#000000"
-                    style={{ width: "100%", maxWidth: "220px", height: "auto" }} 
-                  />
-                </div>
-
-                {/* Tap to Pay Direct Button */}
-                <a 
-                  href={`upi://pay?pa=${PAYMENT.upiId}&pn=${encodeURIComponent(PAYMENT.payeeName)}&am=${couponResult?.valid ? couponResult.finalAmount : PAYMENT.amount}&cu=INR&tn=${encodeURIComponent("Certificate Fee")}`}
-                  className="w-full max-w-[220px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
-                >
-                  <ExternalLink className="size-3.5" /> Pay via GPay / UPI App
-                </a>
-
-                <div className="flex flex-col items-center gap-1.5 w-full pt-1 border-t border-border/10">
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Supported Payment Apps</span>
-                  <div className="flex gap-1.5 text-[10px] font-bold flex-wrap justify-center">
-                    <span className="bg-blue-600/10 text-blue-600 px-2.5 py-1 rounded-md border border-blue-600/10">GPay</span>
-                    <span className="bg-purple-600/10 text-purple-600 px-2.5 py-1 rounded-md border border-purple-600/10">PhonePe</span>
-                    <span className="bg-sky-600/10 text-sky-600 px-2.5 py-1 rounded-md border border-sky-600/10">Paytm</span>
-                    <span className="bg-emerald-600/10 text-emerald-600 px-2.5 py-1 rounded-md border border-emerald-600/10">BHIM UPI</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 w-full pt-2 border-t border-border/10">
-                  <p className="text-[10px] text-muted-foreground">UPI ID</p>
-                  <p className="font-mono font-bold text-sm text-foreground bg-secondary/30 px-3 py-1.5 rounded-lg select-all">{PAYMENT.upiId}</p>
-                  <p className="text-[11px] text-muted-foreground">Payee: <span className="font-semibold text-foreground">{PAYMENT.payeeName}</span></p>
-                </div>
-
-                <Button size="sm" variant="outline" className="rounded-xl h-8 text-[11px] border-border/50 gap-1.5 shadow-sm bg-white w-full max-w-[220px]"
-                  onClick={() => {
-                    navigator.clipboard.writeText(PAYMENT.upiId);
-                    toast.success("UPI ID copied to clipboard!");
-                  }}>
-                  <Copy className="size-3.5" /> Copy UPI ID
-                </Button>
-              </div>
-
-              {/* Payment Form */}
-              <div className="md:col-span-7 space-y-5">
-                {/* Fee Summary */}
-                <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-slate-50/50 to-white p-5 shadow-sm dark:from-slate-800/30 dark:to-slate-900/30">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-wider">Certification Fee</p>
-                      <p className="font-extrabold text-3xl mt-1 text-emerald-600 dark:text-emerald-400">₹{PAYMENT.amount}</p>
-                    </div>
-                  </div>
-                  {isPaymentDone && (
-                    <div className="mt-4 pt-4 border-t border-border/30 flex items-center gap-2 text-emerald-600">
-                      <CheckCircle2 className="size-4" />
-                      <span className="text-xs font-bold">Payment already completed and verified</span>
-                    </div>
-                  )}
-                </div>
-
-                {!isPaymentDone && (
-                  <>
-                    {/* UTR Number Input */}
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm font-bold text-foreground">UPI Transaction UTR / Reference Number *</Label>
-                      <Input
-                        value={utrNumber}
-                        onChange={(e) => setUtrNumber(e.target.value)}
-                        placeholder="Enter the 12-digit UTR number from your payment"
-                        className="h-12 rounded-xl bg-background/50 border-border/60 text-sm font-mono"
-                      />
-                      <p className="text-[10px] text-muted-foreground">You can find this in your UPI app payment history</p>
-                    </div>
-
-                    {/* Payment Screenshot Upload */}
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm font-bold text-foreground">Payment Screenshot (Optional)</Label>
-                      <div className="border-2 border-dashed border-border/40 rounded-2xl p-5 text-center hover:border-border/60 transition-colors bg-background/30">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
-                          onChange={e => setPaymentScreenshot(e.target.files?.[0] ?? null)}
-                        />
+          {/* 1. APPLICATION FEE SECTION */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <CreditCard className="size-3.5 text-primary" /> Application Fee
+            </h3>
+            {isAppFeeRequired ? (
+              !isAppFeeApproved ? (
+                isAppPaymentPending ? (
+                  <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40">
+                    <div className="flex items-start gap-3.5">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                        <Clock className="size-6 animate-pulse" />
+                      </div>
+                      <div>
+                        <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          ⏳ Verification Pending
+                        </Badge>
+                        <h3 className="font-bold text-base text-foreground">Application Fee Payment Under Review</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                          Your payment proof (UTR: <span className="font-mono font-bold text-foreground">{appPayment?.utr_number}</span>, Amount: <span className="font-bold text-emerald-600">₹{appPayment?.amount || appFeeAmount}</span>) is awaiting admin verification. Tasks will unlock immediately after approval.
+                        </p>
+                        {appPayment?.submitted_at && (
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            Submitted on: {new Date(appPayment.submitted_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        )}
                       </div>
                     </div>
-
-                    {/* Submit Button */}
-                    <Button
-                      className="w-full h-12 rounded-2xl font-bold text-sm gap-2 brand-gradient text-white border-0 shadow-lg"
-                      disabled={!utrNumber.trim() || submittingPayment}
-                      onClick={handlePaymentSubmit}
-                    >
-                      {submittingPayment ? (
-                        <><Loader2 className="size-4 animate-spin" /> Submitting payment details...</>
-                      ) : (
-                        <><CreditCard className="size-4" /> Pay Fee ₹{PAYMENT.amount} & Verify</>
-                      )}
-                    </Button>
-                  </>
-                )}
+                  </div>
+                ) : isAppPaymentRejected || isAppPaymentResubmission ? (
+                  <ManualUpiPaymentCard
+                    paymentType="application"
+                    amount={appFeeAmount}
+                    upiId={appFeeConfig.upi_id || PAYMENT.upiId}
+                    payeeName={appFeeConfig.payee_name || PAYMENT.payeeName}
+                    qrCodeUrl={appFeeConfig.qr_code_url || null}
+                    applicationId={app.id}
+                    userId={user!.id}
+                    adminNote={appPayment?.admin_note || "Please submit a clear UPI receipt screenshot and valid UTR."}
+                    onSuccess={() => {
+                      qc.invalidateQueries({ queryKey: ["my-applications"] });
+                      qc.invalidateQueries({ queryKey: ["user-payments"] });
+                    }}
+                  />
+                ) : (
+                  <ManualUpiPaymentCard
+                    paymentType="application"
+                    amount={appFeeAmount}
+                    upiId={appFeeConfig.upi_id || PAYMENT.upiId}
+                    payeeName={appFeeConfig.payee_name || PAYMENT.payeeName}
+                    qrCodeUrl={appFeeConfig.qr_code_url || null}
+                    applicationId={app.id}
+                    userId={user!.id}
+                    onSuccess={() => {
+                      qc.invalidateQueries({ queryKey: ["my-applications"] });
+                      qc.invalidateQueries({ queryKey: ["user-payments"] });
+                    }}
+                  />
+                )
+              ) : (
+                <div className="rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/80 to-white p-6 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
+                      <CheckCircle2 className="size-6" />
+                    </div>
+                    <div>
+                      <Badge className="bg-emerald-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                        Application Fee ✅ Approved
+                      </Badge>
+                      <h3 className="font-bold text-base text-foreground">Application Fee Paid & Admin-Verified</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Amount: <span className="font-bold text-emerald-600">₹{appPayment?.amount || appFeeAmount}</span> · Reference: <span className="font-mono font-bold">{appPayment?.utr_number || "VERIFIED"}</span>
+                        {appPayment?.reviewed_at && ` · Verified on ${new Date(appPayment.reviewed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/80 to-white p-5 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30 flex items-center gap-3">
+                <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                  <CheckCircle2 className="size-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">✅ NO APPLICATION PAYMENT REQUIRED</h4>
+                  <p className="text-xs text-muted-foreground">Application fee is not required for your internship. Tasks are unlocked directly.</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
+
+          {/* 2. CERTIFICATE PAYMENT (Evaluated only after Application Fee is approved or not required) */}
+          {(isAppFeeApproved || !isAppFeeRequired) && (
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Award className="size-3.5 text-primary" /> Certificate Payment
+              </h3>
+
+              {!isTasksCompleted ? (
+                <div className="rounded-3xl border border-border/40 bg-white/60 p-6 sm:p-8 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-3 shadow-sm">
+                  <div className="flex items-start gap-3.5">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-500">
+                      <Lock className="size-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-muted-foreground font-display">CERTIFICATE PAYMENT</span>
+                        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-300/40 text-xs px-2.5 py-0.5 font-bold">
+                          🔒 LOCKED
+                        </Badge>
+                      </div>
+                      <h3 className="font-bold text-base text-foreground">
+                        Certificate Payment Locked
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
+                        Complete and receive admin verification for all required internship tasks to unlock certificate payment. ({internApproved} / {internTotal || 5} tasks verified)
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate({ search: { tab: "tasks" } as any })}
+                      className="rounded-xl font-bold text-xs gap-1.5 h-9 px-4 border-border/60"
+                    >
+                      <ListChecks className="size-4" /> Go to My Tasks
+                    </Button>
+                  </div>
+                </div>
+              ) : app.certificate_offer_eligible === true ? (
+                <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white shadow-md">
+                      <Sparkles className="size-6" />
+                    </div>
+                    <div>
+                      <Badge className="bg-emerald-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold mb-1">
+                        🎉 CERTIFICATE FREE OFFER
+                      </Badge>
+                      <h3 className="font-bold text-base text-foreground">Certificate Fee: ₹0</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                        Your application qualifies for the Certificate Free Offer. No certificate payment is required.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => navigate({ search: { tab: "certificates" } as any })}
+                    className="brand-gradient text-white rounded-xl font-bold text-xs h-10 px-5 shadow-md shrink-0 gap-1.5"
+                  >
+                    Go to Certificates <ArrowRight className="size-3.5" />
+                  </Button>
+                </div>
+              ) : !certFeeConfig.enabled || certFeeAmount === 0 ? (
+                <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
+                      <CheckCircle2 className="size-6" />
+                    </div>
+                    <div>
+                      <Badge className="bg-emerald-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold mb-1">
+                        ✅ CERTIFICATE — FREE
+                      </Badge>
+                      <h3 className="font-bold text-base text-foreground">No Certificate Payment Required (₹0)</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                        No certificate payment is required under the current fee configuration.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => navigate({ search: { tab: "certificates" } as any })}
+                    className="brand-gradient text-white rounded-xl font-bold text-xs h-10 px-5 shadow-md shrink-0 gap-1.5"
+                  >
+                    Go to Certificates <ArrowRight className="size-3.5" />
+                  </Button>
+                </div>
+              ) : certPaymentState === "APPROVED" || certPaymentState === "WAIVED" ? (
+                <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white shadow-md">
+                      <CheckCircle2 className="size-6" />
+                    </div>
+                    <div>
+                      <Badge className="bg-emerald-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold mb-1">
+                        ✅ CERTIFICATE PAYMENT VERIFIED
+                      </Badge>
+                      <h3 className="font-bold text-base text-foreground">Certificate Payment Approved</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Amount: <span className="font-bold text-emerald-600">₹{certPaymentRecord?.amount || certFeeAmount}</span> · Reference UTR: <span className="font-mono font-bold">{certPaymentRecord?.utr_number || "VERIFIED"}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => navigate({ search: { tab: "certificates" } as any })}
+                    className="brand-gradient text-white rounded-xl font-bold text-xs h-10 px-5 shadow-md shrink-0 gap-1.5"
+                  >
+                    Go to Certificates <ArrowRight className="size-3.5" />
+                  </Button>
+                </div>
+              ) : certPaymentState === "PENDING" ? (
+                <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 sm:p-8 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40 space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md">
+                        <Clock className="size-6 animate-pulse" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-muted-foreground font-display">CERTIFICATE PAYMENT</span>
+                          <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider">
+                            ⏳ Verification Pending
+                          </Badge>
+                        </div>
+                        <h3 className="font-bold text-base text-foreground">Certificate Payment Under Review</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                          Your certificate payment proof (UTR: <span className="font-mono font-bold text-foreground">{certPaymentRecord?.utr_number || certPaymentRecord?.utr || "Submitted"}</span>, Amount: <span className="font-bold text-emerald-600">₹{certPaymentRecord?.amount || certFeeAmount}</span>) is waiting for admin verification.
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate({ search: { tab: "certificates" } as any })}
+                      variant="outline"
+                      className="rounded-xl font-bold text-xs h-10 px-5 shrink-0 gap-1.5 border-border/60"
+                    >
+                      Go to Certificates <ArrowRight className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ) : certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED" ? (
+                <ManualUpiPaymentCard
+                  paymentType="certificate"
+                  amount={certFeeAmount}
+                  upiId={certFeeConfig.upi_id || PAYMENT.upiId}
+                  payeeName={certFeeConfig.payee_name || PAYMENT.payeeName}
+                  qrCodeUrl={certFeeConfig.qr_code_url || null}
+                  applicationId={app.id}
+                  userId={user!.id}
+                  adminNote={certPaymentRecord?.admin_notes || "Please check your UTR number and re-upload a clear UPI receipt screenshot."}
+                  onSuccess={() => {
+                    qc.invalidateQueries({ queryKey: ["my-applications"] });
+                    qc.invalidateQueries({ queryKey: ["user-payments"] });
+                  }}
+                />
+              ) : (
+                <ManualUpiPaymentCard
+                  paymentType="certificate"
+                  amount={certFeeAmount}
+                  upiId={certFeeConfig.upi_id || PAYMENT.upiId}
+                  payeeName={certFeeConfig.payee_name || PAYMENT.payeeName}
+                  qrCodeUrl={certFeeConfig.qr_code_url || null}
+                  applicationId={app.id}
+                  userId={user!.id}
+                  onSuccess={() => {
+                    qc.invalidateQueries({ queryKey: ["my-applications"] });
+                    qc.invalidateQueries({ queryKey: ["user-payments"] });
+                  }}
+                />
+              )}
+            </div>
+          )}
         </div>
       );
     }
+
+
 
 
 
@@ -1939,90 +2472,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Global Root-Level Completion Popup Modal via React Portal */}
-      {showPaymentModal && createPortal(
-        <div 
-          className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-slate-950/55 backdrop-blur-[6px] animate-in fade-in duration-200"
-          style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 9998, backgroundColor: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-          onClick={() => setShowPaymentModal(false)}
-        >
-          <div 
-            className="relative z-[9999] w-[calc(100vw-32px)] max-w-[520px] rounded-[24px] bg-white dark:bg-slate-900 p-6 sm:p-8 border border-slate-100 dark:border-slate-800 text-center shadow-[0_25px_70px_rgba(0,0,0,0.25)] animate-in zoom-in-95 duration-200 overflow-hidden text-slate-900 dark:text-slate-100"
-            style={{ position: 'relative', zIndex: 9999, opacity: 1, visibility: 'visible', transform: 'none' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button X */}
-            <button
-              onClick={() => setShowPaymentModal(false)}
-              className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer z-10"
-              aria-label="Close"
-            >
-              <X className="size-5" />
-            </button>
-
-            {/* Success Section */}
-            <div className="flex flex-col items-center text-center pt-2">
-              {/* Icon Badge & Confetti */}
-              <div className="relative mb-5 grid size-20 place-items-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 animate-in zoom-in-50 duration-300">
-                <div className="absolute top-1 left-3 size-2 rounded-full bg-teal-400" />
-                <div className="absolute top-3 left-14 w-2.5 h-1 bg-amber-400 -rotate-45 rounded-full" />
-                <div className="absolute top-0 right-4 size-1.5 rounded-full bg-emerald-500" />
-                <div className="absolute bottom-2 left-2 size-2 rounded-full bg-blue-400" />
-                <div className="absolute bottom-1 right-3 w-2.5 h-1 bg-purple-400 rotate-45 rounded-full" />
-
-                <div className="grid size-12 place-items-center rounded-full bg-[#10b981] text-white shadow-md shadow-emerald-500/20">
-                  <CheckCircle2 className="size-7 stroke-[2.5]" />
-                </div>
-              </div>
-
-              <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#0f172a] dark:text-white tracking-tight">
-                All Internship Tasks Completed!
-              </h3>
-
-              <p className="mt-2.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-md mx-auto font-normal">
-                Congratulations! You have successfully completed all internship tasks. Your submissions have been approved by the admin.
-              </p>
-            </div>
-
-            {/* Certificate Fee Section */}
-            <div className="mt-6 rounded-2xl bg-[#e6f7ef] dark:bg-emerald-950/40 p-4 border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-3.5 text-left">
-              <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#10b981] text-white font-extrabold text-base shadow-sm">
-                <span className="font-sans">₹</span>
-              </div>
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#059669] dark:text-emerald-400">
-                  Certificate Fee
-                </p>
-                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium mt-0.5">
-                  Pay ₹100 to receive your verified internship certificate.
-                </p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-6 space-y-3">
-              <Button
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  navigate({ search: { tab: "payment" } as any });
-                }}
-                className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-2xl h-12 text-sm font-bold shadow-lg shadow-blue-500/25 border-0 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-              >
-                Proceed to Payment
-              </Button>
-
-              <button
-                onClick={() => setShowPaymentModal(false)}
-                className="text-xs font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors block w-full py-2 text-center cursor-pointer"
-              >
-                Back to Dashboard
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
       {/* Offer Letter Interactive Preview Dialog */}
       <OfferLetterPreviewDialog
         app={previewOfferApp}
@@ -2071,7 +2520,7 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 
 // ─── HERO ───
 
-function HeroSection({ app, internApproved, durationLimit, cert, payment, setShowPaymentModal, onViewOfferLetter }: { app: any; internApproved: number; durationLimit: number; cert?: any; payment?: any; setShowPaymentModal?: (val: boolean) => void; onViewOfferLetter?: (app: any) => void }) {
+function HeroSection({ app, internApproved, durationLimit, cert, payment, onViewOfferLetter }: { app: any; internApproved: number; durationLimit: number; cert?: any; payment?: any; onViewOfferLetter?: (app: any) => void }) {
   const domain = getDomain(app.domain);
   const internTotal = durationLimit || 4;
   const pct = durationLimit > 0 ? Math.min(100, Math.round((internApproved / durationLimit) * 100)) : 0;
@@ -2315,7 +2764,23 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, setSho
 
 // ─── STATS CARDS ───
 
-function StatsCards({ internApproved, internPending, durationLimit, cert, payment, setShowPaymentModal }: any) {
+function StatsCards({
+  internApproved,
+  internPending,
+  durationLimit,
+  cert,
+  payment,
+  onNavigateCertificates,
+  onNavigateTasks,
+}: {
+  internApproved: number;
+  internPending: number;
+  durationLimit: number;
+  cert?: any;
+  payment?: any;
+  onNavigateCertificates?: () => void;
+  onNavigateTasks?: () => void;
+}) {
   const stats = [
     {
       icon: CheckCircle2, label: "Approved Tasks", value: `${internApproved} / ${durationLimit}`,
@@ -2336,14 +2801,17 @@ function StatsCards({ internApproved, internPending, durationLimit, cert, paymen
     <div className="grid gap-4 sm:grid-cols-3">
       {stats.map((s, i) => {
         const Icon = s.icon;
+        const isClickable = (s.label === "Verified Certificate" && onNavigateCertificates) || (s.label === "Approved Tasks" && onNavigateTasks);
         return (
           <div key={i}
             onClick={() => {
-              if ((s.label === "Verified Certificate" || s.label === "Approved Tasks") && setShowPaymentModal && (!payment || payment.status !== "verified")) {
-                setShowPaymentModal(true);
+              if (s.label === "Verified Certificate" && onNavigateCertificates) {
+                onNavigateCertificates();
+              } else if (s.label === "Approved Tasks" && onNavigateTasks) {
+                onNavigateTasks();
               }
             }}
-            className={`group rounded-3xl border border-border/40 bg-white/60 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:bg-slate-900/60 dark:border-white/5 ${setShowPaymentModal && (!payment || payment.status !== "verified") ? "cursor-pointer" : ""}`}
+            className={`group rounded-3xl border border-border/40 bg-white/60 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:bg-slate-900/60 dark:border-white/5 ${isClickable ? "cursor-pointer" : ""}`}
           >
             <div className="flex items-start justify-between">
               <div className={`grid size-11 shrink-0 place-items-center rounded-2xl ${s.bg}`}>
@@ -2620,7 +3088,7 @@ function ProfilePanel({ app, onChange }: { app: Application; onChange: () => voi
 
 // ─── TIMELINE ───
 
-function TimelineSection({ steps, currentStep, setShowPaymentModal }: { steps: { label: string; done: boolean }[]; currentStep: number; setShowPaymentModal?: (val: boolean) => void }) {
+function TimelineSection({ steps, currentStep, onNavigateCertificates }: { steps: { label: string; done: boolean }[]; currentStep: number; onNavigateCertificates?: () => void }) {
   return (
     <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 relative overflow-hidden">
       <style>{`
@@ -2650,9 +3118,9 @@ function TimelineSection({ steps, currentStep, setShowPaymentModal }: { steps: {
           return (
             <div key={i} 
               onClick={() => {
-                if (i === 2 && setShowPaymentModal) setShowPaymentModal(true);
+                if (i === 2 && onNavigateCertificates) onNavigateCertificates();
               }}
-              className={`flex flex-col items-center text-center relative z-10 w-32 ${i === 2 && setShowPaymentModal ? "cursor-pointer" : ""}`}>
+              className={`flex flex-col items-center text-center relative z-10 w-32 ${i === 2 && onNavigateCertificates ? "cursor-pointer" : ""}`}>
               <div className="relative">
                 {isActive && (
                   <div className="absolute -inset-2 rounded-full border-2 border-[#07284a] dark:border-blue-500 animate-stepper-pulse pointer-events-none" />
@@ -2754,133 +3222,335 @@ function UnlockedCertificateCard({ app, cert, domain }: any) {
   );
 }
 
-function LockedCertificateCard({ app, internApproved, internTotal, payment, utrNumber, setUtrNumber, paymentScreenshot, setPaymentScreenshot, submittingPayment, handlePaymentSubmit, couponResult, showPaymentModal, setShowPaymentModal, ...rest }: any) {
+function LockedCertificateCard({
+  app,
+  internApproved,
+  internTotal,
+  certFeeAmount = 100,
+  certFeeConfig,
+  certPaymentRecord,
+  onGenerateCert,
+  generatingCert = false,
+}: {
+  app: any;
+  internApproved: number;
+  internTotal: number;
+  certFeeAmount?: number;
+  certFeeConfig?: any;
+  certPaymentRecord?: any;
+  onGenerateCert?: () => void;
+  generatingCert?: boolean;
+  onOpenCertPayment?: () => void;
+}) {
+  const navigate = useNavigate();
   const domain = getDomain(app?.domain);
-  const isTasksDone = internTotal > 0 && internApproved >= internTotal;
-  const isPaymentDone = payment?.status === "verified";
-  const submissionStatus = app?.submission_status ?? "in_progress";
-  const hasCoupon = Boolean(
-    (app?.coupon_code && app.coupon_code.trim() !== "") ||
-    (payment && (payment.coupon_code || payment.utr_number === "FREE_COUPON" || payment.amount === 0)) ||
-    couponResult?.valid
-  );
+  const isTasksDone = Boolean(app?.all_tasks_verified === true || (internTotal > 0 && internApproved >= internTotal));
+  const isOfferEligible = Boolean(app?.certificate_offer_eligible);
+  const paymentStatus = (certPaymentRecord?.status || app?.certificate_payment_status || "").toLowerCase();
+  const isFeeEnabled = certFeeConfig ? certFeeConfig.certificate_fee_enabled !== false : certFeeAmount > 0;
+  const effectiveCertFee = isOfferEligible ? 0 : (!isFeeEnabled ? 0 : certFeeAmount);
 
-  const [paymentStep, setPaymentStep] = useState<"celebration" | "checkout">("celebration");
+  // Dynamic disclaimer per Section 33
+  const certDisclaimer = getCertificateDisclaimer({
+    isTasksApproved: isTasksDone,
+    isOfferEligible,
+    normalCertFee: certFeeAmount,
+    isFeeEnabled,
+  });
 
-  useEffect(() => {
-    if (showPaymentModal) {
-      setPaymentStep("celebration");
-    }
-  }, [showPaymentModal]);
-
-  useEffect(() => {
-    if (isTasksDone && !hasCoupon && !isPaymentDone && payment?.status !== "pending") {
-      setShowPaymentModal?.(true);
-    }
-  }, [isTasksDone, hasCoupon, isPaymentDone, payment, setShowPaymentModal]);
-
-  const steps = hasCoupon
-    ? [
-        { label: "Complete All Tasks", done: isTasksDone, icon: ListChecks },
-        { label: "Admin Approval & Certificate", done: submissionStatus === "approved" || isTasksDone, icon: CheckCircle2 },
-      ]
-    : [
-        { label: "Complete All Tasks", done: isTasksDone, icon: ListChecks },
-        { label: "Payment Verification (₹100)", done: isPaymentDone, icon: Wallet },
-        { label: "Certificate Generated", done: isPaymentDone && (submissionStatus === "approved" || isTasksDone), icon: Award },
-      ];
-
-  return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 relative overflow-hidden">
+  // STATE 1: Tasks Incomplete -> STRICTLY LOCKED (Section 24, 33 Case D, 37)
+  if (!isTasksDone) {
+    return (
+      <div className="rounded-3xl border border-border/40 bg-white/60 p-6 sm:p-8 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 relative overflow-hidden shadow-sm space-y-4">
         <div className="absolute -right-24 -top-24 size-72 rounded-full bg-amber-500/10 blur-[80px] pointer-events-none" />
-        
-        <div className="grid md:grid-cols-12 gap-8 items-center">
-          {/* Visual Locked Certificate Graphic */}
-          <div className="md:col-span-4 flex flex-col items-center">
-            <div className="relative w-full max-w-[240px] aspect-[1.414] rounded-2xl border-2 border-dashed border-muted-foreground/30 dark:border-white/10 bg-slate-100/50 dark:bg-slate-800/20 grid place-items-center overflow-hidden shadow-inner group">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#07284a]/2 to-[#07284a]/5 pointer-events-none" />
-              <div className="flex flex-col items-center text-center p-4">
-                <div className="grid size-14 place-items-center rounded-2xl bg-amber-500/10 text-amber-500 shadow-inner mb-3 animate-pulse">
-                  <Lock className="size-6" />
-                </div>
-                <span className="text-xs font-bold tracking-wide uppercase text-muted-foreground">Internship Certificate</span>
-                <span className="text-[10px] text-muted-foreground/60 mt-1">{domain?.name ?? app?.domain}</span>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted dark:bg-slate-800">
-                <div className="h-full bg-amber-500" style={{ width: `${Math.round((internApproved / Math.max(1, internTotal)) * 100)}%` }} />
-              </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="relative size-16 shrink-0 rounded-2xl border-2 border-dashed border-amber-300 dark:border-amber-700 bg-amber-500/10 grid place-items-center">
+              <Lock className="size-7 text-amber-500" />
             </div>
-          </div>
-          
-          {/* Steps & Checkout Info */}
-          <div className="md:col-span-8 space-y-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <Badge variant="secondary" className="mb-2 bg-amber-500/10 text-amber-600 border-0"><Lock className="mr-1 size-3" /> Certificate Path</Badge>
-                <h2 className="text-xl font-bold font-display text-foreground">Certificate Progress</h2>
-                <p className="text-xs text-muted-foreground mt-1">Complete tasks & payment to receive your verified certificate after admin verification.</p>
-              </div>
-              {hasCoupon && (
-                <Badge className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs px-3 py-1 font-bold">
-                  ✨ Coupon Applied
+            <div className="space-y-2 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-muted-foreground font-display">CERTIFICATE</span>
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-300/40 text-xs px-2.5 py-0.5 font-bold">
+                  🔒 Certificate Locked
                 </Badge>
+                {isOfferEligible && (
+                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-300/50 text-xs px-2.5 py-0.5 font-bold">
+                    🎁 Certificate Free Offer Reserved
+                  </Badge>
+                )}
+              </div>
+              <h3 className="font-display text-xl font-extrabold text-foreground">
+                Internship Certificate Locked
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl">
+                {certDisclaimer.description}
+              </p>
+              {isOfferEligible && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  ✨ Your application was submitted during the Certificate Free Offer window. Once all tasks are approved, your certificate will be issued for ₹0!
+                </p>
               )}
-            </div>
-            
-            <div className="grid sm:grid-cols-2 gap-3">
-              {steps.map((step, i) => {
-                const Icon = step.icon;
-                const isDone = step.done;
-                return (
-                  <div key={i} className={`rounded-2xl border p-3.5 transition ${isDone ? "bg-emerald-50/50 border-emerald-200/50 dark:bg-emerald-950/10" : "bg-secondary/40 border-border/40"}`}>
-                    <div className="flex items-start gap-3">
-                      <div className={`grid size-7 shrink-0 place-items-center rounded-lg ${isDone ? "bg-emerald-500 text-white" : "bg-amber-500/10 text-amber-500"}`}>
-                        {isDone ? <CheckCircle2 className="size-4" /> : <Icon className="size-4" />}
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-foreground">{step.label}</h4>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="pt-2 flex items-center gap-3">
+                <div className="flex-1 max-w-xs h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.round((internApproved / Math.max(1, internTotal || 5)) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-xs font-bold text-muted-foreground">
+                  {internApproved} / {internTotal || 5} tasks verified
+                </span>
+              </div>
             </div>
           </div>
+          <Button
+            onClick={() => navigate({ search: { tab: "tasks" } as any })}
+            variant="outline"
+            className="rounded-xl text-xs h-10 px-4 shrink-0 font-bold border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer"
+          >
+            Go to My Tasks
+          </Button>
         </div>
       </div>
+    );
+  }
 
-      {/* Coupon Applied Banner (No payment required) */}
-      {hasCoupon && !isPaymentDone && (
-        <div className="rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/80 to-white p-6 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30">
-          <div className="flex items-start gap-3">
-            <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
-              <Sparkles className="size-6" />
+  // STATE 2: Tasks Done & Application is CERTIFICATE FREE OFFER Eligible (Section 28, 33 Case B, 37)
+  if (isOfferEligible) {
+    return (
+      <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm relative overflow-hidden space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/25">
+              <Award className="size-7" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-foreground">Coupon Applied — Free Certificate</h3>
-              <p className="text-sm text-muted-foreground mt-1">Your coupon code waives the certificate fee! Complete your tasks to get your certificate directly upon admin verification.</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 font-display">CERTIFICATE</span>
+                <Badge className="bg-emerald-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+                  🎉 CERTIFICATE FREE OFFER
+                </Badge>
+                <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+                  Fee: ₹0
+                </Badge>
+              </div>
+              <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+                Certificate Ready (₹0 Free Offer)
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                {certDisclaimer.description}
+              </p>
             </div>
           </div>
-        </div>
-      )}
-
-
-
-      {submissionStatus === "rejected" && (
-        <div className="rounded-2xl border border-red-200/60 bg-red-50/50 p-4 dark:border-red-800/30 dark:bg-red-950/10">
-          <p className="text-sm font-semibold text-red-700 dark:text-red-400">Internship rejected. Check feedback and resubmit tasks.</p>
-        </div>
-      )}
-
-      {submissionStatus === "approved" && (
-        <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-4 text-center dark:border-emerald-800/30 dark:bg-emerald-950/10">
-          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Internship tasks approved by admin!</p>
-          {!hasCoupon && !isPaymentDone && (
-            <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1 font-medium">Please submit your ₹100 payment verification to receive your certificate.</p>
+          {onGenerateCert && (
+            <Button
+              onClick={onGenerateCert}
+              disabled={generatingCert}
+              className="brand-gradient text-white rounded-xl font-bold text-sm h-11 px-6 shadow-md shrink-0 gap-2 cursor-pointer"
+            >
+              {generatingCert ? (
+                <><Loader2 className="size-4 animate-spin" /> Generating Certificate...</>
+              ) : (
+                <><Sparkles className="size-4" /> Issue / Generate Certificate</>
+              )}
+            </Button>
           )}
         </div>
-      )}
+      </div>
+    );
+  }
+
+  // STATE 3: Tasks Done, No Offer, but Normal Certificate Fee is ₹0 or disabled (Section 32, 33 Case C, 37)
+  if (effectiveCertFee === 0) {
+    return (
+      <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm relative overflow-hidden space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/25">
+              <Award className="size-7" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 font-display">CERTIFICATE</span>
+                <Badge className="bg-emerald-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+                  ✅ Fee: ₹0
+                </Badge>
+              </div>
+              <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+                Certificate Unlocked (No Fee Required)
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                {certDisclaimer.description}
+              </p>
+            </div>
+          </div>
+          {onGenerateCert && (
+            <Button
+              onClick={onGenerateCert}
+              disabled={generatingCert}
+              className="brand-gradient text-white rounded-xl font-bold text-sm h-11 px-6 shadow-md shrink-0 gap-2 cursor-pointer"
+            >
+              {generatingCert ? (
+                <><Loader2 className="size-4 animate-spin" /> Generating Certificate...</>
+              ) : (
+                <><Sparkles className="size-4" /> Issue / Generate Certificate</>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // STATE 4: Tasks Done, Normal Certificate Fee > ₹0 -> Payment Approved or Waived (Section 31, 37)
+  if (paymentStatus === "approved" || paymentStatus === "waived") {
+    return (
+      <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm relative overflow-hidden space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/25">
+              <CheckCircle2 className="size-7" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 font-display">CERTIFICATE</span>
+                <Badge className="bg-emerald-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+                  ✅ CERTIFICATE PAYMENT VERIFIED
+                </Badge>
+              </div>
+              <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+                Certificate Payment Verified
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                Your certificate fee payment has been verified by admin. You can now generate your official certificate.
+              </p>
+            </div>
+          </div>
+          {onGenerateCert && (
+            <Button
+              onClick={onGenerateCert}
+              disabled={generatingCert}
+              className="brand-gradient text-white rounded-xl font-bold text-sm h-11 px-6 shadow-md shrink-0 gap-2 cursor-pointer"
+            >
+              {generatingCert ? (
+                <><Loader2 className="size-4 animate-spin" /> Generating Certificate...</>
+              ) : (
+                <><Sparkles className="size-4" /> Issue / Generate Certificate</>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // STATE 5: Payment Submitted -> Pending Admin Review (Section 30, 37)
+  if (paymentStatus === "pending" || paymentStatus === "under_review") {
+    return (
+      <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-blue-950/20 dark:to-slate-900/60 dark:border-blue-800/40 shadow-sm relative overflow-hidden space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-blue-500 text-white shadow-md shadow-blue-500/25">
+              <Clock className="size-7" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-blue-800 dark:text-blue-300 font-display">CERTIFICATE</span>
+                <Badge className="bg-blue-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+                  ⏳ PAYMENT VERIFICATION PENDING
+                </Badge>
+              </div>
+              <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+                Certificate Payment Waiting Verification
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                Your certificate payment is waiting for admin verification.
+                Amount: <span className="font-semibold text-foreground">₹{certPaymentRecord?.amount || effectiveCertFee}</span> | 
+                UTR: <span className="font-mono font-bold text-foreground">{certPaymentRecord?.utr_number || certPaymentRecord?.utr || "Submitted"}</span>
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => navigate({ search: { tab: "payment" } as any })}
+            variant="outline"
+            className="rounded-xl text-xs h-10 px-4 shrink-0 font-bold border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/40 cursor-pointer"
+          >
+            View Payment on Payment Page
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // STATE 6: Payment Resubmission Required (Section 29, 37)
+  if (paymentStatus === "resubmission_required") {
+    return (
+      <div className="rounded-3xl border border-amber-300/80 bg-gradient-to-br from-amber-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-amber-950/20 dark:to-slate-900/60 dark:border-amber-800/40 shadow-sm relative overflow-hidden space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/25">
+              <AlertCircle className="size-7" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 font-display">CERTIFICATE</span>
+                <Badge className="bg-amber-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+                  ⚠️ Resubmission Required
+                </Badge>
+              </div>
+              <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+                Payment Resubmission Needed
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                Admin note: {certPaymentRecord?.admin_notes || certPaymentRecord?.admin_note || "Please check your UTR number and re-upload a clear screenshot."}
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => navigate({ search: { tab: "payment" } as any })}
+            className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs h-10 px-5 shadow-md shrink-0 gap-2 cursor-pointer"
+          >
+            <CreditCard className="size-4" /> Go to Payment
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // STATE 7: Payment Required (Section 29, 33 Case A, 37)
+  return (
+    <div className="rounded-3xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-indigo-950/20 dark:to-slate-900/60 dark:border-indigo-800/40 shadow-sm relative overflow-hidden space-y-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/25">
+            <CreditCard className="size-7" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-indigo-800 dark:text-indigo-300 font-display">CERTIFICATE</span>
+              <Badge className="bg-indigo-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+                💳 PAYMENT REQUIRED
+              </Badge>
+              <Badge variant="outline" className="border-indigo-300 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
+                Fee: ₹{effectiveCertFee}
+              </Badge>
+            </div>
+            <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+              Certificate Fee: ₹{effectiveCertFee}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+              Your application is not covered by the Certificate Free Offer. {certDisclaimer.description}
+            </p>
+          </div>
+        </div>
+        <Button
+          onClick={() => navigate({ search: { tab: "payment" } as any })}
+          className="brand-gradient text-white rounded-xl font-bold text-sm h-11 px-6 shadow-md shrink-0 gap-2 cursor-pointer"
+        >
+          <CreditCard className="size-4" /> Go to Payment
+        </Button>
+      </div>
     </div>
   );
 }
