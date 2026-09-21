@@ -79,7 +79,8 @@ export const Route = createFileRoute("/admin")({
     const email = user.email?.toLowerCase();
     const isAdminEmail = email && (
       email === "hariharan@skyrovix.com" ||
-      email === "harimaheshwaran34@gmail.com"
+      email === "harimaheshwaran34@gmail.com" ||
+      email === "hariharan1152007@gmail.com"
     );
 
     if (isAdminEmail) return;
@@ -2917,13 +2918,14 @@ function VerificationSection() {
 
         const subs = appSubs.get(app.id) || [];
         const approvedCount = subs.filter((s: any) => s.status === "approved").length;
-        const requiredTasks = app.total_tasks || 5;
+        const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+        const requiredDomainTasks = taskLimits[app.duration ?? 1] ?? (app.total_tasks || 5);
+        const requiredTotalTasks = requiredDomainTasks + 1; // Task 0 (LinkedIn) + Domain Tasks 1..limit
 
-        // Pending if explicitly marked submitted OR if all tasks are approved but certificate not yet issued
-        return (
-          app.submission_status === "submitted" ||
-          (approvedCount >= requiredTasks && !certSet.has(app.id))
-        );
+        const isTasksDone = app.all_tasks_verified === true || (approvedCount >= requiredTotalTasks);
+
+        // Only show in completion verification queue if all tasks are approved and certificate not yet issued
+        return isTasksDone && !certSet.has(app.id);
       });
 
       return list;
@@ -2953,43 +2955,52 @@ function VerificationSection() {
         (app.coupon_code && app.coupon_code.trim() !== "") ||
         (pay && (pay.coupon_code || pay.utr_number === "FREE_COUPON" || pay.amount === 0))
       );
-      const isPaymentVerified = pay && pay.status === "verified";
+      const isPaymentVerified = (pay && (pay.status === "verified" || pay.status === "approved")) ||
+        app.certificate_payment_status === "approved" ||
+        app.certificate_payment_status === "waived";
       const shouldIssueCert = couponApplied || isPaymentVerified;
 
-      let cert_id: string | null = null;
-      if (shouldIssueCert) {
-        const { data: existingCert } = await supabase.from("certificates").select("certificate_id").eq("application_id", app.id).maybeSingle();
-        if (existingCert) {
-          cert_id = existingCert.certificate_id;
-        } else {
-          cert_id = generateCertId();
-          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
-          const { error: cerr } = await supabase.from("certificates").insert({
-            application_id: app.id,
-            certificate_id: cert_id,
-            verification_hash: hash,
-          });
-          if (cerr) throw cerr;
-        }
+      if (!shouldIssueCert) {
+        toast.error("Certificate fee payment has not been verified yet. Verify payment first before approving completion and issuing certificate.");
+        setActionLoading(null);
+        return;
       }
 
-      // Update application
+      let cert_id: string | null = null;
+      const { data: existingCert } = await supabase.from("certificates").select("certificate_id").eq("application_id", app.id).maybeSingle();
+      if (existingCert) {
+        cert_id = existingCert.certificate_id;
+      } else {
+        cert_id = generateCertId();
+        const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+        const { error: cerr } = await supabase.from("certificates").insert({
+          application_id: app.id,
+          certificate_id: cert_id,
+          verification_hash: hash,
+        });
+        if (cerr) throw cerr;
+      }
+
+      // Update application to fully completed and verified
       const { error: updErr } = await (supabase
         .from("applications") as any)
         .update({
+          status: "completed",
           submission_status: "approved",
           verified: true,
           verified_by: user?.id,
           verified_at: new Date().toISOString(),
-          certificate_generated: shouldIssueCert,
-          certificate_generated_at: shouldIssueCert ? new Date().toISOString() : null,
+          certificate_generated: true,
+          certificate_generated_at: new Date().toISOString(),
+          certificate_payment_status: "approved",
+          all_tasks_verified: true,
           verification_notes: null,
           rejection_reason: null,
         })
         .eq("id", app.id);
       if (updErr) throw updErr;
 
-      if (shouldIssueCert && cert_id) {
+      if (cert_id) {
         const studentEmail = app.email;
         if (studentEmail) {
           const toastId = toast.loading(`Sending Certificate to ${studentEmail}...`);
@@ -3015,8 +3026,6 @@ function VerificationSection() {
         } else {
           toast.success(`Internship approved! Certificate ${cert_id} issued.`);
         }
-      } else {
-        toast.success("Tasks approved! Student notified to submit payment verification before certificate issuance.");
       }
 
       qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
@@ -3081,7 +3090,11 @@ function VerificationSection() {
                 (a.coupon_code && a.coupon_code.trim() !== "") ||
                 (pay && (pay.coupon_code || pay.utr_number === "FREE_COUPON" || pay.amount === 0))
               );
-              const isPayDone = pay && pay.status === "verified";
+              const isPayDone = Boolean(
+                (pay && (pay.status === "verified" || pay.status === "approved")) ||
+                a.certificate_payment_status === "approved" ||
+                a.certificate_payment_status === "waived"
+              );
               const issuesCert = hasCoupon || isPayDone;
 
               return (
@@ -3100,15 +3113,15 @@ function VerificationSection() {
                   <div><span className="text-muted-foreground">Applied</span><p className="font-semibold">{new Date(a.created_at).toLocaleDateString("en-IN")}</p></div>
                   <div><span className="text-muted-foreground">Submitted</span><p className="font-semibold">{a.submitted_at ? new Date(a.submitted_at).toLocaleDateString("en-IN") : "—"}</p></div>
                   <div><span className="text-muted-foreground">Payment</span><p className="font-semibold">{pay ? (pay.utr_number === "FREE_COUPON" ? "Free Coupon" : `₹${pay.amount}`) : "—"}</p></div>
-                  <div><span className="text-muted-foreground">Status</span><p className="font-semibold capitalize">{pay?.status ?? "—"}</p></div>
+                  <div><span className="text-muted-foreground">Status</span><p className="font-semibold capitalize">{pay?.status ?? a.certificate_payment_status ?? "—"}</p></div>
                 </div>
                 {a.coupon_code && <p className="mt-2 text-xs text-muted-foreground">Coupon: <span className="font-mono font-bold text-emerald-600">{a.coupon_code}</span></p>}
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl"
-                    disabled={actionLoading === a.id}
+                  <Button size="sm" className={`border-0 rounded-xl ${issuesCert ? "bg-green-600 hover:bg-green-700 text-white" : "bg-muted text-muted-foreground opacity-70"}`}
+                    disabled={actionLoading === a.id || !issuesCert}
                     onClick={() => handleApprove(a)}>
                     {actionLoading === a.id ? <Loader2 className="size-3.5 animate-spin mr-1" /> : <CheckCircle2 className="size-3.5 mr-1" />}
-                    {issuesCert ? "Approve & Issue Certificate" : "Approve Tasks (Awaiting Payment)"}
+                    {issuesCert ? "Approve & Issue Certificate" : "Awaiting Payment Verification"}
                   </Button>
                   <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
                     disabled={actionLoading === a.id}

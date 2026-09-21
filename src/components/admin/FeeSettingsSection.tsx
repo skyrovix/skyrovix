@@ -42,9 +42,14 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
   const { data, isLoading, refetch } = useQuery<AdminFeeSettingsResponse>({
     queryKey: ["admin-fee-settings", adminId],
     queryFn: async () => {
-      return getAdminFeeSettings({ data: { adminId } });
+      let resolvedAdminId = adminId;
+      if (!resolvedAdminId) {
+        const { data: userData } = await supabase.auth.getUser();
+        resolvedAdminId = userData?.user?.id || "";
+      }
+      return getAdminFeeSettings({ data: { adminId: resolvedAdminId } });
     },
-    enabled: Boolean(adminId),
+    enabled: true,
   });
 
   // Local state for editing
@@ -100,6 +105,15 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      let resolvedAdminId = adminId;
+      if (!resolvedAdminId) {
+        const { data: userData } = await supabase.auth.getUser();
+        resolvedAdminId = userData?.user?.id || "";
+      }
+      if (!resolvedAdminId) {
+        throw new Error("Admin session not found. Please log in again.");
+      }
+
       if (offerEnabled && offerStartAt && offerEndAt) {
         if (new Date(offerStartAt).getTime() >= new Date(offerEndAt).getTime()) {
           throw new Error("Offer start date must be before end date");
@@ -108,7 +122,7 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
 
       return updateAdminFeeSettings({
         data: {
-          adminId,
+          adminId: resolvedAdminId,
           applicationFee: {
             amount: Number(appFeeAmount),
             isEnabled: appFeeEnabled,
@@ -449,6 +463,31 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
                 )}
               </p>
             </div>
+
+            {/* Warning if Free Offer is overriding the Certificate Fee */}
+            {certFeeEnabled && certFeeAmount > 0 && offerEnabled && (
+              <div className="rounded-xl border border-amber-300/80 bg-amber-50/70 dark:bg-amber-950/30 p-3.5 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 shadow-sm">
+                <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1.5 flex-1">
+                  <p className="font-bold text-amber-950 dark:text-amber-100">⚠️ Certificate Free Offer is Currently Active!</p>
+                  <p className="text-[11px] leading-relaxed opacity-90">
+                    The <strong>Certificate Free Offer</strong> below is toggled ON. Students will receive certificates for <strong>₹0 (Free)</strong> instead of paying the ₹{certFeeAmount} standard fee.
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[11px] px-2.5 font-bold border-amber-400 bg-white/70 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 hover:bg-amber-100 rounded-lg cursor-pointer"
+                    onClick={() => {
+                      setOfferEnabled(false);
+                      toast.info("Certificate Free Offer disabled! Click 'Save Changes' to apply.");
+                    }}
+                  >
+                    Disable Free Offer & Enforce ₹{certFeeAmount} Fee
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Footer Status */}
             {certSetting && (

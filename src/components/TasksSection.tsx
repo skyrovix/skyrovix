@@ -264,7 +264,7 @@ export function TasksSection({
       dueDate: linkedinDue,
       status: linkedinStatus,
       remaining: daysRemaining(linkedinDue),
-      isLocked: isAppFeeLocked || submissionStatus === "submitted" || submissionStatus === "approved",
+      isLocked: isAppFeeLocked || (!linkedinDone && submissionStatus === "submitted"),
       lockReason: isAppFeeLocked
         ? "Your internship tasks will unlock after your application fee payment is verified by the admin."
         : "Internship submitted for verification — tasks are locked.",
@@ -291,7 +291,7 @@ export function TasksSection({
         isLocked = true;
         const prevTaskNum = allTasks[idx - 1]?.taskNumber ?? (t.taskNumber - 1);
         lockReason = `Complete and get admin approval for Task ${prevTaskNum} to unlock.`;
-      } else if (submissionStatus === "submitted" || submissionStatus === "approved") {
+      } else if (submissionStatus === "submitted" && status !== "completed") {
         isLocked = true;
         lockReason = "Internship submitted for verification — tasks are locked.";
       }

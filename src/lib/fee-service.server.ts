@@ -11,7 +11,15 @@ import {
 export async function checkIsAdmin(userId?: string | null): Promise<boolean> {
   if (!userId) return false;
   const res = await dbQuery(
-    "SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = $1 AND role = 'admin') as is_admin",
+    `SELECT EXISTS (
+       SELECT 1 FROM public.user_roles WHERE user_id = $1 AND role = 'admin'
+     ) OR EXISTS (
+       SELECT 1 FROM auth.users WHERE id = $1 AND LOWER(email) IN (
+         'hariharan@skyrovix.com',
+         'harimaheshwaran34@gmail.com',
+         'hariharan1152007@gmail.com'
+       )
+     ) as is_admin`,
     [userId]
   );
   return Boolean(res.rows[0]?.is_admin);
@@ -262,6 +270,76 @@ export async function updateAdminFeeSettings(data: {
   });
 }
 
+export async function checkAllTasksVerified(
+  clientOrPool: any,
+  applicationId: string
+): Promise<{
+  isCompleted: boolean;
+  approvedCount: number;
+  requiredCount: number;
+  missingTaskNumbers: number[];
+}> {
+  const queryFn = clientOrPool?.query
+    ? (text: string, params?: any[]) => clientOrPool.query(text, params)
+    : dbQuery;
+
+  const appRes = await queryFn(
+    "SELECT id, user_id, domain, duration, total_tasks FROM public.applications WHERE id = $1",
+    [applicationId]
+  );
+  if (appRes.rows.length === 0) {
+    return { isCompleted: false, approvedCount: 0, requiredCount: 5, missingTaskNumbers: [] };
+  }
+  const app = appRes.rows[0];
+
+  const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+  const limit = taskLimits[Number(app.duration) || 1] ?? (Number(app.total_tasks) || 5);
+
+  // Fetch all tasks for domain with task_number <= limit (task 0 LinkedIn, and tasks 1..limit)
+  const reqTasksRes = await queryFn(
+    "SELECT id, task_number FROM public.tasks WHERE domain = $1 AND task_number <= $2 ORDER BY task_number ASC",
+    [app.domain, limit]
+  );
+
+  const requiredTasks: Array<{ id: string; task_number: number }> = reqTasksRes.rows;
+  const requiredCount = requiredTasks.length > 0 ? requiredTasks.length : (limit + 1);
+
+  if (requiredTasks.length === 0) {
+    const subCountRes = await queryFn(
+      "SELECT COUNT(DISTINCT task_id) as approved_count FROM public.submissions WHERE application_id = $1 AND status = 'approved'",
+      [applicationId]
+    );
+    const approvedCount = Number(subCountRes.rows[0]?.approved_count ?? 0);
+    return {
+      isCompleted: approvedCount >= (limit + 1) && approvedCount > 0,
+      approvedCount,
+      requiredCount: limit + 1,
+      missingTaskNumbers: [],
+    };
+  }
+
+  const requiredIds = requiredTasks.map((t) => t.id);
+  const approvedRes = await queryFn(
+    `SELECT DISTINCT task_id FROM public.submissions 
+     WHERE application_id = $1 
+       AND status = 'approved' 
+       AND task_id = ANY($2::uuid[])`,
+    [applicationId, requiredIds]
+  );
+
+  const approvedIds = new Set(approvedRes.rows.map((r: any) => r.task_id));
+  const missingTasks = requiredTasks.filter((t) => !approvedIds.has(t.id));
+  const approvedCount = approvedIds.size;
+  const isCompleted = approvedCount >= requiredCount && missingTasks.length === 0;
+
+  return {
+    isCompleted,
+    approvedCount,
+    requiredCount,
+    missingTaskNumbers: missingTasks.map((t) => t.task_number),
+  };
+}
+
 export async function validateCouponLogic(data: {
   code: string;
   userId?: string;
@@ -276,24 +354,15 @@ export async function validateCouponLogic(data: {
 
   // If this coupon is being validated for a certificate, verify task completion condition!
   if (target === "certificate" && applicationId) {
-    const appRes = await dbQuery("SELECT id, user_id, total_tasks FROM public.applications WHERE id = $1", [applicationId]);
-    if (appRes.rows.length > 0) {
-      const app = appRes.rows[0];
-      const requiredTasks = Number(app.total_tasks) || 5;
-      const subRes = await dbQuery(
-        "SELECT COUNT(DISTINCT task_id) as approved_count FROM public.submissions WHERE application_id = $1 AND status = 'approved'",
-        [applicationId]
-      );
-      const approvedCount = Number(subRes.rows[0]?.approved_count ?? 0);
-      if (approvedCount < requiredTasks || approvedCount === 0) {
-        return {
-          valid: false,
-          discountAmount: 0,
-          originalAmount: 100,
-          finalAmount: 100,
-          error: `Certificate coupon is locked: Only ${approvedCount} of ${requiredTasks} required tasks are approved. Complete and get admin verification for all tasks first.`,
-        };
-      }
+    const taskCheck = await checkAllTasksVerified(null, applicationId);
+    if (!taskCheck.isCompleted) {
+      return {
+        valid: false,
+        discountAmount: 0,
+        originalAmount: 100,
+        finalAmount: 100,
+        error: `Certificate coupon is locked: Only ${taskCheck.approvedCount} of ${taskCheck.requiredCount} required tasks are approved. Complete and get admin verification for all tasks first.`,
+      };
     }
   }
 
@@ -426,16 +495,10 @@ export async function submitPaymentProofLogic(data: {
       }
 
       // Check that ALL required tasks are verified and approved by admin
-      const requiredTasks = Number(app.total_tasks) || 5;
-      const subCountRes = await client.query(
-        "SELECT COUNT(DISTINCT task_id) as approved_count FROM public.submissions WHERE application_id = $1 AND status = 'approved'",
-        [applicationId]
-      );
-      const approvedCount = Number(subCountRes.rows[0]?.approved_count ?? 0);
-
-      if (approvedCount < requiredTasks || approvedCount === 0) {
+      const taskCheck = await checkAllTasksVerified(client, applicationId);
+      if (!taskCheck.isCompleted) {
         throw new Error(
-          `Certificate payment is LOCKED: You have ${approvedCount} of ${requiredTasks} required tasks approved. Admin must verify and approve all required tasks before certificate payment unlocks.`
+          `Certificate payment is LOCKED: You have ${taskCheck.approvedCount} of ${taskCheck.requiredCount} required tasks approved (missing tasks: ${taskCheck.missingTaskNumbers.join(", ")}). Admin must verify and approve all required tasks before certificate payment unlocks.`
         );
       }
     }
@@ -565,16 +628,10 @@ export async function claimFreeCouponCertificate(data: {
       throw new Error("Unauthorized: Student application mismatch");
     }
 
-    const requiredTasks = Number(app.total_tasks) || 5;
-    const subCountRes = await client.query(
-      "SELECT COUNT(DISTINCT task_id) as approved_count FROM public.submissions WHERE application_id = $1 AND status = 'approved'",
-      [applicationId]
-    );
-    const approvedCount = Number(subCountRes.rows[0]?.approved_count ?? 0);
-
-    if (approvedCount < requiredTasks || approvedCount === 0) {
+    const taskCheck = await checkAllTasksVerified(client, applicationId);
+    if (!taskCheck.isCompleted) {
       throw new Error(
-        `Certificate coupon is LOCKED: You have ${approvedCount} of ${requiredTasks} required tasks approved. Admin must verify and approve all tasks before claiming a certificate coupon.`
+        `Certificate coupon is LOCKED: You have ${taskCheck.approvedCount} of ${taskCheck.requiredCount} required tasks approved. Admin must verify and approve all tasks before claiming a certificate coupon.`
       );
     }
 
@@ -666,33 +723,36 @@ export async function claimFreeCertificate(data: {
       throw new Error("Unauthorized: Student application mismatch");
     }
 
-    const requiredTasks = Number(app.total_tasks) || 5;
-    const subCountRes = await client.query(
-      "SELECT COUNT(DISTINCT task_id) as approved_count FROM public.submissions WHERE application_id = $1 AND status = 'approved'",
-      [applicationId]
-    );
-    const approvedCount = Number(subCountRes.rows[0]?.approved_count ?? 0);
-
-    if (approvedCount < requiredTasks || approvedCount === 0) {
+    const taskCheck = await checkAllTasksVerified(client, applicationId);
+    if (!taskCheck.isCompleted) {
       throw new Error(
-        `Certificate is LOCKED: You have ${approvedCount} of ${requiredTasks} required tasks approved. Admin must verify all tasks before certificate issuance.`
+        `Certificate is LOCKED: You have ${taskCheck.approvedCount} of ${taskCheck.requiredCount} required tasks approved (missing task(s): ${taskCheck.missingTaskNumbers.join(", ")}). Admin must verify all tasks before certificate issuance.`
       );
     }
 
     // 2. Strict eligibility & payment rule evaluation
-    const isOfferEligible = Boolean(app.certificate_offer_eligible);
-    const isPaymentApproved =
-      app.certificate_payment_status === "approved" || app.certificate_payment_status === "waived";
-
-    const feeRes = await client.query(
-      "SELECT amount, is_enabled FROM public.fee_settings WHERE fee_type = 'certificate'"
+    const certRowRes = await client.query(
+      "SELECT amount, is_enabled, offer_enabled, offer_start_at, offer_end_at FROM public.fee_settings WHERE fee_type = 'certificate'"
     );
-    const normalFee = Number(feeRes.rows[0]?.amount ?? 100);
-    const feeEnabled = Boolean(feeRes.rows[0]?.is_enabled);
+    const certRow = certRowRes.rows[0];
+    const normalFee = Number(certRow?.amount ?? 100);
+    const feeEnabled = Boolean(certRow?.is_enabled);
+    const offerEnabled = Boolean(certRow?.offer_enabled);
+
+    const offerStatus = evaluateOfferStatus(
+      offerEnabled,
+      certRow?.offer_start_at,
+      certRow?.offer_end_at,
+      new Date()
+    );
+
+    const isOfferEligible = Boolean(app.certificate_offer_eligible && offerEnabled && offerStatus.isActive);
+    const isPaymentApproved =
+      app.certificate_payment_status === "approved" || (isOfferEligible && app.certificate_payment_status === "waived");
 
     if (!isOfferEligible && !isPaymentApproved && feeEnabled && normalFee > 0) {
       throw new Error(
-        `Normal Certificate Fee (₹${normalFee}) applies to this application as it was not submitted during an active Certificate Free Offer period. Please complete payment first.`
+        `Normal Certificate Fee (₹${normalFee}) applies to this application as Certificate Free Offer is not active. Please complete payment first.`
       );
     }
 
@@ -1049,20 +1109,7 @@ export async function getCouponRedemptionsAdmin(data: { adminId: string; couponI
 export async function syncApplicationTaskStatus(applicationId: string) {
   if (!applicationId) return { verified: false, count: 0, required: 5 };
   return withTransaction(async (client) => {
-    const appRes = await client.query(
-      "SELECT id, total_tasks FROM public.applications WHERE id = $1",
-      [applicationId]
-    );
-    if (appRes.rows.length === 0) return { verified: false, count: 0, required: 5 };
-    const app = appRes.rows[0];
-    const requiredTasks = Number(app.total_tasks) || 5;
-
-    const countRes = await client.query(
-      "SELECT COUNT(DISTINCT task_id) as approved_count FROM public.submissions WHERE application_id = $1 AND status = 'approved'",
-      [applicationId]
-    );
-    const approvedCount = Number(countRes.rows[0]?.approved_count ?? 0);
-    const isCompleted = approvedCount >= requiredTasks && approvedCount > 0;
+    const taskCheck = await checkAllTasksVerified(client, applicationId);
 
     await client.query(
       `UPDATE public.applications
@@ -1072,13 +1119,12 @@ export async function syncApplicationTaskStatus(applicationId: string) {
              WHEN $1 = true AND (certificate_payment_status = 'locked' OR certificate_payment_status IS NULL) THEN 'unlocked'
              WHEN $1 = false AND certificate_payment_status != 'approved' THEN 'locked'
              ELSE certificate_payment_status
-           END,
-           submission_status = CASE WHEN $1 = true THEN 'approved' ELSE submission_status END
+           END
        WHERE id = $2`,
-      [isCompleted, applicationId]
+      [taskCheck.isCompleted, applicationId]
     );
 
-    return { verified: isCompleted, count: approvedCount, required: requiredTasks };
+    return { verified: taskCheck.isCompleted, count: taskCheck.approvedCount, required: taskCheck.requiredCount };
   });
 }
 

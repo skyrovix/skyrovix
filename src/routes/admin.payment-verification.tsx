@@ -20,7 +20,9 @@ export const Route = createFileRoute("/admin/payment-verification")({
     const email = user.email?.toLowerCase();
     const isAdminEmail =
       email &&
-      (email === "hariharan@skyrovix.com" || email === "harimaheshwaran34@gmail.com");
+      (email === "hariharan@skyrovix.com" ||
+        email === "harimaheshwaran34@gmail.com" ||
+        email === "hariharan1152007@gmail.com");
 
     if (isAdminEmail) return;
 

@@ -200,33 +200,29 @@ export function InternshipProgressTracker({
               <span className={`text-[11px] font-bold ${
                 allTasksApproved ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
               }`}>
-                {allTasksApproved ? (
-                  app?.certificate_offer_eligible ? (
-                    "🎉 Free (Offer)"
-                  ) : certPaymentStatus === "approved" || certPaymentStatus === "waived" ? (
-                    "✅ Verified / Ready"
-                  ) : certPaymentStatus === "pending" || certPaymentStatus === "under_review" ? (
-                    "⏳ In Verification"
-                  ) : certFeeAmount && certFeeAmount > 0 ? (
-                    `💳 Pay ₹${certFeeAmount} Fee`
-                  ) : (
-                    "✅ Ready to Generate"
-                  )
-                ) : app?.certificate_offer_eligible ? (
-                  "🎁 Free Offer Reserved"
-                ) : (
-                  "🔒 Complete Tasks First"
-                )}
+                {(() => {
+                  const isFreeOffer = certPaymentStatus === "free_offer";
+                  if (!allTasksApproved) {
+                    return isFreeOffer ? "🎁 Free Offer Reserved" : "🔒 Complete Tasks First";
+                  }
+                  if (isFreeOffer) return "🎉 Free (Offer)";
+                  if (certPaymentStatus === "approved" || certPaymentStatus === "waived") return "✅ Verified / Ready";
+                  if (certPaymentStatus === "pending" || certPaymentStatus === "under_review") return "⏳ In Verification";
+                  if (certFeeAmount && certFeeAmount > 0) return `💳 Pay ₹${certFeeAmount} Fee`;
+                  return "✅ Ready to Generate";
+                })()}
               </span>
               {allTasksApproved && onOpenCertPayment && (
                 <button
                   type="button"
                   onClick={onOpenCertPayment}
-                  className="text-[10px] font-bold text-primary hover:underline ml-1"
+                  className="text-[10px] font-bold text-primary hover:underline ml-1 cursor-pointer"
                 >
-                  {!app?.certificate_offer_eligible && certPaymentStatus !== "approved" && certPaymentStatus !== "waived" && certFeeAmount && certFeeAmount > 0
-                    ? (certPaymentStatus === "pending" || certPaymentStatus === "under_review" ? "View Status" : "Go to Payment")
-                    : "Go to Certificates"}
+                  {certPaymentStatus === "free_offer" || certPaymentStatus === "approved" || certPaymentStatus === "waived" || !certFeeAmount || certFeeAmount === 0
+                    ? "Go to Certificates"
+                    : certPaymentStatus === "pending" || certPaymentStatus === "under_review"
+                    ? "View Status"
+                    : "Go to Payment"}
                 </button>
               )}
             </div>

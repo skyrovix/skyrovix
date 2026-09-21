@@ -34,7 +34,8 @@ function AuthPage() {
     const email = userEmail?.toLowerCase();
     const isAdminEmail = email && (
       email === "hariharan@skyrovix.com" ||
-      email === "harimaheshwaran34@gmail.com"
+      email === "harimaheshwaran34@gmail.com" ||
+      email === "hariharan1152007@gmail.com"
     );
 
     if (isAdminEmail) {
@@ -91,7 +92,7 @@ function AuthPage() {
     });
 
     // If initial attempt fails and email is Hariharan's admin account, try alternative admin password
-    if (error && (rawEmail === "hariharanmahesh34@gmail.com" || rawEmail === "hariharan@skyrovix.com")) {
+    if (error && (rawEmail === "harimaheshwaran34@gmail.com" || rawEmail === "hariharan@skyrovix.com")) {
       const fallbackList = ["123harimahesh", "Admin@123"];
       for (const altPwd of fallbackList) {
         if (altPwd !== password) {

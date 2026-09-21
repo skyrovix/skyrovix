@@ -476,9 +476,8 @@ function Dashboard() {
   const requiredTasks = Number(app?.total_tasks) || 5;
   const isTasksCompleted = Boolean(
     app && (
-      app.all_tasks_verified === true ||
-      (internTotal > 0 && internApproved >= internTotal) ||
-      (internApproved >= (taskLimits[app?.duration ?? 1] ?? 5) && internApproved > 0)
+      (app.all_tasks_verified === true && (internTotal === 0 || internApproved >= internTotal)) ||
+      (internTotal > 0 && internApproved >= internTotal)
     )
   );
 
@@ -493,17 +492,22 @@ function Dashboard() {
     | "RESUBMISSION_REQUIRED"
     | "REJECTED";
 
+  const isOfferActive = Boolean(
+    feeSettings?.certificateOffer?.isEnabled &&
+    feeSettings?.certificateOffer?.isActive
+  );
+
   const certPaymentState: CertPaymentState = useMemo(() => {
     if (!isTasksCompleted) return "LOCKED";
-    if (app?.certificate_offer_eligible === true) return "FREE_OFFER";
+    if (isOfferActive && app?.certificate_offer_eligible === true) return "FREE_OFFER";
     if (!certFeeConfig.enabled || certFeeAmount === 0) return "NOT_REQUIRED";
     if (certPaymentRecord?.status === "approved" || app?.certificate_payment_status === "approved") return "APPROVED";
-    if (certPaymentRecord?.status === "waived" || app?.certificate_payment_status === "waived") return "WAIVED";
+    if (certPaymentRecord?.status === "waived" || (isOfferActive && app?.certificate_payment_status === "waived")) return "WAIVED";
     if (certPaymentRecord?.status === "resubmission_required") return "RESUBMISSION_REQUIRED";
     if (certPaymentRecord?.status === "rejected") return "REJECTED";
     if (certPaymentRecord?.status === "pending" || certPaymentRecord?.status === "under_review") return "PENDING";
     return "PAYMENT_REQUIRED";
-  }, [isTasksCompleted, app?.certificate_offer_eligible, app?.certificate_payment_status, certFeeConfig.enabled, certFeeAmount, certPaymentRecord]);
+  }, [isTasksCompleted, isOfferActive, app?.certificate_offer_eligible, app?.certificate_payment_status, certFeeConfig.enabled, certFeeAmount, certPaymentRecord]);
 
   const isCertPaymentVerified = Boolean(
     certPaymentState === "FREE_OFFER" ||
@@ -911,13 +915,13 @@ function Dashboard() {
         let daCertPaymentState: CertPaymentState = "LOCKED";
         if (!daTasksCompleted) {
           daCertPaymentState = "LOCKED";
-        } else if (da.certificate_offer_eligible === true) {
+        } else if (isOfferActive && da.certificate_offer_eligible === true) {
           daCertPaymentState = "FREE_OFFER";
         } else if (!certFeeConfig.enabled || certFeeAmount === 0) {
           daCertPaymentState = "NOT_REQUIRED";
         } else if (daCertPayment?.status === "approved" || da.certificate_payment_status === "approved") {
           daCertPaymentState = "APPROVED";
-        } else if (daCertPayment?.status === "waived" || da.certificate_payment_status === "waived") {
+        } else if (daCertPayment?.status === "waived" || (isOfferActive && da.certificate_payment_status === "waived")) {
           daCertPaymentState = "WAIVED";
         } else if (daCertPayment?.status === "resubmission_required") {
           daCertPaymentState = "RESUBMISSION_REQUIRED";
@@ -1342,7 +1346,7 @@ function Dashboard() {
 
 
 
-          {submissionStatus === "approved" && (
+          {submissionStatus === "approved" && app?.status === "completed" && (Boolean(cert) || app?.certificate_generated) && (
             <div className="rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/80 to-white p-6 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30">
               <div className="flex items-start gap-3">
                 <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
@@ -2235,7 +2239,7 @@ function Dashboard() {
                     </Button>
                   </div>
                 </div>
-              ) : app.certificate_offer_eligible === true ? (
+              ) : certPaymentState === "FREE_OFFER" ? (
                 <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white shadow-md">
@@ -2258,7 +2262,7 @@ function Dashboard() {
                     Go to Certificates <ArrowRight className="size-3.5" />
                   </Button>
                 </div>
-              ) : !certFeeConfig.enabled || certFeeAmount === 0 ? (
+              ) : certPaymentState === "NOT_REQUIRED" ? (
                 <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3.5">
                     <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
@@ -3245,9 +3249,10 @@ function LockedCertificateCard({
   const navigate = useNavigate();
   const domain = getDomain(app?.domain);
   const isTasksDone = Boolean(app?.all_tasks_verified === true || (internTotal > 0 && internApproved >= internTotal));
-  const isOfferEligible = Boolean(app?.certificate_offer_eligible);
+  const isOfferActive = Boolean(certFeeConfig?.offer_enabled ?? false);
+  const isOfferEligible = Boolean(isOfferActive && app?.certificate_offer_eligible);
   const paymentStatus = (certPaymentRecord?.status || app?.certificate_payment_status || "").toLowerCase();
-  const isFeeEnabled = certFeeConfig ? certFeeConfig.certificate_fee_enabled !== false : certFeeAmount > 0;
+  const isFeeEnabled = certFeeConfig ? (certFeeConfig.enabled !== false && certFeeConfig.is_enabled !== false) : certFeeAmount > 0;
   const effectiveCertFee = isOfferEligible ? 0 : (!isFeeEnabled ? 0 : certFeeAmount);
 
   // Dynamic disclaimer per Section 33
