@@ -46,7 +46,9 @@ import {
   MoreVertical,
   Loader2,
   Download,
+  Zap,
 } from "lucide-react";
+import { CashfreeOrdersAdminSection } from "./CashfreeOrdersAdminSection";
 
 interface PaymentVerificationSectionProps {
   adminId: string;
@@ -55,6 +57,7 @@ interface PaymentVerificationSectionProps {
 export function PaymentVerificationSection({ adminId }: PaymentVerificationSectionProps) {
   const qc = useQueryClient();
 
+  const [paymentView, setPaymentView] = useState<"cashfree" | "manual">("cashfree");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -195,8 +198,43 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Mode Switcher Tabs */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-muted/40 border border-border/50 w-fit">
+        <button
+          type="button"
+          onClick={() => setPaymentView("cashfree")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            paymentView === "cashfree"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Zap className="size-3.5" /> Cashfree Gateway Orders
+        </button>
+        <button
+          type="button"
+          onClick={() => setPaymentView("manual")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            paymentView === "manual"
+              ? "bg-slate-800 text-white dark:bg-slate-700 shadow-md"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <FileImage className="size-3.5" /> Manual UPI Proofs (UTR)
+          {stats.pending > 0 && (
+            <Badge className="bg-amber-500 text-white font-mono text-[9px] px-1.5 py-0">
+              {stats.pending}
+            </Badge>
+          )}
+        </button>
+      </div>
+
+      {paymentView === "cashfree" ? (
+        <CashfreeOrdersAdminSection adminId={adminId} />
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="rounded-2xl border-border/50 shadow-sm bg-card/80 p-4">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Pending Review</p>
@@ -655,6 +693,8 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
           </div>
         </DialogContent>
       </Dialog>
+        </>
+      )}
     </div>
   );
 }

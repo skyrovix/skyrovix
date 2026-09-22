@@ -23,6 +23,7 @@ import { validateCoupon, calculateDiscountedAmount, formatDiscount } from "@/lib
 import type { CouponResult } from "@/lib/coupons";
 import { getPublicFeeSettings, claimFreeCouponCertificate, claimFreeCertificate, submitPaymentProof, submitApplicationServer } from "@/lib/fee-service";
 import { ManualUpiPaymentCard } from "@/components/ManualUpiPaymentCard";
+import { PaymentSummaryDialog } from "@/components/payment/PaymentSummaryDialog";
 import { APPLICATION_FEE_DISCLAIMER, APPLICATION_FEE_BADGE, getCertificateDisclaimer } from "@/lib/fee-helpers";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
@@ -125,6 +126,41 @@ export const Route = createFileRoute("/_navbar-layout/_authenticated/dashboard")
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
   head: () => ({ meta: [{ title: "Dashboard — Skyrovix" }] }),
+  errorComponent: ({ error, reset }: { error: any; reset: () => void }) => {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-4">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+            <AlertCircle className="size-6" />
+          </div>
+          <h2 className="text-xl font-bold font-display text-foreground">Dashboard Error</h2>
+          <p className="text-sm text-muted-foreground">
+            {error?.message || "An unexpected error occurred while loading your dashboard."}
+          </p>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <Button
+              onClick={() => {
+                reset();
+                window.location.reload();
+              }}
+              className="brand-gradient text-white rounded-xl text-xs font-bold h-9 px-4 cursor-pointer"
+            >
+              Try Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                window.location.href = "/dashboard?tab=overview";
+              }}
+              className="rounded-xl text-xs h-9 px-4 cursor-pointer"
+            >
+              Go to Overview
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  },
   component: Dashboard,
 });
 
@@ -532,6 +568,32 @@ function Dashboard() {
     { label: "Certificate", done: !!certificate },
   ];
   const currentStep = timelineSteps.findIndex((s) => !s.done);
+
+  // Certificate Payment Popup Dialog states
+  const [showCertPaymentPopup, setShowCertPaymentPopup] = useState(false);
+  const certPopupTriggeredRef = useRef(false);
+
+  // Auto-show popup when user completes all tasks and certificate payment is required
+  useEffect(() => {
+    if (
+      app &&
+      isTasksCompleted &&
+      !isCertPaymentVerified &&
+      (certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED") &&
+      certFeeAmount > 0
+    ) {
+      const key = `skyrovix_cert_popup_shown_${app.id}`;
+      const alreadyShown = sessionStorage.getItem(key);
+      if (!alreadyShown && !certPopupTriggeredRef.current) {
+        certPopupTriggeredRef.current = true;
+        sessionStorage.setItem(key, "true");
+        const timer = setTimeout(() => {
+          setShowCertPaymentPopup(true);
+        }, 600);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [app?.id, isTasksCompleted, isCertPaymentVerified, certPaymentState, certFeeAmount]);
 
   // New Domain Application Form states
   const [newDomain, setNewDomain] = useState("");
@@ -1053,6 +1115,7 @@ function Dashboard() {
                     certPaymentRecord={daCertPayment}
                     onGenerateCert={() => handleGenerateFreeCert(da.id)}
                     generatingCert={generatingCert}
+                    onOpenCertPayment={() => setShowCertPaymentPopup(true)}
                   />
                 )}
               </div>
@@ -1091,7 +1154,11 @@ function Dashboard() {
                     navigate({ search: { tab: "payment" } as any });
                   }}
                   onOpenCertPayment={() => {
-                    navigate({ search: { tab: daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED" ? "certificates" : "payment" } as any });
+                    if (daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED") {
+                      navigate({ search: { tab: "certificates" } as any });
+                    } else {
+                      setShowCertPaymentPopup(true);
+                    }
                   }}
                 />
 
@@ -1109,6 +1176,12 @@ function Dashboard() {
                   isAppFeeRequired={daIsAppFeeRequired}
                   appFeeAmount={appFeeAmount}
                   appFeePayment={daAppPayment}
+                  isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
+                  certFeeAmount={certFeeAmount}
+                  onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+                  onNavigateCertificates={() => {
+                    navigate({ search: { tab: "certificates" } as any });
+                  }}
                   onOpenAppPayment={() => {
                     navigate({ search: { tab: "payment" } as any });
                   }}
@@ -1311,9 +1384,43 @@ function Dashboard() {
                 navigate({ search: { tab: "payment" } as any });
               }}
               onOpenCertPayment={() => {
-                navigate({ search: { tab: certPaymentState === "APPROVED" || certPaymentState === "WAIVED" || certPaymentState === "FREE_OFFER" || certPaymentState === "NOT_REQUIRED" ? "certificates" : "payment" } as any });
+                if (certPaymentState === "APPROVED" || certPaymentState === "WAIVED" || certPaymentState === "FREE_OFFER" || certPaymentState === "NOT_REQUIRED") {
+                  navigate({ search: { tab: "certificates" } as any });
+                } else {
+                  setShowCertPaymentPopup(true);
+                }
               }}
             />
+          )}
+
+          {/* Certificate Payment Action Banner when all tasks are complete */}
+          {isTasksCompleted && !isCertPaymentVerified && (certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED") && (
+            <div className="rounded-3xl border-2 border-indigo-500/30 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 p-6 sm:p-7 shadow-lg backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="size-13 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/25 shrink-0">
+                  <Award className="size-7" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge className="bg-emerald-600 text-white text-[10px] font-bold">🎉 ALL TASKS VERIFIED</Badge>
+                    <span className="text-xs font-bold text-muted-foreground">Action Required</span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-foreground">
+                    Pay Certificate Fee to Unlock Your Certificate
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
+                    Congratulations! All your internship tasks have been approved by the mentor. Complete the certificate fee payment of ₹{certFeeAmount} to immediately generate and download your verified credential.
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                onClick={() => setShowCertPaymentPopup(true)}
+                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/25 shrink-0 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+              >
+                <CreditCard className="size-4" /> Pay ₹{certFeeAmount} Now
+              </Button>
+            </div>
           )}
 
           {/* Quest Log: Active Tasks grid list */}
@@ -1332,6 +1439,12 @@ function Dashboard() {
               isAppFeeRequired={isAppFeeRequired}
               appFeeAmount={appFeeAmount}
               appFeePayment={appPayment}
+              isCertPaymentRequired={certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED"}
+              certFeeAmount={certFeeAmount}
+              onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+              onNavigateCertificates={() => {
+                navigate({ search: { tab: "certificates" } as any });
+              }}
               onOpenAppPayment={() => {
                 navigate({ search: { tab: "payment" } as any });
               }}
@@ -1478,6 +1591,7 @@ function Dashboard() {
               certPaymentRecord={certPaymentRecord}
               onGenerateCert={() => handleGenerateFreeCert(app.id)}
               generatingCert={generatingCert}
+              onOpenCertPayment={() => setShowCertPaymentPopup(true)}
             />
           </div>
         );
@@ -1662,9 +1776,7 @@ function Dashboard() {
                     certPaymentRecord={daCertPayment}
                     onGenerateCert={() => handleGenerateFreeCert(da.id)}
                     generatingCert={generatingCert}
-                    onOpenCertPayment={() => {
-                      navigate({ search: { tab: "payment" } as any });
-                    }}
+                    onOpenCertPayment={() => setShowCertPaymentPopup(true)}
                   />
                 )}
               </div>
@@ -1703,7 +1815,11 @@ function Dashboard() {
                     navigate({ search: { tab: "payment" } as any });
                   }}
                   onOpenCertPayment={() => {
-                    navigate({ search: { tab: daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED" ? "certificates" : "payment" } as any });
+                    if (daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED") {
+                      navigate({ search: { tab: "certificates" } as any });
+                    } else {
+                      setShowCertPaymentPopup(true);
+                    }
                   }}
                   onNavigateTasks={() => {
                     navigate({ search: { tab: "tasks" } as any });
@@ -1727,6 +1843,9 @@ function Dashboard() {
                   isAppFeeRequired={daIsAppFeeRequired}
                   appFeeAmount={appFeeAmount}
                   appFeePayment={daAppPayment}
+                  isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
+                  certFeeAmount={certFeeAmount}
+                  onOpenCertPayment={() => setShowCertPaymentPopup(true)}
                   onOpenAppPayment={() => {
                     navigate({ search: { tab: "payment" } as any });
                   }}
@@ -2346,6 +2465,9 @@ function Dashboard() {
                   qrCodeUrl={certFeeConfig.qr_code_url || null}
                   applicationId={app.id}
                   userId={user!.id}
+                  customerName={app.full_name}
+                  customerEmail={app.email}
+                  customerPhone={app.phone ?? profile?.phone ?? ""}
                   adminNote={certPaymentRecord?.admin_notes || "Please check your UTR number and re-upload a clear UPI receipt screenshot."}
                   onSuccess={() => {
                     qc.invalidateQueries({ queryKey: ["my-applications"] });
@@ -2361,6 +2483,9 @@ function Dashboard() {
                   qrCodeUrl={certFeeConfig.qr_code_url || null}
                   applicationId={app.id}
                   userId={user!.id}
+                  customerName={app.full_name}
+                  customerEmail={app.email}
+                  customerPhone={app.phone ?? profile?.phone ?? ""}
                   onSuccess={() => {
                     qc.invalidateQueries({ queryKey: ["my-applications"] });
                     qc.invalidateQueries({ queryKey: ["user-payments"] });
@@ -2484,6 +2609,30 @@ function Dashboard() {
           if (!open) setPreviewOfferApp(null);
         }}
       />
+
+      {/* Certificate Payment Popup Dialog (Auto-triggered when all tasks completed) */}
+      {app && (
+        <PaymentSummaryDialog
+          open={showCertPaymentPopup}
+          onOpenChange={setShowCertPaymentPopup}
+          productType="certificate"
+          productService={`Skyrovix Certificate Fee — ${domain?.name ?? app.domain}`}
+          amount={certFeeAmount}
+          customerName={app.full_name}
+          customerEmail={app.email}
+          customerPhone={app.phone ?? profile?.phone ?? ""}
+          userId={user?.id}
+          applicationId={app.id}
+          couponCode={app.coupon_code || couponResult?.code || null}
+          discountAmount={couponResult?.discountAmount || 0}
+          onSuccess={() => {
+            setShowCertPaymentPopup(false);
+            qc.invalidateQueries({ queryKey: ["my-applications"] });
+            qc.invalidateQueries({ queryKey: ["user-payments"] });
+            toast.success("Certificate payment completed! Your certificate is being verified.");
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -3235,6 +3384,7 @@ function LockedCertificateCard({
   certPaymentRecord,
   onGenerateCert,
   generatingCert = false,
+  onOpenCertPayment,
 }: {
   app: any;
   internApproved: number;
@@ -3513,10 +3663,10 @@ function LockedCertificateCard({
             </div>
           </div>
           <Button
-            onClick={() => navigate({ search: { tab: "payment" } as any })}
+            onClick={() => onOpenCertPayment ? onOpenCertPayment() : navigate({ search: { tab: "payment" } as any })}
             className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs h-10 px-5 shadow-md shrink-0 gap-2 cursor-pointer"
           >
-            <CreditCard className="size-4" /> Go to Payment
+            <CreditCard className="size-4" /> Pay Certificate Fee
           </Button>
         </div>
       </div>
@@ -3550,10 +3700,10 @@ function LockedCertificateCard({
           </div>
         </div>
         <Button
-          onClick={() => navigate({ search: { tab: "payment" } as any })}
+          onClick={() => onOpenCertPayment ? onOpenCertPayment() : navigate({ search: { tab: "payment" } as any })}
           className="brand-gradient text-white rounded-xl font-bold text-sm h-11 px-6 shadow-md shrink-0 gap-2 cursor-pointer"
         >
-          <CreditCard className="size-4" /> Go to Payment
+          <CreditCard className="size-4" /> Pay ₹{effectiveCertFee} Now
         </Button>
       </div>
     </div>

@@ -64,18 +64,29 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold">Something went wrong</h1>
+        <h1 className="text-xl font-semibold text-foreground">Something went wrong</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          An unexpected error occurred. Please try refreshing the page.
+          {error?.message || "An unexpected error occurred. Please try refreshing the page."}
         </p>
-        <button
-          onClick={() => {
-            window.location.reload();
-          }}
-          className="mt-6 rounded-md brand-gradient px-4 py-2 text-sm font-medium text-white"
-        >
-          Try Again
-        </button>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <button
+            onClick={() => {
+              if (reset) {
+                try { reset(); } catch (_) {}
+              }
+              window.location.reload();
+            }}
+            className="rounded-md brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            Try Again
+          </button>
+          <a
+            href="/"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+          >
+            Go to Homepage
+          </a>
+        </div>
       </div>
     </div>
   );

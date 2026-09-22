@@ -41,6 +41,12 @@ export function loadEnv(force = false) {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       process.env.SUPABASE_SERVICE_ROLE_KEY = "sb_secret_MEvk_6mzjDSywhHxGI0ZmA_SiVwfXP4";
     }
+    if (!process.env.CASHFREE_ENVIRONMENT) process.env.CASHFREE_ENVIRONMENT = "SANDBOX";
+    if (!process.env.CASHFREE_API_VERSION) process.env.CASHFREE_API_VERSION = "2023-08-01";
+    if (!process.env.CASHFREE_APP_ID) process.env.CASHFREE_APP_ID = "14394481c7c769b9f0a9c04eec38449341";
+    if (!process.env.CASHFREE_SECRET_KEY) {
+      process.env.CASHFREE_SECRET_KEY = "cfsk_ma_prod_d3b45e16d8c0d277fc90ae6e333e90aa_eb101bb7";
+    }
   } catch (e) {
     // Ignore error if file reading fails
   }

@@ -58,6 +58,37 @@ async function ensureSchemaMigrated(pool: pg.Pool) {
       SET amount = CASE WHEN amount = 0 THEN 100 ELSE amount END,
           is_enabled = true
       WHERE fee_type = 'certificate' AND amount = 0 AND offer_enabled = false;
+
+      CREATE TABLE IF NOT EXISTS public.cashfree_orders (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        order_id TEXT UNIQUE NOT NULL,
+        user_id UUID,
+        customer_name TEXT NOT NULL,
+        customer_email TEXT NOT NULL,
+        customer_phone TEXT NOT NULL,
+        product_service TEXT NOT NULL,
+        product_type TEXT NOT NULL DEFAULT 'certificate',
+        entity_id TEXT,
+        amount NUMERIC(10, 2) NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'INR',
+        payment_status TEXT NOT NULL DEFAULT 'CREATED',
+        cashfree_payment_id TEXT,
+        cf_order_id TEXT,
+        payment_session_id TEXT,
+        payment_method TEXT,
+        payment_time TIMESTAMPTZ,
+        error_message TEXT,
+        coupon_code TEXT,
+        discount_amount NUMERIC(10, 2) DEFAULT 0,
+        raw_response JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_cashfree_orders_order_id ON public.cashfree_orders(order_id);
+      CREATE INDEX IF NOT EXISTS idx_cashfree_orders_user_id ON public.cashfree_orders(user_id);
+      CREATE INDEX IF NOT EXISTS idx_cashfree_orders_status ON public.cashfree_orders(payment_status);
+      CREATE INDEX IF NOT EXISTS idx_cashfree_orders_created_at ON public.cashfree_orders(created_at DESC);
     `);
     _schemaMigrated = true;
     console.log("[db.server] Schema migration verified successfully");

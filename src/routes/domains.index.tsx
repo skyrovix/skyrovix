@@ -715,6 +715,9 @@ function DomainsPage() {
           qrCodeUrl={feeSettings.upi.qrCodeUrl}
           applicationId={createdAppId}
           userId={createdUserId}
+          customerName={fullName}
+          customerEmail={user?.email || ""}
+          customerPhone={phone}
           onSuccess={() => {
             navigate({ to: "/dashboard" });
           }}

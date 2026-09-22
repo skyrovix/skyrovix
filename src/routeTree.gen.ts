@@ -34,6 +34,11 @@ import { Route as NavbarLayoutProjectsIndexRouteImport } from './routes/_navbar-
 import { Route as NavbarLayoutCoursesIndexRouteImport } from './routes/_navbar-layout/courses.index'
 import { Route as ApiCronCleanupSessionsRouteImport } from './routes/api.cron.cleanup-sessions'
 import { Route as NavbarLayoutProjectsIdRouteImport } from './routes/_navbar-layout/projects.$id'
+import { Route as NavbarLayoutPaymentSuccessRouteImport } from './routes/_navbar-layout/payment.success'
+import { Route as NavbarLayoutPaymentStatusRouteImport } from './routes/_navbar-layout/payment.status'
+import { Route as NavbarLayoutPaymentProcessingRouteImport } from './routes/_navbar-layout/payment.processing'
+import { Route as NavbarLayoutPaymentPendingRouteImport } from './routes/_navbar-layout/payment.pending'
+import { Route as NavbarLayoutPaymentFailedRouteImport } from './routes/_navbar-layout/payment.failed'
 import { Route as NavbarLayoutCoursesSlugRouteImport } from './routes/_navbar-layout/courses.$slug'
 import { Route as NavbarLayoutAuthenticatedReviewRouteImport } from './routes/_navbar-layout/_authenticated/review'
 import { Route as NavbarLayoutAuthenticatedDashboardRouteImport } from './routes/_navbar-layout/_authenticated/dashboard'
@@ -168,6 +173,36 @@ const NavbarLayoutProjectsIdRoute = NavbarLayoutProjectsIdRouteImport.update({
   path: '/projects/$id',
   getParentRoute: () => NavbarLayoutRoute,
 } as any)
+const NavbarLayoutPaymentSuccessRoute =
+  NavbarLayoutPaymentSuccessRouteImport.update({
+    id: '/payment/success',
+    path: '/payment/success',
+    getParentRoute: () => NavbarLayoutRoute,
+  } as any)
+const NavbarLayoutPaymentStatusRoute =
+  NavbarLayoutPaymentStatusRouteImport.update({
+    id: '/payment/status',
+    path: '/payment/status',
+    getParentRoute: () => NavbarLayoutRoute,
+  } as any)
+const NavbarLayoutPaymentProcessingRoute =
+  NavbarLayoutPaymentProcessingRouteImport.update({
+    id: '/payment/processing',
+    path: '/payment/processing',
+    getParentRoute: () => NavbarLayoutRoute,
+  } as any)
+const NavbarLayoutPaymentPendingRoute =
+  NavbarLayoutPaymentPendingRouteImport.update({
+    id: '/payment/pending',
+    path: '/payment/pending',
+    getParentRoute: () => NavbarLayoutRoute,
+  } as any)
+const NavbarLayoutPaymentFailedRoute =
+  NavbarLayoutPaymentFailedRouteImport.update({
+    id: '/payment/failed',
+    path: '/payment/failed',
+    getParentRoute: () => NavbarLayoutRoute,
+  } as any)
 const NavbarLayoutCoursesSlugRoute = NavbarLayoutCoursesSlugRouteImport.update({
   id: '/courses/$slug',
   path: '/courses/$slug',
@@ -227,6 +262,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/review': typeof NavbarLayoutAuthenticatedReviewRoute
   '/courses/$slug': typeof NavbarLayoutCoursesSlugRoute
+  '/payment/failed': typeof NavbarLayoutPaymentFailedRoute
+  '/payment/pending': typeof NavbarLayoutPaymentPendingRoute
+  '/payment/processing': typeof NavbarLayoutPaymentProcessingRoute
+  '/payment/status': typeof NavbarLayoutPaymentStatusRoute
+  '/payment/success': typeof NavbarLayoutPaymentSuccessRoute
   '/projects/$id': typeof NavbarLayoutProjectsIdRoute
   '/api/cron/cleanup-sessions': typeof ApiCronCleanupSessionsRoute
   '/courses/': typeof NavbarLayoutCoursesIndexRoute
@@ -257,6 +297,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/review': typeof NavbarLayoutAuthenticatedReviewRoute
   '/courses/$slug': typeof NavbarLayoutCoursesSlugRoute
+  '/payment/failed': typeof NavbarLayoutPaymentFailedRoute
+  '/payment/pending': typeof NavbarLayoutPaymentPendingRoute
+  '/payment/processing': typeof NavbarLayoutPaymentProcessingRoute
+  '/payment/status': typeof NavbarLayoutPaymentStatusRoute
+  '/payment/success': typeof NavbarLayoutPaymentSuccessRoute
   '/projects/$id': typeof NavbarLayoutProjectsIdRoute
   '/api/cron/cleanup-sessions': typeof ApiCronCleanupSessionsRoute
   '/courses': typeof NavbarLayoutCoursesIndexRoute
@@ -291,6 +336,11 @@ export interface FileRoutesById {
   '/_navbar-layout/_authenticated/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/_navbar-layout/_authenticated/review': typeof NavbarLayoutAuthenticatedReviewRoute
   '/_navbar-layout/courses/$slug': typeof NavbarLayoutCoursesSlugRoute
+  '/_navbar-layout/payment/failed': typeof NavbarLayoutPaymentFailedRoute
+  '/_navbar-layout/payment/pending': typeof NavbarLayoutPaymentPendingRoute
+  '/_navbar-layout/payment/processing': typeof NavbarLayoutPaymentProcessingRoute
+  '/_navbar-layout/payment/status': typeof NavbarLayoutPaymentStatusRoute
+  '/_navbar-layout/payment/success': typeof NavbarLayoutPaymentSuccessRoute
   '/_navbar-layout/projects/$id': typeof NavbarLayoutProjectsIdRoute
   '/api/cron/cleanup-sessions': typeof ApiCronCleanupSessionsRoute
   '/_navbar-layout/courses/': typeof NavbarLayoutCoursesIndexRoute
@@ -324,6 +374,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/review'
     | '/courses/$slug'
+    | '/payment/failed'
+    | '/payment/pending'
+    | '/payment/processing'
+    | '/payment/status'
+    | '/payment/success'
     | '/projects/$id'
     | '/api/cron/cleanup-sessions'
     | '/courses/'
@@ -354,6 +409,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/review'
     | '/courses/$slug'
+    | '/payment/failed'
+    | '/payment/pending'
+    | '/payment/processing'
+    | '/payment/status'
+    | '/payment/success'
     | '/projects/$id'
     | '/api/cron/cleanup-sessions'
     | '/courses'
@@ -387,6 +447,11 @@ export interface FileRouteTypes {
     | '/_navbar-layout/_authenticated/dashboard'
     | '/_navbar-layout/_authenticated/review'
     | '/_navbar-layout/courses/$slug'
+    | '/_navbar-layout/payment/failed'
+    | '/_navbar-layout/payment/pending'
+    | '/_navbar-layout/payment/processing'
+    | '/_navbar-layout/payment/status'
+    | '/_navbar-layout/payment/success'
     | '/_navbar-layout/projects/$id'
     | '/api/cron/cleanup-sessions'
     | '/_navbar-layout/courses/'
@@ -589,6 +654,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NavbarLayoutProjectsIdRouteImport
       parentRoute: typeof NavbarLayoutRoute
     }
+    '/_navbar-layout/payment/success': {
+      id: '/_navbar-layout/payment/success'
+      path: '/payment/success'
+      fullPath: '/payment/success'
+      preLoaderRoute: typeof NavbarLayoutPaymentSuccessRouteImport
+      parentRoute: typeof NavbarLayoutRoute
+    }
+    '/_navbar-layout/payment/status': {
+      id: '/_navbar-layout/payment/status'
+      path: '/payment/status'
+      fullPath: '/payment/status'
+      preLoaderRoute: typeof NavbarLayoutPaymentStatusRouteImport
+      parentRoute: typeof NavbarLayoutRoute
+    }
+    '/_navbar-layout/payment/processing': {
+      id: '/_navbar-layout/payment/processing'
+      path: '/payment/processing'
+      fullPath: '/payment/processing'
+      preLoaderRoute: typeof NavbarLayoutPaymentProcessingRouteImport
+      parentRoute: typeof NavbarLayoutRoute
+    }
+    '/_navbar-layout/payment/pending': {
+      id: '/_navbar-layout/payment/pending'
+      path: '/payment/pending'
+      fullPath: '/payment/pending'
+      preLoaderRoute: typeof NavbarLayoutPaymentPendingRouteImport
+      parentRoute: typeof NavbarLayoutRoute
+    }
+    '/_navbar-layout/payment/failed': {
+      id: '/_navbar-layout/payment/failed'
+      path: '/payment/failed'
+      fullPath: '/payment/failed'
+      preLoaderRoute: typeof NavbarLayoutPaymentFailedRouteImport
+      parentRoute: typeof NavbarLayoutRoute
+    }
     '/_navbar-layout/courses/$slug': {
       id: '/_navbar-layout/courses/$slug'
       path: '/courses/$slug'
@@ -657,6 +757,11 @@ interface NavbarLayoutRouteChildren {
   NavbarLayoutFounderRoute: typeof NavbarLayoutFounderRoute
   NavbarLayoutIndexRoute: typeof NavbarLayoutIndexRoute
   NavbarLayoutCoursesSlugRoute: typeof NavbarLayoutCoursesSlugRoute
+  NavbarLayoutPaymentFailedRoute: typeof NavbarLayoutPaymentFailedRoute
+  NavbarLayoutPaymentPendingRoute: typeof NavbarLayoutPaymentPendingRoute
+  NavbarLayoutPaymentProcessingRoute: typeof NavbarLayoutPaymentProcessingRoute
+  NavbarLayoutPaymentStatusRoute: typeof NavbarLayoutPaymentStatusRoute
+  NavbarLayoutPaymentSuccessRoute: typeof NavbarLayoutPaymentSuccessRoute
   NavbarLayoutProjectsIdRoute: typeof NavbarLayoutProjectsIdRoute
   NavbarLayoutCoursesIndexRoute: typeof NavbarLayoutCoursesIndexRoute
   NavbarLayoutProjectsIndexRoute: typeof NavbarLayoutProjectsIndexRoute
@@ -672,6 +777,11 @@ const NavbarLayoutRouteChildren: NavbarLayoutRouteChildren = {
   NavbarLayoutFounderRoute: NavbarLayoutFounderRoute,
   NavbarLayoutIndexRoute: NavbarLayoutIndexRoute,
   NavbarLayoutCoursesSlugRoute: NavbarLayoutCoursesSlugRoute,
+  NavbarLayoutPaymentFailedRoute: NavbarLayoutPaymentFailedRoute,
+  NavbarLayoutPaymentPendingRoute: NavbarLayoutPaymentPendingRoute,
+  NavbarLayoutPaymentProcessingRoute: NavbarLayoutPaymentProcessingRoute,
+  NavbarLayoutPaymentStatusRoute: NavbarLayoutPaymentStatusRoute,
+  NavbarLayoutPaymentSuccessRoute: NavbarLayoutPaymentSuccessRoute,
   NavbarLayoutProjectsIdRoute: NavbarLayoutProjectsIdRoute,
   NavbarLayoutCoursesIndexRoute: NavbarLayoutCoursesIndexRoute,
   NavbarLayoutProjectsIndexRoute: NavbarLayoutProjectsIndexRoute,

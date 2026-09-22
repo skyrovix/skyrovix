@@ -35,8 +35,10 @@ import {
   FileText,
   Image,
   Link2,
-  Send,
   MessageSquare,
+  Award,
+  CreditCard,
+  Send,
 } from "lucide-react";
 
 const TECH_KEYWORDS = ["react", "node", "mongodb", "database", "auth", "responsive", "deploy", "api", "jwt", "tailwind", "crud", "linkedin", "network", "post", "share", "python", "javascript", "typescript", "css", "html", "github", "docker", "aws", "firebase", "sql", "graphql", "next", "express", "redux", "figma"];
@@ -196,9 +198,11 @@ export function TasksSection({
   submissionStatus,
   isAppFeeRequired = false,
   appFeeAmount = 0,
-  appFeePayment = null,
   onOpenAppPayment,
   onNavigateCertificates,
+  isCertPaymentRequired = false,
+  certFeeAmount = 100,
+  onOpenCertPayment,
   onChange,
 }: {
   domainSlug: string;
@@ -211,6 +215,9 @@ export function TasksSection({
   appFeePayment?: any;
   onOpenAppPayment?: () => void;
   onNavigateCertificates?: () => void;
+  isCertPaymentRequired?: boolean;
+  certFeeAmount?: number;
+  onOpenCertPayment?: () => void;
   onChange: () => void;
 }) {
   const [search, setSearch] = useState("");
@@ -474,6 +481,65 @@ export function TasksSection({
                   : "Go to Payment"}
               </Button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Certificate Payment & Completion Banner */}
+      {stats.total > 0 && stats.completed >= stats.total && (
+        <div className={`mb-6 rounded-2xl border p-5 sm:p-6 shadow-sm transition-all ${
+          isCertPaymentRequired
+            ? "border-indigo-300/80 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/40 dark:from-indigo-950/20 dark:to-slate-900/40"
+            : "border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/20 dark:to-slate-900/40"
+        }`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className={`grid size-11 place-items-center rounded-2xl shrink-0 shadow-sm ${
+                isCertPaymentRequired
+                  ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white"
+                  : "bg-emerald-500 text-white"
+              }`}>
+                <Award className="size-6" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="bg-emerald-600 text-white border-0 text-[10px] font-bold">
+                    🎉 ALL TASKS VERIFIED ({stats.completed}/{stats.total})
+                  </Badge>
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                    {isCertPaymentRequired ? "Certificate Payment Required" : "Certificate Ready"}
+                  </span>
+                </div>
+                <h3 className="font-bold text-base text-foreground mt-0.5">
+                  {isCertPaymentRequired
+                    ? `Pay Certificate Fee (₹${certFeeAmount}) to Issue Certificate`
+                    : "Congratulations! Your Certificate is Ready"}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-xl">
+                  {isCertPaymentRequired
+                    ? `All your tasks have been verified by your mentor! Complete your certificate fee payment of ₹${certFeeAmount} to immediately generate and download your verified credential.`
+                    : "All your tasks and verification are complete! You can now generate and download your official credential."}
+                </p>
+              </div>
+            </div>
+
+            {isCertPaymentRequired && onOpenCertPayment ? (
+              <Button
+                type="button"
+                onClick={onOpenCertPayment}
+                className="shrink-0 rounded-xl h-10 px-5 text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-md gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+              >
+                <CreditCard className="size-3.5" /> Pay ₹{certFeeAmount} Now
+              </Button>
+            ) : onNavigateCertificates ? (
+              <Button
+                type="button"
+                onClick={onNavigateCertificates}
+                className="shrink-0 rounded-xl h-10 px-5 text-xs font-bold brand-gradient text-white border-0 shadow-md gap-2 cursor-pointer"
+              >
+                <Award className="size-3.5" /> Go to Certificates <ArrowRight className="size-3.5" />
+              </Button>
+            ) : null}
           </div>
         </div>
       )}
