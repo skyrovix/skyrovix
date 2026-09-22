@@ -142,7 +142,7 @@ export function Footer() {
           </details>
 
           {/* Column 4: Resources */}
-          <details open className="hidden lg:block group space-y-3 text-left">
+          <details open className="group space-y-3 text-left">
             <summary className="flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
               <div>
                 <h4 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Resources</h4>
@@ -156,8 +156,8 @@ export function Footer() {
                   { to: "/verify-certificate", label: "Verify Certificate", icon: Award },
                   { to: "/dashboard", label: "Student Dashboard", icon: LayoutDashboard },
                   { to: "/privacy", label: "Privacy Policy", icon: Lock },
-                  { to: "/terms", label: "Terms of Service", icon: FileSignature },
-                  { to: "/#refund", label: "Refund Policy", icon: RotateCcw },
+                  { to: "/terms", label: "Terms & Conditions", icon: FileSignature },
+                  { to: "/refund", label: "Refund & Cancellation", icon: RotateCcw },
                   { to: "/contact", label: "Help Center", icon: HelpCircle },
                 ].map((link, idx) => (
                   <li key={idx}>
@@ -253,10 +253,10 @@ export function Footer() {
               <span>in India</span>
             </p>
             <nav aria-label="Bottom legal links" className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <div className="flex items-center gap-4 sm:gap-6">
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
                 <Link to="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-                <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-                
+                <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link>
+                <Link to="/refund" className="hover:text-blue-600 transition-colors">Refund & Cancellation</Link>
               </div>
               <button 
                 onClick={scrollToTop} 

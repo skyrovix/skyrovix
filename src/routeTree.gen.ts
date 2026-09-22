@@ -13,6 +13,7 @@ import { Route as VerifyCertificateRouteImport } from './routes/verify-certifica
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RefundRouteImport } from './routes/refund'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DomainsRouteImport } from './routes/domains'
@@ -58,6 +59,11 @@ const ReviewsRoute = ReviewsRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/domains': typeof DomainsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   '/domains': typeof DomainsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/domains'
     | '/forgot-password'
     | '/privacy'
+    | '/refund'
     | '/reset-password'
     | '/reviews'
     | '/terms'
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/forgot-password'
     | '/privacy'
+    | '/refund'
     | '/reset-password'
     | '/reviews'
     | '/terms'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/domains'
     | '/forgot-password'
     | '/privacy'
+    | '/refund'
     | '/reset-password'
     | '/reviews'
     | '/terms'
@@ -392,6 +404,7 @@ export interface RootRouteChildren {
   DomainsRoute: typeof DomainsRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   PrivacyRoute: typeof PrivacyRoute
+  RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
   TermsRoute: typeof TermsRoute
@@ -427,6 +440,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -699,6 +719,7 @@ const rootRouteChildren: RootRouteChildren = {
   DomainsRoute: DomainsRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   PrivacyRoute: PrivacyRoute,
+  RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
   TermsRoute: TermsRoute,

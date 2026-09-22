@@ -131,14 +131,22 @@ export const ROUTE_SEO: Record<
     keywords: ["contact skyrovix", "internship support", "help skyrovix", "skyrovix contact", "certificate support"],
   },
   "/privacy": {
-    title: "Privacy Policy — Skyrovix",
+    title: "Privacy Policy — Student Data Protection | Skyrovix",
     description:
-      "Skyrovix privacy policy. Learn how we collect, use, and protect your personal information including name, email, phone, college details, and payment data.",
+      "Skyrovix student privacy policy. Understand how we collect, use, and securely store student personal data, task submissions, and payment records.",
+    keywords: ["skyrovix privacy policy", "student data collection", "student data storage", "internship data protection"],
   },
   "/terms": {
-    title: "Terms of Service — Skyrovix Internship Platform",
+    title: "Terms & Conditions — Skyrovix Internship & Course Platform",
     description:
-      "Skyrovix terms of service. Read the terms and conditions governing your use of the Skyrovix virtual internship and training platform.",
+      "Skyrovix terms of service. Review our comprehensive rules governing account usage, course access, internship program guidelines, and student responsibilities.",
+    keywords: ["skyrovix terms", "account usage", "course access", "internship rules", "user responsibilities"],
+  },
+  "/refund": {
+    title: "Refund & Cancellation Policy — Skyrovix",
+    description:
+      "Skyrovix refund and cancellation policy. Learn about course refund eligibility, cancellation periods, internship fee refund rules, and refund processing timelines.",
+    keywords: ["skyrovix refund policy", "cancellation policy", "course refund", "internship refund", "refund timeline"],
   },
   "/verify-certificate": {
     title: "Verify Skyrovix Certificate — Instant Online Certificate Verification",

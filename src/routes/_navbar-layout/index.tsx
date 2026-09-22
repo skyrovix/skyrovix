@@ -27,8 +27,6 @@ import {
 import { MobileFloatingIcons } from "@/components/MobileFloatingIcons";
 import { FAQJsonLd, BreadcrumbJsonLd } from "@/components/JsonLd";
 import { FAQ_DATA } from "@/lib/seo";
-import founderPhoto from "@/assets/founder.jpeg";
-import cofounderPhoto from "@/assets/co founder.jpeg";
 import heroTeamImage from "@/assets/hero section team img.png";
 import gcetjLogo from "../../assets/college-logo/thanjavur.png";
 import srustiLogo from "../../assets/college-logo/SRUSTI-removebg-preview.png";
