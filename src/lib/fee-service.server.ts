@@ -1,4 +1,6 @@
+import crypto from "crypto";
 import { dbQuery, withTransaction } from "@/lib/db.server";
+import { generateCertId, getDomain } from "./constants";
 import {
   evaluateOfferStatus,
   type PublicFeeSettings,
@@ -946,12 +948,81 @@ export async function reviewPayment(data: {
          WHERE application_id = $3`,
         [legacyStatus, action === "approve" ? new Date().toISOString() : null, payment.application_id]
       );
-      await client.query(
-        `UPDATE public.applications 
-         SET certificate_payment_status = $1 
-         WHERE id = $2`,
-        [action === "approve" ? "approved" : action === "reject" ? "rejected" : action === "resubmission_required" ? "resubmission_required" : "pending", payment.application_id]
-      );
+
+      if (action === "approve") {
+        // Retrieve or generate certificate
+        const existingCertRes = await client.query(
+          "SELECT certificate_id FROM public.certificates WHERE application_id = $1 LIMIT 1",
+          [payment.application_id]
+        );
+        let certId = existingCertRes.rows[0]?.certificate_id;
+        if (!certId) {
+          certId = generateCertId();
+          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          await client.query(
+            `INSERT INTO public.certificates (application_id, certificate_id, verification_hash, issued_at)
+             VALUES ($1, $2, $3, now())`,
+            [payment.application_id, certId, hash]
+          );
+        }
+
+        await client.query(
+          `UPDATE public.applications 
+           SET status = 'completed', 
+               submission_status = 'approved', 
+               verified = true, 
+               verified_at = COALESCE(verified_at, now()),
+               certificate_generated = true, 
+               certificate_generated_at = COALESCE(certificate_generated_at, now()), 
+               all_tasks_verified = true, 
+               certificate_payment_status = 'approved', 
+               certificate_payment_unlocked = true,
+               updated_at = now()
+           WHERE id = $1`,
+          [payment.application_id]
+        );
+
+        // Send email asynchronously
+        try {
+          const appRes = await client.query("SELECT * FROM public.applications WHERE id = $1", [payment.application_id]);
+          const app = appRes.rows[0];
+          let targetEmail = (app?.email || "").trim();
+          if (targetEmail && certId) {
+            const { sendCertificateEmail } = await import("@/lib/email-helpers");
+            const domainName = getDomain(app?.domain)?.name ?? app?.domain ?? "Internship Track";
+            sendCertificateEmail({
+              to: targetEmail,
+              studentName: app.full_name,
+              studentId: app.user_id || "",
+              certId,
+              domainName,
+              internId: app.intern_id || "SKX-INTERN",
+            }).then(async (emailRes) => {
+              if (emailRes.success) {
+                await dbQuery(
+                  "UPDATE public.applications SET email_status = 'sent', email_sent_at = now(), email_error = null WHERE id = $1",
+                  [payment.application_id]
+                );
+              } else {
+                await dbQuery(
+                  "UPDATE public.applications SET email_status = 'failed', email_error = $1 WHERE id = $2",
+                  [emailRes.error || "Email delivery failed", payment.application_id]
+                );
+              }
+            }).catch((e) => console.error("[reviewPayment] Certificate email error:", e));
+          }
+        } catch (e) {
+          console.error("[reviewPayment] Failed to trigger certificate email:", e);
+        }
+      } else {
+        await client.query(
+          `UPDATE public.applications 
+           SET certificate_payment_status = $1,
+               updated_at = now()
+           WHERE id = $2`,
+          [action === "reject" ? "rejected" : action === "resubmission_required" ? "resubmission_required" : "pending", payment.application_id]
+        );
+      }
     }
 
     await client.query(

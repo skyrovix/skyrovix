@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import crypto from "crypto";
 import { dbQuery, withTransaction } from "./db.server";
 import {
   createCashfreeOrder,
@@ -8,6 +9,7 @@ import {
   type CashfreeCustomerDetails,
 } from "./cashfree.server";
 import { checkIsAdmin, checkAllTasksVerified } from "./fee-service.server";
+import { generateCertId, getDomain } from "./constants";
 
 export interface CashfreeOrderRecord {
   id: string;
@@ -257,6 +259,37 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
 
     // If already verified and marked PAID, return cached verified status idempotently
     if (existingOrder.payment_status === "PAID" || existingOrder.payment_status === "SUCCESS") {
+      // Self-healing: Ensure certificate is generated if missing for certificate order
+      if (existingOrder.product_type === "certificate" && existingOrder.entity_id) {
+        const certCheck = await dbQuery(
+          "SELECT certificate_id FROM public.certificates WHERE application_id = $1 LIMIT 1",
+          [existingOrder.entity_id]
+        );
+        if (certCheck.rows.length === 0) {
+          const certId = generateCertId();
+          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          await dbQuery(
+            `INSERT INTO public.certificates (application_id, certificate_id, verification_hash, issued_at)
+             VALUES ($1, $2, $3, now())`,
+            [existingOrder.entity_id, certId, hash]
+          );
+          await dbQuery(
+            `UPDATE public.applications
+             SET certificate_payment_status = 'approved',
+                 certificate_payment_unlocked = true,
+                 certificate_generated = true,
+                 certificate_generated_at = COALESCE(certificate_generated_at, now()),
+                 status = 'completed',
+                 submission_status = 'approved',
+                 verified = true,
+                 verified_at = COALESCE(verified_at, now()),
+                 all_tasks_verified = true,
+                 updated_at = now()
+             WHERE id = $1`,
+            [existingOrder.entity_id]
+          );
+        }
+      }
       return {
         success: true,
         orderId,
@@ -325,25 +358,53 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
         ]
       );
 
+      let generatedCertId: string | null = null;
+      let appForEmail: any = null;
+
       // If PAID, trigger relevant platform activations
       if (newStatus === "PAID") {
         if (existingOrder.product_type === "certificate" && existingOrder.entity_id) {
           const applicationId = existingOrder.entity_id;
 
-          // Unlock certificate payment status
+          // 1. Check or generate certificate in public.certificates
+          const existingCertRes = await client.query(
+            "SELECT certificate_id FROM public.certificates WHERE application_id = $1 LIMIT 1",
+            [applicationId]
+          );
+
+          generatedCertId = existingCertRes.rows[0]?.certificate_id || null;
+          if (!generatedCertId) {
+            generatedCertId = generateCertId();
+            const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+
+            await client.query(
+              `INSERT INTO public.certificates (application_id, certificate_id, verification_hash, issued_at)
+               VALUES ($1, $2, $3, now())`,
+              [applicationId, generatedCertId, hash]
+            );
+          }
+
+          // 2. Unlock certificate, approve payment, and complete application
           await client.query(
             `UPDATE public.applications
-             SET certificate_payment_status = 'verified',
+             SET certificate_payment_status = 'approved',
                  certificate_payment_unlocked = true,
+                 certificate_generated = true,
+                 certificate_generated_at = COALESCE(certificate_generated_at, now()),
+                 status = 'completed',
+                 submission_status = 'approved',
+                 verified = true,
+                 verified_at = COALESCE(verified_at, now()),
+                 all_tasks_verified = true,
                  updated_at = now()
              WHERE id = $1`,
             [applicationId]
           );
 
-          // Add / update legacy payment_records for admin verification transparency
+          // 3. Add / update legacy payment_records for admin verification transparency
           await client.query(
             `INSERT INTO public.payment_records (
-               user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, review_notes
+               user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
              ) VALUES ($1, $2, 'certificate', $3, $4, 'approved', now(), 'Verified instantly via Cashfree Payment Gateway')
              ON CONFLICT DO NOTHING`,
             [
@@ -354,13 +415,13 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
             ]
           );
 
-          // Sync legacy payments table
+          // 4. Sync legacy payments table
           await client.query(
             `INSERT INTO public.payments (
                id, application_id, utr_number, amount, status, coupon_code, discount_amount, verified_at
-             ) VALUES ($1, $2, $3, $4, 'approved', $5, $6, now())
+             ) VALUES ($1, $2, $3, $4, 'verified', $5, $6, now())
              ON CONFLICT (application_id)
-             DO UPDATE SET utr_number = EXCLUDED.utr_number, amount = EXCLUDED.amount, status = 'approved', verified_at = now()`,
+             DO UPDATE SET utr_number = EXCLUDED.utr_number, amount = EXCLUDED.amount, status = 'verified', verified_at = now()`,
             [
               existingOrder.id,
               applicationId,
@@ -370,14 +431,42 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
               existingOrder.discount_amount,
             ]
           );
+
+          const appRes = await client.query(
+            "SELECT * FROM public.applications WHERE id = $1",
+            [applicationId]
+          );
+          appForEmail = appRes.rows[0];
         } else if (existingOrder.product_type === "application" && existingOrder.entity_id) {
+          const applicationId = existingOrder.entity_id;
           await client.query(
             `UPDATE public.applications
-             SET application_fee_status = 'verified',
+             SET application_fee_status = 'approved',
+                 status = 'approved',
+                 offer_issued_at = COALESCE(offer_issued_at, now()),
                  updated_at = now()
              WHERE id = $1`,
-            [existingOrder.entity_id]
+            [applicationId]
           );
+
+          await client.query(
+            `INSERT INTO public.payment_records (
+               user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
+             ) VALUES ($1, $2, 'application', $3, $4, 'approved', now(), 'Verified instantly via Cashfree Payment Gateway')
+             ON CONFLICT DO NOTHING`,
+            [
+              existingOrder.user_id,
+              applicationId,
+              existingOrder.amount,
+              cfPaymentId || orderId,
+            ]
+          );
+
+          const appRes = await client.query(
+            "SELECT * FROM public.applications WHERE id = $1",
+            [applicationId]
+          );
+          appForEmail = appRes.rows[0];
         }
       }
 
@@ -386,11 +475,68 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
         [orderId]
       );
 
+      // Async email notification outside transaction
+      if (newStatus === "PAID" && appForEmail) {
+        if (existingOrder.product_type === "certificate" && generatedCertId) {
+          const targetEmail = (appForEmail.email || "").trim() || (existingOrder.customer_email || "").trim();
+          if (targetEmail) {
+            import("@/lib/email-helpers").then(async ({ sendCertificateEmail }) => {
+              const domainName = getDomain(appForEmail.domain)?.name ?? appForEmail.domain ?? "Internship Track";
+              const emailRes = await sendCertificateEmail({
+                to: targetEmail,
+                studentName: appForEmail.full_name || existingOrder.customer_name,
+                studentId: appForEmail.user_id || existingOrder.user_id || "",
+                certId: generatedCertId!,
+                domainName,
+                internId: appForEmail.intern_id || "SKX-INTERN",
+              });
+              if (emailRes.success) {
+                await dbQuery(
+                  "UPDATE public.applications SET email_status = 'sent', email_sent_at = now(), email_error = null WHERE id = $1",
+                  [appForEmail.id]
+                );
+              } else {
+                await dbQuery(
+                  "UPDATE public.applications SET email_status = 'failed', email_error = $1 WHERE id = $2",
+                  [emailRes.error || "Email delivery failed", appForEmail.id]
+                );
+              }
+            }).catch((err) => console.error("[Cashfree verify] Certificate email error:", err));
+          }
+        } else if (existingOrder.product_type === "application") {
+          const targetEmail = (appForEmail.email || "").trim() || (existingOrder.customer_email || "").trim();
+          if (targetEmail) {
+            import("@/lib/email-helpers").then(async ({ sendOfferLetterEmail }) => {
+              const emailRes = await sendOfferLetterEmail({
+                to: targetEmail,
+                studentName: appForEmail.full_name || existingOrder.customer_name,
+                studentId: appForEmail.user_id || existingOrder.user_id || "",
+                internId: appForEmail.intern_id || "SKX-INTERN",
+                domainName: appForEmail.domain || "Internship Track",
+                duration: appForEmail.duration || 1,
+              });
+              if (emailRes.success) {
+                await dbQuery(
+                  "UPDATE public.applications SET email_status = 'sent', email_sent_at = now(), email_error = null WHERE id = $1",
+                  [appForEmail.id]
+                );
+              } else {
+                await dbQuery(
+                  "UPDATE public.applications SET email_status = 'failed', email_error = $1 WHERE id = $2",
+                  [emailRes.error || "Email delivery failed", appForEmail.id]
+                );
+              }
+            }).catch((err) => console.error("[Cashfree verify] Offer letter email error:", err));
+          }
+        }
+      }
+
       return {
         success: true,
         orderId,
         status: newStatus,
         order: updatedRes.rows[0],
+        certificateId: generatedCertId,
         isPaid,
       };
     });
@@ -421,8 +567,17 @@ export const getAdminCashfreeOrdersServer = createServerFn({ method: "POST" })
     let pIdx = 1;
 
     if (statusFilter && statusFilter !== "all") {
-      whereConditions.push(`payment_status = $${pIdx++}`);
-      params.push(statusFilter.toUpperCase());
+      const upperStatus = statusFilter.toUpperCase();
+      if (upperStatus === "PENDING") {
+        whereConditions.push(`payment_status IN ('PENDING', 'CREATED')`);
+      } else if (upperStatus === "PAID") {
+        whereConditions.push(`payment_status IN ('PAID', 'SUCCESS')`);
+      } else if (upperStatus === "FAILED") {
+        whereConditions.push(`payment_status IN ('FAILED', 'CANCELLED', 'EXPIRED')`);
+      } else {
+        whereConditions.push(`payment_status = $${pIdx++}`);
+        params.push(upperStatus);
+      }
     }
 
     if (searchQuery && searchQuery.trim()) {
@@ -446,7 +601,7 @@ export const getAdminCashfreeOrdersServer = createServerFn({ method: "POST" })
       SELECT 
         count(*) filter (where payment_status IN ('PAID', 'SUCCESS'))::int as paid_count,
         coalesce(sum(amount) filter (where payment_status IN ('PAID', 'SUCCESS')), 0)::numeric as total_paid_amount,
-        count(*) filter (where payment_status = 'PENDING')::int as pending_count,
+        count(*) filter (where payment_status IN ('PENDING', 'CREATED'))::int as pending_count,
         count(*) filter (where payment_status IN ('FAILED', 'CANCELLED', 'EXPIRED'))::int as failed_count,
         count(*)::int as total_orders
       FROM public.cashfree_orders

@@ -52,7 +52,8 @@ async function ensureSchemaMigrated(pool: pg.Pool) {
       ADD COLUMN IF NOT EXISTS certificate_offer_amount NUMERIC,
       ADD COLUMN IF NOT EXISTS certificate_offer_snapshot JSONB,
       ADD COLUMN IF NOT EXISTS certificate_offer_granted_at TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS certificate_offer_expires_at TIMESTAMPTZ;
+      ADD COLUMN IF NOT EXISTS certificate_offer_expires_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
       UPDATE public.fee_settings
       SET amount = CASE WHEN amount = 0 THEN 100 ELSE amount END,
