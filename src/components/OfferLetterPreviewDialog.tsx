@@ -270,7 +270,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
               <p>
                 We are delighted to offer you the position of{" "}
                 <strong className="text-slate-900 font-bold">Virtual Intern – {domainName}</strong> at{" "}
-                <strong className="text-slate-900 font-bold">Skyrovix IT Solutions</strong> (accessible at{" "}
+                <strong className="text-slate-900 font-bold">Skyrovix</strong> (accessible at{" "}
                 <strong className="text-slate-900 font-bold">skyrovix.in</strong>). After reviewing your application, technical aptitude, and enthusiasm, we are confident that your skills make you a valuable addition to our engineering cohort.
               </p>
               <p>
@@ -431,7 +431,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
               {/* Center: Legal entity & UDYAM */}
               <div className="flex-1 text-center text-slate-600">
                 <div className="font-bold text-[#07284a] text-xs sm:text-sm tracking-tight">
-                  SKYROVIX IT Solutions Private Limited
+                  SKYROVIX
                 </div>
                 <div className="text-slate-600 text-[10px] sm:text-[11px] font-medium mt-0.5">
                   UDYAM Registry: UDYAM-TN-17-0076606

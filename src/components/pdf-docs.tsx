@@ -530,7 +530,7 @@ export function OfferLetterDoc({ fullName, internId, domain, issuedAt, duration 
         <Text style={offerStyles.greeting}>Dear <Text style={offerStyles.bold}>{fullName}</Text>,</Text>
 
         <Text style={offerStyles.bodyP}>
-          We are delighted to offer you the position of <Text style={offerStyles.bold}>Virtual Intern – {domainName}</Text> at <Text style={offerStyles.bold}>Skyrovix IT Solutions</Text> (accessible at <Text style={offerStyles.bold}>skyrovix.in</Text>). After reviewing your application, technical aptitude, and enthusiasm, we are confident that your skills make you a valuable addition to our engineering cohort.
+          We are delighted to offer you the position of <Text style={offerStyles.bold}>Virtual Intern – {domainName}</Text> at <Text style={offerStyles.bold}>Skyrovix</Text> (accessible at <Text style={offerStyles.bold}>skyrovix.in</Text>). After reviewing your application, technical aptitude, and enthusiasm, we are confident that your skills make you a valuable addition to our engineering cohort.
         </Text>
         <Text style={offerStyles.bodyP}>
           Your virtual internship details, work deliverables, and engagement particulars are finalized as follows:
@@ -651,7 +651,7 @@ export function OfferLetterDoc({ fullName, internId, domain, issuedAt, duration 
             <Image src={imageAssets?.vinix ?? vinixImg} style={offerStyles.footerVinix} />
           </View>
           <View style={offerStyles.footerCenter}>
-            <Text style={offerStyles.footerCompanyName}>SKYROVIX IT Solutions Private Limited</Text>
+            <Text style={offerStyles.footerCompanyName}>SKYROVIX</Text>
             <Text style={offerStyles.footerRegistry}>UDYAM Registry: UDYAM-TN-17-0076606</Text>
             <Text style={offerStyles.footerContact}>skyrovix@gmail.com | www.skyrovix.in</Text>
           </View>
@@ -727,7 +727,7 @@ export function CertificateDoc({ fullName, internId, domain, certId, issuedAt, v
               <Text style={{ fontSize: 11, color: C.muted, textAlign: "center", maxWidth: 600, lineHeight: 1.6 }}>
                 for successfully completing the task-based virtual internship program in
                 {" "}<Text style={{ fontWeight: 700, color: C.ink }}>{domain}</Text>{" "}
-                at Skyrovix IT Solutions, demonstrating dedication, technical skill, and professional excellence throughout the program.
+                at Skyrovix, demonstrating dedication, technical skill, and professional excellence throughout the program.
               </Text>
             </View>
 
