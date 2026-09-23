@@ -59,6 +59,17 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const url = new URL(request.url);
+      if (url.pathname === "/ads.txt" || url.pathname === "/ads.txt/") {
+        return new Response("google.com, pub-5755024838228586, DIRECT, f08c47fec0942fa0\n", {
+          status: 200,
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=0, must-revalidate",
+          },
+        });
+      }
+
       if (url.pathname === "/api/webhooks/cashfree") {
         const { handleCashfreeWebhook } = await import("./lib/cashfree-webhook.server");
         return await handleCashfreeWebhook(request);

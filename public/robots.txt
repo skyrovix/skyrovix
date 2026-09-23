@@ -9,7 +9,8 @@ Disallow: /auth
 Disallow: /auth/
 Disallow: /api/
 
-Sitemap: https://skyrovix.online/sitemap.xml
+Sitemap: https://www.skyrovix.online/sitemap.xml
+Sitemap: https://www.skyrovix.in/sitemap.xml
 
 # Google AdSense & Ads.txt Crawlers
 User-agent: Mediapartners-Google

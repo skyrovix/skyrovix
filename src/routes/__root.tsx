@@ -175,16 +175,7 @@ function ExternalScripts() {
   const router = useRouter();
 
   useEffect(() => {
-    // 1. Google AdSense (Client-side load to prevent SSR hydration mismatch)
-    if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
-      const adsScript = document.createElement("script");
-      adsScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755024838228586";
-      adsScript.async = true;
-      adsScript.crossOrigin = "anonymous";
-      document.head.appendChild(adsScript);
-    }
-
-    // 2. Google Tag Manager (gtag.js)
+    // 1. Google Tag Manager (gtag.js)
     if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) {
       const gtagScript = document.createElement("script");
       gtagScript.src = "https://www.googletagmanager.com/gtag/js?id=G-FD15M64DX5";
@@ -235,6 +226,12 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en" dir="ltr" className="bg-[#f8fafc] dark:bg-[#070b19]" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <HeadContent />
+        {/* Google AdSense official script tag - placed in global <head> for ownership verification */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755024838228586"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <OrganizationJsonLd />
