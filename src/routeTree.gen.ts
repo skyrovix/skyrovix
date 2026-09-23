@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyCertificateRouteImport } from './routes/verify-certificate'
+import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -23,6 +24,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as NavbarLayoutRouteImport } from './routes/_navbar-layout'
 import { Route as DomainsIndexRouteImport } from './routes/domains.index'
 import { Route as NavbarLayoutIndexRouteImport } from './routes/_navbar-layout/index'
+import { Route as VerifyIdRouteImport } from './routes/verify.$id'
 import { Route as DomainsSlugRouteImport } from './routes/domains.$slug'
 import { Route as AdminPaymentVerificationRouteImport } from './routes/admin.payment-verification'
 import { Route as AdminFeeSettingsRouteImport } from './routes/admin.fee-settings'
@@ -49,6 +51,11 @@ import { Route as NavbarLayoutCoursesSlugDetailsRouteImport } from './routes/_na
 const VerifyCertificateRoute = VerifyCertificateRouteImport.update({
   id: '/verify-certificate',
   path: '/verify-certificate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -114,6 +121,11 @@ const NavbarLayoutIndexRoute = NavbarLayoutIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => NavbarLayoutRoute,
+} as any)
+const VerifyIdRoute = VerifyIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => VerifyRoute,
 } as any)
 const DomainsSlugRoute = DomainsSlugRouteImport.update({
   id: '/$slug',
@@ -251,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
+  '/verify': typeof VerifyRouteWithChildren
   '/verify-certificate': typeof VerifyCertificateRoute
   '/about': typeof NavbarLayoutAboutRoute
   '/founder': typeof NavbarLayoutFounderRoute
@@ -258,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/admin/fee-settings': typeof AdminFeeSettingsRoute
   '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
+  '/verify/$id': typeof VerifyIdRoute
   '/domains/': typeof DomainsIndexRoute
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/review': typeof NavbarLayoutAuthenticatedReviewRoute
@@ -285,6 +299,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
+  '/verify': typeof VerifyRouteWithChildren
   '/verify-certificate': typeof VerifyCertificateRoute
   '/': typeof NavbarLayoutIndexRoute
   '/about': typeof NavbarLayoutAboutRoute
@@ -293,6 +308,7 @@ export interface FileRoutesByTo {
   '/admin/fee-settings': typeof AdminFeeSettingsRoute
   '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
+  '/verify/$id': typeof VerifyIdRoute
   '/domains': typeof DomainsIndexRoute
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/review': typeof NavbarLayoutAuthenticatedReviewRoute
@@ -323,6 +339,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
+  '/verify': typeof VerifyRouteWithChildren
   '/verify-certificate': typeof VerifyCertificateRoute
   '/_navbar-layout/_authenticated': typeof NavbarLayoutAuthenticatedRouteRouteWithChildren
   '/_navbar-layout/about': typeof NavbarLayoutAboutRoute
@@ -331,6 +348,7 @@ export interface FileRoutesById {
   '/admin/fee-settings': typeof AdminFeeSettingsRoute
   '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
+  '/verify/$id': typeof VerifyIdRoute
   '/_navbar-layout/': typeof NavbarLayoutIndexRoute
   '/domains/': typeof DomainsIndexRoute
   '/_navbar-layout/_authenticated/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
@@ -363,6 +381,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/terms'
+    | '/verify'
     | '/verify-certificate'
     | '/about'
     | '/founder'
@@ -370,6 +389,7 @@ export interface FileRouteTypes {
     | '/admin/fee-settings'
     | '/admin/payment-verification'
     | '/domains/$slug'
+    | '/verify/$id'
     | '/domains/'
     | '/dashboard'
     | '/review'
@@ -397,6 +417,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/terms'
+    | '/verify'
     | '/verify-certificate'
     | '/'
     | '/about'
@@ -405,6 +426,7 @@ export interface FileRouteTypes {
     | '/admin/fee-settings'
     | '/admin/payment-verification'
     | '/domains/$slug'
+    | '/verify/$id'
     | '/domains'
     | '/dashboard'
     | '/review'
@@ -434,6 +456,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/terms'
+    | '/verify'
     | '/verify-certificate'
     | '/_navbar-layout/_authenticated'
     | '/_navbar-layout/about'
@@ -442,6 +465,7 @@ export interface FileRouteTypes {
     | '/admin/fee-settings'
     | '/admin/payment-verification'
     | '/domains/$slug'
+    | '/verify/$id'
     | '/_navbar-layout/'
     | '/domains/'
     | '/_navbar-layout/_authenticated/dashboard'
@@ -473,6 +497,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
   TermsRoute: typeof TermsRoute
+  VerifyRoute: typeof VerifyRouteWithChildren
   VerifyCertificateRoute: typeof VerifyCertificateRoute
   ApiCronCleanupSessionsRoute: typeof ApiCronCleanupSessionsRoute
 }
@@ -484,6 +509,13 @@ declare module '@tanstack/react-router' {
       path: '/verify-certificate'
       fullPath: '/verify-certificate'
       preLoaderRoute: typeof VerifyCertificateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -576,6 +608,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof NavbarLayoutIndexRouteImport
       parentRoute: typeof NavbarLayoutRoute
+    }
+    '/verify/$id': {
+      id: '/verify/$id'
+      path: '/$id'
+      fullPath: '/verify/$id'
+      preLoaderRoute: typeof VerifyIdRouteImport
+      parentRoute: typeof VerifyRoute
     }
     '/domains/$slug': {
       id: '/domains/$slug'
@@ -821,6 +860,17 @@ const DomainsRouteChildren: DomainsRouteChildren = {
 const DomainsRouteWithChildren =
   DomainsRoute._addFileChildren(DomainsRouteChildren)
 
+interface VerifyRouteChildren {
+  VerifyIdRoute: typeof VerifyIdRoute
+}
+
+const VerifyRouteChildren: VerifyRouteChildren = {
+  VerifyIdRoute: VerifyIdRoute,
+}
+
+const VerifyRouteWithChildren =
+  VerifyRoute._addFileChildren(VerifyRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   NavbarLayoutRoute: NavbarLayoutRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
@@ -833,6 +883,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
   TermsRoute: TermsRoute,
+  VerifyRoute: VerifyRouteWithChildren,
   VerifyCertificateRoute: VerifyCertificateRoute,
   ApiCronCleanupSessionsRoute: ApiCronCleanupSessionsRoute,
 }

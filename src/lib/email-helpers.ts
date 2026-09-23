@@ -367,7 +367,7 @@ export async function sendOfferLetterEmail(params: {
   const dur = durationConfig(params.duration);
   const durLabel = dur?.label ?? `${params.duration} Month(s)`;
 
-  const verifyUrl = `https://www.skyrovix.online/verify-certificate`;
+  const verifyUrl = `https://www.skyrovix.online/verify?id=${encodeURIComponent(params.internId.trim())}`;
 
   const body = `Dear ${params.studentName},
 
@@ -441,7 +441,7 @@ export async function sendCertificateEmail(params: {
   domainName: string;
   internId: string;
 }) {
-  const verifyUrl = `https://www.skyrovix.online/verify-certificate`;
+  const verifyUrl = `https://www.skyrovix.online/verify?id=${encodeURIComponent(params.certId.trim())}`;
 
   const body = `Dear ${params.studentName},
 

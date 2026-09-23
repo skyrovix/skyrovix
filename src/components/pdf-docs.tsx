@@ -671,9 +671,19 @@ export async function downloadOfferLetter(params: {
   issuedAt: string;
   duration?: number;
   imageAssets?: ImageAssets;
+  verifyUrl?: string;
+  qrCodeDataUri?: string;
 }) {
+  const verifyUrl = params.verifyUrl || `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(params.internId.trim())}`;
+  let qrCodeDataUri = params.qrCodeDataUri;
+  if (!qrCodeDataUri) {
+    try {
+      qrCodeDataUri = await QRCode.toDataURL(verifyUrl, { width: 140, margin: 1 });
+    } catch { /* proceed */ }
+  }
+
   await downloadPdf(
-    <OfferLetterDoc {...params} />,
+    <OfferLetterDoc {...params} verifyUrl={verifyUrl} qrCodeDataUri={qrCodeDataUri} />,
     `OfferLetter_${params.internId}.pdf`
   );
 }
@@ -1242,7 +1252,7 @@ export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, emai
 export async function downloadIDCard(params: {
   fullName: string; internId: string; domain: string; issuedAt: string; photoUrl?: string | null; email?: string | null; validUpto?: string | null;
 }) {
-  const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?intern=${params.internId}`;
+  const verifyUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(params.internId.trim())}`;
   let qrDataUri: string | undefined;
   let barcodeDataUri: string | undefined;
   try {

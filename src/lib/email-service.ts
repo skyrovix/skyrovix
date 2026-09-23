@@ -586,7 +586,7 @@ export const backfillCompletedCertificates = createServerFn({ method: "POST" })
 
       // Send Certificate Email with PDF attachment via Gmail SMTP
       const domainName = app.domain === "python" ? "Python Development" : (app.domain || "Internship Program");
-      const verifyUrl = `https://www.skyrovix.online/verify-certificate`;
+      const verifyUrl = `https://www.skyrovix.online/verify?id=${encodeURIComponent(certId.trim())}`;
       const emailRes = await sendEmail({
         data: {
           to: targetEmail,

@@ -57,7 +57,7 @@ export function BarcodeSVG({ value, height = 30 }: { value: string; height?: num
 
 export function IDCard({ internId, fullName, domain, photoUrl, issuedAt, email, validUpto }: Props) {
   const [showQR, setShowQR] = useState(false);
-  const verifyUrl = `${getPublicSiteUrl()}/verify-certificate?intern=${internId}`;
+  const verifyUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(internId.trim())}`;
 
   // Calculate Valid Upto date
   const computeValidUpto = () => {
