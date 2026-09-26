@@ -79,6 +79,11 @@ export function PaymentSummaryDialog({
     const toastId = toast.loading("Connecting to Cashfree payment gateway...");
 
     try {
+      const dynamicReturnUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/payment/status?order_id={order_id}`
+          : undefined;
+
       const res = await createPaymentOrderServer({
         data: {
           userId: userId || null,
@@ -90,6 +95,7 @@ export function PaymentSummaryDialog({
           customerEmail: customerEmail.trim(),
           customerPhone: cleanPhone,
           couponCode: couponCode || null,
+          returnUrl: dynamicReturnUrl,
         },
       });
 

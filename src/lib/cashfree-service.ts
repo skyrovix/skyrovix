@@ -64,6 +64,7 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
       customerEmail: string;
       customerPhone: string;
       couponCode?: string | null;
+      returnUrl?: string | null;
     }) => d
   )
   .handler(async ({ data }) => {
@@ -76,7 +77,28 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
       customerEmail,
       customerPhone,
       couponCode,
+      returnUrl: rawReturnUrl,
     } = data;
+
+    let returnUrl: string | undefined = undefined;
+    if (rawReturnUrl && typeof rawReturnUrl === "string") {
+      try {
+        const parsed = new URL(rawReturnUrl);
+        const host = parsed.hostname.toLowerCase();
+        if (
+          host === "skyrovix.online" ||
+          host === "www.skyrovix.online" ||
+          host === "skyrovix.in" ||
+          host === "www.skyrovix.in" ||
+          host === "localhost" ||
+          host === "127.0.0.1"
+        ) {
+          returnUrl = rawReturnUrl;
+        }
+      } catch {
+        // Ignore and let default handle it
+      }
+    }
 
     if (!customerEmail || !customerName) {
       throw new Error("Customer name and email are required to generate an order");
@@ -187,6 +209,7 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
       orderCurrency: "INR",
       customerDetails,
       orderNote: serviceTitle,
+      returnUrl,
     });
 
     if (!cfResponse.payment_session_id) {
