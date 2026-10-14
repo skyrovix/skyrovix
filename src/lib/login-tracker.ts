@@ -46,12 +46,14 @@ export const trackLogin = createServerFn({ method: "POST" })
     }
 
     try {
-      const res = await dbQuery(
+      const crypto = await import("crypto");
+      const sessionId = crypto.randomUUID();
+      await dbQuery(
         `INSERT INTO public.login_sessions 
-         (student_id, intern_id, student_name, email, domain, college, login_time, last_active, status, ip_address, device, browser, os, country, state, city)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), 'online', $7, $8, $9, $10, $11, $12, $13)
-         RETURNING id`,
+         (id, student_id, intern_id, student_name, email, domain, college, login_time, last_active, status, ip_address, device, browser, os, country, state, city)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), 'online', $8, $9, $10, $11, $12, $13, $14)`,
         [
+          sessionId,
           studentId,
           internId || null,
           studentName || null,
@@ -67,7 +69,7 @@ export const trackLogin = createServerFn({ method: "POST" })
           city || null,
         ]
       );
-      return { success: true, sessionId: res.rows[0]?.id };
+      return { success: true, sessionId };
     } catch (err: any) {
       console.error("[login-tracker] Error tracking login:", err);
       return { success: false, error: err.message };

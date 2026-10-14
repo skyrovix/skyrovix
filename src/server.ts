@@ -75,6 +75,12 @@ export default {
         return await handleCashfreeWebhook(request);
       }
 
+      const { handleMysqlServerApi } = await import("./lib/server-api-router.server");
+      const apiResponse = await handleMysqlServerApi(request, url);
+      if (apiResponse) {
+        return apiResponse;
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

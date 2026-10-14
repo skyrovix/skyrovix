@@ -26,7 +26,7 @@ export async function deleteInternshipApplicationServer(applicationId: string): 
       await client.query("DELETE FROM public.coupon_redemptions WHERE application_id = $1", [applicationId]);
 
       // 6. Delete the application itself
-      const appRes = await client.query("DELETE FROM public.applications WHERE id = $1 RETURNING id", [applicationId]);
+      const appRes = await client.query("DELETE FROM public.applications WHERE id = $1", [applicationId]);
 
       if (appRes.rowCount === 0) {
         console.warn("[Admin] Application ID not found in database:", applicationId);
