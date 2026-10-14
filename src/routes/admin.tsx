@@ -48,7 +48,7 @@ import {
   PanelRightOpen, FolderTree,   FileQuestion, PieChart, Percent, Briefcase,
   Loader2, Activity, Wifi, WifiOff, LogIn, Monitor, Smartphone, Tablet,
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
-  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck,
+  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck, Github,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -2871,6 +2871,163 @@ function PaymentsSection() {
 }
 
 // ══════════════════════════════════════════════
+// VERIFICATION QUEUE - TASK DELIVERABLES DETAILS
+// ══════════════════════════════════════════════
+function VerificationAppDetails({
+  app,
+  onFreeApprove,
+  isPayDone,
+  hasCoupon,
+  actionLoading,
+}: {
+  app: any;
+  onFreeApprove: () => void;
+  isPayDone: boolean;
+  hasCoupon: boolean;
+  actionLoading: boolean;
+}) {
+  const { data: subs, isLoading } = useQuery({
+    queryKey: ["admin-verification-app-subs", app.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("submissions")
+        .select("*, tasks(title, task_number)")
+        .eq("application_id", app.id)
+        .order("submitted_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  return (
+    <div className="mt-4 rounded-2xl border border-border/50 bg-slate-50/70 dark:bg-slate-900/50 p-5 text-xs space-y-4">
+      {/* Student Profile Info */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div>
+          <span className="text-muted-foreground">Email:</span>
+          <p className="font-medium text-foreground">{app.email}</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Phone:</span>
+          <p className="font-medium text-foreground">{app.phone ?? "—"}</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">College:</span>
+          <p className="font-medium text-foreground">{app.college} · {app.course} ({app.year})</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Location:</span>
+          <p className="font-medium text-foreground">{[app.city, app.district, app.state, app.country].filter(Boolean).join(", ") || "—"}</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Duration:</span>
+          <p className="font-medium text-foreground">{app.duration ?? 1} Month(s)</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Application ID:</span>
+          <p className="font-mono text-muted-foreground truncate">{app.id}</p>
+        </div>
+      </div>
+
+      {/* Free Merit Banner if unpaid */}
+      {!isPayDone && !hasCoupon && (
+        <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/70 p-3.5 dark:border-emerald-800/40 dark:bg-emerald-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <Sparkles className="size-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-bold text-emerald-800 dark:text-emerald-300 text-xs">High Performer? Free Merit Approval Available</p>
+              <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400/90">
+                If this student has executed quality work, admin can waive the payment completely and issue the official certificate for free.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shrink-0"
+            disabled={actionLoading}
+            onClick={onFreeApprove}
+          >
+            <Sparkles className="size-3.5 mr-1.5 text-amber-200" />
+            Approve Free (Merit)
+          </Button>
+        </div>
+      )}
+
+      {/* Task Submissions List (Who performed well / work verification) */}
+      <div className="space-y-2 pt-1 border-t border-border/40">
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-foreground flex items-center gap-1.5">
+            <ListChecks className="size-3.5 text-blue-600" />
+            Task Submissions & Deliverables ({subs?.length ?? 0})
+          </p>
+          <span className="text-[11px] text-muted-foreground">Review candidate work quality</span>
+        </div>
+
+        {isLoading ? (
+          <div className="py-4 text-center text-muted-foreground flex items-center justify-center gap-2">
+            <Loader2 className="size-3.5 animate-spin" /> Loading task submissions...
+          </div>
+        ) : !subs || subs.length === 0 ? (
+          <p className="text-muted-foreground italic py-2">No task records found.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {subs.map((s: any, idx: number) => {
+              const taskNum = s.tasks?.task_number ?? idx + 1;
+              const taskTitle = s.tasks?.title ?? `Task ${taskNum}`;
+              return (
+                <div key={s.id} className="rounded-xl border border-border/50 bg-white/80 dark:bg-slate-800/80 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-foreground truncate">
+                      Task {taskNum}: {taskTitle}
+                    </span>
+                    <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] shrink-0">
+                      {s.status ?? "approved"}
+                    </Badge>
+                  </div>
+                  {s.notes && <p className="text-[11px] text-muted-foreground line-clamp-2">{s.notes}</p>}
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
+                    {s.github_url && (
+                      <a
+                        href={s.github_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 hover:text-black dark:text-slate-300 dark:hover:text-white bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg transition"
+                      >
+                        <Github className="size-3" /> Code Repo
+                      </a>
+                    )}
+                    {s.live_url && (
+                      <a
+                        href={s.live_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-1 rounded-lg transition"
+                      >
+                        <ExternalLink className="size-3" /> Live Demo
+                      </a>
+                    )}
+                    {s.file_url && (
+                      <a
+                        href={s.file_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50 px-2 py-1 rounded-lg transition"
+                      >
+                        <FileText className="size-3" /> Attachment
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════
 // VERIFICATION QUEUE
 // ══════════════════════════════════════════════
 function VerificationSection() {
@@ -2881,6 +3038,9 @@ function VerificationSection() {
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [paymentMap, setPaymentMap] = useState<Record<string, any>>({});
+  const [freeApproveDialog, setFreeApproveDialog] = useState<any | null>(null);
+  const [meritReason, setMeritReason] = useState<string>("⭐ Top Performer / High Quality Work");
+  const [customMeritNote, setCustomMeritNote] = useState<string>("");
 
   // Fetch payments separately to avoid schema cache issues with reverse join
   useEffect(() => {
@@ -2947,7 +3107,7 @@ function VerificationSection() {
     refetchInterval: 10_000,
   });
 
-  const handleApprove = async (app: any) => {
+  const handleApprove = async (app: any, isFreeMeritApproval: boolean = false, meritReasonText?: string) => {
     setActionLoading(app.id);
     try {
       const pay = paymentMap[app.id];
@@ -2958,12 +3118,44 @@ function VerificationSection() {
       const isPaymentVerified = (pay && (pay.status === "verified" || pay.status === "approved")) ||
         app.certificate_payment_status === "approved" ||
         app.certificate_payment_status === "waived";
-      const shouldIssueCert = couponApplied || isPaymentVerified;
+      const shouldIssueCert = isFreeMeritApproval || couponApplied || isPaymentVerified;
 
       if (!shouldIssueCert) {
-        toast.error("Certificate fee payment has not been verified yet. Verify payment first before approving completion and issuing certificate.");
+        toast.error("Certificate fee payment has not been verified yet. Use 'Approve Free (Merit)' or verify payment first before approving.");
         setActionLoading(null);
         return;
+      }
+
+      // If this is a manual free approval, record in payments table
+      if (isFreeMeritApproval && (!pay || (pay.status !== "verified" && pay.status !== "approved"))) {
+        const { data: existingPay } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("application_id", app.id)
+          .maybeSingle();
+
+        if (existingPay?.id) {
+          await supabase
+            .from("payments")
+            .update({
+              status: "verified",
+              amount: 0,
+              utr_number: "FREE_MERIT_WAIVER",
+              verified_at: new Date().toISOString(),
+            })
+            .eq("id", existingPay.id);
+        } else {
+          await supabase
+            .from("payments")
+            .insert({
+              application_id: app.id,
+              amount: 0,
+              utr_number: "FREE_MERIT_WAIVER",
+              status: "verified",
+              submitted_at: new Date().toISOString(),
+              verified_at: new Date().toISOString(),
+            });
+        }
       }
 
       let cert_id: string | null = null;
@@ -2981,6 +3173,10 @@ function VerificationSection() {
         if (cerr) throw cerr;
       }
 
+      const verificationNotes = isFreeMeritApproval
+        ? `Manual Free Merit Approval: ${meritReasonText || "Top Performer / 100% Fee Waived"}`
+        : null;
+
       // Update application to fully completed and verified
       const { error: updErr } = await (supabase
         .from("applications") as any)
@@ -2994,7 +3190,7 @@ function VerificationSection() {
           certificate_generated_at: new Date().toISOString(),
           certificate_payment_status: "approved",
           all_tasks_verified: true,
-          verification_notes: null,
+          verification_notes: verificationNotes,
           rejection_reason: null,
         })
         .eq("id", app.id);
@@ -3015,7 +3211,7 @@ function VerificationSection() {
               internId: app.intern_id,
             });
             if (result.success) {
-              toast.success(`Internship approved & Certificate ${cert_id} sent to ${studentEmail}!`, { id: toastId });
+              toast.success(`${isFreeMeritApproval ? "Free Merit Internship approved" : "Internship approved"} & Certificate ${cert_id} sent to ${studentEmail}!`, { id: toastId });
             } else {
               toast.error(`Internship approved, but certificate email failed: ${result.error}`, { id: toastId, duration: 8000 });
             }
@@ -3024,14 +3220,17 @@ function VerificationSection() {
             toast.error(`Internship approved, but certificate email error: ${e.message}`, { id: toastId });
           }
         } else {
-          toast.success(`Internship approved! Certificate ${cert_id} issued.`);
+          toast.success(`${isFreeMeritApproval ? "Free Merit Internship approved" : "Internship approved"}! Certificate ${cert_id} issued.`);
         }
       }
 
+      setFreeApproveDialog(null);
       qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
       qc.invalidateQueries({ queryKey: ["admin-verification-reviewed"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
       qc.invalidateQueries({ queryKey: ["admin-payments"] });
+      qc.invalidateQueries({ queryKey: ["admin-certs"] });
+      qc.invalidateQueries({ queryKey: ["admin-students"] });
     } catch (err: any) {
       toast.error(err.message || "Failed to approve internship");
     } finally {
@@ -3112,34 +3311,94 @@ function VerificationSection() {
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div><span className="text-muted-foreground">Applied</span><p className="font-semibold">{new Date(a.created_at).toLocaleDateString("en-IN")}</p></div>
                   <div><span className="text-muted-foreground">Submitted</span><p className="font-semibold">{a.submitted_at ? new Date(a.submitted_at).toLocaleDateString("en-IN") : "—"}</p></div>
-                  <div><span className="text-muted-foreground">Payment</span><p className="font-semibold">{pay ? (pay.utr_number === "FREE_COUPON" ? "Free Coupon" : `₹${pay.amount}`) : "—"}</p></div>
-                  <div><span className="text-muted-foreground">Status</span><p className="font-semibold capitalize">{pay?.status ?? a.certificate_payment_status ?? "—"}</p></div>
+                  <div>
+                    <span className="text-muted-foreground">Payment</span>
+                    <p className="font-semibold">
+                      {pay ? (
+                        pay.utr_number === "FREE_COUPON" || pay.utr_number === "FREE_MERIT_WAIVER" || pay.amount === 0 ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">Free / Waived</span>
+                        ) : (
+                          `₹${pay.amount}`
+                        )
+                      ) : (
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">Unpaid (Free Eligible)</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Status</span>
+                    <p className="font-semibold capitalize">
+                      {isPayDone ? (
+                        <span className="text-emerald-600 dark:text-emerald-400">Payment Verified</span>
+                      ) : hasCoupon ? (
+                        <span className="text-blue-600 dark:text-blue-400">Free Coupon</span>
+                      ) : (
+                        <span className="text-amber-600 dark:text-amber-400">Awaiting Payment</span>
+                      )}
+                    </p>
+                  </div>
                 </div>
                 {a.coupon_code && <p className="mt-2 text-xs text-muted-foreground">Coupon: <span className="font-mono font-bold text-emerald-600">{a.coupon_code}</span></p>}
+                
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button size="sm" className={`border-0 rounded-xl ${issuesCert ? "bg-green-600 hover:bg-green-700 text-white" : "bg-muted text-muted-foreground opacity-70"}`}
-                    disabled={actionLoading === a.id || !issuesCert}
-                    onClick={() => handleApprove(a)}>
-                    {actionLoading === a.id ? <Loader2 className="size-3.5 animate-spin mr-1" /> : <CheckCircle2 className="size-3.5 mr-1" />}
-                    {issuesCert ? "Approve & Issue Certificate" : "Awaiting Payment Verification"}
-                  </Button>
-                  <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
+                  {issuesCert ? (
+                    <Button
+                      size="sm"
+                      className="border-0 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium"
+                      disabled={actionLoading === a.id}
+                      onClick={() => handleApprove(a, false)}
+                    >
+                      {actionLoading === a.id ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <CheckCircle2 className="size-3.5 mr-1.5" />}
+                      Approve & Issue Certificate
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="border-0 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm font-semibold"
+                      disabled={actionLoading === a.id}
+                      onClick={() => {
+                        setFreeApproveDialog(a);
+                        setMeritReason("⭐ Top Performer / High Quality Work");
+                        setCustomMeritNote("");
+                      }}
+                    >
+                      {actionLoading === a.id ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Sparkles className="size-3.5 mr-1.5 text-amber-200" />}
+                      Approve Free (Merit / No Payment)
+                    </Button>
+                  )}
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
                     disabled={actionLoading === a.id}
-                    onClick={() => { setRejectDialog(a); setRejectReason(""); }}>
+                    onClick={() => { setRejectDialog(a); setRejectReason(""); }}
+                  >
                     <XCircle className="size-3.5 mr-1" /> Reject
                   </Button>
-                  <Button size="sm" variant="outline" className="rounded-xl border-border/60" onClick={() => setSelectedApp(selectedApp?.id === a.id ? null : a)}>
-                    <Eye className="size-3.5 mr-1" /> {selectedApp?.id === a.id ? "Hide" : "View"} Details
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl border-border/60"
+                    onClick={() => setSelectedApp(selectedApp?.id === a.id ? null : a)}
+                  >
+                    <Eye className="size-3.5 mr-1" /> {selectedApp?.id === a.id ? "Hide" : "View"} Details & Tasks
                   </Button>
                 </div>
+
                 {selectedApp?.id === a.id && (
-                  <div className="mt-4 rounded-xl border border-border/40 bg-muted/30 p-4 text-xs space-y-2">
-                    <p><span className="font-semibold">Email:</span> {a.email}</p>
-                    <p><span className="font-semibold">Phone:</span> {a.phone ?? "—"}</p>
-                    <p><span className="font-semibold">College:</span> {a.college} · {a.course} ({a.year})</p>
-                    <p><span className="font-semibold">Location:</span> {[a.city, a.district, a.state, a.country].filter(Boolean).join(", ") || "—"}</p>
-                    <p><span className="font-semibold">Duration:</span> {a.duration ?? 1} Month(s)</p>
-                  </div>
+                  <VerificationAppDetails
+                    app={a}
+                    isPayDone={isPayDone}
+                    hasCoupon={hasCoupon}
+                    actionLoading={actionLoading === a.id}
+                    onFreeApprove={() => {
+                      setFreeApproveDialog(a);
+                      setMeritReason("⭐ Top Performer / High Quality Work");
+                      setCustomMeritNote("");
+                    }}
+                  />
                 )}
               </div>
             );
@@ -3197,6 +3456,142 @@ function VerificationSection() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Free Merit Approval Modal */}
+      {freeApproveDialog && (
+        <Portal>
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={() => !actionLoading && setFreeApproveDialog(null)}
+          >
+            <div
+              className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-emerald-500/20 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:bg-[#1E293B]/95 dark:border-white/10 my-auto animate-in zoom-in-95 space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+                    <Sparkles className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground">Manual Free Approval (Merit)</h3>
+                    <p className="text-xs text-muted-foreground">Waive payment & issue certificate free of cost</p>
+                  </div>
+                </div>
+                <button
+                  disabled={Boolean(actionLoading)}
+                  onClick={() => setFreeApproveDialog(null)}
+                  className="grid size-8 place-items-center rounded-xl hover:bg-muted text-muted-foreground"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              {/* Student Summary Card */}
+              <div className="rounded-2xl border border-border/50 bg-muted/40 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm text-foreground">{freeApproveDialog.full_name}</span>
+                  <Badge variant="outline" className="font-mono text-xs">{freeApproveDialog.intern_id}</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div>Track: <span className="font-semibold text-foreground">{getDomain(freeApproveDialog.domain)?.name ?? freeApproveDialog.domain}</span></div>
+                  <div>Duration: <span className="font-semibold text-foreground">{freeApproveDialog.duration ?? 1} Month(s)</span></div>
+                  <div>College: <span className="font-semibold text-foreground truncate block">{freeApproveDialog.college}</span></div>
+                  <div>Email: <span className="font-semibold text-foreground truncate block">{freeApproveDialog.email}</span></div>
+                </div>
+              </div>
+
+              {/* Merit Reason Selection */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold">Award Reason / Merit Category</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    "⭐ Top Performer / High Quality Work",
+                    "🌟 Outstanding Task Deliverables",
+                    "🎓 100% Free Merit Scholarship",
+                    "🎁 Special Admin Free Waiver",
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setMeritReason(preset)}
+                      className={`text-left p-2.5 rounded-xl border text-xs font-medium transition ${
+                        meritReason === preset
+                          ? "border-emerald-500 bg-emerald-50/80 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300 font-semibold shadow-sm"
+                          : "border-border/60 hover:bg-muted/60 text-muted-foreground"
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Note */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Custom Remarks (Optional)</Label>
+                <Input
+                  placeholder="e.g. Excellent frontend design and functional backend APIs"
+                  value={customMeritNote}
+                  onChange={(e) => setCustomMeritNote(e.target.value)}
+                  className="h-9 text-xs rounded-xl"
+                />
+              </div>
+
+              {/* What Happens Next Checklist */}
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 p-3.5 text-xs text-emerald-900 dark:text-emerald-300 space-y-1.5">
+                <p className="font-bold flex items-center gap-1.5 text-emerald-800 dark:text-emerald-200">
+                  <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                  What happens upon confirmation:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-[11px] text-emerald-800/90 dark:text-emerald-300/90 ml-1">
+                  <li>Payment is marked as <strong>100% Free Waived</strong> (₹0) in database</li>
+                  <li>Tamper-proof Certificate ID generated with online QR verification</li>
+                  <li>Official Completion Certificate PDF emailed to <strong>{freeApproveDialog.email}</strong></li>
+                  <li>Student LMS dashboard unlocked with Completed status</li>
+                </ul>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2.5 justify-end pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={() => setFreeApproveDialog(null)}
+                  disabled={Boolean(actionLoading)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0 shadow-md shadow-emerald-600/20 font-semibold"
+                  disabled={actionLoading === freeApproveDialog.id}
+                  onClick={() => {
+                    const finalReason = customMeritNote.trim()
+                      ? `${meritReason} (${customMeritNote.trim()})`
+                      : meritReason;
+                    handleApprove(freeApproveDialog, true, finalReason);
+                  }}
+                >
+                  {actionLoading === freeApproveDialog.id ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin mr-1.5" />
+                      Issuing Free Certificate...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="size-3.5 mr-1.5 text-amber-200" />
+                      Confirm & Issue Free Certificate
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Portal>
       )}
 
       {/* Reject Dialog */}
