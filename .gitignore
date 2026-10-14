@@ -35,4 +35,5 @@ src/lib/email-assets.ts
 *.sw?
 .vercel
 .env*
+!.env.example
 scratch/

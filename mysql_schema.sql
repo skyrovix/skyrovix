@@ -382,7 +382,46 @@ CREATE TABLE IF NOT EXISTS project_evaluations (
   FOREIGN KEY (submission_id) REFERENCES project_submissions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 21. COURSES
+-- 21. PROJECT CERTIFICATES
+CREATE TABLE IF NOT EXISTS project_certificates (
+  id VARCHAR(36) PRIMARY KEY,
+  cert_id VARCHAR(100) UNIQUE NOT NULL,
+  submission_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
+  project_id VARCHAR(36) NOT NULL,
+  participant_name VARCHAR(255) NOT NULL,
+  project_title VARCHAR(255) NOT NULL,
+  industry VARCHAR(100) NOT NULL,
+  technologies JSON,
+  final_score DECIMAL(5,1) NOT NULL,
+  completion_date DATE NOT NULL,
+  issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  INDEX idx_proj_certs_cert_id (cert_id),
+  FOREIGN KEY (submission_id) REFERENCES project_submissions(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (project_id) REFERENCES project_challenges(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 22. PROJECT AWARDS
+CREATE TABLE IF NOT EXISTS project_awards (
+  id VARCHAR(36) PRIMARY KEY,
+  award_id VARCHAR(100) UNIQUE NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
+  submission_id VARCHAR(36) NOT NULL,
+  participant_name VARCHAR(255) NOT NULL,
+  project_title VARCHAR(255) NOT NULL,
+  rank_position VARCHAR(50) NOT NULL,
+  award_title VARCHAR(255) NOT NULL DEFAULT '',
+  award_category VARCHAR(100) NOT NULL,
+  final_score DECIMAL(5,1) NOT NULL,
+  issue_date DATE NOT NULL,
+  issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  INDEX idx_proj_awards_award_id (award_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (submission_id) REFERENCES project_submissions(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 23. COURSES
 CREATE TABLE IF NOT EXISTS courses (
   id VARCHAR(36) PRIMARY KEY,
   slug VARCHAR(100) UNIQUE NOT NULL,

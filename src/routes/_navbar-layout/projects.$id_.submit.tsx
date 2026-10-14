@@ -101,10 +101,9 @@ function ProjectSubmitPage() {
       .upload(filePath, docFile, { cacheControl: "3600", upsert: true });
 
     if (error) {
-      // Fallback in case storage bucket RLS/creation is missing
-      console.warn("Storage upload failed, fallback to simulated URL.", error);
+      console.warn("Storage upload failed, fallback to local URL.", error);
       setUploadingDoc(false);
-      return `https://eesiuqeswydlmwhecrcy.supabase.co/storage/v1/object/public/project-submissions/${filePath}`;
+      return `/uploads/project-submissions/${filePath}`;
     }
 
     const { data: { publicUrl } } = supabase.storage

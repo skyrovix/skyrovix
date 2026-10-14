@@ -86,28 +86,10 @@ function AuthPage() {
 
     console.log("[Auth] Attempting sign-in for:", rawEmail);
 
-    let { data: authData, error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: rawEmail,
       password,
     });
-
-    // If initial attempt fails and email is Hariharan's admin account, try alternative admin password
-    if (error && (rawEmail === "harimaheshwaran34@gmail.com" || rawEmail === "hariharan@skyrovix.com")) {
-      const fallbackList = ["123harimahesh", "Admin@123"];
-      for (const altPwd of fallbackList) {
-        if (altPwd !== password) {
-          const retry = await supabase.auth.signInWithPassword({
-            email: rawEmail,
-            password: altPwd,
-          });
-          if (!retry.error && retry.data?.user) {
-            authData = retry.data;
-            error = null;
-            break;
-          }
-        }
-      }
-    }
 
     setLoading(false);
     if (error) return toast.error(error.message);
