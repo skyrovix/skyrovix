@@ -1,13 +1,15 @@
 import mysql from "mysql2/promise";
+import { loadEnv } from "./env.server";
 
 let _pool: mysql.Pool | null = null;
 
 export function getDbPool(): mysql.Pool {
+  loadEnv();
   if (!_pool) {
     const host = process.env.MYSQL_HOST || process.env.DB_HOST || "127.0.0.1";
     const port = Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3306);
     const user = process.env.MYSQL_USER || process.env.DB_USER || "root";
-    const password = process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD || "";
+    const password = process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD || "123Sk_hari@2006";
     const database = process.env.MYSQL_DATABASE || process.env.DB_NAME || "skyrovix";
 
     _pool = mysql.createPool({
@@ -58,7 +60,8 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
     await pool.query("SELECT 1");
     _schemaMigrated = true;
   } catch (err: any) {
-    console.warn("[db.server] MySQL connection verification:", err.message);
+    _pool = null;
+    console.warn("[db.server] MySQL connection verification failed, reset pool:", err.message);
   }
 }
 

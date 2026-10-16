@@ -50,10 +50,15 @@ function isSafeIdentifier(str: string): boolean {
 }
 
 function sanitizeSelectColumns(selectStr?: string): string {
-  if (!selectStr || selectStr.trim() === "*") return "*";
-  const cols = selectStr.split(",").map((c) => c.trim());
+  if (!selectStr || selectStr.includes("*")) return "*";
+  // Strip nested relations like table(...) or table!inner(...)
+  const stripped = selectStr.replace(/[a-zA-Z0-9_!]+\([^)]*\)/g, "");
+  const cols = stripped
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
   const safeCols = cols.filter(isSafeIdentifier);
-  return safeCols.length > 0 ? safeCols.join(", ") : "*";
+  return safeCols.length > 0 ? safeCols.map((c) => `\`${c}\``).join(", ") : "*";
 }
 
 export interface MysqlFilter {
@@ -135,7 +140,53 @@ export async function executeMysqlQuery(req: MysqlQueryRequest): Promise<{ data:
       }
 
       const res = await dbQuery(sql, params);
-      const rows = res.rows || [];
+      let rows = res.rows || [];
+
+      // Hydrate relations if requested
+      if (req.select && rows.length > 0) {
+        if (table === "submissions") {
+          if (req.select.includes("applications")) {
+            const appIds = [...new Set(rows.map((r: any) => r.application_id).filter(Boolean))];
+            if (appIds.length > 0) {
+              const appRes = await dbQuery(
+                `SELECT * FROM applications WHERE id IN (${appIds.map(() => "?").join(", ")})`,
+                appIds
+              );
+              const appMap = new Map((appRes.rows || []).map((a: any) => [a.id, a]));
+              rows.forEach((r: any) => {
+                r.applications = appMap.get(r.application_id) || null;
+              });
+            }
+          }
+          if (req.select.includes("tasks")) {
+            const taskIds = [...new Set(rows.map((r: any) => r.task_id).filter(Boolean))];
+            if (taskIds.length > 0) {
+              const taskRes = await dbQuery(
+                `SELECT * FROM tasks WHERE id IN (${taskIds.map(() => "?").join(", ")})`,
+                taskIds
+              );
+              const taskMap = new Map((taskRes.rows || []).map((t: any) => [t.id, t]));
+              rows.forEach((r: any) => {
+                r.tasks = taskMap.get(r.task_id) || null;
+              });
+            }
+          }
+        } else if (table === "project_submissions") {
+          if (req.select.includes("project_challenges")) {
+            const challengeIds = [...new Set(rows.map((r: any) => r.challenge_id || r.project_id).filter(Boolean))];
+            if (challengeIds.length > 0) {
+              const chalRes = await dbQuery(
+                `SELECT * FROM project_challenges WHERE id IN (${challengeIds.map(() => "?").join(", ")})`,
+                challengeIds
+              );
+              const chalMap = new Map((chalRes.rows || []).map((c: any) => [c.id, c]));
+              rows.forEach((r: any) => {
+                r.project_challenges = chalMap.get(r.challenge_id || r.project_id) || null;
+              });
+            }
+          }
+        }
+      }
 
       if (req.single) {
         if (rows.length === 0) {

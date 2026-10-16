@@ -10,9 +10,12 @@ if (typeof setInterval !== "undefined") {
   setInterval(async () => {
     try {
       const { dbQuery } = await import("@/lib/db.server");
-      const cutoff = new Date(Date.now() - STALE_TIMEOUT).toISOString();
+      const cutoff = new Date(Date.now() - STALE_TIMEOUT)
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
       await dbQuery(
-        "UPDATE public.login_sessions SET status = 'offline' WHERE status = 'online' AND last_active < $1",
+        "UPDATE login_sessions SET status = 'offline' WHERE status = 'online' AND last_active < ?",
         [cutoff]
       );
     } catch (e) {

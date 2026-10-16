@@ -47,6 +47,12 @@ export function loadEnv(force = false) {
     if (!process.env.CASHFREE_SECRET_KEY) {
       process.env.CASHFREE_SECRET_KEY = "cfsk_ma_prod_d3b45e16d8c0d277fc90ae6e333e90aa_eb101bb7";
     }
+
+    if (!process.env.MYSQL_HOST) process.env.MYSQL_HOST = "127.0.0.1";
+    if (!process.env.MYSQL_PORT) process.env.MYSQL_PORT = "3306";
+    if (!process.env.MYSQL_USER) process.env.MYSQL_USER = "root";
+    if (!process.env.MYSQL_PASSWORD) process.env.MYSQL_PASSWORD = "123Sk_hari@2006";
+    if (!process.env.MYSQL_DATABASE) process.env.MYSQL_DATABASE = "skyrovix";
   } catch (e) {
     // Ignore error if file reading fails
   }
