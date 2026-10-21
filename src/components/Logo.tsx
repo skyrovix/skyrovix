@@ -1,26 +1,44 @@
-import defaultLogo from "@/assets/top nav bar logo.png";
-import loginLogo from "@/assets/login page logo.png";
+import skyrovixFullLogo from "@/assets/skyrovix-logo-transparent.png";
+import skyrovixWhiteLogo from "@/assets/skyrovix-logo-white.png";
+import skShortLogo from "@/assets/sk-logo-transparent.png";
+import skShortWhiteLogo from "@/assets/sk-logo-white.png";
 
 export function Logo({
   variant = "default",
+  short = false,
+  className,
 }: {
   size?: number;
   withText?: boolean;
-  /** "default" uses the dark navy brand-text gradient; "white" renders plain white for use on dark/gradient backgrounds */
+  short?: boolean;
+  className?: string;
+  /** "default" renders dark charcoal with orange accents for light backgrounds; "white" renders white with orange accents for dark backgrounds */
   variant?: "default" | "white";
 }) {
   const isWhite = variant === "white";
 
+  if (short) {
+    const src = isWhite ? skShortWhiteLogo : skShortLogo;
+    return (
+      <div className="flex items-center shrink-0">
+        <img
+          src={src}
+          alt="Skyrovix"
+          className={className || "h-7.5 sm:h-8 w-auto object-contain shrink-0"}
+        />
+      </div>
+    );
+  }
+
+  const src = isWhite ? skyrovixWhiteLogo : skyrovixFullLogo;
+
   return (
-    <div className="flex items-center">
-      {isWhite ? (
-        <img src={loginLogo} alt="Skyrovix" className="h-10 sm:h-14 w-auto object-contain" />
-      ) : (
-        <>
-          <img src={defaultLogo} alt="Skyrovix" className="h-10 sm:h-14 w-auto object-contain dark:hidden" />
-          <img src={loginLogo} alt="Skyrovix" className="h-10 sm:h-14 w-auto object-contain hidden dark:block" />
-        </>
-      )}
+    <div className="flex items-center shrink-0">
+      <img
+        src={src}
+        alt="Skyrovix"
+        className={className || "h-9 sm:h-11 w-auto object-contain shrink-0"}
+      />
     </div>
   );
 }

@@ -126,12 +126,12 @@ export const PAYMENT = {
 };
 
 export const DOMAINS = [
-  { slug: "fullstack", name: "Full Stack Development", icon: "FS", description: "End-to-end web apps with frontend, backend, databases, and APIs.", color: "from-fuchsia-500 to-[#07284a]" },
+  { slug: "fullstack", name: "Full Stack Development", icon: "FS", description: "End-to-end web apps with frontend, backend, databases, and APIs.", color: "from-fuchsia-500 to-[#181619]" },
   { slug: "python", name: "Python Development", icon: "Py", description: "Versatile Python development for web apps, automation, and backend APIs.", color: "from-emerald-500 to-teal-600" },
   { slug: "java", name: "Java Development", icon: "Jv", description: "Enterprise-grade software and backend systems with Java and Spring Boot.", color: "from-red-500 to-orange-600" },
   { slug: "mernstack", name: "MERN Stack Development", icon: "ME", description: "Full-stack JavaScript applications with MongoDB, Express, React, and Node.js.", color: "from-teal-500 to-cyan-600" },
   { slug: "meanstack", name: "MEAN Stack Development", icon: "MA", description: "Modern web development with MongoDB, Express, Angular, and Node.js.", color: "from-red-500 to-rose-600" },
-  { slug: "aiml", name: "AI & Machine Learning", icon: "AI", description: "Build intelligent systems with machine learning models and predictive algorithms.", color: "from-violet-500 to-[#07284a]" },
+  { slug: "aiml", name: "AI & Machine Learning", icon: "AI", description: "Build intelligent systems with machine learning models and predictive algorithms.", color: "from-violet-500 to-[#181619]" },
   { slug: "genai", name: "Generative AI & Prompt Engineering", icon: "GA", description: "Harness LLMs, generative AI workflows, and advanced prompt engineering.", color: "from-purple-500 to-indigo-600" },
   { slug: "datascience", name: "Data Science", icon: "DS", description: "Transform raw datasets into actionable insights, data stories, and analytical models.", color: "from-cyan-500 to-blue-600" },
   { slug: "dataanalytics", name: "Data Analytics", icon: "DA", description: "Analyze business metrics, build KPI dashboards, and drive data-informed decisions.", color: "from-blue-500 to-indigo-600" },
@@ -177,15 +177,91 @@ export function getDomain(slug: string) {
 }
 
 export const DURATIONS = [
-  { value: 1, label: "1 Month", tasks: 5, desc: "5 tasks — perfect for a quick start" },
-  { value: 2, label: "2 Months", tasks: 8, desc: "8 tasks — more depth and practice" },
-  { value: 3, label: "3 Months", tasks: 10, desc: "10 tasks — build a solid portfolio" },
-  { value: 6, label: "6 Months", tasks: 12, desc: "12 tasks — master the domain" },
+  { value: 1, label: "1 Month", tasks: 5, desc: "5 tasks — foundational hands-on curriculum" },
+  { value: 2, label: "2 Months", tasks: 8, desc: "8 tasks — intermediate real-world practice" },
+  { value: 3, label: "3 Months", tasks: 10, desc: "10 tasks (25 for Full Stack with Real-World Deployment & LOR)" },
+  { value: 6, label: "6 Months", tasks: 12, desc: "12 tasks (50 for Full Stack with Real-World Deployment & LOR)" },
 ] as const;
 
-export function durationConfig(months?: number) {
-  return DURATIONS.find((d) => d.value === months) ?? DURATIONS[0];
+/**
+ * Returns total sequential student tasks for a given domain, duration, and plan type.
+ * Full Stack Premium (₹200): 1M=5, 2M=8, 3M=25, 6M=50 projects.
+ * Full Stack Standard (₹100) & Other domains: 1M=5, 2M=8, 3M=10, 6M=12 tasks.
+ */
+export function getDomainTaskCount(
+  domainSlug?: string,
+  durationMonths: number = 1,
+  planType?: string
+): number {
+  if (domainSlug === "fullstack") {
+    if (planType === "premium") {
+      if (durationMonths === 6) return 50;
+      if (durationMonths === 3) return 25;
+      if (durationMonths === 2) return 8;
+      return 5;
+    }
+    // Standard track for full stack
+    if (durationMonths === 6) return 12;
+    if (durationMonths === 3) return 10;
+    if (durationMonths === 2) return 8;
+    return 5;
+  }
+  if (durationMonths === 6) return 12;
+  if (durationMonths === 3) return 10;
+  if (durationMonths === 2) return 8;
+  return 5;
 }
+
+/**
+ * Returns available internship durations for all domains.
+ * All domains offer all 4 durations: 1, 2, 3, and 6 months.
+ * Full Stack 3M (25 tasks) and 6M (50 tasks) include real-world live deployment,
+ * LOR for selected top performers, and curated course & YouTube channel learning references.
+ */
+export function getAvailableDurations(_domainSlug?: string) {
+  return DURATIONS;
+}
+
+export function durationConfig(months?: number, domainSlug?: string, planType?: string) {
+  const base = DURATIONS.find((d) => d.value === months) ?? DURATIONS[0];
+  const count = getDomainTaskCount(domainSlug, base.value, planType);
+  let desc: string = base.desc;
+  if (domainSlug === "fullstack") {
+    if (planType === "premium") {
+      if (base.value === 3) {
+        desc = "25 Real-World Deployed Projects • LOR for Selected Top Performers";
+      } else if (base.value === 6) {
+        desc = "50 Real-World Deployed Projects • Capstone & LOR for Selected Top Performers";
+      } else if (base.value === 2) {
+        desc = "8 tasks — intermediate full stack web apps";
+      } else {
+        desc = "5 tasks — foundational web development";
+      }
+    } else {
+      if (base.value === 3) {
+        desc = "10 structured full stack projects • Standard Curriculum Track";
+      } else if (base.value === 6) {
+        desc = "12 structured full stack projects • Standard Curriculum Track";
+      } else if (base.value === 2) {
+        desc = "8 tasks — intermediate full stack web apps";
+      } else {
+        desc = "5 tasks — foundational web development";
+      }
+    }
+  } else {
+    if (base.value === 3) {
+      desc = "10 structured industry tasks • Comprehensive domain depth";
+    } else if (base.value === 6) {
+      desc = "12 structured industry tasks • Capstone domain mastery";
+    } else if (base.value === 2) {
+      desc = "8 structured industry tasks • Practical project implementation";
+    } else {
+      desc = "5 structured industry tasks • Foundational start";
+    }
+  }
+  return { ...base, tasks: count, desc };
+}
+
 
 export function generateInternId() {
   const year = new Date().getFullYear();

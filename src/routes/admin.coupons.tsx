@@ -9,6 +9,7 @@ import { ArrowLeft, Tag } from "lucide-react";
 export const Route = createFileRoute("/admin/coupons")({
   ssr: false,
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data: sessionData } = await supabase.auth.getSession();
     let user: any = sessionData?.session?.user;
     if (!user) {

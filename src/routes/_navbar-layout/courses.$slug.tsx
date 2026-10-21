@@ -115,7 +115,35 @@ function CourseContentPage() {
         .eq("course_id", course!.id)
         .order("order_index", { ascending: true });
       if (error) throw error;
-      return data;
+      return (data || []).map((t: any) => {
+        let pts: string[] = [];
+        if (Array.isArray(t.key_points)) {
+          pts = t.key_points;
+        } else if (typeof t.key_points === "string" && t.key_points.trim()) {
+          try {
+            const parsed = JSON.parse(t.key_points);
+            if (Array.isArray(parsed)) {
+              pts = parsed;
+            } else if (parsed && typeof parsed === "object") {
+              pts = Object.values(parsed).filter((v) => typeof v === "string") as string[];
+            } else {
+              pts = [String(parsed)];
+            }
+          } catch {
+            if (t.key_points.includes("\n")) {
+              pts = t.key_points
+                .split("\n")
+                .map((line: string) => line.replace(/^[-*•\d.]\s*/, "").trim())
+                .filter(Boolean);
+            } else {
+              pts = [t.key_points.trim()];
+            }
+          }
+        } else if (t.key_points && typeof t.key_points === "object") {
+          pts = Object.values(t.key_points).filter((v) => typeof v === "string") as string[];
+        }
+        return { ...t, key_points: pts };
+      });
     },
   });
 
@@ -469,7 +497,7 @@ function CourseContentPage() {
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800/80">
                 {tableHeaders.map((header, idx) => (
-                  <th key={idx} className="px-4 py-3 font-semibold text-[#07284a] dark:text-blue-400 border-r border-slate-200/40 dark:border-slate-800/30 last:border-r-0">
+                  <th key={idx} className="px-4 py-3 font-semibold text-foreground border-r border-slate-200/40 dark:border-slate-800/30 last:border-r-0">
                     {parseInlineMarkdown(header)}
                   </th>
                 ))}
@@ -588,19 +616,19 @@ function CourseContentPage() {
 
       if (trimmed.startsWith("# ")) {
         elements.push(
-          <h1 key={i} className="text-xl md:text-2xl font-extrabold my-5 text-[#07284a] dark:text-blue-400">
+          <h1 key={i} className="text-xl md:text-2xl font-extrabold my-5 text-foreground">
             {parseInlineMarkdown(trimmed.substring(2))}
           </h1>
         );
       } else if (trimmed.startsWith("## ")) {
         elements.push(
-          <h2 key={i} className="text-base md:text-lg font-bold mt-7 mb-3.5 text-[#07284a] dark:text-blue-400 border-b border-slate-100 dark:border-slate-800/80 pb-2">
+          <h2 key={i} className="text-base md:text-lg font-bold mt-7 mb-3.5 text-foreground border-b border-border/80 pb-2">
             {parseInlineMarkdown(trimmed.substring(3))}
           </h2>
         );
       } else if (trimmed.startsWith("### ")) {
         elements.push(
-          <h3 key={i} className="text-sm md:text-base font-semibold mt-5 mb-2 text-[#07284a]/95 dark:text-blue-300">
+          <h3 key={i} className="text-sm md:text-base font-semibold mt-5 mb-2 text-foreground/90">
             {parseInlineMarkdown(trimmed.substring(4))}
           </h3>
         );
@@ -874,32 +902,62 @@ function CourseContentPage() {
                 {renderMarkdown(currentTopic.content_md)}
               </div>
 
-              {/* Highlighted Key Points */}
-              {currentTopic.key_points && currentTopic.key_points.length > 0 && (
-                <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 text-xs space-y-2 select-text">
-                  <h4 className="font-bold text-[#07284a] dark:text-[#60a5fa] flex items-center gap-1.5">
-                    <Sparkles className="size-3.5 text-blue-500" /> Key Takeaways
-                  </h4>
-                  <ul className="list-disc pl-4 space-y-1 text-muted-foreground leading-relaxed">
-                    {currentTopic.key_points.map((pt, idx) => (
-                      <li key={idx}>{pt}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {(() => {
+                let pts: string[] = [];
+                if (Array.isArray(currentTopic.key_points)) {
+                  pts = currentTopic.key_points;
+                } else if (typeof currentTopic.key_points === "string" && currentTopic.key_points.trim()) {
+                  try {
+                    const parsed = JSON.parse(currentTopic.key_points);
+                    if (Array.isArray(parsed)) {
+                      pts = parsed;
+                    } else if (parsed && typeof parsed === "object") {
+                      pts = Object.values(parsed).filter((v) => typeof v === "string") as string[];
+                    } else {
+                      pts = [String(parsed)];
+                    }
+                  } catch {
+                    if (currentTopic.key_points.includes("\n")) {
+                      pts = currentTopic.key_points
+                        .split("\n")
+                        .map((line: string) => line.replace(/^[-*•\d.]\s*/, "").trim())
+                        .filter(Boolean);
+                    } else {
+                      pts = [currentTopic.key_points.trim()];
+                    }
+                  }
+                } else if (currentTopic.key_points && typeof currentTopic.key_points === "object") {
+                  pts = Object.values(currentTopic.key_points).filter((v) => typeof v === "string") as string[];
+                }
+
+                if (!Array.isArray(pts) || pts.length === 0) return null;
+
+                return (
+                  <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 text-xs space-y-2 select-text">
+                    <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                      <Sparkles className="size-3.5 text-[#f95c4b]" /> Key Takeaways
+                    </h4>
+                    <ul className="list-disc pl-4 space-y-1 text-muted-foreground leading-relaxed">
+                      {pts.map((pt, idx) => (
+                        <li key={idx}>{typeof pt === "string" ? pt : JSON.stringify(pt)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })()}
 
               {/* Code Playground */}
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#07284a] dark:text-[#60a5fa] flex items-center gap-1.5 uppercase tracking-wide">
-                  <Code2 className="size-4 text-blue-500" /> Interactive Coding Playground
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wide">
+                  <Code2 className="size-4 text-[#f95c4b]" /> Interactive Coding Playground
                 </h3>
                 <CodeEditor language={course.domain} initialCode={currentTopic.code_example} />
               </div>
 
               {/* Personal Notes Workspace */}
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#07284a] dark:text-[#60a5fa] flex items-center gap-1.5 uppercase tracking-wide">
-                  <FileText className="size-4 text-blue-500" /> Personal Notes
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wide">
+                  <FileText className="size-4 text-[#f95c4b]" /> Personal Notes
                 </h3>
                 <div className="relative rounded-2xl border border-border/40 overflow-hidden shadow-sm bg-white dark:bg-[#0b0f19]">
                   <textarea
@@ -926,8 +984,8 @@ function CourseContentPage() {
               {/* Topic Quiz Assessment Block */}
               {activeQuizQuestions.length > 0 && (
                 <div className="p-6 rounded-2xl border border-border/40 bg-white/70 dark:bg-[#0f172a]/70 backdrop-blur shadow-sm space-y-4">
-                  <h3 className="text-sm font-bold text-[#07284a] dark:text-[#60a5fa] flex items-center gap-1.5 uppercase tracking-wide">
-                    <CheckSquare className="size-4 text-blue-500" /> Lesson Assessment
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wide">
+                    <CheckSquare className="size-4 text-[#f95c4b]" /> Lesson Assessment
                   </h3>
                   {activeQuizPassed ? (
                     <div className="rounded-xl p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 flex items-center gap-2.5">

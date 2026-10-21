@@ -30,6 +30,7 @@ import {
   Calendar,
   Tag,
   AlertTriangle,
+  Crown,
 } from "lucide-react";
 
 interface FeeSettingsSectionProps {
@@ -59,6 +60,10 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
   const [certFeeAmount, setCertFeeAmount] = useState<number>(100);
   const [certFeeEnabled, setCertFeeEnabled] = useState<boolean>(true);
 
+  // Premium Plan state
+  const [premiumPlanAmount, setPremiumPlanAmount] = useState<number>(200);
+  const [premiumPlanEnabled, setPremiumPlanEnabled] = useState<boolean>(true);
+
   // Certificate Free Offer state
   const [offerEnabled, setOfferEnabled] = useState<boolean>(false);
   const [offerAmount, setOfferAmount] = useState<number>(0);
@@ -77,6 +82,7 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
     if (!data?.settings) return;
     const app = data.settings.find((s) => s.fee_type === "application");
     const cert = data.settings.find((s) => s.fee_type === "certificate");
+    const prem = data.settings.find((s) => s.fee_type === "premium_plan");
 
     if (app) {
       setAppFeeAmount(app.amount);
@@ -100,6 +106,10 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
         const d = new Date(cert.offer_end_at);
         setOfferEndAt(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
       }
+    }
+    if (prem) {
+      setPremiumPlanAmount(prem.amount);
+      setPremiumPlanEnabled(prem.is_enabled);
     }
   }, [data]);
 
@@ -131,6 +141,10 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
             amount: Number(certFeeAmount),
             isEnabled: certFeeEnabled,
           },
+          premiumPlan: {
+            amount: Number(premiumPlanAmount),
+            isEnabled: premiumPlanEnabled,
+          },
           certificateOffer: {
             isEnabled: offerEnabled,
             amount: Number(offerAmount),
@@ -145,7 +159,9 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
       });
     },
     onSuccess: () => {
-      toast.success("Fee settings & promotional offer updated successfully!");
+      toast.success(
+        `Fee settings saved! Premium Plan mode is ${premiumPlanEnabled ? `ON (₹${premiumPlanAmount} Plan Active)` : "OFF (All Premium sections hidden)"}.`
+      );
       qc.invalidateQueries({ queryKey: ["admin-fee-settings"] });
       qc.invalidateQueries({ queryKey: ["public-fee-settings"] });
     },
@@ -510,6 +526,121 @@ export function FeeSettingsSection({ adminId }: FeeSettingsSectionProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Premium Plan Configuration Card */}
+      <Card className="rounded-2xl border-amber-500/40 bg-gradient-to-br from-card via-amber-50/15 to-card shadow-sm overflow-hidden">
+        <CardHeader className="border-b border-border/30 bg-amber-500/10 dark:bg-amber-950/20 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 grid place-items-center">
+                <Crown className="size-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base font-bold text-foreground">Premium Internship Plan (₹{premiumPlanAmount})</CardTitle>
+                  <Badge
+                    variant={premiumPlanEnabled ? "default" : "secondary"}
+                    className={`text-[11px] font-bold ${
+                      premiumPlanEnabled
+                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                        : "bg-slate-500/10 text-muted-foreground border-border/40"
+                    }`}
+                  >
+                    {premiumPlanEnabled ? `ON · ₹${premiumPlanAmount} Plan Active` : "OFF · Hidden from Students"}
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs">
+                  {premiumPlanEnabled
+                    ? `Live Real-time: Students see the ₹${premiumPlanAmount} Full Stack Intensive track at enrollment with advanced full stack tasks in their LMS dashboard.`
+                    : `Live Real-time: Premium plan is turned OFF. The ₹${premiumPlanAmount} plan option and upgrade buttons are completely hidden from students.`}
+                </CardDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-foreground">
+                {premiumPlanEnabled ? "Mode: ON" : "Mode: OFF"}
+              </span>
+              <Switch checked={premiumPlanEnabled} onCheckedChange={setPremiumPlanEnabled} />
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-6 space-y-5">
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Left: Pricing configuration */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Registration Fee Presets
+                </Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[150, 200, 250, 300].map((amt) => (
+                    <Button
+                      key={amt}
+                      type="button"
+                      variant={premiumPlanAmount === amt ? "default" : "outline"}
+                      size="sm"
+                      className={`rounded-xl h-10 font-bold text-xs ${
+                        premiumPlanAmount === amt
+                          ? "bg-amber-500 text-white shadow-sm hover:bg-amber-600"
+                          : "hover:bg-muted/60 border-border/60"
+                      }`}
+                      onClick={() => setPremiumPlanAmount(amt)}
+                    >
+                      ₹{amt}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="premiumPlanInput" className="text-xs font-bold text-foreground">
+                  Registration Fee Amount (₹)
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">
+                    ₹
+                  </span>
+                  <Input
+                    id="premiumPlanInput"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={premiumPlanAmount}
+                    onChange={(e) => setPremiumPlanAmount(Number(e.target.value) || 0)}
+                    className="pl-8 h-11 rounded-xl text-base font-bold bg-background/50 border-border/60"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Default: ₹200 for both 3-month and 6-month durations.
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Plan deliverables description */}
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-2 text-xs">
+              <p className="font-extrabold text-foreground flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                <Sparkles className="size-3.5" /> Premium Plan Offerings
+              </p>
+              <ul className="space-y-1.5 text-muted-foreground">
+                <li className="flex items-start gap-1.5">
+                  <CheckCircle2 className="size-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span><strong>3-Month:</strong> 10 sequential tasks + access to 25+ real-world project blueprints</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <CheckCircle2 className="size-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span><strong>6-Month:</strong> 12 sequential tasks + access to 50+ real-world project blueprints</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <CheckCircle2 className="size-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span>Mentorship office hours and structured guidance support</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Certificate Free Offer Promotion Card */}
       <Card className="rounded-2xl border-emerald-300/60 bg-gradient-to-br from-card via-emerald-50/20 to-card shadow-sm overflow-hidden">

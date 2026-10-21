@@ -19,8 +19,8 @@ function PaymentProcessingPage() {
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-md rounded-3xl border border-blue-500/30 bg-white/90 dark:bg-[#0f172a]/90 p-8 sm:p-10 shadow-2xl backdrop-blur text-center relative overflow-hidden">
-        <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 mb-4">
+      <div className="w-full max-w-md rounded-3xl border border-[#f95c4b]/20 bg-white/90 dark:bg-[#0f172a]/90 p-8 sm:p-10 shadow-2xl backdrop-blur text-center relative overflow-hidden">
+        <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-[#f95c4b]/10 text-[#f95c4b] mb-4">
           <Loader2 className="size-8 animate-spin" />
         </div>
 

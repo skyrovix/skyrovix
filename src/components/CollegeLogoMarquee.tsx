@@ -1,4 +1,6 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { homeClientLogosMarquee } from "@/lib/symboolic.com-motion.framer";
 
 // Dynamically import ALL logos ONLY from college-loge-right-to-left folder
 const rightToLeftLogos = import.meta.glob<{ default: string }>(
@@ -87,9 +89,13 @@ export function CollegeLogoMarquee() {
           className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 lg:w-40 z-20 bg-gradient-to-l from-white/90 dark:from-[#020617] to-transparent"
         />
 
-        {/* Marquee Track — Pure Transparent Logos */}
+        {/* Marquee Track — Pure Transparent Logos with Symboolic Marquee Preset */}
         <div className="overflow-hidden py-3">
-          <div className="college-marquee-track flex items-center gap-8 sm:gap-12 md:gap-16 px-6">
+          <motion.div
+            variants={homeClientLogosMarquee}
+            animate="animate"
+            className="flex items-center gap-8 sm:gap-12 md:gap-16 px-6 w-max"
+          >
             {duplicatedLogos.map((college, idx) => (
               <div
                 key={`${college.id}-${idx}`}
@@ -104,7 +110,7 @@ export function CollegeLogoMarquee() {
                 />
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

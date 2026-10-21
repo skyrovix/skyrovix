@@ -115,7 +115,7 @@ export const markStaleSessionsOffline = createServerFn({ method: "POST" })
       const { dbQuery } = await import("@/lib/db.server");
       const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
       const res = await dbQuery(
-        "UPDATE public.login_sessions SET status = 'offline' WHERE status = 'online' AND last_active < $1 RETURNING id",
+        "UPDATE public.login_sessions SET status = 'offline' WHERE status = 'online' AND last_active < $1",
         [cutoff]
       );
       return { success: true, markedCount: res.rowCount ?? 0 };

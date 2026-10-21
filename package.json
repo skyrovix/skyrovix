@@ -71,6 +71,7 @@
     "framer-motion": "^12.41.0",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.575.0",
     "mysql2": "^3.24.6",

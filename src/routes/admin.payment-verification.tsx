@@ -9,6 +9,7 @@ import { ArrowLeft, LayoutDashboard, ShieldCheck } from "lucide-react";
 export const Route = createFileRoute("/admin/payment-verification")({
   ssr: false,
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data: sessionData } = await supabase.auth.getSession();
     let user: any = sessionData?.session?.user;
     if (!user) {

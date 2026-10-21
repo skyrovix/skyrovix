@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { VerificationView } from "@/components/VerificationView";
 
 export const Route = createFileRoute("/verify-certificate")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { id?: string; cert?: string; intern?: string } => ({
     id: (search.id as string) || (search.cert as string) || (search.intern as string) || "",
     cert: (search.cert as string) || "",
     intern: (search.intern as string) || "",

@@ -195,20 +195,26 @@ export function TasksSection({
   submissions: rawSubmissions,
   appId,
   duration,
+  totalTasks,
+  planType,
   submissionStatus,
   isAppFeeRequired = false,
   appFeeAmount = 0,
+  appFeePayment,
   onOpenAppPayment,
   onNavigateCertificates,
   isCertPaymentRequired = false,
   certFeeAmount = 100,
   onOpenCertPayment,
+  isPremiumPlanEnabled = true,
   onChange,
 }: {
   domainSlug: string;
   submissions: Submission[];
   appId: string;
   duration?: number;
+  totalTasks?: number | null;
+  planType?: string | null;
   submissionStatus?: string;
   isAppFeeRequired?: boolean;
   appFeeAmount?: number;
@@ -218,6 +224,7 @@ export function TasksSection({
   isCertPaymentRequired?: boolean;
   certFeeAmount?: number;
   onOpenCertPayment?: () => void;
+  isPremiumPlanEnabled?: boolean;
   onChange: () => void;
 }) {
   const [search, setSearch] = useState("");
@@ -228,18 +235,31 @@ export function TasksSection({
   const [taskIdMap, setTaskIdMap] = useState<Record<number, string>>({});
   const [tasksReady, setTasksReady] = useState(false);
 
+  const isPremiumActive = Boolean(isPremiumPlanEnabled && planType === "premium");
+  const effectiveLimit = useMemo(() => {
+    if (domainSlug === "fullstack") {
+      if (isPremiumActive) {
+        const fullstackLimits: Record<number, number> = { 1: 5, 2: 8, 3: 25, 6: 50 };
+        return fullstackLimits[duration ?? 1] ?? 5;
+      } else {
+        const standardLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+        return standardLimits[duration ?? 1] ?? 5;
+      }
+    }
+    if (totalTasks && totalTasks > 0) return totalTasks;
+    const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+    return taskLimits[duration ?? 1] ?? 5;
+  }, [isPremiumActive, totalTasks, domainSlug, duration]);
+
   const domainData = getDomainTasks(domainSlug);
-  const allTasks = duration ? getTasksByDuration(domainSlug, duration) : (domainData?.tasks ?? []);
+  const allTasks = duration ? getTasksByDuration(domainSlug, duration, effectiveLimit) : (domainData?.tasks ?? []);
 
   // Fetch task IDs from DB
   useEffect(() => {
     let cancelled = false;
     (async () => {
       let query = supabase.from("tasks").select("id, task_number").eq("domain", domainSlug);
-      if (duration) {
-        const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
-        query = query.lte("task_number", taskLimits[duration] ?? 5);
-      }
+      query = query.lte("task_number", effectiveLimit);
       const { data } = await query;
       if (cancelled) return;
       const map: Record<number, string> = {};
@@ -247,7 +267,7 @@ export function TasksSection({
       if (!cancelled) { setTaskIdMap(map); setTasksReady(true); }
     })();
     return () => { cancelled = true; };
-  }, [domainSlug, duration]);
+  }, [domainSlug, effectiveLimit]);
 
   const isAppFeeLocked = Boolean(isAppFeeRequired && appFeeAmount > 0 && appFeePayment?.status !== "approved");
 
@@ -489,14 +509,14 @@ export function TasksSection({
       {stats.total > 0 && stats.completed >= stats.total && (
         <div className={`mb-6 rounded-2xl border p-5 sm:p-6 shadow-sm transition-all ${
           isCertPaymentRequired
-            ? "border-indigo-300/80 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/40 dark:from-indigo-950/20 dark:to-slate-900/40"
-            : "border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/20 dark:to-slate-900/40"
+            ? "border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/10 via-white to-[#ee9590]/5"
+            : "border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 to-white"
         }`}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
               <div className={`grid size-11 place-items-center rounded-2xl shrink-0 shadow-sm ${
                 isCertPaymentRequired
-                  ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white"
+                  ? "brand-gradient text-white shadow-md shadow-[#f95c4b]/20"
                   : "bg-emerald-500 text-white"
               }`}>
                 <Award className="size-6" />
@@ -510,7 +530,7 @@ export function TasksSection({
                     {isCertPaymentRequired ? "Certificate Payment Required" : "Certificate Ready"}
                   </span>
                 </div>
-                <h3 className="font-bold text-base text-foreground mt-0.5">
+                <h3 className="font-bold text-base text-[#181619] mt-0.5">
                   {isCertPaymentRequired
                     ? `Pay Certificate Fee (₹${certFeeAmount}) to Issue Certificate`
                     : "Congratulations! Your Certificate is Ready"}
@@ -527,7 +547,7 @@ export function TasksSection({
               <Button
                 type="button"
                 onClick={onOpenCertPayment}
-                className="shrink-0 rounded-xl h-10 px-5 text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-md gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+                className="shrink-0 rounded-xl h-10 px-5 text-xs font-bold bg-gradient-to-r from-[#f95c4b] to-[#ee9590] hover:opacity-95 text-white border-0 shadow-md shadow-[#f95c4b]/20 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
               >
                 <CreditCard className="size-3.5" /> Pay ₹{certFeeAmount} Now
               </Button>
@@ -873,7 +893,7 @@ function TaskSubmitDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden rounded-2xl border border-border/60 shadow-2xl">
         {/* Dialog Header */}
-        <div className="relative bg-gradient-to-br from-[#07284a] via-[#093a6c] to-[#0a4c8f] px-6 pt-6 pb-5 text-white">
+        <div className="relative bg-gradient-to-r from-[#181619] via-[#242026] to-[#181619] px-6 pt-6 pb-5 text-white">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_60%)] pointer-events-none" />
           <button
             onClick={() => onOpenChange(false)}
@@ -1006,7 +1026,7 @@ function TaskSubmitDialog({
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-11 rounded-xl font-bold text-sm bg-gradient-to-r from-[#07284a] to-[#0a4c8f] hover:from-[#093a6c] hover:to-[#0b5ba8] text-white border-0 shadow-lg shadow-[#07284a]/20 transition-all"
+            className="w-full h-11 rounded-xl font-bold text-sm brand-gradient hover:opacity-95 text-white border-0 shadow-lg shadow-[#f95c4b]/20 transition-all cursor-pointer"
           >
             {loading ? (
               <><Loader2 className="mr-2 size-4 animate-spin" /> Submitting…</>

@@ -12,6 +12,7 @@ import { type ReactNode, useEffect } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/JsonLd";
+import { MotionConfig } from "framer-motion";
 
 const SITE_URL = "https://skyrovix.online";
 
@@ -150,7 +151,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://pagead2.googlesyndication.com", crossOrigin: "" },
       { rel: "dns-prefetch", href: "https://pagead2.googlesyndication.com" },
       { rel: "dns-prefetch", href: "https://www.clarity.ms" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" },
       { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
       { rel: "icon", href: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
       { rel: "icon", href: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
@@ -223,7 +224,7 @@ function ExternalScripts() {
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr" className="bg-[#f8fafc] dark:bg-[#070b19]" suppressHydrationWarning>
+    <html lang="en" dir="ltr" className="bg-[#faf8f2]" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <HeadContent />
         {/* Google AdSense official script tag - placed in global <head> for ownership verification */}
@@ -236,7 +237,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <body className="min-h-screen bg-background font-sans antialiased">
         <OrganizationJsonLd />
         <WebsiteJsonLd />
-        <div className="w-full overflow-x-hidden">
+        <div className="w-full overflow-x-clip">
           {children}
         </div>
         <Scripts />
@@ -247,6 +248,14 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Enforce light mode globally
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.documentElement.classList.remove("dark");
+      localStorage.removeItem("theme");
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -276,7 +285,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ExternalScripts />
-      <Outlet />
+      <MotionConfig reducedMotion="user">
+        <Outlet />
+      </MotionConfig>
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );

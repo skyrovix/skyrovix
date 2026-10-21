@@ -1,27 +1,29 @@
 import { Document, Page, Text, View, StyleSheet, Image, Svg, Path, pdf, type DocumentProps } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
 import QRCode from "qrcode";
-import logo from "@/assets/logo.png";
-import topNavLogo from "@/assets/top nav bar logo.png";
-import seal from "@/assets/seal.jpg";
-import msme from "@/assets/msme.png";
-import sigFounder from "@/assets/hari sig.jpeg";
-import sigCofounder from "@/assets/mahesh sig.jpeg";
-import yrTech from "@/assets/yr-tech logo.png";
-import vinix from "@/assets/vinix.png";
 import { COMPANY, durationConfig, getPublicSiteUrl } from "@/lib/constants";
 import { EMAIL_ASSETS } from "@/lib/email-assets";
 
-const logoImg = EMAIL_ASSETS?.logo || logo;
-const topNavLogoImg = EMAIL_ASSETS?.topNavLogo || topNavLogo;
-const sealImg = EMAIL_ASSETS?.seal || seal;
-const msmeImg = EMAIL_ASSETS?.msme || msme;
-const sigFounderImg = EMAIL_ASSETS?.sigFounder || sigFounder;
-const sigCofounderImg = EMAIL_ASSETS?.sigCofounder || sigCofounder;
-const yrTechImg = EMAIL_ASSETS?.yrTech || yrTech;
-const vinixImg = EMAIL_ASSETS?.vinix || vinix;
+const logoImg = EMAIL_ASSETS?.logo || "";
+const topNavLogoImg = EMAIL_ASSETS?.topNavLogo || "";
+const sealImg = EMAIL_ASSETS?.seal || "";
+const msmeImg = EMAIL_ASSETS?.msme || "";
+const sigFounderImg = EMAIL_ASSETS?.sigFounder || "";
+const sigCofounderImg = EMAIL_ASSETS?.sigCofounder || "";
+const yrTechImg = EMAIL_ASSETS?.yrTech || "";
+const vinixImg = EMAIL_ASSETS?.vinix || "";
 
-const C = { brand: "#07284a", ink: "#1e293b", muted: "#64748b", border: "#e2e8f0", light: "#f8fafc" };
+const C = {
+  brand: "#181619",
+  primary: "#f95c4b",
+  coral: "#f95c4b",
+  coralSoft: "#ee9590",
+  gold: "#d97706",
+  ink: "#181619",
+  muted: "#64748b",
+  border: "#e2e8f0",
+  light: "#faf8f2",
+};
 
 export type ImageAssets = {
   logo?: string;
@@ -37,32 +39,32 @@ const s = StyleSheet.create({
   page: { padding: 24, fontSize: 9, color: C.ink, fontFamily: "Helvetica", position: "relative" },
 
   frameOuter: { position: "absolute", top: 6, left: 6, right: 6, bottom: 6, borderWidth: 1.5, borderColor: C.brand, borderRadius: 4 },
-  frameInner: { position: "absolute", top: 10, left: 10, right: 10, bottom: 10, borderWidth: 0.5, borderColor: C.brand, opacity: 0.1 },
+  frameInner: { position: "absolute", top: 10, left: 10, right: 10, bottom: 10, borderWidth: 0.5, borderColor: C.primary, opacity: 0.25 },
 
   watermark: { position: "absolute", top: 120, left: 0, right: 0, alignItems: "center", opacity: 0.015 },
 
-  topBand: { position: "absolute", top: 0, left: 0, right: 0, height: 4, backgroundColor: C.brand },
+  topBand: { position: "absolute", top: 0, left: 0, right: 0, height: 4, backgroundColor: C.primary },
   bottomBand: { position: "absolute", bottom: 0, left: 0, right: 0, height: 2, backgroundColor: C.brand, opacity: 0.6 },
 
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12, marginBottom: 8, paddingBottom: 6, borderBottomWidth: 1.5, borderBottomColor: C.brand },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12, marginBottom: 8, paddingBottom: 6, borderBottomWidth: 1.5, borderBottomColor: C.primary },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   brand: { fontSize: 15, fontWeight: 700, color: C.brand, letterSpacing: 0.8 },
   headerSmall: { fontSize: 6.5, color: C.muted, marginTop: 1 },
   small: { fontSize: 6.5, color: C.muted },
   refBox: { alignItems: "flex-end" },
   refLabel: { fontSize: 6, color: C.muted, marginBottom: 1, letterSpacing: 1.2, textTransform: "uppercase" },
-  refValue: { fontSize: 8.5, fontWeight: 700, color: C.brand },
+  refValue: { fontSize: 8.5, fontWeight: 700, color: C.primary },
 
   dateLine: { fontSize: 8.5, color: C.ink, marginBottom: 6 },
 
   title: { fontSize: 20, fontWeight: 700, color: C.brand, marginBottom: 4, letterSpacing: 2 },
-  titleAccent: { width: 40, height: 2.5, backgroundColor: C.brand, marginBottom: 10, borderRadius: 2 },
+  titleAccent: { width: 40, height: 2.5, backgroundColor: C.primary, marginBottom: 10, borderRadius: 2 },
 
   greeting: { fontSize: 9.5, marginBottom: 6, color: C.ink },
   p: { lineHeight: 1.5, marginBottom: 6, color: "#334155", fontSize: 8.5 },
   bold: { fontWeight: 700 },
 
-  sectionHeading: { fontSize: 10.5, fontWeight: 700, color: C.brand, marginBottom: 5, marginTop: 8, letterSpacing: 0.4 },
+  sectionHeading: { fontSize: 10.5, fontWeight: 700, color: C.primary, marginBottom: 5, marginTop: 8, letterSpacing: 0.4 },
 
   table: { marginBottom: 5, borderWidth: 0.5, borderColor: C.border, borderRadius: 3, overflow: "hidden" },
   tableHeader: { flexDirection: "row", backgroundColor: C.brand },
@@ -72,15 +74,15 @@ const s = StyleSheet.create({
   row: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: C.border, backgroundColor: "#ffffff" },
   rowAlt: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: C.border, backgroundColor: "#f8fafc" },
   rowLast: { flexDirection: "row", backgroundColor: "#f8fafc" },
-  key: { width: 100, fontSize: 7.5, color: C.muted, paddingVertical: 3, paddingHorizontal: 8, borderRightWidth: 0.5, borderRightColor: C.border, backgroundColor: "#f1f5f9" },
+  key: { width: 100, fontSize: 7.5, color: C.muted, paddingVertical: 3, paddingHorizontal: 8, borderRightWidth: 0.5, borderRightColor: C.border, backgroundColor: "#faf8f2" },
   val: { flex: 1, fontSize: 8, fontWeight: 700, paddingVertical: 3, paddingHorizontal: 8 },
 
   overviewBullet: { flexDirection: "row", marginBottom: 2 },
-  overviewDot: { width: 14, fontSize: 8, color: C.brand, fontFamily: "Helvetica-Bold", lineHeight: 1.5 },
+  overviewDot: { width: 14, fontSize: 8, color: C.primary, fontFamily: "Helvetica-Bold", lineHeight: 1.5 },
   overviewText: { flex: 1, fontSize: 8, color: "#334155", lineHeight: 1.5 },
 
   termsBullet: { flexDirection: "row", marginBottom: 2 },
-  termsDot: { width: 14, fontSize: 8, color: C.brand, fontFamily: "Helvetica-Bold" },
+  termsDot: { width: 14, fontSize: 8, color: C.primary, fontFamily: "Helvetica-Bold" },
   termsText: { flex: 1, fontSize: 8, color: "#475569", lineHeight: 1.45 },
 
   sigRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 16 },
@@ -113,7 +115,7 @@ const offerStyles = StyleSheet.create({
     right: 10,
     bottom: 10,
     borderWidth: 1.2,
-    borderColor: "#07284a",
+    borderColor: "#181619",
     borderRadius: 4,
   },
   frameInner: {
@@ -123,8 +125,8 @@ const offerStyles = StyleSheet.create({
     right: 12.5,
     bottom: 12.5,
     borderWidth: 0.5,
-    borderColor: "#0284c7",
-    opacity: 0.25,
+    borderColor: "#f95c4b",
+    opacity: 0.35,
     borderRadius: 3,
   },
   watermark: {
@@ -137,7 +139,7 @@ const offerStyles = StyleSheet.create({
   },
   watermarkText: {
     fontSize: 60,
-    color: "#07284a",
+    color: "#181619",
     fontFamily: "Helvetica-Bold",
     letterSpacing: 8,
   },
@@ -170,13 +172,13 @@ const offerStyles = StyleSheet.create({
   brandName: {
     fontSize: 16.5,
     fontFamily: "Helvetica-Bold",
-    color: "#07284a",
+    color: "#181619",
     letterSpacing: 0.5,
   },
   brandTagline: {
     fontSize: 8.8,
     fontFamily: "Helvetica-Bold",
-    color: "#0284c7",
+    color: "#f95c4b",
     marginTop: 0.8,
   },
   brandMeta: {
@@ -198,7 +200,7 @@ const offerStyles = StyleSheet.create({
   refValue: {
     fontSize: 10.5,
     fontFamily: "Helvetica-Bold",
-    color: "#07284a",
+    color: "#f95c4b",
     marginTop: 0.5,
   },
   dateLabel: {
@@ -212,7 +214,7 @@ const offerStyles = StyleSheet.create({
   dateValue: {
     fontSize: 10,
     fontFamily: "Helvetica-Bold",
-    color: "#07284a",
+    color: "#181619",
     marginTop: 0.5,
   },
 
@@ -223,14 +225,14 @@ const offerStyles = StyleSheet.create({
   titleText: {
     fontSize: 17.5,
     fontFamily: "Helvetica-Bold",
-    color: "#07284a",
+    color: "#181619",
     letterSpacing: 1.3,
     textTransform: "uppercase",
   },
   titleDate: {
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    color: "#b45309",
+    color: "#f95c4b",
     marginTop: 2,
   },
 
@@ -259,7 +261,7 @@ const offerStyles = StyleSheet.create({
     marginBottom: 10,
   },
   tableHeader: {
-    backgroundColor: "#07284a",
+    backgroundColor: "#181619",
     paddingVertical: 5,
     paddingHorizontal: 10,
   },
@@ -280,12 +282,13 @@ const offerStyles = StyleSheet.create({
     flexDirection: "row",
     borderTopWidth: 0.5,
     borderTopColor: "#e2e8f0",
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#faf8f2",
   },
   colKey: {
     width: 180,
     fontSize: 8.2,
-    color: "#334155",
+    color: "#403b42",
+    backgroundColor: "#faf8f2",
     paddingVertical: 4.2,
     paddingHorizontal: 10,
     borderRightWidth: 0.5,
@@ -295,14 +298,14 @@ const offerStyles = StyleSheet.create({
     flex: 1,
     fontSize: 8.4,
     fontFamily: "Helvetica-Bold",
-    color: "#0f172a",
+    color: "#181619",
     paddingVertical: 4.2,
     paddingHorizontal: 10,
   },
 
   // Cards
   cardBox: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#faf8f2",
     borderWidth: 0.5,
     borderColor: "#e2e8f0",
     borderRadius: 4,
@@ -313,7 +316,7 @@ const offerStyles = StyleSheet.create({
   cardTitle: {
     fontSize: 8.5,
     fontFamily: "Helvetica-Bold",
-    color: "#07284a",
+    color: "#f95c4b",
     letterSpacing: 0.5,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -391,7 +394,7 @@ const offerStyles = StyleSheet.create({
   },
   signLine: {
     borderTopWidth: 1.2,
-    borderTopColor: "#334155",
+    borderTopColor: "#181619",
     width: 165,
     marginTop: 2,
     marginBottom: 2.5,
@@ -399,12 +402,12 @@ const offerStyles = StyleSheet.create({
   signName: {
     fontSize: 9.5,
     fontFamily: "Helvetica-Bold",
-    color: "#07284a",
+    color: "#181619",
   },
   signTitle: {
     fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    color: "#64748b",
+    color: "#f95c4b",
     textTransform: "uppercase",
     marginTop: 0.5,
   },
@@ -450,7 +453,7 @@ const offerStyles = StyleSheet.create({
   footerCompanyName: {
     fontSize: 9.8,
     fontFamily: "Helvetica-Bold",
-    color: "#07284a",
+    color: "#181619",
     letterSpacing: 0.3,
   },
   footerRegistry: {
@@ -461,7 +464,7 @@ const offerStyles = StyleSheet.create({
   footerContact: {
     fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    color: "#0284c7",
+    color: "#f95c4b",
     marginTop: 1.5,
   },
   footerRight: {
@@ -696,79 +699,90 @@ export function CertificateDoc({ fullName, internId, domain, certId, issuedAt, v
   qrCodeDataUri?: string; imageAssets?: ImageAssets;
 }) {
   const date = new Date(issuedAt);
+  const formattedDate = date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 28 }}>
-        <View style={{ borderWidth: 6, borderColor: C.brand, padding: 24, height: "100%" }}>
-          <View style={{ borderWidth: 1, borderColor: C.border, padding: 24, height: "100%" }}>
+      <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 26, backgroundColor: "#ffffff" }}>
+        {/* Skyrovix Regal Double Frame */}
+        <View style={{ borderWidth: 4, borderColor: "#181619", padding: 8, height: "100%", borderRadius: 4 }}>
+          <View style={{ borderWidth: 1.5, borderColor: "#f95c4b", padding: 20, height: "100%", borderRadius: 2 }}>
+            
+            {/* Header: Logos & Brand */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <Image src={imageAssets?.logo ?? logoImg} style={{ width: 48, height: 48 }} />
-                <Image src={imageAssets?.vinix ?? vinixImg} style={{ height: 34, width: 83 }} />
+                <Image src={imageAssets?.vinix ?? vinixImg} style={{ height: 32, width: 78 }} />
               </View>
               <View style={{ alignItems: "center" }}>
-                <Text style={{ fontSize: 16, color: C.brand, fontWeight: 700, letterSpacing: 4 }}>SKYROVIX</Text>
-                <Text style={{ fontSize: 9, color: C.muted }}>{COMPANY.tagline}</Text>
+                <Text style={{ fontSize: 17, color: "#181619", fontWeight: 700, letterSpacing: 4 }}>SKYROVIX</Text>
+                <Text style={{ fontSize: 8.5, color: "#f95c4b", fontWeight: 700, letterSpacing: 1.5, marginTop: 1 }}>{COMPANY.tagline}</Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <Image src={imageAssets?.yrTech ?? yrTechImg} style={{ height: 34, width: 51 }} />
-                <Image src={imageAssets?.msme ?? msmeImg} style={{ height: 34, width: 68 }} />
+                <Image src={imageAssets?.yrTech ?? yrTechImg} style={{ height: 32, width: 48 }} />
+                <Image src={imageAssets?.msme ?? msmeImg} style={{ height: 32, width: 64 }} />
               </View>
             </View>
 
-            <View style={{ alignItems: "center", marginTop: 18 }}>
-              <Text style={{ fontSize: 36, fontWeight: 700, color: C.brand, letterSpacing: 4 }}>CERTIFICATE</Text>
-              <Text style={{ fontSize: 12, color: C.muted, letterSpacing: 8, marginTop: 2 }}>OF INTERNSHIP COMPLETION</Text>
+            {/* Title Block */}
+            <View style={{ alignItems: "center", marginTop: 16 }}>
+              <Text style={{ fontSize: 34, fontWeight: 700, color: "#181619", letterSpacing: 5 }}>CERTIFICATE</Text>
+              <Text style={{ fontSize: 11, color: "#f95c4b", fontWeight: 700, letterSpacing: 7, marginTop: 3 }}>OF INTERNSHIP COMPLETION</Text>
+              <View style={{ width: 56, height: 2.5, backgroundColor: "#f95c4b", marginTop: 7, borderRadius: 2 }} />
             </View>
 
-            <View style={{ alignItems: "center", marginTop: 28 }}>
-              <Text style={{ fontSize: 11, color: C.muted }}>This certificate is proudly presented to</Text>
-              <Text style={{ fontSize: 32, fontWeight: 700, marginTop: 12, marginBottom: 12, color: C.ink }}>{fullName}</Text>
-              <Text style={{ fontSize: 11, color: C.muted, textAlign: "center", maxWidth: 600, lineHeight: 1.6 }}>
+            {/* Presentation Citation */}
+            <View style={{ alignItems: "center", marginTop: 22 }}>
+              <Text style={{ fontSize: 10.5, color: "#64748b", letterSpacing: 0.5 }}>This certificate is proudly presented to</Text>
+              <Text style={{ fontSize: 29, fontWeight: 700, marginTop: 10, marginBottom: 10, color: "#181619", letterSpacing: 0.5 }}>{fullName}</Text>
+              <Text style={{ fontSize: 10.5, color: "#334155", textAlign: "center", maxWidth: 620, lineHeight: 1.6 }}>
                 for successfully completing the task-based virtual internship program in
-                {" "}<Text style={{ fontWeight: 700, color: C.ink }}>{domain}</Text>{" "}
+                {" "}<Text style={{ fontWeight: 700, color: "#f95c4b" }}>{domain}</Text>{" "}
                 at Skyrovix, demonstrating dedication, technical skill, and professional excellence throughout the program.
               </Text>
             </View>
 
+            {/* QR Code Verification Badge */}
             {qrCodeDataUri && (
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
-                <Image src={qrCodeDataUri} style={{ width: 48, height: 48 }} />
+                <Image src={qrCodeDataUri} style={{ width: 44, height: 44 }} />
                 <View>
-                  <Text style={{ fontSize: 8, fontWeight: 700, color: C.brand }}>Digitally Verified</Text>
-                  <Text style={{ fontSize: 7, color: C.muted }}>Scan QR to verify authenticity</Text>
+                  <Text style={{ fontSize: 8, fontWeight: 700, color: "#f95c4b" }}>Digitally Verified Credential</Text>
+                  <Text style={{ fontSize: 6.8, color: "#64748b" }}>Scan QR or verify at skyrovix.in/verify-certificate</Text>
                 </View>
               </View>
             )}
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 40 }}>
+            {/* Signatures & Seal Section */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 28 }}>
               <View style={s.sigBlock}>
                 <Image src={imageAssets?.sigFounder ?? sigFounderImg} style={s.sigImg} />
-                <View style={s.sigLine} />
-                <Text style={s.bold}>{COMPANY.founder.name}</Text>
-                <Text style={s.small}>{COMPANY.founder.title}</Text>
+                <View style={{ borderTopWidth: 1, borderTopColor: "#181619", width: "100%", marginBottom: 2 }} />
+                <Text style={{ ...s.bold, color: "#181619" }}>{COMPANY.founder.name}</Text>
+                <Text style={{ ...s.small, color: "#f95c4b", fontWeight: 700 }}>{COMPANY.founder.title}</Text>
               </View>
               <View style={{ alignItems: "center" }}>
-                <Image src={imageAssets?.seal ?? sealImg} style={{ width: 90, height: 90, opacity: 0.9 }} />
+                <Image src={imageAssets?.seal ?? sealImg} style={{ width: 84, height: 84, opacity: 0.95 }} />
               </View>
               <View style={s.sigBlock}>
                 <Image src={imageAssets?.sigCofounder ?? sigCofounderImg} style={s.sigImg} />
-                <View style={s.sigLine} />
-                <Text style={s.bold}>{COMPANY.cofounder.name}</Text>
-                <Text style={s.small}>{COMPANY.cofounder.title}</Text>
+                <View style={{ borderTopWidth: 1, borderTopColor: "#181619", width: "100%", marginBottom: 2 }} />
+                <Text style={{ ...s.bold, color: "#181619" }}>{COMPANY.cofounder.name}</Text>
+                <Text style={{ ...s.small, color: "#f95c4b", fontWeight: 700 }}>{COMPANY.cofounder.title}</Text>
               </View>
             </View>
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 16, fontSize: 8.5, color: C.muted }}>
+            {/* Footer Metadata */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14, fontSize: 8, color: "#64748b" }}>
               <View style={{ flexDirection: "column", gap: 2 }}>
-                <Text>Certificate ID: {certId}</Text>
-                <Text>Intern ID: {internId}</Text>
+                <Text>Certificate ID: <Text style={{ color: "#181619", fontWeight: 700 }}>{certId}</Text></Text>
+                <Text>Intern ID: <Text style={{ color: "#f95c4b", fontWeight: 700 }}>{internId}</Text></Text>
               </View>
               <View style={{ flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                <Text>Issued: {date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</Text>
-                <Text>Verify at: www.skyrovix.online</Text>
+                <Text>Issued: <Text style={{ color: "#181619", fontWeight: 700 }}>{formattedDate}</Text></Text>
+                <Text>Verify at: <Text style={{ color: "#f95c4b", fontWeight: 700 }}>www.skyrovix.in/verify-certificate</Text></Text>
               </View>
             </View>
+
           </View>
         </View>
       </Page>
@@ -782,80 +796,91 @@ export function CourseCertificateDoc({ fullName, courseName, score, total, certI
   qrCodeDataUri?: string; imageAssets?: ImageAssets;
 }) {
   const date = new Date(issuedAt);
+  const formattedDate = date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 28 }}>
-        <View style={{ borderWidth: 6, borderColor: C.brand, padding: 24, height: "100%" }}>
-          <View style={{ borderWidth: 1, borderColor: C.border, padding: 24, height: "100%" }}>
+      <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 26, backgroundColor: "#ffffff" }}>
+        {/* Skyrovix Regal Double Frame */}
+        <View style={{ borderWidth: 4, borderColor: "#181619", padding: 8, height: "100%", borderRadius: 4 }}>
+          <View style={{ borderWidth: 1.5, borderColor: "#f95c4b", padding: 20, height: "100%", borderRadius: 2 }}>
+            
+            {/* Header: Logos & Brand */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <Image src={imageAssets?.logo ?? logoImg} style={{ width: 48, height: 48 }} />
-                <Image src={imageAssets?.vinix ?? vinixImg} style={{ height: 34, width: 83 }} />
+                <Image src={imageAssets?.vinix ?? vinixImg} style={{ height: 32, width: 78 }} />
               </View>
               <View style={{ alignItems: "center" }}>
-                <Text style={{ fontSize: 16, color: C.brand, fontWeight: 700, letterSpacing: 4 }}>SKYROVIX</Text>
-                <Text style={{ fontSize: 9, color: C.muted }}>{COMPANY.tagline}</Text>
+                <Text style={{ fontSize: 17, color: "#181619", fontWeight: 700, letterSpacing: 4 }}>SKYROVIX</Text>
+                <Text style={{ fontSize: 8.5, color: "#f95c4b", fontWeight: 700, letterSpacing: 1.5, marginTop: 1 }}>{COMPANY.tagline}</Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <Image src={imageAssets?.yrTech ?? yrTechImg} style={{ height: 34, width: 51 }} />
-                <Image src={imageAssets?.msme ?? msmeImg} style={{ height: 34, width: 68 }} />
+                <Image src={imageAssets?.yrTech ?? yrTechImg} style={{ height: 32, width: 48 }} />
+                <Image src={imageAssets?.msme ?? msmeImg} style={{ height: 32, width: 64 }} />
               </View>
             </View>
 
-            <View style={{ alignItems: "center", marginTop: 18 }}>
-              <Text style={{ fontSize: 36, fontWeight: 700, color: C.brand, letterSpacing: 4 }}>COURSE CERTIFICATE</Text>
-              <Text style={{ fontSize: 12, color: C.muted, letterSpacing: 8, marginTop: 2 }}>OF COMPLETION</Text>
+            {/* Title Block */}
+            <View style={{ alignItems: "center", marginTop: 16 }}>
+              <Text style={{ fontSize: 34, fontWeight: 700, color: "#181619", letterSpacing: 5 }}>COURSE CERTIFICATE</Text>
+              <Text style={{ fontSize: 11, color: "#f95c4b", fontWeight: 700, letterSpacing: 7, marginTop: 3 }}>OF COMPLETION</Text>
+              <View style={{ width: 56, height: 2.5, backgroundColor: "#f95c4b", marginTop: 7, borderRadius: 2 }} />
             </View>
 
-            <View style={{ alignItems: "center", marginTop: 28 }}>
-              <Text style={{ fontSize: 11, color: C.muted }}>This certificate is awarded to</Text>
-              <Text style={{ fontSize: 32, fontWeight: 700, marginTop: 12, marginBottom: 12, color: C.ink }}>{fullName}</Text>
-              <Text style={{ fontSize: 11, color: C.muted, textAlign: "center", maxWidth: 600, lineHeight: 1.6 }}>
+            {/* Presentation Citation */}
+            <View style={{ alignItems: "center", marginTop: 22 }}>
+              <Text style={{ fontSize: 10.5, color: "#64748b", letterSpacing: 0.5 }}>This certificate is awarded to</Text>
+              <Text style={{ fontSize: 29, fontWeight: 700, marginTop: 10, marginBottom: 10, color: "#181619", letterSpacing: 0.5 }}>{fullName}</Text>
+              <Text style={{ fontSize: 10.5, color: "#334155", textAlign: "center", maxWidth: 620, lineHeight: 1.6 }}>
                 for successfully completing the {" "}
-                <Text style={{ fontWeight: 700, color: C.ink }}>{courseName}</Text>{" "}
-                course with a score of <Text style={{ fontWeight: 700, color: C.ink }}>{score}/{total}</Text>,
+                <Text style={{ fontWeight: 700, color: "#f95c4b" }}>{courseName}</Text>{" "}
+                course with a score of <Text style={{ fontWeight: 700, color: "#181619" }}>{score}/{total}</Text>,
                 demonstrating proficiency and commitment to learning.
               </Text>
             </View>
 
+            {/* QR Code Verification Badge */}
             {qrCodeDataUri && (
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
-                <Image src={qrCodeDataUri} style={{ width: 48, height: 48 }} />
+                <Image src={qrCodeDataUri} style={{ width: 44, height: 44 }} />
                 <View>
-                  <Text style={{ fontSize: 8, fontWeight: 700, color: C.brand }}>Digitally Verified</Text>
-                  <Text style={{ fontSize: 7, color: C.muted }}>Scan QR to verify authenticity</Text>
+                  <Text style={{ fontSize: 8, fontWeight: 700, color: "#f95c4b" }}>Digitally Verified Credential</Text>
+                  <Text style={{ fontSize: 6.8, color: "#64748b" }}>Scan QR or verify at skyrovix.in/verify-certificate</Text>
                 </View>
               </View>
             )}
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 40 }}>
+            {/* Signatures & Seal Section */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 28 }}>
               <View style={s.sigBlock}>
                 <Image src={imageAssets?.sigFounder ?? sigFounderImg} style={s.sigImg} />
-                <View style={s.sigLine} />
-                <Text style={s.bold}>{COMPANY.founder.name}</Text>
-                <Text style={s.small}>{COMPANY.founder.title}</Text>
+                <View style={{ borderTopWidth: 1, borderTopColor: "#181619", width: "100%", marginBottom: 2 }} />
+                <Text style={{ ...s.bold, color: "#181619" }}>{COMPANY.founder.name}</Text>
+                <Text style={{ ...s.small, color: "#f95c4b", fontWeight: 700 }}>{COMPANY.founder.title}</Text>
               </View>
               <View style={{ alignItems: "center" }}>
-                <Image src={imageAssets?.seal ?? sealImg} style={{ width: 90, height: 90, opacity: 0.9 }} />
+                <Image src={imageAssets?.seal ?? sealImg} style={{ width: 84, height: 84, opacity: 0.95 }} />
               </View>
               <View style={s.sigBlock}>
                 <Image src={imageAssets?.sigCofounder ?? sigCofounderImg} style={s.sigImg} />
-                <View style={s.sigLine} />
-                <Text style={s.bold}>{COMPANY.cofounder.name}</Text>
-                <Text style={s.small}>{COMPANY.cofounder.title}</Text>
+                <View style={{ borderTopWidth: 1, borderTopColor: "#181619", width: "100%", marginBottom: 2 }} />
+                <Text style={{ ...s.bold, color: "#181619" }}>{COMPANY.cofounder.name}</Text>
+                <Text style={{ ...s.small, color: "#f95c4b", fontWeight: 700 }}>{COMPANY.cofounder.title}</Text>
               </View>
             </View>
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 16, fontSize: 8.5, color: C.muted }}>
+            {/* Footer Metadata */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14, fontSize: 8, color: "#64748b" }}>
               <View style={{ flexDirection: "column", gap: 2 }}>
-                <Text>Certificate ID: {certId}</Text>
-                <Text>Score: {score}/{total}</Text>
+                <Text>Certificate ID: <Text style={{ color: "#181619", fontWeight: 700 }}>{certId}</Text></Text>
+                <Text>Score: <Text style={{ color: "#f95c4b", fontWeight: 700 }}>{score}/{total}</Text></Text>
               </View>
               <View style={{ flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                <Text>Issued: {date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</Text>
-                <Text>Verify at: www.skyrovix.online</Text>
+                <Text>Issued: <Text style={{ color: "#181619", fontWeight: 700 }}>{formattedDate}</Text></Text>
+                <Text>Verify at: <Text style={{ color: "#f95c4b", fontWeight: 700 }}>www.skyrovix.in/verify-certificate</Text></Text>
               </View>
             </View>
+
           </View>
         </View>
       </Page>
@@ -871,7 +896,7 @@ const idCardS = StyleSheet.create({
     fontSize: 8,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
-    color: "#061a33",
+    color: "#181619",
     position: "relative",
   },
   cardContainer: {
@@ -890,7 +915,7 @@ const idCardS = StyleSheet.create({
     justifyContent: "space-between",
   },
   header: {
-    backgroundColor: "#061a33",
+    backgroundColor: "#181619",
     paddingTop: 8,
     paddingBottom: 22,
     paddingHorizontal: 12,
@@ -900,9 +925,9 @@ const idCardS = StyleSheet.create({
     width: 28,
     height: 3,
     borderRadius: 2,
-    backgroundColor: "#020f1f",
+    backgroundColor: "#0d0c0e",
     borderWidth: 0.5,
-    borderColor: "#1e3a5f",
+    borderColor: "#2c282e",
     alignSelf: "center",
     marginBottom: 6,
   },
@@ -930,13 +955,13 @@ const idCardS = StyleSheet.create({
   },
   brandSubtitle: {
     fontSize: 5,
-    color: "#93c5fd",
+    color: "#ee9590",
     marginTop: 0.5,
   },
   badge: {
-    backgroundColor: "#064e3b",
-    borderWidth: 0.5,
-    borderColor: "#34d399",
+    backgroundColor: "#181619",
+    borderWidth: 0.75,
+    borderColor: "#f95c4b",
     borderRadius: 8,
     paddingVertical: 1.5,
     paddingHorizontal: 6,
@@ -944,7 +969,7 @@ const idCardS = StyleSheet.create({
   badgeText: {
     fontSize: 5.5,
     fontWeight: 700,
-    color: "#6ee7b7",
+    color: "#f95c4b",
     letterSpacing: 0.8,
   },
   photoSection: {
@@ -957,7 +982,7 @@ const idCardS = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: "#ffffff",
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#faf8f2",
     overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
@@ -970,14 +995,14 @@ const idCardS = StyleSheet.create({
   photoInitialBox: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#061a33",
+    backgroundColor: "#181619",
     justifyContent: "center",
     alignItems: "center",
   },
   photoInitial: {
     fontSize: 24,
     fontWeight: 700,
-    color: "#ffffff",
+    color: "#f95c4b",
   },
   nameBlock: {
     alignItems: "center",
@@ -987,24 +1012,24 @@ const idCardS = StyleSheet.create({
   name: {
     fontSize: 11,
     fontWeight: 700,
-    color: "#061a33",
+    color: "#181619",
     textAlign: "center",
     textTransform: "uppercase",
   },
   role: {
     fontSize: 6.5,
     fontWeight: 700,
-    color: "#2563eb",
+    color: "#f95c4b",
     textAlign: "center",
     letterSpacing: 1.2,
     textTransform: "uppercase",
     marginTop: 1,
   },
   domainBadge: {
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#faf8f2",
     borderRadius: 8,
     borderWidth: 0.5,
-    borderColor: "#bfdbfe",
+    borderColor: "#f95c4b",
     paddingVertical: 1.5,
     paddingHorizontal: 6,
     marginTop: 2,
@@ -1012,13 +1037,13 @@ const idCardS = StyleSheet.create({
   domainText: {
     fontSize: 6,
     fontWeight: 700,
-    color: "#061a33",
+    color: "#181619",
     textAlign: "center",
   },
   detailsBlock: {
     marginHorizontal: 12,
     marginTop: 4,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#faf8f2",
     borderRadius: 6,
     borderWidth: 0.5,
     borderColor: "#e2e8f0",
@@ -1048,7 +1073,7 @@ const idCardS = StyleSheet.create({
   value: {
     fontSize: 6.8,
     fontWeight: 700,
-    color: "#061a33",
+    color: "#181619",
     marginTop: 0.5,
   },
   barcodeBox: {
@@ -1084,7 +1109,7 @@ const idCardS = StyleSheet.create({
     marginBottom: 1,
   },
   footer: {
-    backgroundColor: "#061a33",
+    backgroundColor: "#181619",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -1094,12 +1119,12 @@ const idCardS = StyleSheet.create({
   footerLink: {
     fontSize: 6,
     fontWeight: 700,
-    color: "#93c5fd",
+    color: "#f95c4b",
   },
   footerMotto: {
     fontSize: 5.5,
     fontWeight: 700,
-    color: "#cbd5e1",
+    color: "#ee9590",
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },

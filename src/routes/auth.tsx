@@ -123,7 +123,7 @@ function AuthPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#F8FAFC] to-[#EEF2FF] dark:from-[#0B1120] dark:to-[#0F172A] p-4 sm:p-6 lg:p-8">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#faf8f2] dark:bg-[#181619] p-4 sm:p-6 lg:p-8">
       {/* CSS Keyframes for drift background blobs */}
       <style>{`
         @keyframes drift-sphere-1 {
@@ -146,14 +146,14 @@ function AuthPage() {
 
       {/* Backdrop glowing spheres */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-40 size-[450px] rounded-full bg-[#07284a]/10 blur-[130px] dark:bg-[#07284a]/15 animate-drift-1" />
-        <div className="absolute top-1/2 -right-40 size-[400px] rounded-full bg-blue-500/10 blur-[120px] dark:bg-blue-600/5 animate-drift-2" />
-        <div className="absolute -bottom-48 left-1/4 size-[550px] rounded-full bg-violet-400/8 blur-[140px] dark:bg-violet-600/5 animate-drift-1" />
+        <div className="absolute -top-40 -left-40 size-[450px] rounded-full bg-[#f95c4b]/12 blur-[130px] animate-drift-1" />
+        <div className="absolute top-1/2 -right-40 size-[400px] rounded-full bg-[rgb(139,92,246)]/12 blur-[120px] animate-drift-2" />
+        <div className="absolute -bottom-48 left-1/4 size-[550px] rounded-full bg-[rgb(242,61,224)]/10 blur-[140px] animate-drift-1" />
       </div>
 
       <div className="relative mx-auto flex w-full max-w-5xl overflow-hidden rounded-3xl border border-border/40 bg-white/40 shadow-2xl backdrop-blur-xl dark:bg-slate-900/40 dark:border-white/5 min-h-[640px] lg:grid lg:grid-cols-12">
         {/* ─── Column 1: Brand visual panel (Desktop only) ─── */}
-        <div className="relative hidden lg:flex lg:col-span-6 flex-col justify-between p-10 overflow-hidden bg-gradient-to-br from-[#07284a] via-[#093561] to-[#0d4c8a] text-white">
+        <div className="relative hidden lg:flex lg:col-span-6 flex-col justify-between p-10 overflow-hidden bg-gradient-to-br from-[#181619] via-[#201d22] to-[#181619] border-r border-white/10 text-white">
           {/* Subtle grid layout overlays */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_55%)] pointer-events-none" />
           <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-blue-400/20 blur-[80px]" />
@@ -170,7 +170,7 @@ function AuthPage() {
             
             <h2 className="font-display text-3xl font-extrabold leading-[1.2] tracking-tight">
               Build real projects.<br />
-              <span className="text-blue-300">Earn verified credentials.</span>
+              <span className="text-[#ee9590]">Earn verified credentials.</span>
             </h2>
             
             <p className="text-sm text-white/80 leading-relaxed max-w-sm">
@@ -179,15 +179,15 @@ function AuthPage() {
 
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
               <div className="rounded-2xl bg-white/5 border border-white/5 p-3.5 backdrop-blur-sm">
-                <p className="text-2xl font-black text-blue-300">10+</p>
+                <p className="text-2xl font-black text-[#ee9590]">10+</p>
                 <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider mt-0.5">Domains</p>
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/5 p-3.5 backdrop-blur-sm">
-                <p className="text-2xl font-black text-blue-300">50+</p>
+                <p className="text-2xl font-black text-[#ee9590]">50+</p>
                 <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider mt-0.5">Tasks</p>
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/5 p-3.5 backdrop-blur-sm">
-                <p className="text-2xl font-black text-blue-300">100%</p>
+                <p className="text-2xl font-black text-[#ee9590]">100%</p>
                 <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider mt-0.5">Online</p>
               </div>
             </div>

@@ -53,7 +53,7 @@ function ReviewCard({ review, isOwner, onDelete }: { review: ReviewWithProfile; 
               {avatarUrl ? (
                 <img src={avatarUrl} alt={name} className="size-full object-cover rounded-full" />
               ) : (
-                <AvatarFallback className="text-[10px] bg-[#07284a]/10 dark:bg-[#1d4ed8]/10 text-[#07284a] dark:text-[#60a5fa]">
+                <AvatarFallback className="text-[10px] bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 text-[#f95c4b] dark:text-[#ee9590]">
                   {initials}
                 </AvatarFallback>
               )}
@@ -198,8 +198,8 @@ export default function ReviewSection({ targetType, targetId }: { targetType: "c
   return (
     <Reveal>
       <div className="flex items-center gap-3 mb-6">
-        <div className="size-10 rounded-xl bg-[#07284a]/10 dark:bg-[#1d4ed8]/10 flex items-center justify-center">
-          <MessageSquare className="size-5 text-[#07284a] dark:text-[#60a5fa]" />
+        <div className="size-10 rounded-xl bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 flex items-center justify-center">
+          <MessageSquare className="size-5 text-[#f95c4b] dark:text-[#ee9590]" />
         </div>
         <h2 className="text-2xl font-bold">Reviews</h2>
       </div>

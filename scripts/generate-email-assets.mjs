@@ -5,7 +5,7 @@ const assetsDir = path.resolve("src/assets");
 const outPath = path.resolve("src/lib/email-assets.ts");
 
 const images = [
-  { key: "logo", file: "logo.png", mime: "image/png" },
+  { key: "logo", file: "sk-logo-transparent.png", mime: "image/png" },
   { key: "topNavLogo", file: "top nav bar logo.png", mime: "image/png" },
   { key: "seal", file: "seal.jpg", mime: "image/jpeg" },
   { key: "msme", file: "msme.png", mime: "image/png" },

@@ -12,14 +12,25 @@ import {
 // Helper: Check if user is admin
 export async function checkIsAdmin(userId?: string | null): Promise<boolean> {
   if (!userId) return false;
+  const adminEmails = [
+    "hariharan@skyrovix.com",
+    "harimaheshwaran34@gmail.com",
+    "hariharan1152007@gmail.com",
+  ];
+  const cleanId = String(userId).trim().toLowerCase();
+  if (adminEmails.includes(cleanId)) {
+    return true;
+  }
   const res = await dbQuery(
-    `SELECT EXISTS (
-       SELECT 1 FROM public.user_roles WHERE user_id = $1 AND role = 'admin'
-     ) OR EXISTS (
-       SELECT 1 FROM auth.users WHERE id = $1 AND LOWER(email) IN (
-         'hariharan@skyrovix.com',
-         'harimaheshwaran34@gmail.com',
-         'hariharan1152007@gmail.com'
+    `SELECT (
+       EXISTS (
+         SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin'
+       ) OR EXISTS (
+         SELECT 1 FROM users WHERE (id = $1 OR LOWER(email) = LOWER($1)) AND LOWER(email) IN (
+           'hariharan@skyrovix.com',
+           'harimaheshwaran34@gmail.com',
+           'hariharan1152007@gmail.com'
+         )
        )
      ) as is_admin`,
     [userId]
@@ -34,6 +45,7 @@ export async function fetchPublicFeeSettings(): Promise<PublicFeeSettings> {
 
     const appRow = rows.find((r: any) => r.fee_type === "application");
     const certRow = rows.find((r: any) => r.fee_type === "certificate");
+    const premiumRow = rows.find((r: any) => r.fee_type === "premium_plan");
 
     const defaultUpiId = certRow?.upi_id || appRow?.upi_id || "hariharanmahesh34@oksbi";
     const defaultPayeeName = certRow?.payee_name || appRow?.payee_name || "Hariharan Mahesh";
@@ -60,6 +72,14 @@ export async function fetchPublicFeeSettings(): Promise<PublicFeeSettings> {
         upi_id: certRow?.upi_id || defaultUpiId,
         payee_name: certRow?.payee_name || defaultPayeeName,
         qr_code_url: certRow?.qr_code_url || null,
+      },
+      premiumPlan: {
+        isEnabled: premiumRow ? (Number(premiumRow.is_enabled) === 1 || premiumRow.is_enabled === true) : false,
+        enabled: premiumRow ? (Number(premiumRow.is_enabled) === 1 || premiumRow.is_enabled === true) : false,
+        amount: Number(premiumRow?.amount ?? 200),
+        upi_id: premiumRow?.upi_id || defaultUpiId,
+        payee_name: premiumRow?.payee_name || defaultPayeeName,
+        qr_code_url: premiumRow?.qr_code_url || null,
       },
       certificateOffer: {
         isEnabled: Boolean(certRow?.offer_enabled),
@@ -91,6 +111,14 @@ export async function fetchPublicFeeSettings(): Promise<PublicFeeSettings> {
         isEnabled: true,
         enabled: true,
         amount: 100,
+        upi_id: "hariharanmahesh34@oksbi",
+        payee_name: "Hariharan Mahesh",
+        qr_code_url: null,
+      },
+      premiumPlan: {
+        isEnabled: false,
+        enabled: false,
+        amount: 200,
         upi_id: "hariharanmahesh34@oksbi",
         payee_name: "Hariharan Mahesh",
         qr_code_url: null,
@@ -173,6 +201,7 @@ export async function updateAdminFeeSettings(data: {
   adminId: string;
   applicationFee: { amount: number; isEnabled: boolean };
   certificateFee: { amount: number; isEnabled: boolean };
+  premiumPlan?: { amount: number; isEnabled: boolean };
   certificateOffer?: {
     isEnabled: boolean;
     amount: number;
@@ -187,7 +216,7 @@ export async function updateAdminFeeSettings(data: {
   const isAdmin = await checkIsAdmin(data.adminId);
   if (!isAdmin) throw new Error("Unauthorized: Admin privileges required");
 
-  if (data.applicationFee.amount < 0 || data.certificateFee.amount < 0) {
+  if (data.applicationFee.amount < 0 || data.certificateFee.amount < 0 || (data.premiumPlan && data.premiumPlan.amount < 0)) {
     throw new Error("Fee amounts cannot be negative");
   }
   if (!data.upiId || !data.upiId.trim()) {
@@ -251,6 +280,30 @@ export async function updateAdminFeeSettings(data: {
       ]
     );
 
+    if (data.premiumPlan) {
+      await client.query(
+        `INSERT INTO public.fee_settings (
+           id, fee_type, amount, is_enabled, upi_id, payee_name, qr_code_url, updated_by, created_at, updated_at
+         ) VALUES ('fee_premium_plan', 'premium_plan', $1, $2, $3, $4, $5, $6, now(), now())
+         ON DUPLICATE KEY UPDATE
+           amount = VALUES(amount),
+           is_enabled = VALUES(is_enabled),
+           upi_id = VALUES(upi_id),
+           payee_name = VALUES(payee_name),
+           qr_code_url = VALUES(qr_code_url),
+           updated_by = VALUES(updated_by),
+           updated_at = now()`,
+        [
+          data.premiumPlan.amount,
+          data.premiumPlan.isEnabled ? 1 : 0,
+          data.upiId.trim(),
+          data.payeeName.trim(),
+          data.qrCodeUrl ?? null,
+          data.adminId,
+        ]
+      );
+    }
+
     await client.query(
       `INSERT INTO public.fee_audit_logs (admin_id, action, entity_type, old_value, new_value)
        VALUES ($1, 'UPDATE_FEE_SETTINGS', 'fee_setting', $2, $3)`,
@@ -260,6 +313,7 @@ export async function updateAdminFeeSettings(data: {
         JSON.stringify({
           applicationFee: data.applicationFee,
           certificateFee: data.certificateFee,
+          premiumPlan: data.premiumPlan,
           certificateOffer: data.certificateOffer,
           upiId: data.upiId,
           payeeName: data.payeeName,
@@ -286,7 +340,7 @@ export async function checkAllTasksVerified(
     : dbQuery;
 
   const appRes = await queryFn(
-    "SELECT id, user_id, domain, duration, total_tasks FROM public.applications WHERE id = $1",
+    "SELECT id, user_id, domain, duration, total_tasks, plan_type FROM public.applications WHERE id = $1",
     [applicationId]
   );
   if (appRes.rows.length === 0) {
@@ -294,8 +348,14 @@ export async function checkAllTasksVerified(
   }
   const app = appRes.rows[0];
 
-  const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
-  const limit = taskLimits[Number(app.duration) || 1] ?? (Number(app.total_tasks) || 5);
+  const isFullstack = app.domain === "fullstack";
+  const isPremium = app.plan_type === "premium";
+  const taskLimits: Record<number, number> = (isFullstack && isPremium)
+    ? { 1: 5, 2: 8, 3: 25, 6: 50 }
+    : { 1: 5, 2: 8, 3: 10, 6: 12 };
+  const limit = (Number(app.total_tasks) > 0)
+    ? Number(app.total_tasks)
+    : (taskLimits[Number(app.duration) || 1] ?? 5);
 
   // Fetch all tasks for domain with task_number <= limit (task 0 LinkedIn, and tasks 1..limit)
   const reqTasksRes = await queryFn(
@@ -320,13 +380,11 @@ export async function checkAllTasksVerified(
     };
   }
 
-  const requiredIds = requiredTasks.map((t) => t.id);
   const approvedRes = await queryFn(
     `SELECT DISTINCT task_id FROM public.submissions 
      WHERE application_id = $1 
-       AND status = 'approved' 
-       AND task_id = ANY($2::uuid[])`,
-    [applicationId, requiredIds]
+       AND status = 'approved'`,
+    [applicationId]
   );
 
   const approvedIds = new Set(approvedRes.rows.map((r: any) => r.task_id));
@@ -485,7 +543,7 @@ export async function submitPaymentProofLogic(data: {
         throw new Error("Application ID is required for certificate payment verification");
       }
       const appRes = await client.query(
-        "SELECT id, user_id, total_tasks, status FROM public.applications WHERE id = $1",
+        "SELECT id, user_id, total_tasks, status, plan_type, plan_fee, agreed_fee FROM public.applications WHERE id = $1",
         [applicationId]
       );
       if (appRes.rows.length === 0) {
@@ -506,9 +564,26 @@ export async function submitPaymentProofLogic(data: {
     }
 
     // 1. Read current fee from database (never trust client)
-    const feeRes = await client.query("SELECT * FROM public.fee_settings WHERE fee_type = $1", [paymentType]);
-    const feeRow = feeRes.rows[0];
-    let amount = Number(feeRow?.amount ?? (paymentType === "certificate" ? 100 : 0));
+    const feeRes = await client.query("SELECT fee_type, amount, is_enabled, offer_enabled, offer_amount, offer_start_at, offer_end_at FROM public.fee_settings");
+    const certFeeRow = feeRes.rows.find((r: any) => r.fee_type === "certificate");
+    const premFeeRow = feeRes.rows.find((r: any) => r.fee_type === "premium_plan");
+    const appFeeRow = feeRes.rows.find((r: any) => r.fee_type === "application");
+
+    let amount = 0;
+    if (paymentType === "certificate") {
+      let appRowData: any = null;
+      if (applicationId) {
+        const aRes = await client.query("SELECT plan_type, plan_fee, agreed_fee FROM public.applications WHERE id = $1", [applicationId]);
+        appRowData = aRes.rows[0];
+      }
+      if (appRowData?.plan_type === "premium") {
+        amount = Number(appRowData.plan_fee) > 0 ? Number(appRowData.plan_fee) : Number(premFeeRow?.amount ?? 200);
+      } else {
+        amount = Number(certFeeRow?.amount ?? 100);
+      }
+    } else {
+      amount = Number(appFeeRow?.amount ?? 0);
+    }
 
     // 2. Apply coupon if provided
     let discountAmount = 0;
@@ -571,15 +646,13 @@ export async function submitPaymentProofLogic(data: {
     }
 
     // 5. Insert new payment record
-    const insertRes = await client.query(
+    const newId = crypto.randomUUID();
+    await client.query(
       `INSERT INTO public.payment_records (
-         user_id, application_id, payment_type, amount, utr_number, screenshot_url, status
-       ) VALUES ($1, $2, $3, $4, $5, $6, 'pending')
-       RETURNING id`,
-      [userId, applicationId ?? null, paymentType, amount, utrNumber.trim(), screenshotUrl ?? null]
+         id, user_id, application_id, payment_type, amount, utr_number, screenshot_url, status
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')`,
+      [newId, userId, applicationId ?? null, paymentType, amount, utrNumber.trim(), screenshotUrl ?? null]
     );
-
-    const newId = insertRes.rows[0].id;
 
     // 6. Update application status if this was an application fee submission
     if (paymentType === "application" && applicationId) {
@@ -596,8 +669,11 @@ export async function submitPaymentProofLogic(data: {
       await client.query(
         `INSERT INTO public.payments (id, application_id, utr_number, screenshot_url, amount, status, coupon_code, discount_amount)
          VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7)
-         ON CONFLICT (application_id) 
-         DO UPDATE SET utr_number = EXCLUDED.utr_number, screenshot_url = EXCLUDED.screenshot_url, amount = EXCLUDED.amount, status = 'pending'`,
+         ON DUPLICATE KEY UPDATE
+           utr_number = VALUES(utr_number),
+           screenshot_url = VALUES(screenshot_url),
+           amount = VALUES(amount),
+           status = 'pending'`,
         [newId, applicationId, utrNumber.trim(), screenshotUrl ?? null, amount, couponCode ?? null, discountAmount]
       );
     }
@@ -672,30 +748,88 @@ export async function claimFreeCouponCertificate(data: {
       [c.id, userId, applicationId]
     );
 
-    const payRes = await client.query(
+    const payRecordId = crypto.randomUUID();
+    await client.query(
       `INSERT INTO public.payment_records (
-         user_id, application_id, payment_type, amount, utr_number, screenshot_url, status, admin_note
-       ) VALUES ($1, $2, 'certificate', 0, $3, null, 'approved', '100% Free Coupon Applied')
-       RETURNING id`,
-      [userId, applicationId, `FREE_${c.code}`]
+         id, user_id, application_id, payment_type, amount, utr_number, screenshot_url, status, admin_note
+       ) VALUES ($1, $2, $3, 'certificate', 0, $4, null, 'approved', '100% Free Coupon Applied')`,
+      [payRecordId, userId, applicationId, `FREE_${c.code}`]
     );
 
     await client.query(
       `INSERT INTO public.payments (id, application_id, utr_number, screenshot_url, amount, status, verified_at, coupon_code, discount_amount)
-       VALUES ($1, $2, $3, null, 0, 'verified', now(), $4, 100)
-       ON CONFLICT (application_id)
-       DO UPDATE SET status = 'verified', verified_at = now(), amount = 0, coupon_code = EXCLUDED.coupon_code`,
-      [payRes.rows[0].id, applicationId, `FREE_${c.code}`, c.code]
+       VALUES ($1, $2, $3, null, 0, 'verified', NOW(), $4, 100)
+       ON DUPLICATE KEY UPDATE
+         status = 'verified',
+         verified_at = NOW(),
+         amount = 0,
+         coupon_code = VALUES(coupon_code)`,
+      [payRecordId, applicationId, `FREE_${c.code}`, c.code]
     );
+
+    // Retrieve or generate certificate
+    const existingCertRes = await client.query(
+      "SELECT certificate_id FROM public.certificates WHERE application_id = $1 LIMIT 1",
+      [applicationId]
+    );
+    let certId = existingCertRes.rows[0]?.certificate_id;
+    if (!certId) {
+      const year = new Date().getFullYear();
+      const rand = Math.floor(100000 + Math.random() * 900000);
+      certId = `SKX-${year}-${rand}`;
+      const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+      await client.query(
+        `INSERT INTO public.certificates (application_id, certificate_id, verification_hash)
+         VALUES ($1, $2, $3)`,
+        [applicationId, certId, hash]
+      );
+    }
 
     await client.query(
       `UPDATE public.applications 
-       SET certificate_payment_status = 'approved', certificate_payment_unlocked = true, all_tasks_verified = true 
+       SET status = 'completed',
+           submission_status = 'approved',
+           verified = true,
+           certificate_generated = true,
+           certificate_generated_at = COALESCE(certificate_generated_at, now()),
+           certificate_payment_status = 'approved',
+           certificate_payment_unlocked = true,
+           all_tasks_verified = true 
        WHERE id = $1`,
       [applicationId]
     );
 
-    return { success: true, message: "Free certificate claimed successfully!" };
+    // Automatically dispatch Certificate of Completion via Gmail SMTP
+    const appFullRes = await client.query("SELECT * FROM public.applications WHERE id = $1", [applicationId]);
+    const fullApp = appFullRes.rows[0];
+    const targetEmail = (fullApp?.email || "").trim();
+    if (targetEmail && certId) {
+      const studentName = fullApp.full_name;
+      const domainVal = fullApp.domain;
+      const internIdVal = fullApp.intern_id || "SKX-INTERN";
+      const finalCertId = certId;
+      setTimeout(async () => {
+        try {
+          const { sendCertificateEmail } = await import("./email-helpers");
+          const domainObj = getDomain(domainVal);
+          const domainName = domainObj?.name || domainVal || "Internship Track";
+          console.log(`[claimFreeCouponCertificate] Automatically sending Certificate to ${targetEmail}...`);
+          const emailRes = await sendCertificateEmail({
+            to: targetEmail,
+            studentName,
+            studentId: userId,
+            certId: finalCertId,
+            domainName,
+            internId: internIdVal,
+          });
+          console.log(`[claimFreeCouponCertificate] Auto Certificate result for ${targetEmail}:`, emailRes.success);
+        } catch (autoErr: any) {
+          console.error("[claimFreeCouponCertificate] Auto Certificate dispatch error:", autoErr?.message);
+        }
+      }, 50);
+    }
+
+    return { success: true, certificateId: certId, message: "Free certificate claimed successfully! 🎓" };
   });
 }
 
@@ -794,6 +928,36 @@ export async function claimFreeCertificate(data: {
        WHERE id = $2`,
       [newPaymentStatus, applicationId]
     );
+
+    // Automatically dispatch Certificate of Completion with official PDF attachment via Gmail SMTP
+    const studentEmail = (app.email || "").trim();
+    if (studentEmail && certId) {
+      const studentName = app.full_name;
+      const domainVal = app.domain;
+      const internIdVal = app.intern_id || "SKX-INTERN";
+      const finalCertId = certId;
+      const studentUserId = userId;
+
+      setTimeout(async () => {
+        try {
+          const { sendCertificateEmail } = await import("./email-helpers");
+          const domainObj = getDomain(domainVal);
+          const domainName = domainObj?.name || domainVal || "Internship Track";
+          console.log(`[claimFreeCertificate] Automatically sending Certificate to ${studentEmail}...`);
+          const emailRes = await sendCertificateEmail({
+            to: studentEmail,
+            studentName,
+            studentId: studentUserId,
+            certId: finalCertId,
+            domainName,
+            internId: internIdVal,
+          });
+          console.log(`[claimFreeCertificate] Auto Certificate result for ${studentEmail}:`, emailRes.success);
+        } catch (autoErr: any) {
+          console.error("[claimFreeCertificate] Auto Certificate dispatch error:", autoErr?.message);
+        }
+      }, 50);
+    }
 
     return {
       success: true,
@@ -1089,12 +1253,13 @@ export async function createCouponAdmin(data: {
       throw new Error(`Coupon with code "${cleanCode}" already exists`);
     }
 
-    const res = await client.query(
+    const couponId = crypto.randomUUID();
+    await client.query(
       `INSERT INTO public.coupons (
-         code, description, discount_type, discount_value, applies_to, max_uses, single_use_per_user, expires_at, is_active, created_by
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING id`,
+         id, code, description, discount_type, discount_value, applies_to, max_uses, single_use_per_user, expires_at, is_active, created_by
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [
+        couponId,
         cleanCode,
         data.description ?? "",
         data.discountType,
@@ -1111,10 +1276,10 @@ export async function createCouponAdmin(data: {
     await client.query(
       `INSERT INTO public.fee_audit_logs (admin_id, action, entity_type, entity_id, new_value)
        VALUES ($1, 'CREATE_COUPON', 'coupon', $2, $3)`,
-      [data.adminId, res.rows[0].id, JSON.stringify(data)]
+      [data.adminId, couponId, JSON.stringify(data)]
     );
 
-    return { success: true, couponId: res.rows[0].id };
+    return { success: true, couponId };
   });
 }
 
@@ -1182,18 +1347,87 @@ export async function syncApplicationTaskStatus(applicationId: string) {
   return withTransaction(async (client) => {
     const taskCheck = await checkAllTasksVerified(client, applicationId);
 
+    const isComp = taskCheck.isCompleted ? 1 : 0;
     await client.query(
       `UPDATE public.applications
        SET all_tasks_verified = $1,
            certificate_payment_unlocked = $1,
            certificate_payment_status = CASE 
-             WHEN $1 = true AND (certificate_payment_status = 'locked' OR certificate_payment_status IS NULL) THEN 'unlocked'
-             WHEN $1 = false AND certificate_payment_status != 'approved' THEN 'locked'
+             WHEN $1 = 1 AND (certificate_payment_status = 'locked' OR certificate_payment_status IS NULL) THEN 'unlocked'
+             WHEN $1 = 0 AND certificate_payment_status != 'approved' THEN 'locked'
              ELSE certificate_payment_status
            END
        WHERE id = $2`,
-      [taskCheck.isCompleted, applicationId]
+      [isComp, applicationId]
     );
+
+    if (taskCheck.isCompleted) {
+      const appRes = await client.query(
+        "SELECT id, user_id, domain, intern_id, full_name, email, certificate_payment_status, certificate_offer_eligible, certificate_generated FROM public.applications WHERE id = $1",
+        [applicationId]
+      );
+      const app = appRes.rows[0];
+      const isFeeCleared = app?.certificate_payment_status === "approved" || app?.certificate_payment_status === "waived" || Boolean(app?.certificate_offer_eligible);
+
+      if (isFeeCleared) {
+        const certRes = await client.query(
+          "SELECT certificate_id FROM public.certificates WHERE application_id = $1 LIMIT 1",
+          [applicationId]
+        );
+        let certId = certRes.rows[0]?.certificate_id;
+        if (!certId) {
+          const year = new Date().getFullYear();
+          const rand = Math.floor(100000 + Math.random() * 900000);
+          certId = `SKX-${year}-${rand}`;
+          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          await client.query(
+            "INSERT INTO public.certificates (application_id, certificate_id, verification_hash) VALUES ($1, $2, $3)",
+            [applicationId, certId, hash]
+          );
+        }
+
+        await client.query(
+          `UPDATE public.applications
+           SET status = 'completed',
+               submission_status = 'approved',
+               verified = true,
+               certificate_generated = true,
+               certificate_generated_at = COALESCE(certificate_generated_at, now()),
+               certificate_payment_status = CASE WHEN certificate_payment_status = 'approved' THEN 'approved' ELSE 'waived' END,
+               certificate_payment_unlocked = true
+           WHERE id = $1`,
+          [applicationId]
+        );
+
+        const targetEmail = (app?.email || "").trim();
+        if (targetEmail && certId) {
+          const studentName = app.full_name;
+          const studentUserId = app.user_id;
+          const domainVal = app.domain;
+          const internIdVal = app.intern_id || "SKX-INTERN";
+          const finalCertId = certId;
+          setTimeout(async () => {
+            try {
+              const { sendCertificateEmail } = await import("./email-helpers");
+              const domainObj = getDomain(domainVal);
+              const domainName = domainObj?.name || domainVal || "Internship Track";
+              console.log(`[syncApplicationTaskStatus] Automatically sending Certificate to ${targetEmail}...`);
+              const emailRes = await sendCertificateEmail({
+                to: targetEmail,
+                studentName,
+                studentId: studentUserId,
+                certId: finalCertId,
+                domainName,
+                internId: internIdVal,
+              });
+              console.log(`[syncApplicationTaskStatus] Auto Certificate result for ${targetEmail}:`, emailRes.success);
+            } catch (autoErr: any) {
+              console.error("[syncApplicationTaskStatus] Auto Certificate dispatch error:", autoErr?.message);
+            }
+          }, 50);
+        }
+      }
+    }
 
     return { verified: taskCheck.isCompleted, count: taskCheck.approvedCount, required: taskCheck.requiredCount };
   });
@@ -1220,21 +1454,93 @@ export async function submitApplicationServer(data: {
   pincode?: string | null;
   hearAbout?: string | null;
   referralName?: string | null;
+  planType?: "standard" | "premium";
 }) {
   return withTransaction(async (client) => {
     const now = new Date();
     const nowIso = now.toISOString();
+    const planType: "standard" | "premium" =
+      data.domain === "fullstack" && (data.duration === 3 || data.duration === 6) && data.planType === "premium"
+        ? "premium"
+        : "standard";
 
-    // 1. Fetch fee settings for both application and certificate
+    // Strict validation: Premium (₹200) is exclusively for 3-month and 6-month durations in Full Stack Development
+    if (planType === "premium") {
+      if (data.duration !== 3 && data.duration !== 6) {
+        throw new Error("Premium plan is only available for 3-month and 6-month internships.");
+      }
+      if (data.domain !== "fullstack") {
+        throw new Error("The Premium Plan is exclusively available for Full Stack Development internships.");
+      }
+    }
+
+    // Compute total tasks strictly:
+    // Full Stack Premium (₹200): 3M=25, 6M=50
+    // Full Stack Standard (₹100) & Other domains: 1M=5, 2M=8, 3M=10, 6M=12
+    let totalTasks = data.totalTasks;
+    if (data.domain === "fullstack") {
+      if (planType === "premium") {
+        if (data.duration === 6) totalTasks = 50;
+        else if (data.duration === 3) totalTasks = 25;
+        else if (data.duration === 2) totalTasks = 8;
+        else totalTasks = 5;
+      } else {
+        if (data.duration === 6) totalTasks = 12;
+        else if (data.duration === 3) totalTasks = 10;
+        else if (data.duration === 2) totalTasks = 8;
+        else totalTasks = 5;
+      }
+    } else {
+      if (data.duration === 6) totalTasks = 12;
+      else if (data.duration === 3) totalTasks = 10;
+      else if (data.duration === 2) totalTasks = 8;
+      else totalTasks = 5;
+    }
+
+    // 1. Fetch fee settings for application, certificate, and premium plan
     const feeRes = await client.query("SELECT * FROM public.fee_settings ORDER BY fee_type");
     const rows = feeRes.rows;
     const appRow = rows.find((r: any) => r.fee_type === "application");
     const certRow = rows.find((r: any) => r.fee_type === "certificate");
+    const premiumRow = rows.find((r: any) => r.fee_type === "premium_plan");
 
+    const certNormalFee = Number(certRow?.amount ?? 100);
     const appFeeAmount = Number(appRow?.amount ?? 0);
     const appFeeEnabled = Boolean(appRow?.is_enabled && appFeeAmount > 0);
+    const premiumBaseFee = Number(premiumRow?.amount ?? 200);
 
-    // 2. Evaluate Certificate Free Offer strictly on trusted server time
+    // 2. Plan pricing & coupon discount calculation
+    // Upfront application registration is FREE. Payment is only required after task completion & admin approval.
+    const planFee = planType === "premium" ? premiumBaseFee : (appFeeEnabled ? appFeeAmount : certNormalFee);
+    let discountAmount = 0;
+
+    if (data.couponCode && data.couponCode.trim()) {
+      const cRes = await client.query(
+        "SELECT * FROM public.coupons WHERE LOWER(code) = LOWER($1) AND is_active = true",
+        [data.couponCode.trim()]
+      );
+      if (cRes.rows.length > 0) {
+        const c = cRes.rows[0];
+        const isExpired = c.expires_at && new Date(c.expires_at).getTime() < now.getTime();
+        const applies = c.applies_to === "application" || c.applies_to === "both" || c.applies_to === "certificate";
+        if (!isExpired && applies) {
+          if (c.discount_type === "free" || (c.discount_type === "percentage" && Number(c.discount_value) >= 100)) {
+            discountAmount = planFee;
+          } else if (c.discount_type === "percentage") {
+            discountAmount = Math.round((planFee * Number(c.discount_value)) / 100);
+          } else {
+            discountAmount = Math.min(planFee, Number(c.discount_value));
+          }
+        }
+      }
+    }
+
+    const agreedFee = Math.max(0, planFee - discountAmount);
+    const planPaymentStatus: "pending" | "waived" = agreedFee === 0 ? "waived" : "pending";
+    const applicationStatus: "approved" = "approved"; // User starts immediately
+    const planPaidAt: string | null = agreedFee === 0 ? nowIso : null;
+
+    // 3. Evaluate Certificate Free Offer strictly on trusted server time
     const offerStatus = evaluateOfferStatus(
       Boolean(certRow?.offer_enabled),
       certRow?.offer_start_at,
@@ -1243,7 +1549,6 @@ export async function submitApplicationServer(data: {
     );
 
     const isOfferEligible = offerStatus.isActive;
-    const certNormalFee = Number(certRow?.amount ?? 100);
     const certOfferAmount = Number(certRow?.offer_amount ?? 0);
     const certOfferName = certRow?.offer_name || "Certificate Free Offer";
 
@@ -1258,10 +1563,11 @@ export async function submitApplicationServer(data: {
         }
       : null;
 
-    // 3. Insert application row
-    const insertRes = await client.query(
+    // 4. Insert application row
+    const applicationId = crypto.randomUUID();
+    await client.query(
       `INSERT INTO public.applications (
-         user_id, domain, duration, total_tasks, intern_id,
+         id, user_id, domain, duration, total_tasks, intern_id,
          full_name, email, phone, college, course, year, photo_url,
          coupon_code, country, state, district, city, pincode,
          hear_about, referral_name,
@@ -1271,26 +1577,28 @@ export async function submitApplicationServer(data: {
          certificate_offer_amount, certificate_offer_snapshot,
          certificate_offer_granted_at, certificate_offer_expires_at,
          certificate_payment_unlocked, certificate_payment_status,
+         plan_type, plan_fee, plan_payment_status, discount_amount, agreed_fee, plan_paid_at,
          created_at, submitted_at
        ) VALUES (
-         $1, $2, $3, $4, $5,
-         $6, $7, $8, $9, $10, $11, $12,
-         $13, $14, $15, $16, $17, $18,
-         $19, $20,
-         $21, 'in_progress', $22, 'pending',
-         $23, $24,
-         $25, $26,
-         $27, $28,
-         $29, $30,
-         false, 'locked',
-         $31, $32
-       )
-       RETURNING *`,
+         ?, ?, ?, ?, ?, ?,
+         ?, ?, ?, ?, ?, ?, ?,
+         ?, ?, ?, ?, ?, ?,
+         ?, ?,
+         ?, 'in_progress', ?, 'pending',
+         ?, ?,
+         ?, ?,
+         ?, ?,
+         ?, ?,
+         0, 'locked',
+         ?, ?, ?, ?, ?, ?,
+         ?, ?
+       )`,
       [
+        applicationId,
         data.userId,
         data.domain,
         data.duration,
-        data.totalTasks,
+        totalTasks,
         data.internId,
         data.fullName,
         data.email,
@@ -1307,45 +1615,90 @@ export async function submitApplicationServer(data: {
         data.pincode ?? null,
         data.hearAbout ?? null,
         data.referralName ?? null,
-        appFeeEnabled ? "pending" : "approved",
+        applicationStatus,
         nowIso,
-        appFeeEnabled,
-        appFeeEnabled ? "pending" : "not_required",
+        false,
+        "approved",
         isOfferEligible,
         isOfferEligible ? certOfferName : null,
         isOfferEligible ? certOfferAmount : null,
         offerSnapshot ? JSON.stringify(offerSnapshot) : null,
         isOfferEligible ? nowIso : null,
         certRow?.offer_end_at ? new Date(certRow.offer_end_at).toISOString() : null,
+        planType,
+        planFee,
+        planPaymentStatus,
+        discountAmount,
+        agreedFee,
+        planPaidAt,
         nowIso,
         nowIso,
       ]
     );
 
-    const createdApp = insertRes.rows[0];
+    const appQuery = await client.query(
+      "SELECT * FROM public.applications WHERE id = $1",
+      [applicationId]
+    );
+    const createdApp = appQuery.rows[0];
 
-    // 4. Upsert student profile
+    // 5. Upsert student profile
     await client.query(
       `INSERT INTO public.profiles (id, full_name, phone, college, course, year, photo_url, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, now())
-       ON CONFLICT (id) DO UPDATE SET
-         full_name = EXCLUDED.full_name,
-         phone = EXCLUDED.phone,
-         college = EXCLUDED.college,
-         course = EXCLUDED.course,
-         year = EXCLUDED.year,
-         photo_url = COALESCE(EXCLUDED.photo_url, public.profiles.photo_url),
-         updated_at = now()`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       ON DUPLICATE KEY UPDATE
+         full_name = VALUES(full_name),
+         phone = VALUES(phone),
+         college = VALUES(college),
+         course = VALUES(course),
+         year = VALUES(year),
+         photo_url = COALESCE(VALUES(photo_url), photo_url),
+         updated_at = NOW()`,
       [data.userId, data.fullName, data.phone, data.college, data.course, data.year, data.photoUrl ?? null]
     );
+
+    // Automatically dispatch Offer Letter with official PDF attachment via Gmail SMTP
+    if (data.email && data.email.trim()) {
+      const targetEmail = data.email.trim();
+      const studentFullName = data.fullName;
+      const internId = data.internId;
+      const domainVal = data.domain;
+      const durationVal = data.duration;
+      const userIdVal = data.userId;
+
+      setTimeout(async () => {
+        try {
+          const { sendOfferLetterEmail } = await import("./email-helpers");
+          const domainObj = getDomain(domainVal);
+          const domainName = domainObj?.name || domainVal;
+          console.log(`[submitApplicationServer] Automatically sending Offer Letter to ${targetEmail}...`);
+          const emailRes = await sendOfferLetterEmail({
+            to: targetEmail,
+            studentName: studentFullName,
+            studentId: userIdVal,
+            internId,
+            domainName,
+            duration: durationVal,
+          });
+          console.log(`[submitApplicationServer] Auto Offer Letter result for ${targetEmail}:`, emailRes.success);
+        } catch (autoErr: any) {
+          console.error("[submitApplicationServer] Auto Offer Letter dispatch error:", autoErr?.message);
+        }
+      }, 50);
+    }
 
     return {
       success: true,
       application: createdApp,
-      requiresAppFee: appFeeEnabled,
-      appFeeAmount,
+      requiresAppFee: false,
+      appFeeAmount: 0,
       isOfferEligible,
       offerSnapshot,
+      planType,
+      planFee,
+      discountAmount,
+      agreedFee,
+      requiresPlanPayment: false,
     };
   });
 }

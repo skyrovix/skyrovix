@@ -63,13 +63,13 @@ function RefundPage() {
 
       {/* Header Banner */}
       <AuroraBackground>
-        <section className="relative pb-10 sm:pb-16 pt-10 sm:pt-20">
+        <section className="relative pb-10 sm:pb-16 pt-20 sm:pt-24">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
             <FadeUp>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-50/80 dark:bg-blue-950/40 px-3.5 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300 backdrop-blur shadow-sm">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3.5 py-1.5 text-xs font-bold text-[#f95c4b] backdrop-blur shadow-sm">
                 <Sparkles className="size-3.5" /> Fair Transparency Policy
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <h1 className="font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-[#181619] dark:text-white">
                 Refund & <span className="brand-text">Cancellation Policy</span>
               </h1>
               <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
@@ -111,7 +111,7 @@ function RefundPage() {
             </div>
             <h2 className="text-sm font-bold text-slate-800 dark:text-white">Internship Fees</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Certificate processing fees (₹100) are non-refundable once documents are generated or mentor review is performed.
+              Certificate processing fees are non-refundable once documents are generated or mentor review is performed.
             </p>
           </div>
 
@@ -235,10 +235,10 @@ function RefundPage() {
           <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2">
               <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
-                <CreditCard className="size-4 text-blue-600" /> Certificate Processing Fee (₹100)
+                <CreditCard className="size-4 text-blue-600" /> Certificate Processing Fee
               </h3>
               <p className="text-xs text-muted-foreground">
-                Skyrovix virtual internship applications and task learning are free. The nominal ₹100 certificate fee covers manual mentor task evaluation, administrative verification, secure cloud hosting, and cryptographic tamper-proof QR code generation.
+                Skyrovix virtual internship applications and task learning are free. The nominal certificate processing fee covers manual mentor task evaluation, administrative verification, secure cloud hosting, and cryptographic tamper-proof QR code generation.
               </p>
               <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">
                 Non-Refundable Policy: Once payment is submitted and verified by admin, or when official credentials (Offer Letter, ID Card, or Verified Certificate) are generated, the fee is non-refundable.

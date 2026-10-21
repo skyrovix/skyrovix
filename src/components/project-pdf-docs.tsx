@@ -2,7 +2,7 @@ import { Document, Page, Text, View, StyleSheet, Image, pdf } from "@react-pdf/r
 import { QRCodeSVG } from "qrcode.react";
 import { renderToString } from "react-dom/server";
 import { COMPANY } from "@/lib/constants";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/sk-logo-transparent.png";
 import seal from "@/assets/seal.jpg";
 import msme from "@/assets/msme.png";
 import sigFounder from "@/assets/hari sig.jpeg";
@@ -19,7 +19,7 @@ const sigCofounderImg = EMAIL_ASSETS?.sigCofounder || sigCofounder;
 const yrTechImg = EMAIL_ASSETS?.yrTech || yrTech;
 const vinixImg = EMAIL_ASSETS?.vinix || vinix;
 
-const C = { brand: "#07284a", ink: "#1e293b", muted: "#64748b", border: "#e2e8f0", light: "#f8fafc" };
+const C = { brand: "#181619", coral: "#f95c4b", ink: "#181619", muted: "#64748b", border: "#e2e8f0", light: "#faf8f2" };
 
 const s = StyleSheet.create({
   page: { padding: 28, fontSize: 9, color: C.ink, fontFamily: "Helvetica", position: "relative" },

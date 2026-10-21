@@ -56,15 +56,15 @@ export function ManualUpiPaymentCard({
       {/* Header & Amount */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div className="flex items-center gap-3.5">
-          <div className="size-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white grid place-items-center shadow-md shadow-blue-500/20">
+          <div className="size-12 rounded-2xl brand-gradient text-white grid place-items-center shadow-lg shadow-[#f95c4b]/20 shrink-0">
             <CreditCard className="size-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-primary font-display">
+              <span className="text-xs font-black uppercase tracking-wider text-[#f95c4b] font-display">
                 {isAppPayment ? "APPLICATION FEE" : "CERTIFICATE FEE"}
               </span>
-              <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-bold">
                 Online Payment
               </Badge>
             </div>
@@ -79,9 +79,9 @@ export function ManualUpiPaymentCard({
           </div>
         </div>
 
-        <div className="flex items-baseline gap-1.5 self-start sm:self-auto bg-primary/5 dark:bg-primary/10 px-4 py-2 rounded-2xl border border-primary/20">
-          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Amount Due:</span>
-          <span className="text-2xl font-black text-foreground">₹{amount}</span>
+        <div className="flex items-baseline gap-1.5 self-start sm:self-auto bg-[#f95c4b]/5 dark:bg-[#f95c4b]/10 px-4 py-2 rounded-2xl border border-[#f95c4b]/20">
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider font-display">Amount Due:</span>
+          <span className="text-2xl font-black text-[#f95c4b] font-display">₹{amount}</span>
         </div>
       </div>
 
@@ -100,50 +100,55 @@ export function ManualUpiPaymentCard({
 
       {/* Mandatory Dynamic Disclaimer */}
       {isAppPayment ? (
-        <div className="rounded-2xl border border-blue-200/80 bg-blue-50/80 dark:border-blue-900/40 dark:bg-blue-950/40 p-4 text-xs text-blue-900 dark:text-blue-200 leading-relaxed shadow-sm space-y-1.5">
+        <div className="rounded-2xl border border-border/80 bg-muted/30 p-4 text-xs text-foreground leading-relaxed shadow-xs space-y-1.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="font-bold flex items-center gap-1.5 text-blue-800 dark:text-blue-300">
-              <Shield className="size-4" /> Application Processing Fee
+            <p className="font-bold flex items-center gap-1.5 text-foreground">
+              <Shield className="size-4 text-[#f95c4b]" /> Application Processing Fee
             </p>
-            <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 border-blue-300 text-[10px] font-bold">
+            <Badge variant="outline" className="bg-[#f95c4b]/10 text-[#f95c4b] border-[#f95c4b]/20 text-[10px] font-bold">
               {APPLICATION_FEE_BADGE}
             </Badge>
           </div>
-          <p className="text-xs leading-relaxed opacity-95">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             {APPLICATION_FEE_DISCLAIMER}
           </p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/80 dark:border-indigo-900/40 dark:bg-indigo-950/40 p-4 text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed shadow-sm space-y-1.5">
+        <div className="rounded-2xl border border-border/80 bg-muted/30 p-4 text-xs text-foreground leading-relaxed shadow-xs space-y-1.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="font-bold flex items-center gap-1.5 text-indigo-800 dark:text-indigo-300">
-              <Shield className="size-4" /> CERTIFICATE ISSUANCE FEE
+            <p className="font-bold flex items-center gap-1.5 text-foreground">
+              <Shield className="size-4 text-[#f95c4b]" /> CERTIFICATE ISSUANCE FEE
             </p>
-            <Badge variant="outline" className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200 border-indigo-300 text-[10px] font-bold">
+            <Badge variant="outline" className="bg-[#f95c4b]/10 text-[#f95c4b] border-[#f95c4b]/20 text-[10px] font-bold">
               Official Certificate Verification
             </Badge>
           </div>
-          <p className="text-xs leading-relaxed opacity-95">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             This fee applies to applications that are not covered by the Certificate Free Offer.
           </p>
         </div>
       )}
 
       {/* Online Payment Card via Cashfree */}
-      <div className="rounded-3xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-white dark:to-slate-900/40 p-6 sm:p-8 space-y-6 shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl border border-[#f95c4b]/25 bg-gradient-to-br from-[#f95c4b]/[0.06] via-[#ee9590]/[0.03] to-white dark:to-[#0f172a] p-6 sm:p-8 space-y-6 shadow-xl shadow-[#f95c4b]/5 relative overflow-hidden">
+        {/* Subtle decorative glow */}
+        <div className="absolute -top-24 -right-24 size-48 rounded-full bg-[#f95c4b]/10 blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="size-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0">
-              <Zap className="size-7" />
+            <div className="size-14 rounded-2xl brand-gradient text-white flex items-center justify-center shadow-lg shadow-[#f95c4b]/25 shrink-0">
+              <Zap className="size-7 fill-current" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                <span className="text-xs font-black uppercase tracking-wider text-[#f95c4b] font-display">
                   Instant Payment Gateway
                 </span>
-                <Badge className="bg-emerald-600 text-white text-[10px]">Instant Verification</Badge>
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-bold">
+                  Instant Verification
+                </Badge>
               </div>
-              <h4 className="text-xl font-extrabold text-foreground">
+              <h4 className="text-xl font-extrabold text-foreground font-display">
                 Pay Online with Cashfree
               </h4>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 max-w-lg leading-relaxed">
@@ -156,15 +161,15 @@ export function ManualUpiPaymentCard({
             type="button"
             onClick={() => setShowCashfreeSummary(true)}
             size="lg"
-            className="w-full md:w-auto h-12 px-8 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-xl shadow-blue-500/25 shrink-0 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+            className="w-full md:w-auto h-12 px-8 rounded-2xl brand-gradient hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-[#f95c4b]/25 shrink-0 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 border-0"
           >
             Pay ₹{amount} Now <ArrowRight className="size-4" />
           </Button>
         </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-border/40">
-          <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-border/40 flex items-center gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-border/40 relative z-10">
+          <div className="p-3 rounded-2xl bg-card/80 border border-border/60 flex items-center gap-2.5 shadow-2xs">
             <Smartphone className="size-4 text-purple-600 shrink-0" />
             <div>
               <p className="text-[11px] font-bold text-foreground">UPI Apps</p>
@@ -172,15 +177,15 @@ export function ManualUpiPaymentCard({
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-border/40 flex items-center gap-2.5">
-            <CreditCard className="size-4 text-blue-600 shrink-0" />
+          <div className="p-3 rounded-2xl bg-card/80 border border-border/60 flex items-center gap-2.5 shadow-2xs">
+            <CreditCard className="size-4 text-[#f95c4b] shrink-0" />
             <div>
               <p className="text-[11px] font-bold text-foreground">Cards</p>
               <p className="text-[10px] text-muted-foreground">Visa, Mastercard, RuPay</p>
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-border/40 flex items-center gap-2.5">
+          <div className="p-3 rounded-2xl bg-card/80 border border-border/60 flex items-center gap-2.5 shadow-2xs">
             <Building className="size-4 text-emerald-600 shrink-0" />
             <div>
               <p className="text-[11px] font-bold text-foreground">Net Banking</p>
@@ -188,7 +193,7 @@ export function ManualUpiPaymentCard({
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-border/40 flex items-center gap-2.5">
+          <div className="p-3 rounded-2xl bg-card/80 border border-border/60 flex items-center gap-2.5 shadow-2xs">
             <Wallet className="size-4 text-amber-600 shrink-0" />
             <div>
               <p className="text-[11px] font-bold text-foreground">Wallets</p>
@@ -198,7 +203,7 @@ export function ManualUpiPaymentCard({
         </div>
 
         {/* Security Footer */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-[11px] text-muted-foreground relative z-10">
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="size-3.5 text-emerald-500" />
             256-bit SSL encrypted · Cashfree RBI-authorized payment aggregator

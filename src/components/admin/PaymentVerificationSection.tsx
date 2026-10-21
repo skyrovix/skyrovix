@@ -205,7 +205,7 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
           onClick={() => setPaymentView("cashfree")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             paymentView === "cashfree"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+              ? "bg-[#181619] text-white shadow-md shadow-[#181619]/10"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -216,7 +216,7 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
           onClick={() => setPaymentView("manual")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             paymentView === "manual"
-              ? "bg-slate-800 text-white dark:bg-slate-700 shadow-md"
+              ? "bg-[#181619] text-white shadow-md shadow-[#181619]/10"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >

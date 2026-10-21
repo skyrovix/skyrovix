@@ -772,22 +772,31 @@ function RestoreUploadSection({ userEmail, userName, onDone }: { userEmail: stri
         if (!base64) { toast.error("Failed to read file"); setRestoring(false); return; }
 
         toast.info("Creating safety backup before restore...");
-        const safety = await createSafetyBackup({ data: { userEmail, userName } });
-        if (safety.error) {
-          toast.error(`Safety backup failed: ${safety.error}. Restore cancelled.`);
-          setRestoring(false);
-          return;
+        try {
+          const safety = await createSafetyBackup({ data: { userEmail, userName } });
+          if (safety.error) {
+            toast.warning(`Safety backup skipped: ${safety.error}`);
+          } else {
+            toast.success("Safety backup created. Proceeding with restore...");
+          }
+        } catch (safetyErr: any) {
+          toast.warning(`Safety backup skipped: ${safetyErr.message}`);
         }
-        toast.success("Safety backup created. Proceeding with restore...");
 
         const result = await restoreFromUpload({ data: { fileBase64: base64, fileName: file.name, userEmail, userName } });
         setRestoring(false);
         if (result.success) {
           toast.success("Restore completed", { description: result.details });
+          setFile(null);
+          setValidInfo(null);
           onDone();
         } else {
           toast.error(`Restore failed: ${result.error}`);
         }
+      };
+      reader.onerror = () => {
+        setRestoring(false);
+        toast.error("Failed to read backup file");
       };
       reader.readAsDataURL(file);
     } catch (err: any) {

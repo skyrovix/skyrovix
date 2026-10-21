@@ -48,7 +48,7 @@ function PaymentFailedPage() {
         )}
 
         <div className="mt-8 space-y-3">
-          <Button asChild size="lg" className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/25">
+          <Button asChild size="lg" className="w-full h-12 rounded-xl brand-gradient hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-[#f95c4b]/25 border-0">
             <Link to="/dashboard">
               <RotateCcw className="size-4 mr-2" /> Return to Dashboard &amp; Try Again
             </Link>

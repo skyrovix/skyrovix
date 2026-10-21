@@ -108,7 +108,7 @@ function PaymentStatusPage() {
       <div className="w-full max-w-lg">
         {loading ? (
           <div className="rounded-3xl border border-border/60 bg-white/80 dark:bg-[#0f172a]/80 p-8 sm:p-12 text-center shadow-xl backdrop-blur space-y-4">
-            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-blue-500/10 text-blue-600">
+            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-[#f95c4b]/10 text-[#f95c4b]">
               <Loader2 className="size-8 animate-spin" />
             </div>
             <h2 className="text-xl font-bold tracking-tight">Verifying Your Payment</h2>
@@ -143,7 +143,7 @@ function PaymentStatusPage() {
                 <span className="text-muted-foreground">Order ID:</span>
                 <span
                   onClick={copyOrderId}
-                  className="font-mono font-semibold text-foreground flex items-center gap-1 cursor-pointer hover:text-blue-600"
+                  className="font-mono font-semibold text-foreground flex items-center gap-1 cursor-pointer hover:text-[#f95c4b]"
                   title="Click to copy"
                 >
                   {order_id} <Copy className="size-3 text-muted-foreground" />
@@ -177,7 +177,12 @@ function PaymentStatusPage() {
             <div className="mt-8 space-y-3">
               <Button asChild size="lg" className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25">
                 <Link to="/dashboard">
-                  <FileCheck className="size-4 mr-2" /> Go to Dashboard &amp; Claim Certificate
+                  <FileCheck className="size-4 mr-2" />
+                  {order?.product_type === "premium_plan"
+                    ? "Go to Premium Dashboard & Get Started"
+                    : order?.product_type === "application"
+                    ? "Go to Dashboard & View Offer Letter"
+                    : "Go to Dashboard & Claim Certificate"}
                 </Link>
               </Button>
 
@@ -258,7 +263,7 @@ function PaymentStatusPage() {
             )}
 
             <div className="mt-8 space-y-3">
-              <Button asChild size="lg" className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/25">
+              <Button asChild size="lg" className="w-full h-12 rounded-xl brand-gradient hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-[#f95c4b]/25 border-0">
                 <Link to="/dashboard">
                   <RotateCcw className="size-4 mr-2" /> Return to Dashboard &amp; Try Again
                 </Link>

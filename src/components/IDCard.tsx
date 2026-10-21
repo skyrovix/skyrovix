@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/sk-logo-transparent.png";
 import { Globe, QrCode, Barcode, CheckCircle2 } from "lucide-react";
 import { getPublicSiteUrl } from "@/lib/constants";
 
@@ -49,7 +49,7 @@ export function BarcodeSVG({ value, height = 30 }: { value: string; height?: num
   return (
     <svg viewBox={`0 0 ${totalWidth} ${height}`} className="h-7 w-full max-w-[200px] mx-auto overflow-visible" preserveAspectRatio="none">
       {bits.map((isBar, i) =>
-        isBar ? <rect key={i} x={i * barWidth} y={0} width={barWidth} height={height} fill="#07284a" /> : null
+        isBar ? <rect key={i} x={i * barWidth} y={0} width={barWidth} height={height} fill="#181619" /> : null
       )}
     </svg>
   );
@@ -70,10 +70,10 @@ export function IDCard({ internId, fullName, domain, photoUrl, issuedAt, email, 
   const validUntilStr = computeValidUpto();
 
   return (
-    <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[350px] overflow-hidden rounded-[22px] bg-white text-slate-900 shadow-xl border border-slate-200/90 dark:border-slate-800 flex flex-col justify-between select-none font-sans transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10">
+    <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[350px] overflow-hidden rounded-[22px] bg-white text-slate-900 shadow-xl border border-slate-200/90 dark:border-slate-800 flex flex-col justify-between select-none font-sans transition-all duration-300 hover:shadow-2xl hover:shadow-[#f95c4b]/10">
       
-      {/* 1. Executive Dark Navy Header */}
-      <div className="relative bg-gradient-to-b from-[#061a33] via-[#092952] to-[#0c3970] px-5 pt-3 pb-8 text-white">
+      {/* 1. Executive Dark Obsidian Header */}
+      <div className="relative bg-gradient-to-b from-[#181619] via-[#241f26] to-[#181619] px-5 pt-3 pb-8 text-white">
         {/* Realistic Lanyard Slot */}
         <div className="mx-auto w-12 h-2.5 rounded-full bg-slate-950/60 border border-white/20 shadow-inner mb-3 flex items-center justify-center">
           <div className="w-8 h-1 rounded-full bg-white/15" />
@@ -82,12 +82,12 @@ export function IDCard({ internId, fullName, domain, photoUrl, issuedAt, email, 
         {/* Company Header Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-white/10 border border-white/20 p-1 grid place-items-center backdrop-blur-xs">
-              <img src={logo} alt="Skyrovix Logo" className="size-full object-contain" />
+            <div className="size-9 rounded-lg bg-white p-1 grid place-items-center shadow-xs">
+              <img src={logo} alt="Skyrovix SK Logo" className="size-full object-contain" />
             </div>
             <div>
               <span className="font-extrabold text-sm tracking-wider block leading-none text-white">SKYROVIX</span>
-              <span className="text-[8.5px] text-blue-200 font-medium tracking-wide block mt-0.5">Skill Development & Future Tech</span>
+              <span className="text-[8.5px] text-[#ee9590] font-medium tracking-wide block mt-0.5">Skill Development & Future Tech</span>
             </div>
           </div>
 
@@ -132,11 +132,11 @@ export function IDCard({ internId, fullName, domain, photoUrl, issuedAt, email, 
         <h2 className="text-lg sm:text-xl font-black text-[#061a33] tracking-tight leading-tight uppercase truncate">
           {fullName}
         </h2>
-        <p className="text-[10px] font-extrabold text-blue-600 tracking-[0.25em] uppercase mt-0.5">
+        <p className="text-[10px] font-extrabold text-[#f95c4b] tracking-[0.25em] uppercase mt-0.5">
           Virtual Intern
         </p>
-        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 mt-1 rounded-full bg-blue-50/90 border border-blue-200/80 text-[10px] font-bold text-[#061a33] max-w-full">
-          <span className="size-1.5 rounded-full bg-blue-600 shrink-0" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 mt-1 rounded-full bg-[#f95c4b]/10 border border-[#f95c4b]/20 text-[10px] font-bold text-[#181619] max-w-full">
+          <span className="size-1.5 rounded-full bg-[#f95c4b] shrink-0" />
           <span className="truncate">{domain}</span>
         </div>
       </div>

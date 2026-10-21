@@ -1,4 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import fs from "fs/promises";
+import path from "path";
+import { dbQuery, getDbPool } from "./db.server";
 
 export type BackupType = "database" | "files" | "full";
 export type BackupStatus = "running" | "completed" | "failed";
@@ -19,7 +22,7 @@ export interface BackupRecord {
   files_count?: number;
 }
 
-interface AuditEntry {
+export interface AuditEntry {
   action: string;
   resource: string;
   details: string;
@@ -27,44 +30,84 @@ interface AuditEntry {
   timestamp: string;
 }
 
-const BACKUPS_BUCKET = "backups";
-
-async function ensureBucket(supabaseAdmin: any): Promise<boolean> {
-  try {
-    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
-    if (buckets?.some((b: any) => b.name === BACKUPS_BUCKET)) return true;
-    const { error } = await supabaseAdmin.storage.createBucket(BACKUPS_BUCKET, { public: false });
-    if (error && !error.message.includes("already exists")) throw error;
-    return true;
-  } catch (e: any) {
-    if (e.message?.includes("already exists")) return true;
-    console.warn("[Backup] Could not verify/create backups bucket:", e.message);
-    return false;
-  }
-}
+const BACKUPS_DIR = path.resolve(process.cwd(), "public", "uploads", "backups");
+const UPLOADS_ROOT = path.resolve(process.cwd(), "public", "uploads");
+const INDEX_FILE = path.join(BACKUPS_DIR, "backup-index.json");
+const AUDIT_FILE = path.join(BACKUPS_DIR, "audit-log.jsonl");
+const CONFIG_FILE = path.join(BACKUPS_DIR, "auto-backup-config.json");
 
 const ALL_TABLES = [
-  "applications", "certificates", "course_certificates", "course_quiz_questions",
-  "course_task_submissions", "course_tasks", "course_topics", "courses",
-  "enrollments", "lesson_progress", "payments", "profiles", "quiz_attempts",
-  "submissions", "tasks", "user_roles", "login_sessions", "email_logs",
-  "coupons", "project_submissions", "reviews",
+  "users",
+  "user_roles",
+  "profiles",
+  "admins",
+  "batches",
+  "courses",
+  "course_topics",
+  "course_tasks",
+  "course_quiz_questions",
+  "course_certificates",
+  "course_task_submissions",
+  "tasks",
+  "guidance_schedules",
+  "training_modules",
+  "training_submissions",
+  "applications",
+  "registrations",
+  "students",
+  "student_tasks",
+  "student_kit_items",
+  "enrollments",
+  "lesson_progress",
+  "submissions",
+  "submission_history",
+  "quiz_attempts",
+  "payments",
+  "payment_records",
+  "payment_events",
+  "cashfree_orders",
+  "certificates",
+  "offer_letters",
+  "coupons",
+  "coupon_redemptions",
+  "fee_settings",
+  "fee_audit_logs",
+  "intern_workflows",
+  "leaderboard",
+  "linkedin_submissions",
+  "login_sessions",
+  "email_logs",
+  "notifications",
+  "user_notifications",
+  "promotional_popups",
+  "project_challenges",
+  "project_submissions",
+  "project_evaluations",
+  "project_awards",
+  "project_certificates",
+  "reviews",
+  "support_tickets",
+  "support_replies",
+  "settings",
+  "audit_logs",
 ] as const;
-
-const FILE_BUCKETS = ["profile-photos", "payment-screenshots", "task-submissions", "project-submissions"];
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
 }
 
-function pad(n: number) { return n.toString().padStart(2, "0"); }
+function pad(n: number) {
+  return n.toString().padStart(2, "0");
+}
 
 function timestamp() {
   const d = new Date();
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
 }
 
-function isoNow() { return new Date().toISOString(); }
+function isoNow() {
+  return new Date().toISOString();
+}
 
 function formatBytes(bytes: number) {
   if (bytes === 0) return "0 B";
@@ -74,136 +117,116 @@ function formatBytes(bytes: number) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
 
-async function getBackupIndex(supabaseAdmin: any): Promise<BackupRecord[]> {
-  await ensureBucket(supabaseAdmin);
+async function ensureBackupsDir() {
+  await fs.mkdir(BACKUPS_DIR, { recursive: true });
+}
+
+async function getBackupIndex(): Promise<BackupRecord[]> {
   try {
-    const { data, error } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).download("backup-index.json");
-    if (error || !data) return [];
-    const text = await data.text();
+    await ensureBackupsDir();
+    const text = await fs.readFile(INDEX_FILE, "utf-8");
     return JSON.parse(text || "[]");
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
-async function saveBackupIndex(supabaseAdmin: any, backups: BackupRecord[]) {
-  await ensureBucket(supabaseAdmin);
-  const json = JSON.stringify(backups, null, 2);
-  const buffer = Buffer.from(json, "utf-8");
-  await supabaseAdmin.storage.from(BACKUPS_BUCKET).upload("backup-index.json", buffer, { upsert: true, contentType: "application/json" });
+async function saveBackupIndex(backups: BackupRecord[]) {
+  await ensureBackupsDir();
+  await fs.writeFile(INDEX_FILE, JSON.stringify(backups, null, 2), "utf-8");
 }
 
-async function appendAuditLog(supabaseAdmin: any, entry: AuditEntry) {
+async function appendAuditLog(entry: AuditEntry) {
   try {
-    await ensureBucket(supabaseAdmin);
-    const { data, error } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).download("audit-log.jsonl");
-    let existing = "";
-    if (!error && data) existing = await data.text();
-    const line = JSON.stringify(entry) + "\n";
-    const buffer = Buffer.from(existing + line, "utf-8");
-    await supabaseAdmin.storage.from(BACKUPS_BUCKET).upload("audit-log.jsonl", buffer, { upsert: true, contentType: "text/plain" });
-  } catch (e) { console.warn("[Backup] Audit log append failed:", e); }
+    await ensureBackupsDir();
+    await fs.appendFile(AUDIT_FILE, JSON.stringify(entry) + "\n", "utf-8");
+  } catch (e) {
+    console.warn("[Backup] Audit log append failed:", e);
+  }
 }
 
 function escapeSql(val: any): string {
   if (val === null || val === undefined) return "NULL";
-  if (typeof val === "boolean") return val ? "true" : "false";
+  if (typeof val === "boolean") return val ? "1" : "0";
   if (typeof val === "number") return String(val);
-  if (typeof val === "object") return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
-  return `'${String(val).replace(/'/g, "''")}'`;
+  if (val instanceof Date) {
+    return `'${val.toISOString().slice(0, 19).replace("T", " ")}'`;
+  }
+  if (typeof val === "object") {
+    return `'${JSON.stringify(val).replace(/\\/g, "\\\\").replace(/'/g, "''")}'`;
+  }
+  return `'${String(val).replace(/\\/g, "\\\\").replace(/'/g, "''")}'`;
 }
 
-async function generateSqlDump(supabaseAdmin: any): Promise<string> {
+async function generateSqlDump(): Promise<string> {
   const lines: string[] = [];
   lines.push("-- Skyrovix Database Backup");
   lines.push(`-- Generated: ${isoNow()}`);
-  lines.push("--");
+  lines.push("-- Database: MySQL");
   lines.push("");
-  lines.push("SET statement_timeout = 0;");
-  lines.push("SET client_encoding = 'UTF8';");
-  lines.push("SET standard_conforming_strings = on;");
+  lines.push("SET FOREIGN_KEY_CHECKS = 0;");
+  lines.push("SET SQL_MODE = '';");
   lines.push("");
 
   for (const table of ALL_TABLES) {
     try {
-      let offset = 0;
-      const batchSize = 500;
-      let hasRows = false;
-      let colNames: string[] = [];
+      const res = await dbQuery<any>(`SELECT * FROM \`${table}\``);
+      const rows = res.rows || [];
+      if (rows.length === 0) continue;
 
-      while (true) {
-        const { data: rows, error } = await supabaseAdmin
-          .from(table)
-          .select("*")
-          .range(offset, offset + batchSize - 1);
+      lines.push(`-- Table: ${table} (${rows.length} rows)`);
+      lines.push(`DELETE FROM \`${table}\`;`);
 
-        if (error || !rows || rows.length === 0) break;
-
-        if (!hasRows) {
-          colNames = Object.keys(rows[0]).filter((k) => k !== "id" || true);
-          lines.push(`-- Table: ${table}`);
-          lines.push(`DELETE FROM public.${table};`);
-          hasRows = true;
-        }
-
-        for (const row of rows) {
-          const keys = Object.keys(row);
-          const values = keys.map((k) => escapeSql(row[k]));
-          lines.push(`INSERT INTO public.${table} (${keys.join(", ")}) VALUES (${values.join(", ")});`);
-        }
-
-        if (rows.length < batchSize) break;
-        offset += batchSize;
+      for (const row of rows) {
+        const keys = Object.keys(row);
+        const values = keys.map((k) => escapeSql(row[k]));
+        lines.push(`INSERT INTO \`${table}\` (\`${keys.join("`, `")}\`) VALUES (${values.join(", ")});`);
       }
-
-      if (hasRows) lines.push("");
+      lines.push("");
     } catch (e: any) {
-      lines.push(`-- Error backing up table ${table}: ${e.message}`);
+      lines.push(`-- Notice on table ${table}: ${e.message}`);
       lines.push("");
     }
   }
 
+  lines.push("SET FOREIGN_KEY_CHECKS = 1;");
   lines.push("-- End of backup");
   return lines.join("\n");
 }
 
-async function getAllStorageFiles(supabaseAdmin: any): Promise<{ bucket: string; path: string; size: number }[]> {
-  const allFiles: { bucket: string; path: string; size: number }[] = [];
-
-  for (const bucket of FILE_BUCKETS) {
+async function getAllUploadFiles(): Promise<string[]> {
+  const files: string[] = [];
+  async function walk(dir: string) {
+    let entries;
     try {
-      let offset = 0;
-      const pageSize = 200;
-      while (true) {
-        const { data: files, error } = await supabaseAdmin.storage.from(bucket).list("", { limit: pageSize, offset });
-        if (error || !files || files.length === 0) break;
-        for (const f of files) {
-          if (!f.id) continue;
-          allFiles.push({ bucket, path: f.name, size: f.metadata?.size || 0 });
-        }
-        if (files.length < pageSize) break;
-        offset += pageSize;
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "backups") continue; // Never zip existing backup archives
+        await walk(full);
+      } else if (entry.isFile()) {
+        files.push(full);
       }
-    } catch {}
+    }
   }
-
-  return allFiles;
+  await walk(UPLOADS_ROOT);
+  return files;
 }
 
-async function createFilesZip(supabaseAdmin: any): Promise<ArrayBuffer> {
+async function createFilesZip(): Promise<ArrayBuffer> {
   const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
-  const files = await getAllStorageFiles(supabaseAdmin);
+  const filePaths = await getAllUploadFiles();
 
-  const uploadsFolder = zip.folder("uploads");
-  if (!uploadsFolder) throw new Error("Failed to create uploads folder in ZIP");
-
-  for (const f of files) {
+  for (const filePath of filePaths) {
     try {
-      const { data, error } = await supabaseAdmin.storage.from(f.bucket).download(f.path);
-      if (!error && data) {
-        const buffer = await data.arrayBuffer();
-        const dir = uploadsFolder.folder(f.bucket);
-        if (dir) dir.file(f.path, new Uint8Array(buffer));
-      }
+      const rel = path.relative(UPLOADS_ROOT, filePath).replace(/\\/g, "/");
+      const content = await fs.readFile(filePath);
+      zip.file("uploads/" + rel, content);
     } catch {}
   }
 
@@ -211,25 +234,19 @@ async function createFilesZip(supabaseAdmin: any): Promise<ArrayBuffer> {
   return blob.buffer.slice(0) as ArrayBuffer;
 }
 
-async function createFullZip(supabaseAdmin: any, sqlContent: string, backupId: string): Promise<{ buffer: ArrayBuffer; size: number }> {
+async function createFullZip(sqlContent: string, backupId: string): Promise<{ buffer: ArrayBuffer; size: number }> {
   const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
 
   zip.file("database.sql", sqlContent);
 
-  const files = await getAllStorageFiles(supabaseAdmin);
-  const uploadsFolder = zip.folder("uploads");
-  if (uploadsFolder) {
-    for (const f of files) {
-      try {
-        const { data, error } = await supabaseAdmin.storage.from(f.bucket).download(f.path);
-        if (!error && data) {
-          const buffer = await data.arrayBuffer();
-          const dir = uploadsFolder.folder(f.bucket);
-          if (dir) dir.file(f.path, new Uint8Array(buffer));
-        }
-      } catch {}
-    }
+  const filePaths = await getAllUploadFiles();
+  for (const filePath of filePaths) {
+    try {
+      const rel = path.relative(UPLOADS_ROOT, filePath).replace(/\\/g, "/");
+      const content = await fs.readFile(filePath);
+      zip.file("uploads/" + rel, content);
+    } catch {}
   }
 
   zip.file("metadata.json", JSON.stringify({
@@ -251,40 +268,201 @@ async function createFullZip(supabaseAdmin: any, sqlContent: string, backupId: s
   return { buffer: blob.buffer.slice(0) as ArrayBuffer, size: blob.byteLength };
 }
 
+function splitSqlStatements(sqlContent: string): string[] {
+  const statements: string[] = [];
+  let current = "";
+  let inString = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+
+  for (let i = 0; i < sqlContent.length; i++) {
+    const ch = sqlContent[i];
+    const nextCh = sqlContent[i + 1] || "";
+
+    if (inLineComment) {
+      if (ch === "\n") inLineComment = false;
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (ch === "*" && nextCh === "/") {
+        inBlockComment = false;
+        i++;
+      }
+      continue;
+    }
+
+    if (!inString) {
+      if (ch === "-" && nextCh === "-") {
+        inLineComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "/" && nextCh === "*") {
+        inBlockComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "'") {
+        inString = true;
+        current += ch;
+        continue;
+      }
+      if (ch === ";") {
+        const trimmed = current.trim();
+        if (trimmed) statements.push(trimmed);
+        current = "";
+        continue;
+      }
+    } else {
+      if (ch === "'") {
+        if (nextCh === "'") {
+          current += "''";
+          i++;
+          continue;
+        }
+        inString = false;
+      }
+    }
+
+    current += ch;
+  }
+
+  const trimmed = current.trim();
+  if (trimmed) statements.push(trimmed);
+  return statements;
+}
+
+async function executeSqlRestore(sqlContent: string): Promise<{ executed: number; failed: number; tableStats: Record<string, number> }> {
+  const pool = getDbPool();
+  const conn = await pool.getConnection();
+
+  let executed = 0;
+  let failed = 0;
+  const tableStats: Record<string, number> = {};
+
+  try {
+    await conn.query("SET FOREIGN_KEY_CHECKS = 0;");
+    await conn.query("SET SQL_MODE = 'NO_BACKSLASH_ESCAPES';");
+
+    const statements = splitSqlStatements(sqlContent);
+
+    for (const rawStmt of statements) {
+      let stmt = rawStmt.trim();
+      if (!stmt) continue;
+
+      // Skip harmless PG directives and comments
+      if (
+        /^SET\s+(statement_timeout|client_encoding|standard_conforming_strings)/i.test(stmt) ||
+        /^SELECT\s+pg_catalog/i.test(stmt)
+      ) {
+        continue;
+      }
+
+      // Remove PostgreSQL "public." schema prefix: "public.users" -> "users"
+      stmt = stmt.replace(/\bpublic\.([a-zA-Z0-9_`]+)/gi, "$1");
+
+      // Replace PostgreSQL boolean true/false outside quotes if necessary
+      let isInsert = false;
+      let targetTable = "unknown";
+
+      if (/^INSERT\s+INTO/i.test(stmt)) {
+        isInsert = true;
+        const match = stmt.match(/^INSERT\s+INTO\s+[`"]?([a-zA-Z0-9_]+)[`"]?/i);
+        if (match) targetTable = match[1];
+        // Use REPLACE INTO so that existing IDs and primary keys are smoothly updated
+        stmt = stmt.replace(/^INSERT\s+INTO/i, "REPLACE INTO");
+      } else if (/^DELETE\s+FROM/i.test(stmt)) {
+        const match = stmt.match(/^DELETE\s+FROM\s+[`"]?([a-zA-Z0-9_]+)[`"]?/i);
+        if (match) targetTable = match[1];
+      }
+
+      try {
+        await conn.query(stmt);
+        executed++;
+        if (isInsert && targetTable !== "unknown") {
+          tableStats[targetTable] = (tableStats[targetTable] || 0) + 1;
+        }
+      } catch (stmtErr: any) {
+        failed++;
+        if (isInsert) {
+          try {
+            const fallback = stmt.replace(/^REPLACE\s+INTO/i, "INSERT IGNORE INTO");
+            await conn.query(fallback);
+            executed++;
+            failed--;
+            tableStats[targetTable] = (tableStats[targetTable] || 0) + 1;
+          } catch {}
+        }
+      }
+    }
+
+    // Post-import sync: align profiles and user_roles for all users
+    try {
+      await conn.query(`
+        INSERT IGNORE INTO profiles (id, full_name, created_at, updated_at)
+        SELECT id, COALESCE(full_name, SUBSTRING_INDEX(email, '@', 1)), NOW(), NOW()
+        FROM users
+        WHERE id NOT IN (SELECT id FROM profiles)
+      `);
+      await conn.query(`
+        INSERT IGNORE INTO user_roles (id, user_id, role, created_at)
+        SELECT UUID(), id, 'student', NOW()
+        FROM users
+        WHERE id NOT IN (SELECT user_id FROM user_roles)
+      `);
+    } catch {}
+
+    await conn.query("SET FOREIGN_KEY_CHECKS = 1;");
+  } finally {
+    conn.release();
+  }
+
+  return { executed, failed, tableStats };
+}
+
 // ─── Server Functions ─────────────────────────────────────────
 
 export const createBackup = createServerFn({ method: "POST" })
   .validator((d: any) => d as { type: BackupType; userEmail: string; userName: string })
   .handler(async ({ data }): Promise<BackupRecord> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { type, userEmail, userName } = data;
     const id = generateId();
     const ts = timestamp();
     const now = isoNow();
+
+    await ensureBackupsDir();
+    const backupFolder = path.join(BACKUPS_DIR, id);
+    await fs.mkdir(backupFolder, { recursive: true });
 
     let name = "";
     let storagePath = "";
     let size = 0;
 
     const record: BackupRecord = {
-      id, name: "", type, size: 0, status: "running",
-      created_by: userEmail, created_by_name: userName, created_at: now, storage_path: "",
+      id,
+      name: "",
+      type,
+      size: 0,
+      status: "running",
+      created_by: userEmail,
+      created_by_name: userName,
+      created_at: now,
+      storage_path: "",
     };
 
     try {
-      await ensureBucket(supabaseAdmin);
-
       if (type === "database") {
         name = `database-${ts}.sql`;
         record.name = name;
         storagePath = `${id}/${name}`;
         record.storage_path = storagePath;
 
-        const sql = await generateSqlDump(supabaseAdmin);
-        const buffer = Buffer.from(sql, "utf-8");
-        size = buffer.length;
-        await supabaseAdmin.storage.from(BACKUPS_BUCKET).upload(storagePath, buffer, { contentType: "text/plain", upsert: true });
-
+        const sql = await generateSqlDump();
+        const fullFilePath = path.join(backupFolder, name);
+        await fs.writeFile(fullFilePath, sql, "utf-8");
+        const stat = await fs.stat(fullFilePath);
+        size = stat.size;
         record.tables_count = ALL_TABLES.length;
       } else if (type === "files") {
         name = `uploads-${ts}.zip`;
@@ -292,20 +470,21 @@ export const createBackup = createServerFn({ method: "POST" })
         storagePath = `${id}/${name}`;
         record.storage_path = storagePath;
 
-        const buf = await createFilesZip(supabaseAdmin);
+        const buf = await createFilesZip();
+        const fullFilePath = path.join(backupFolder, name);
+        await fs.writeFile(fullFilePath, Buffer.from(buf));
         size = buf.byteLength;
-        await supabaseAdmin.storage.from(BACKUPS_BUCKET).upload(storagePath, Buffer.from(buf), { contentType: "application/zip", upsert: true });
       } else {
         name = `skyrovix-backup-${ts}.zip`;
         record.name = name;
         storagePath = `${id}/${name}`;
         record.storage_path = storagePath;
 
-        const sql = await generateSqlDump(supabaseAdmin);
-        const { buffer: fullBuf, size: fullSize } = await createFullZip(supabaseAdmin, sql, id);
+        const sql = await generateSqlDump();
+        const { buffer: fullBuf, size: fullSize } = await createFullZip(sql, id);
+        const fullFilePath = path.join(backupFolder, name);
+        await fs.writeFile(fullFilePath, Buffer.from(fullBuf));
         size = fullSize;
-        await supabaseAdmin.storage.from(BACKUPS_BUCKET).upload(storagePath, Buffer.from(fullBuf), { contentType: "application/zip", upsert: true });
-
         record.tables_count = ALL_TABLES.length;
       }
 
@@ -313,11 +492,11 @@ export const createBackup = createServerFn({ method: "POST" })
       record.size = size;
       record.completed_at = isoNow();
 
-      const backups = await getBackupIndex(supabaseAdmin);
+      const backups = await getBackupIndex();
       backups.unshift(record);
-      await saveBackupIndex(supabaseAdmin, backups);
+      await saveBackupIndex(backups);
 
-      await appendAuditLog(supabaseAdmin, {
+      await appendAuditLog({
         action: "backup_created",
         resource: type,
         details: `Created ${type} backup: ${name} (${formatBytes(size)})`,
@@ -325,15 +504,16 @@ export const createBackup = createServerFn({ method: "POST" })
         timestamp: isoNow(),
       });
     } catch (e: any) {
+      console.error("[Create Backup Error]:", e);
       record.status = "failed";
       record.error = e.message;
       record.completed_at = isoNow();
 
-      const backups = await getBackupIndex(supabaseAdmin);
+      const backups = await getBackupIndex();
       backups.unshift(record);
-      await saveBackupIndex(supabaseAdmin, backups);
+      await saveBackupIndex(backups);
 
-      await appendAuditLog(supabaseAdmin, {
+      await appendAuditLog({
         action: "backup_failed",
         resource: type,
         details: `Failed to create ${type} backup: ${e.message}`,
@@ -347,36 +527,29 @@ export const createBackup = createServerFn({ method: "POST" })
 
 export const getBackups = createServerFn({ method: "GET" })
   .handler(async (): Promise<BackupRecord[]> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    return getBackupIndex(supabaseAdmin);
+    return getBackupIndex();
   });
 
 export const deleteBackup = createServerFn({ method: "POST" })
   .validator((d: any) => d as { backupId: string; userEmail: string; userName: string })
   .handler(async ({ data }): Promise<{ success: boolean; error?: string }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { backupId, userEmail, userName } = data;
 
     try {
-      const backups = await getBackupIndex(supabaseAdmin);
+      const backups = await getBackupIndex();
       const idx = backups.findIndex((b) => b.id === backupId);
       if (idx === -1) return { success: false, error: "Backup not found" };
 
       const backup = backups[idx];
-      const pathsToDelete = [backup.storage_path];
+      const folderPath = path.resolve(BACKUPS_DIR, backup.id);
       try {
-        const { data: folderFiles } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).list(backup.id);
-        if (folderFiles) {
-          for (const f of folderFiles) pathsToDelete.push(`${backup.id}/${f.name}`);
-        }
+        await fs.rm(folderPath, { recursive: true, force: true });
       } catch {}
 
-      await supabaseAdmin.storage.from(BACKUPS_BUCKET).remove(pathsToDelete);
-
       backups.splice(idx, 1);
-      await saveBackupIndex(supabaseAdmin, backups);
+      await saveBackupIndex(backups);
 
-      await appendAuditLog(supabaseAdmin, {
+      await appendAuditLog({
         action: "backup_deleted",
         resource: backup.type,
         details: `Deleted backup: ${backup.name} (${formatBytes(backup.size)})`,
@@ -393,160 +566,92 @@ export const deleteBackup = createServerFn({ method: "POST" })
 export const restoreBackup = createServerFn({ method: "POST" })
   .validator((d: any) => d as { backupId: string; userEmail: string; userName: string; safetyBackupId: string; restoreDb?: boolean; restoreFiles?: boolean })
   .handler(async ({ data }): Promise<{ success: boolean; error?: string; details?: string }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { backupId, userEmail, userName, restoreDb = true, restoreFiles = true } = data;
 
     try {
-      const backups = await getBackupIndex(supabaseAdmin);
+      const backups = await getBackupIndex();
       const backup = backups.find((b) => b.id === backupId);
       if (!backup) return { success: false, error: "Backup not found" };
 
-      if (backup.type === "database" && !backup.storage_path.endsWith(".sql")) {
-        return { success: false, error: "Database backup file not found" };
+      const fullFilePath = path.resolve(BACKUPS_DIR, backup.storage_path);
+      let buffer: Buffer;
+      try {
+        buffer = await fs.readFile(fullFilePath);
+      } catch {
+        return { success: false, error: `Backup file not found on disk: ${backup.storage_path}` };
       }
 
-      const { data: fileData, error: fileError } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).download(backup.storage_path);
-      if (fileError || !fileData) return { success: false, error: "Backup file not found in storage" };
-
-      const buffer = await fileData.arrayBuffer();
+      let restoredRecords = 0;
+      let restoredFiles = 0;
 
       if (backup.type === "database" || backup.storage_path.endsWith(".sql")) {
-        const sql = await fileData.text();
-        const insertLines = sql.split("\n").filter((l) => l.trim().startsWith("INSERT INTO"));
-        let inserted = 0;
-        for (const line of insertLines) {
-          try {
-            const match = line.match(/INSERT INTO public\.(\w+)\s*\(([^)]+)\)\s*VALUES\s*\((.+)\);/);
-            if (!match) continue;
-            const [, table, colsStr, valsStr] = match;
-            const cols = colsStr.split(",").map((c: string) => c.trim());
-            const vals = parseSqlValues(valsStr);
-            if (vals.length !== cols.length) continue;
-
-            const row: Record<string, any> = {};
-            cols.forEach((c: string, i: number) => { row[c] = vals[i]; });
-            delete row.id;
-
-            await (supabaseAdmin.from(table as any) as any).insert(row);
-            inserted++;
-          } catch {}
-        }
-        await appendAuditLog(supabaseAdmin, {
-          action: "restore_completed",
-          resource: "database",
-          details: `Restored ${inserted} rows from "${backup.name}"`,
-          user: `${userName} (${userEmail})`,
-          timestamp: isoNow(),
-        });
-        return { success: true, details: `Restored ${inserted} rows from database backup` };
-      }
-
-      if (backup.type === "files" || backup.storage_path.endsWith(".zip")) {
+        const sql = buffer.toString("utf-8");
+        const { executed, tableStats } = await executeSqlRestore(sql);
+        restoredRecords = Object.values(tableStats).reduce((a, b) => a + b, 0) || executed;
+      } else {
         const JSZip = (await import("jszip")).default;
-        const zip = await JSZip.loadAsync(new Uint8Array(buffer));
+        const zip = await JSZip.loadAsync(buffer);
 
-        if (restoreDb && zip.files["database.sql"]) {
-          const sqlContent = await zip.files["database.sql"].async("string");
-          const insertLines = sqlContent.split("\n").filter((l) => l.trim().startsWith("INSERT INTO"));
-          let inserted = 0;
-          for (const line of insertLines) {
+        if (restoreDb) {
+          let sqlZipEntry = zip.file("database.sql");
+          if (!sqlZipEntry) {
+            const sqlFiles = zip.file(/\.sql$/i);
+            if (sqlFiles && sqlFiles.length > 0) sqlZipEntry = sqlFiles[0];
+          }
+          if (sqlZipEntry) {
+            const sql = await sqlZipEntry.async("string");
+            const { executed, tableStats } = await executeSqlRestore(sql);
+            restoredRecords = Object.values(tableStats).reduce((a, b) => a + b, 0) || executed;
+          }
+        }
+
+        if (restoreFiles) {
+          const uploadsDir = path.resolve(process.cwd(), "public", "uploads");
+          await fs.mkdir(uploadsDir, { recursive: true });
+
+          const entries: { relPath: string; file: any }[] = [];
+          zip.forEach((relPath, file) => {
+            if (!file.dir && !relPath.endsWith(".sql") && !relPath.endsWith(".json")) {
+              entries.push({ relPath, file });
+            }
+          });
+
+          for (const { relPath, file } of entries) {
             try {
-              const match = line.match(/INSERT INTO public\.(\w+)\s*\(([^)]+)\)\s*VALUES\s*\((.+)\);/);
-              if (!match) continue;
-              const [, table, colsStr, valsStr] = match;
-              const cols = colsStr.split(",").map((c: string) => c.trim());
-              const vals = parseSqlValues(valsStr);
-              if (vals.length !== cols.length) continue;
-
-              const row: Record<string, any> = {};
-              cols.forEach((c: string, i: number) => { row[c] = vals[i]; });
-              delete row.id;
-
-              await (supabaseAdmin.from(table as any) as any).insert(row);
-              inserted++;
+              const cleanRel = relPath.replace(/^uploads\//i, "");
+              const targetPath = path.resolve(uploadsDir, cleanRel);
+              if (targetPath.startsWith(uploadsDir)) {
+                await fs.mkdir(path.dirname(targetPath), { recursive: true });
+                const content = await file.async("nodebuffer");
+                await fs.writeFile(targetPath, content);
+                restoredFiles++;
+              }
             } catch {}
           }
         }
-
-        if (restoreFiles && zip.files["uploads/"]) {
-          const uploadsFolder = zip.folder("uploads");
-          if (uploadsFolder) {
-            const fileEntries: { relPath: string; file: any }[] = [];
-            uploadsFolder.forEach((relPath: string, file: any) => fileEntries.push({ relPath, file }));
-            for (const { relPath, file } of fileEntries) {
-              if (file.dir) continue;
-              try {
-                const content = await file.async("uint8array");
-                const parts = relPath.split("/");
-                const bucket = parts[0];
-                const path = parts.slice(1).join("/");
-                if (bucket && FILE_BUCKETS.includes(bucket) && path) {
-                  const { error } = await supabaseAdmin.storage.from(bucket).upload(path, content, { upsert: true });
-                  if (error) console.warn(`[Restore] File upload warning (${relPath}):`, error.message);
-                }
-              } catch (e: any) {
-                console.warn(`[Restore] File restore warning (${relPath}):`, e.message);
-              }
-            }
-          }
-        }
-
-        const details = `Restored from "${backup.name}"`;
-        await appendAuditLog(supabaseAdmin, {
-          action: "restore_completed", resource: "full", details,
-          user: `${userName} (${userEmail})`, timestamp: isoNow(),
-        });
-
-        return { success: true, details };
       }
 
-      return { success: false, error: "Unknown backup type" };
+      const details = `Restored ${restoredRecords} records and ${restoredFiles} files from "${backup.name}"`;
+      await appendAuditLog({
+        action: "restore_completed",
+        resource: backup.type,
+        details,
+        user: `${userName} (${userEmail})`,
+        timestamp: isoNow(),
+      });
+
+      return { success: true, details };
     } catch (e: any) {
-      await appendAuditLog(supabaseAdmin, {
-        action: "restore_failed", resource: "full",
+      await appendAuditLog({
+        action: "restore_failed",
+        resource: "full",
         details: `Restore failed: ${e.message}`,
-        user: `${userName} (${userEmail})`, timestamp: isoNow(),
+        user: `${userName} (${userEmail})`,
+        timestamp: isoNow(),
       });
       return { success: false, error: e.message };
     }
   });
-
-function parseSqlValues(valsStr: string): any[] {
-  const values: any[] = [];
-  let current = "";
-  let inString = false;
-  let inArray = false;
-  let arrayDepth = 0;
-
-  for (let i = 0; i < valsStr.length; i++) {
-    const ch = valsStr[i];
-    if (ch === "'" && valsStr[i + 1] === "'") { current += "'"; i++; continue; }
-    if (ch === "'") { inString = !inString; current += ch; continue; }
-    if (!inString && ch === "," && arrayDepth === 0) {
-      values.push(parseSingleValue(current.trim()));
-      current = "";
-      continue;
-    }
-    if (ch === "{" && !inString) { inArray = true; arrayDepth++; }
-    if (ch === "}" && !inString) { arrayDepth--; if (arrayDepth === 0) inArray = false; }
-    current += ch;
-  }
-  if (current.trim()) values.push(parseSingleValue(current.trim()));
-  return values;
-}
-
-function parseSingleValue(val: string): any {
-  if (val === "NULL" || val === "null") return null;
-  if (val === "true") return true;
-  if (val === "false") return false;
-  if (/^\d+$/.test(val)) return parseInt(val, 10);
-  if (/^\d+\.\d+$/.test(val)) return parseFloat(val);
-  if (val.startsWith("'") && val.endsWith("'")) return val.slice(1, -1).replace(/''/g, "'");
-  if (val.startsWith("{") && val.endsWith("}")) {
-    return val.slice(1, -1).split(",").map((s) => s.trim().replace(/^"|"$/g, ""));
-  }
-  return val;
-}
 
 export const validateBackupFile = createServerFn({ method: "POST" })
   .validator((d: any) => d as { fileName: string; fileBase64: string })
@@ -554,31 +659,49 @@ export const validateBackupFile = createServerFn({ method: "POST" })
     try {
       const buffer = Buffer.from(data.fileBase64, "base64");
       const size = buffer.length;
-      const isZip = data.fileName.endsWith(".zip");
-      const isSql = data.fileName.endsWith(".sql");
+      const lowerName = data.fileName.toLowerCase();
+      const isZip = lowerName.endsWith(".zip") || (buffer.length > 4 && buffer[0] === 0x50 && buffer[1] === 0x4b);
+      const isSql = lowerName.endsWith(".sql");
 
       if (!isZip && !isSql) return { valid: false, error: "Only .zip and .sql files are supported" };
       if (size > 500 * 1024 * 1024) return { valid: false, error: "File exceeds 500MB maximum size" };
 
       if (isSql) {
         const content = buffer.toString("utf-8");
-        if (!content.includes("INSERT INTO") && !content.includes("CREATE TABLE")) {
-          return { valid: false, error: "Invalid SQL backup file" };
+        const hasSqlKeywords = /INSERT\s+INTO|CREATE\s+TABLE|REPLACE\s+INTO|DELETE\s+FROM/i.test(content);
+        if (!hasSqlKeywords) {
+          return { valid: false, error: "Invalid SQL backup file (no INSERT, CREATE, or REPLACE statements found)" };
         }
-        return { valid: true, info: { type: "database", hasDb: true, hasFiles: false, fileCount: 0, size } };
+        return { valid: true, info: { type: "database", hasDb: true, hasFiles: false, fileCount: 1, size } };
       }
 
       if (isZip) {
         try {
           const JSZip = (await import("jszip")).default;
           const zip = await JSZip.loadAsync(buffer);
-          const hasDb = !!zip.files["database.sql"];
-          const hasUploads = !!zip.files["uploads/"];
-          const fileCount = Object.keys(zip.files).length;
-          if (!hasDb && !hasUploads) return { valid: false, error: "Invalid backup ZIP: missing database.sql or uploads/ folder" };
-          return { valid: true, info: { type: "full", hasDb, hasFiles: hasUploads, fileCount, size } };
-        } catch {
-          return { valid: false, error: "Invalid or corrupted ZIP file" };
+
+          let hasDb = false;
+          let hasFiles = false;
+          let fileCount = 0;
+
+          zip.forEach((relPath, entry) => {
+            if (entry.dir) return;
+            fileCount++;
+            if (relPath.toLowerCase().endsWith(".sql")) hasDb = true;
+            if (relPath.startsWith("uploads/") || relPath.includes("/")) hasFiles = true;
+          });
+
+          if (!hasDb && !hasFiles && fileCount === 0) {
+            return { valid: false, error: "The ZIP archive is empty" };
+          }
+          if (!hasDb && !hasFiles) {
+            return { valid: false, error: "Invalid backup ZIP: missing SQL dump or uploaded files" };
+          }
+
+          const type = hasDb && hasFiles ? "full" : hasDb ? "database" : "files";
+          return { valid: true, info: { type, hasDb, hasFiles, fileCount, size } };
+        } catch (zipErr: any) {
+          return { valid: false, error: `Invalid or corrupted ZIP file: ${zipErr.message}` };
         }
       }
 
@@ -591,75 +714,93 @@ export const validateBackupFile = createServerFn({ method: "POST" })
 export const restoreFromUpload = createServerFn({ method: "POST" })
   .validator((d: any) => d as { fileBase64: string; fileName: string; userEmail: string; userName: string })
   .handler(async ({ data }): Promise<{ success: boolean; error?: string; details?: string }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { fileBase64, fileName, userEmail, userName } = data;
 
     try {
-      await ensureBucket(supabaseAdmin);
       const buffer = Buffer.from(fileBase64, "base64");
+      const lowerName = fileName.toLowerCase();
+      const isZip = lowerName.endsWith(".zip") || (buffer.length > 4 && buffer[0] === 0x50 && buffer[1] === 0x4b);
 
-      const JSZip = (await import("jszip")).default;
-      const zip = await JSZip.loadAsync(buffer);
+      let sqlContent = "";
+      let restoredFilesCount = 0;
 
-      const hasDb = !!zip.files["database.sql"];
-      const hasUploads = !!zip.files["uploads/"];
+      if (isZip) {
+        const JSZip = (await import("jszip")).default;
+        const zip = await JSZip.loadAsync(buffer);
 
-      if (!hasDb && !hasUploads) return { success: false, error: "Invalid backup: missing database.sql or uploads/" };
-
-      let restoredCount = 0;
-
-      if (hasDb) {
-        const sqlContent = await zip.files["database.sql"].async("string");
-        const insertLines = sqlContent.split("\n").filter((l) => l.trim().startsWith("INSERT INTO"));
-        for (const line of insertLines) {
-          try {
-            const match = line.match(/INSERT INTO public\.(\w+)\s*\(([^)]+)\)\s*VALUES\s*\((.+)\);/);
-            if (!match) continue;
-            const [, table, colsStr, valsStr] = match;
-            const cols = colsStr.split(",").map((c: string) => c.trim());
-            const vals = parseSqlValues(valsStr);
-            if (vals.length !== cols.length) continue;
-            const row: Record<string, any> = {};
-            cols.forEach((c: string, i: number) => { row[c] = vals[i]; });
-            delete row.id;
-            const { error } = await (supabaseAdmin.from(table as any) as any).insert(row);
-            if (!error) restoredCount++;
-          } catch {}
-        }
-      }
-
-      if (hasUploads) {
-        const uploadsFolder = zip.folder("uploads");
-        if (uploadsFolder) {
-          const entries: { relPath: string; file: any }[] = [];
-          uploadsFolder.forEach((relPath: string, file: any) => entries.push({ relPath, file }));
-          for (const { relPath, file } of entries) {
-            if (file.dir) continue;
-            try {
-              const content = await file.async("uint8array");
-              const parts = relPath.split("/");
-              const bucket = parts[0];
-              const path = parts.slice(1).join("/");
-              if (bucket && FILE_BUCKETS.includes(bucket) && path) {
-                await supabaseAdmin.storage.from(bucket).upload(path, content, { upsert: true });
-              }
-            } catch {}
+        // 1. Find any SQL file
+        let sqlZipEntry = zip.file("database.sql");
+        if (!sqlZipEntry) {
+          const sqlFiles = zip.file(/\.sql$/i);
+          if (sqlFiles && sqlFiles.length > 0) {
+            sqlZipEntry = sqlFiles[0];
           }
         }
+
+        if (sqlZipEntry) {
+          sqlContent = await sqlZipEntry.async("string");
+        }
+
+        // 2. Extract uploads/ or files
+        const uploadsDir = path.resolve(process.cwd(), "public", "uploads");
+        await fs.mkdir(uploadsDir, { recursive: true });
+
+        const entries: { relPath: string; file: any }[] = [];
+        zip.forEach((relPath, file) => {
+          if (!file.dir && !relPath.endsWith(".sql") && !relPath.endsWith(".json")) {
+            entries.push({ relPath, file });
+          }
+        });
+
+        for (const { relPath, file } of entries) {
+          try {
+            const cleanRel = relPath.replace(/^uploads\//i, "");
+            const targetPath = path.resolve(uploadsDir, cleanRel);
+            if (targetPath.startsWith(uploadsDir)) {
+              await fs.mkdir(path.dirname(targetPath), { recursive: true });
+              const content = await file.async("nodebuffer");
+              await fs.writeFile(targetPath, content);
+              restoredFilesCount++;
+            }
+          } catch (fileErr: any) {
+            console.warn(`[Restore] Error writing file ${relPath}:`, fileErr.message);
+          }
+        }
+      } else {
+        // Plain SQL file
+        sqlContent = buffer.toString("utf-8");
       }
 
-      const details = `Restored ${restoredCount} rows from uploaded backup "${fileName}"`;
-      await appendAuditLog(supabaseAdmin, {
-        action: "restore_completed", resource: "upload",
-        details, user: `${userName} (${userEmail})`, timestamp: isoNow(),
+      let restoredRecords = 0;
+      if (sqlContent.trim()) {
+        const { executed, tableStats } = await executeSqlRestore(sqlContent);
+        restoredRecords = Object.values(tableStats).reduce((a, b) => a + b, 0) || executed;
+      }
+
+      const summaryParts: string[] = [];
+      if (restoredRecords > 0) summaryParts.push(`${restoredRecords} database records`);
+      if (restoredFilesCount > 0) summaryParts.push(`${restoredFilesCount} files`);
+      const details = summaryParts.length > 0
+        ? `Successfully restored ${summaryParts.join(" and ")} from "${fileName}"`
+        : `Restored backup "${fileName}"`;
+
+      await appendAuditLog({
+        action: "restore_completed",
+        resource: "upload",
+        details,
+        user: `${userName} (${userEmail})`,
+        timestamp: isoNow(),
       });
 
       return { success: true, details };
     } catch (e: any) {
-      await appendAuditLog(supabaseAdmin, {
-        action: "restore_failed", resource: "upload",
+      console.error("[Restore Upload Error]:", e);
+      await appendAuditLog({
+        action: "restore_failed",
+        resource: "upload",
         details: `Upload restore failed: ${e.message}`,
-        user: `${userName} (${userEmail})`, timestamp: isoNow(),
+        user: `${userName} (${userEmail})`,
+        timestamp: isoNow(),
       });
       return { success: false, error: e.message };
     }
@@ -668,17 +809,14 @@ export const restoreFromUpload = createServerFn({ method: "POST" })
 export const downloadBackupFile = createServerFn({ method: "POST" })
   .validator((d: any) => d as { backupId: string })
   .handler(async ({ data }): Promise<{ content?: string; name?: string; error?: string }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     try {
-      const backups = await getBackupIndex(supabaseAdmin);
+      const backups = await getBackupIndex();
       const backup = backups.find((b) => b.id === data.backupId);
       if (!backup || !backup.storage_path) return { error: "Backup not found" };
 
-      const { data: fileData, error: fileError } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).download(backup.storage_path);
-      if (fileError || !fileData) return { error: "Backup file not found in storage" };
-
-      const arrayBuffer = await fileData.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString("base64");
+      const fullFilePath = path.resolve(BACKUPS_DIR, backup.storage_path);
+      const buffer = await fs.readFile(fullFilePath);
+      const base64 = buffer.toString("base64");
 
       return { content: base64, name: backup.name };
     } catch (e: any) {
@@ -688,29 +826,21 @@ export const downloadBackupFile = createServerFn({ method: "POST" })
 
 export const getBackupStorageInfo = createServerFn({ method: "GET" })
   .handler(async (): Promise<{ totalSize: number; fileCount: number; largestBackup: BackupRecord | null; oldestBackup: BackupRecord | null; backups: BackupRecord[] }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const backups = await getBackupIndex(supabaseAdmin);
+    const backups = await getBackupIndex();
     const completed = backups.filter((b) => b.status === "completed");
     const totalSize = completed.reduce((s, b) => s + b.size, 0);
     const largestBackup = completed.length > 0 ? completed.reduce((a, b) => (a.size > b.size ? a : b)) : null;
     const oldestBackup = completed.length > 0 ? completed.reduce((a, b) => (a.created_at < b.created_at ? a : b)) : null;
 
-    let fileCount = 0;
-    try {
-      const { data } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).list("", { limit: 1000 });
-      fileCount = data?.length ?? 0;
-    } catch {}
-
+    let fileCount = completed.length;
     return { totalSize, fileCount, largestBackup, oldestBackup, backups };
   });
 
 export const getAutoBackupConfig = createServerFn({ method: "GET" })
   .handler(async (): Promise<{ enabled: boolean; frequency: string; backupTime: string; retentionCount: number; lastRun?: string; nextRun?: string }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     try {
-      const { data, error } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).download("auto-backup-config.json");
-      if (error || !data) return { enabled: false, frequency: "daily", backupTime: "02:00", retentionCount: 30 };
-      const text = await data.text();
+      await ensureBackupsDir();
+      const text = await fs.readFile(CONFIG_FILE, "utf-8");
       return JSON.parse(text);
     } catch {
       return { enabled: false, frequency: "daily", backupTime: "02:00", retentionCount: 30 };
@@ -720,11 +850,10 @@ export const getAutoBackupConfig = createServerFn({ method: "GET" })
 export const updateAutoBackupConfig = createServerFn({ method: "POST" })
   .validator((d: any) => d as { enabled: boolean; frequency: string; backupTime: string; retentionCount: number })
   .handler(async ({ data }): Promise<{ success: boolean; error?: string }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     try {
+      await ensureBackupsDir();
       const config = { ...data, updatedAt: isoNow() };
-      const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
-      await supabaseAdmin.storage.from(BACKUPS_BUCKET).upload("auto-backup-config.json", blob, { upsert: true });
+      await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
       return { success: true };
     } catch (e: any) {
       return { success: false, error: e.message };
@@ -734,20 +863,34 @@ export const updateAutoBackupConfig = createServerFn({ method: "POST" })
 export const createSafetyBackup = createServerFn({ method: "POST" })
   .validator((d: any) => d as { userEmail: string; userName: string })
   .handler(async ({ data }): Promise<{ backupId?: string; error?: string }> => {
-    const result = await createBackup({
-      data: { type: "full", userEmail: data.userEmail, userName: data.userName },
-    });
-    if (result.status === "failed") return { error: result.error };
-    return { backupId: result.id };
+    try {
+      const result = await createBackup({
+        data: { type: "database", userEmail: data.userEmail, userName: data.userName },
+      });
+      if (result.status === "failed") return { error: result.error || "Failed to create safety backup" };
+      return { backupId: result.id };
+    } catch (err: any) {
+      return { error: err.message || "Failed to create safety backup" };
+    }
   });
 
 export const getAuditLogs = createServerFn({ method: "GET" })
   .handler(async (): Promise<AuditEntry[]> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     try {
-      const { data, error } = await supabaseAdmin.storage.from(BACKUPS_BUCKET).download("audit-log.jsonl");
-      if (error || !data) return [];
-      const text = await data.text();
-      return text.split("\n").filter(Boolean).map((l: string) => JSON.parse(l));
-    } catch { return []; }
+      await ensureBackupsDir();
+      const text = await fs.readFile(AUDIT_FILE, "utf-8");
+      return text
+        .split("\n")
+        .filter(Boolean)
+        .map((l: string) => {
+          try {
+            return JSON.parse(l);
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean) as AuditEntry[];
+    } catch {
+      return [];
+    }
   });

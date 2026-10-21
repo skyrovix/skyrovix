@@ -63,13 +63,13 @@ function TermsPage() {
 
       {/* Hero Header */}
       <AuroraBackground>
-        <section className="relative pb-10 sm:pb-16 pt-10 sm:pt-20">
+        <section className="relative pb-10 sm:pb-16 pt-20 sm:pt-24">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
             <FadeUp>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-50/80 dark:bg-blue-950/40 px-3.5 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300 backdrop-blur shadow-sm">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3.5 py-1.5 text-xs font-bold text-[#f95c4b] backdrop-blur shadow-sm">
                 <FileSignature className="size-3.5" /> Platform Service Agreement
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <h1 className="font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-[#181619] dark:text-white">
                 Terms & <span className="brand-text">Conditions</span>
               </h1>
               <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">

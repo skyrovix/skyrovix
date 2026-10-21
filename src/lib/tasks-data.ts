@@ -20,152 +20,658 @@ export const ALL_DOMAINS_TASKS: DomainTasks[] = [
     "slug": "fullstack",
     "name": "Full Stack Development",
     "icon": "FS",
-    "color": "from-fuchsia-500 to-[#07284a]",
+    "color": "from-fuchsia-500 to-[#181619]",
     "description": "End-to-end web apps with frontend, backend, databases, and APIs.",
     "tasks": [
       {
         "taskNumber": 1,
-        "title": "Library Management System",
-        "description": "Build a library management system as a practical virtual internship project using full stack development concepts.",
+        "title": "Personal Portfolio Website",
+        "description": "Build a responsive personal portfolio website with About, Skills, Projects, and Contact sections using modern web fundamentals.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, Git, GitHub, Vercel",
+          "Semantic HTML, Flexbox/Grid, and responsive design breakpoints",
+          "DOM basics, interactive sections, and contact form validation",
+          "Git & GitHub version control with clear commits and README documentation",
+          "Live deployment on Vercel with responsive mobile-first testing"
         ],
-        "outcome": "Complete a working library management system with documented workflow, testing, and project submission."
+        "outcome": "Responsive portfolio with About, Skills, Projects and Contact sections deployed online."
       },
       {
         "taskNumber": 2,
-        "title": "Student Management Portal",
-        "description": "Build a student management portal as a practical virtual internship project using full stack development concepts.",
+        "title": "Responsive Landing Page",
+        "description": "Design and implement a high-conversion, modern responsive product or service landing page.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, GitHub, Vercel",
+          "UI layout, mobile-first responsive breakpoints, and reusable sections",
+          "Hero banner, feature showcases, customer testimonials, and CTA design",
+          "Clean component/file structure and cross-browser responsiveness",
+          "Production deployment with live URL and GitHub repository"
         ],
-        "outcome": "Complete a working student management portal with documented workflow, testing, and project submission."
+        "outcome": "Modern responsive landing page deployed online."
       },
       {
         "taskNumber": 3,
-        "title": "Online Course Platform",
-        "description": "Build a online course platform as a practical virtual internship project using full stack development concepts.",
+        "title": "To-Do List Application",
+        "description": "Develop a persistent task manager application with comprehensive CRUD operations and LocalStorage.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, LocalStorage, GitHub, Vercel",
+          "DOM manipulation, dynamic event listeners, and state handling",
+          "Create, read, update, delete (CRUD) tasks with completed toggling",
+          "Browser LocalStorage integration for offline data persistence",
+          "Filter tasks by status (All, Active, Completed) and search input"
         ],
-        "outcome": "Complete a working online course platform with documented workflow, testing, and project submission."
+        "outcome": "Persistent task manager with add/edit/delete/filter."
       },
       {
         "taskNumber": 4,
-        "title": "E-Commerce Website",
-        "description": "Build a e-commerce website as a practical virtual internship project using full stack development concepts.",
+        "title": "Calculator Web App",
+        "description": "Create an interactive, accessible calculator web app supporting standard arithmetic operations and keyboard input.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, GitHub, Vercel",
+          "Modular functions, arithmetic operators, and expression evaluation",
+          "Keyboard navigation support and click event handling",
+          "Error handling for division by zero and invalid syntax",
+          "Clean responsive layout mimicking modern physical and digital calculators"
         ],
-        "outcome": "Complete a working e-commerce website with documented workflow, testing, and project submission."
+        "outcome": "Functional calculator with keyboard support and error handling."
       },
       {
         "taskNumber": 5,
-        "title": "Job Portal",
-        "description": "Build a job portal as a practical virtual internship project using full stack development concepts.",
+        "title": "Weather Dashboard",
+        "description": "Build an asynchronous weather dashboard fetching live meteorological data from a RESTful weather API.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, Fetch API, Weather API, Vercel",
+          "Asynchronous API integration with async/await and JSON parsing",
+          "Search cities with real-time temperature, humidity, wind, and forecast",
+          "Graceful handling of loading spinners, empty states, and invalid city errors",
+          "Secure environment variable management for API keys without committing credentials"
         ],
-        "outcome": "Complete a working job portal with documented workflow, testing, and project submission."
+        "outcome": "Searchable weather dashboard using live API data."
       },
       {
         "taskNumber": 6,
-        "title": "Hospital Management System",
-        "description": "Build a hospital management system as a practical virtual internship project using full stack development concepts.",
+        "title": "Expense Tracker",
+        "description": "Construct a personal finance expense and income tracker with interactive charts and category summaries.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, LocalStorage, Chart.js, Vercel",
+          "Form validation, dynamic array/object manipulation, and total calculations",
+          "Visual expense breakdown with interactive Chart.js doughnut and bar charts",
+          "Filter by income vs. expense and categorization (Food, Rent, Travel, etc.)",
+          "Persistent LocalStorage sync with import/export capabilities"
         ],
-        "outcome": "Complete a working hospital management system with documented workflow, testing, and project submission."
+        "outcome": "Expense/income tracker with category summaries and charts."
       },
       {
         "taskNumber": 7,
-        "title": "Event Management Platform",
-        "description": "Build a event management platform as a practical virtual internship project using full stack development concepts.",
+        "title": "Quiz Application",
+        "description": "Build a timed interactive quiz platform with category selection, dynamic question rendering, and real-time score calculation.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, JSON, LocalStorage",
+          "Countdown timers, interval handling, and state-driven question progression",
+          "Score calculation, answer review breakdown, and high score tracking",
+          "Dynamic question rendering from JSON dataset with multiple question types",
+          "Responsive UI with progress indicators and immediate feedback"
         ],
-        "outcome": "Complete a working event management platform with documented workflow, testing, and project submission."
+        "outcome": "Timed quiz with score and result screen."
       },
       {
         "taskNumber": 8,
-        "title": "Food Delivery Website",
-        "description": "Build a food delivery website as a practical virtual internship project using full stack development concepts.",
+        "title": "Notes Management App",
+        "description": "Develop a searchable, tag-based notes management application with persistent local storage and rich UI patterns.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: HTML5, CSS3, JavaScript, LocalStorage, Vercel",
+          "Full CRUD for notes with instant search and category tag filtering",
+          "Color coding, pinned notes, and timestamp tracking (created/edited)",
+          "Reusable UI patterns, responsive grid/list view toggling",
+          "LocalStorage persistence with empty state and delete confirmations"
         ],
-        "outcome": "Complete a working food delivery website with documented workflow, testing, and project submission."
+        "outcome": "Searchable notes application with persistent storage."
       },
       {
         "taskNumber": 9,
-        "title": "Expense Tracker",
-        "description": "Build a expense tracker as a practical virtual internship project using full stack development concepts.",
+        "title": "Recipe Finder",
+        "description": "Create a modern React recipe discovery application that interfaces with a third-party culinary REST API.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: React, JavaScript, REST API, CSS, Vercel",
+          "React component hierarchy, props, useState, and useEffect hooks",
+          "API integration with keyword search, dietary filters, and meal types",
+          "Recipe detail view with ingredients list, prep time, and instructions",
+          "Favorites bookmarking system stored in browser storage"
         ],
-        "outcome": "Complete a working expense tracker with documented workflow, testing, and project submission."
+        "outcome": "Recipe search app with details and favorites."
       },
       {
         "taskNumber": 10,
-        "title": "Inventory Management System",
-        "description": "Build a inventory management system as a practical virtual internship project using full stack development concepts.",
+        "title": "Movie Explorer",
+        "description": "Develop a React movie browsing and discovery application featuring pagination, search, and dynamic routing.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: React, REST API, JavaScript, CSS, Vercel",
+          "Reusable card components, loading skeletons, and error boundaries",
+          "Pagination and infinite scroll for trending and genre-filtered movies",
+          "Detailed modal or route showing cast, trailer embed, and ratings",
+          "Debounced search bar for smooth API queries and optimized performance"
         ],
-        "outcome": "Complete a working inventory management system with documented workflow, testing, and project submission."
+        "outcome": "Movie discovery application with search and details."
       },
       {
         "taskNumber": 11,
-        "title": "Real Estate Listing Platform",
-        "description": "Build a real estate listing platform as a practical virtual internship project using full stack development concepts.",
+        "title": "React To-Do App",
+        "description": "Build a scalable, component-based task management application using React, Vite, and custom hooks.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: React, Vite, JavaScript, CSS, GitHub, Vercel",
+          "Modern functional components, props, state, and controlled form inputs",
+          "Task categories, priority tagging (Low, Medium, High), and due dates",
+          "Custom useLocalStorage hook for decoupled state persistence",
+          "Clean folder architecture with modular components and styling"
         ],
-        "outcome": "Complete a working real estate listing platform with documented workflow, testing, and project submission."
+        "outcome": "Component-based task manager."
       },
       {
         "taskNumber": 12,
-        "title": "Online Appointment System",
-        "description": "Build a online appointment system as a practical virtual internship project using full stack development concepts.",
+        "title": "React Expense Dashboard",
+        "description": "Build an interactive financial analytics dashboard using React, Vite, and Recharts or Chart.js.",
         "features": [
-          "Responsive interface",
-          "database integration",
-          "CRUD operations",
-          "search and validation"
+          "Tech Stack: React, Vite, Chart.js/Recharts, JavaScript, CSS",
+          "Derived state calculations, useMemo and useCallback performance optimizations",
+          "Dynamic bar, line, and pie charts reflecting monthly expenditure trends",
+          "Multi-currency support and date-range filtering (Weekly, Monthly, Yearly)",
+          "Responsive layout with quick-add transaction modal and summary cards"
         ],
-        "outcome": "Complete a working online appointment system with documented workflow, testing, and project submission."
+        "outcome": "Responsive financial dashboard."
+      },
+      {
+        "taskNumber": 13,
+        "title": "React E-Commerce UI",
+        "description": "Develop a comprehensive e-commerce storefront frontend with catalog browsing, shopping cart, and client-side routing.",
+        "features": [
+          "Tech Stack: React, Vite, React Router, CSS/Tailwind, Fake Store API",
+          "React Router DOM multi-page navigation (Home, Products, Product Details, Cart)",
+          "Global cart state using React Context API with quantity adjustment and subtotal",
+          "Product filtering by category, price slider, and sorting by rating",
+          "Responsive product grids with quick preview and toast notifications"
+        ],
+        "outcome": "Complete e-commerce frontend ready for backend integration."
+      },
+      {
+        "taskNumber": 14,
+        "title": "React Authentication UI",
+        "description": "Construct a production-grade authentication flow UI featuring login, registration, password reset, and protected routes.",
+        "features": [
+          "Tech Stack: React, React Router, JavaScript, CSS/Tailwind",
+          "Form validation with real-time regex checks and accessible error messages",
+          "Protected route wrappers checking simulated authentication tokens",
+          "Login, registration, forgot password, and reset password screens",
+          "Loading indicators, password visibility toggle, and social login buttons"
+        ],
+        "outcome": "Production-style login, registration and reset screens."
+      },
+      {
+        "taskNumber": 15,
+        "title": "React Admin Dashboard",
+        "description": "Design and implement a responsive administrative analytics dashboard with data tables, charts, and navigation sidebar.",
+        "features": [
+          "Tech Stack: React, Vite, React Router, Recharts, Tailwind CSS",
+          "Collapsible responsive sidebar navigation and dark/light theme toggle",
+          "KPI statistics cards with percentage growth badges and sparklines",
+          "Sortable, searchable, and paginated data table for user/order management",
+          "Multi-chart analytics section depicting revenue and active user metrics"
+        ],
+        "outcome": "Reusable admin dashboard UI."
+      },
+      {
+        "taskNumber": 16,
+        "title": "Node.js REST API",
+        "description": "Create a structured, production-ready RESTful API backend using Node.js and Express with controller architecture.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, JavaScript, Postman, GitHub",
+          "HTTP methods (GET, POST, PUT, DELETE) and standard HTTP status codes",
+          "Layered architecture: routes, controllers, middleware, and services",
+          "Centralized error handling middleware and structured JSON responses",
+          "Postman test collection documenting endpoints and response schemas"
+        ],
+        "outcome": "Structured REST API tested with Postman."
+      },
+      {
+        "taskNumber": 17,
+        "title": "User Management API",
+        "description": "Build a robust User Management micro-service with MongoDB and Mongoose handling full CRUD and pagination.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, MongoDB, Mongoose, Postman",
+          "Mongoose schema definitions with strict data types and validators",
+          "Full CRUD endpoints with query parameter pagination, sorting, and field limiting",
+          "Input validation and sanitization middleware to prevent NoSQL injection",
+          "Comprehensive error response formats and Postman documentation"
+        ],
+        "outcome": "Documented user CRUD API."
+      },
+      {
+        "taskNumber": 18,
+        "title": "Authentication API",
+        "description": "Implement a secure authentication and authorization backend system using bcrypt password hashing and JWT.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, MongoDB, Mongoose, bcrypt, JWT",
+          "User registration with salted bcrypt password hashing and email uniqueness",
+          "Login route issuing signed JSON Web Tokens (JWT) with configurable expiry",
+          "Auth verification middleware protecting private endpoints via Bearer tokens",
+          "Role-Based Access Control (RBAC) middleware verifying student vs. admin access"
+        ],
+        "outcome": "Secure login/register API with protected routes."
+      },
+      {
+        "taskNumber": 19,
+        "title": "File Upload API",
+        "description": "Build a resilient file upload and media management API utilizing Multer and cloud storage integration.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, Multer, MongoDB, Cloudinary/S3-compatible storage",
+          "Multipart form-data parsing with Multer and file type/size validation",
+          "Direct upload to Cloudinary or S3-compatible cloud bucket with URL retrieval",
+          "File metadata (size, mimetype, URL, uploadedBy) saved to database",
+          "Download and delete endpoints with proper access control verification"
+        ],
+        "outcome": "File upload/download management API."
+      },
+      {
+        "taskNumber": 20,
+        "title": "Contact Management API",
+        "description": "Develop a high-performance contact and CRM management REST backend with search, filtering, and pagination.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, MongoDB, Mongoose, Postman",
+          "Search contacts by name, email, or company using regex and indexed fields",
+          "Pagination, sorting, and tag grouping for enterprise address books",
+          "Request validation using Joi or Express-validator middleware",
+          "Standardized REST response envelopes with status, data, and error objects"
+        ],
+        "outcome": "Reusable contact-management backend."
+      },
+      {
+        "taskNumber": 21,
+        "title": "MySQL User Database",
+        "description": "Architect a relational user database service utilizing MySQL, raw SQL queries, and connection pooling.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, MySQL, mysql2, Postman",
+          "Relational schema design with primary keys, foreign keys, and indexes",
+          "SQL CRUD operations with parameterized queries preventing SQL injection",
+          "Table JOINs connecting users with profiles, roles, and activity records",
+          "Connection pooling and transaction support for database performance"
+        ],
+        "outcome": "Database-backed user API."
+      },
+      {
+        "taskNumber": 22,
+        "title": "PostgreSQL Task Manager",
+        "description": "Build a relational task and workflow backend leveraging PostgreSQL and the Prisma ORM.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, PostgreSQL, Prisma ORM, Postman",
+          "Prisma schema definition with 1-to-many and many-to-many relations",
+          "Database migrations workflow (prisma migrate) and seed data automation",
+          "Atomic database transactions for multi-step task assignments",
+          "Query filtering, nested relation loading, and Postman API collection"
+        ],
+        "outcome": "Task API with relational database."
+      },
+      {
+        "taskNumber": 23,
+        "title": "MongoDB Product API",
+        "description": "Build an enterprise product catalog service using MongoDB and Mongoose featuring aggregation pipelines.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, MongoDB, Mongoose",
+          "NoSQL document modeling with embedded sub-documents and referenced categories",
+          "MongoDB aggregation pipelines for category counts and price statistics",
+          "Compound indexes on title, category, and price for sub-millisecond queries",
+          "Inventory stock decrementing logic with validation guards"
+        ],
+        "outcome": "Production-style product service."
+      },
+      {
+        "taskNumber": 24,
+        "title": "Full-Stack Blog",
+        "description": "Deliver a full-stack multi-user publishing platform with React frontend, Express backend, and PostgreSQL database.",
+        "features": [
+          "Tech Stack: React, Vite, Node.js, Express.js, PostgreSQL/Prisma, JWT, Vercel/Render",
+          "Full-stack end-to-end integration: React client calling authenticated REST API",
+          "Article creation with rich text / markdown, publishing status, and tags",
+          "Author authorization checks: only post authors or admins can edit/delete",
+          "Full deployment with frontend on Vercel and backend database on Render/Railway"
+        ],
+        "outcome": "Multi-user blog with admin/editor workflow."
+      },
+      {
+        "taskNumber": 25,
+        "title": "Full-Stack Notes App",
+        "description": "Construct a secure, multi-tenant cloud notes web application with authenticated CRUD and real-time search.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, MongoDB, JWT, Tailwind, Vercel/Render",
+          "JWT authentication with automatic session persistence and logout",
+          "Strict user-ownership scoping: users can only view and manage their own notes",
+          "Instant debounced search, color tagging, and archive/trash functionality",
+          "Deployed full-stack app with comprehensive README and environment variables setup"
+        ],
+        "outcome": "Secure multi-user cloud notes platform."
+      },
+      {
+        "taskNumber": 26,
+        "title": "Student Management System",
+        "description": "Develop a relational database-driven academic portal for student enrollment, courses, and grade management.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, MySQL, Prisma/SQL, JWT",
+          "Relational schema linking students, courses, instructors, and enrollments",
+          "Admin management portal with student search, course assignment, and GPA calculation",
+          "Protected portal for students to view course schedules and academic progress",
+          "Export student rosters to CSV/PDF and input validation across all forms"
+        ],
+        "outcome": "Database-driven student management system."
+      },
+      {
+        "taskNumber": 27,
+        "title": "Employee Management System",
+        "description": "Build an enterprise employee administration platform featuring role-based workflows and department analytics.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT",
+          "Multi-role permissions: HR Admin, Department Manager, and Employee",
+          "Department hierarchies, salary tracking, and leave request approval flow",
+          "Interactive executive dashboard showing headcount and department distribution",
+          "Audit log capturing employee status changes and promotion history"
+        ],
+        "outcome": "Employee administration platform."
+      },
+      {
+        "taskNumber": 28,
+        "title": "Inventory Management System",
+        "description": "Create a commercial inventory management application with stock transactions, low-stock alerts, and trend reports.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL/MySQL, Prisma, Recharts",
+          "Stock intake, transfer, and dispatch transaction logs with audit trails",
+          "Automated low-stock warning banners and supplier reorder triggers",
+          "Visual stock level analytics with Recharts area and bar graphs",
+          "Barcode/SKU search and relational supplier-item association"
+        ],
+        "outcome": "Business-oriented inventory platform."
+      },
+      {
+        "taskNumber": 29,
+        "title": "E-Commerce Store",
+        "description": "Architect and build an end-to-end full-stack e-commerce platform with cart, checkout, payment sandbox, and orders.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, Cloudinary, payment sandbox",
+          "Full customer journey: product filtering, detail view, cart, and address checkout",
+          "Payment gateway sandbox integration (Cashfree / Razorpay) with order verification",
+          "Order tracking dashboard with statuses (Pending, Paid, Shipped, Delivered)",
+          "Admin product management portal with Cloudinary image upload and stock control"
+        ],
+        "outcome": "End-to-end e-commerce application."
+      },
+      {
+        "taskNumber": 30,
+        "title": "Job Portal",
+        "description": "Construct a dual-role candidate and recruiter job portal with resume uploads, listings, and applications.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, Cloudinary",
+          "Dual-role authentication and onboarding: Job Seeker vs. Employer/Recruiter",
+          "Job posting management with salary ranges, experience, and requirement tags",
+          "Candidate application flow with resume PDF upload and cover letter submission",
+          "Recruiter applicant tracking dashboard to review, shortlist, or reject candidates"
+        ],
+        "outcome": "Candidate/recruiter job platform."
+      },
+      {
+        "taskNumber": 31,
+        "title": "Learning Management System",
+        "description": "Develop an interactive LMS platform supporting courses, structured modules, video lessons, and student progress.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, Cloudinary",
+          "Course creation studio for instructors with lesson video links and resources",
+          "Student enrollment, video lesson player, and sequential lesson progress tracking",
+          "Quiz completion gates before marking modules completed",
+          "Automated course completion certificate preview upon 100% progress"
+        ],
+        "outcome": "Online learning management platform."
+      },
+      {
+        "taskNumber": 32,
+        "title": "Internship Management Portal",
+        "description": "Engineer an internship management system with task milestones, submission reviews, mentor feedback, and certificates.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, Cloudinary",
+          "Intern onboarding workflow with offer letter generation and task progression",
+          "Task submission portal accepting GitHub links, live URLs, and screenshots",
+          "Mentor review interface with approval, rejection, and constructive feedback loops",
+          "Dynamic credential generation with unique verification IDs and QR codes"
+        ],
+        "outcome": "Realistic internship-management platform."
+      },
+      {
+        "taskNumber": 33,
+        "title": "Hospital Appointment System",
+        "description": "Build a clinical appointment scheduling platform with doctor availability, patient bookings, and triage records.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT",
+          "Doctor specialty schedules with configurable working hours and time slots",
+          "Patient booking flow preventing double-booking with atomic database locks",
+          "Doctor consultation notes, prescription entry, and appointment history",
+          "Email/SMS notification simulation for booking confirmation and reminders"
+        ],
+        "outcome": "Appointment and administration system."
+      },
+      {
+        "taskNumber": 34,
+        "title": "Restaurant Ordering System",
+        "description": "Create an online dining and delivery ordering platform with dynamic menus, live cart, and kitchen order tickets.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT",
+          "Menu categorization with dietary tags (Veg, Non-Veg, Gluten-Free) and add-ons",
+          "Interactive cart with tax calculation, discount coupons, and delivery address",
+          "Kitchen display screen (KDS) updating order status: Received, Cooking, Out for Delivery",
+          "Admin menu management with item pricing and instant out-of-stock toggling"
+        ],
+        "outcome": "Online ordering platform."
+      },
+      {
+        "taskNumber": 35,
+        "title": "Event Management Platform",
+        "description": "Develop an event registration and ticketing system with digital passes and QR code check-in validation.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, QR code library",
+          "Event creation with banner upload, date/time, venue, and seat limits",
+          "Attendee registration generating a unique verifiable ticket with dynamic QR code",
+          "Staff QR code scanner interface to validate passes and record attendance",
+          "Real-time attendee capacity counter and registration export"
+        ],
+        "outcome": "Event registration and management platform."
+      },
+      {
+        "taskNumber": 36,
+        "title": "Real-Time Chat Application",
+        "description": "Build a multi-room real-time messaging application using Socket.IO, WebSockets, and database persistence.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, Socket.IO, MongoDB/PostgreSQL, JWT",
+          "Bidirectional WebSocket communication with low-latency messaging",
+          "Public channels, private direct messages, and user online presence detection",
+          "Typing indicators, message read receipts, and timestamp formatting",
+          "Persistent chat history stored in database and loaded upon room entry"
+        ],
+        "outcome": "Real-time multi-user chat system."
+      },
+      {
+        "taskNumber": 37,
+        "title": "Real-Time Collaboration Board",
+        "description": "Develop a collaborative Kanban board with drag-and-drop task synchronization and live team updates.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, Socket.IO, PostgreSQL, Prisma",
+          "Drag-and-drop card movement across columns (To Do, In Progress, Review, Done)",
+          "Real-time WebSocket broadcasting of board changes across active team members",
+          "Activity audit log capturing user movements, edits, and timestamps",
+          "Conflict resolution avoiding simultaneous overwrite anomalies"
+        ],
+        "outcome": "Collaborative Kanban/workspace application."
+      },
+      {
+        "taskNumber": 38,
+        "title": "Payment-Enabled E-Commerce",
+        "description": "Implement a secure payment workflow with Cashfree/Razorpay sandbox, webhook signature verification, and idempotency.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, Cashfree/Razorpay sandbox",
+          "Server-side order creation with currency validation and secure session IDs",
+          "Client-side payment modal SDK integration with failure and retry handling",
+          "Secure webhook listener with HMAC SHA256 cryptographic signature verification",
+          "Idempotent order status updates preventing double-crediting or duplicate processing"
+        ],
+        "outcome": "Secure sandbox payment workflow."
+      },
+      {
+        "taskNumber": 39,
+        "title": "Cloud File Storage App",
+        "description": "Build an AWS S3 / Cloudflare R2 cloud file storage platform with signed upload URLs and access permission controls.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, S3-compatible storage, JWT",
+          "Direct-to-cloud file uploads via presigned S3 URLs minimizing server load",
+          "Folder hierarchy organization, file sharing links, and permission flags (Public/Private)",
+          "Storage quota tracking per user with visual progress bar and alerts",
+          "Temporary download signed URLs with expiring access credentials"
+        ],
+        "outcome": "Working cloud storage application with documented deployment."
+      },
+      {
+        "taskNumber": 40,
+        "title": "SaaS Subscription Dashboard",
+        "description": "Construct a multi-tiered software subscription SaaS prototype with billing tiers, feature gates, and usage limits.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, payment sandbox",
+          "Pricing tiers (Free, Pro, Enterprise) with distinct feature allowances",
+          "Subscription renewal logic, billing history invoice generation, and status tracking",
+          "Client-side and server-side feature flagging based on current plan status",
+          "Subscription upgrade, downgrade, and cancellation workflows"
+        ],
+        "outcome": "Subscription-management SaaS prototype."
+      },
+      {
+        "taskNumber": 41,
+        "title": "Microservices E-Commerce Platform",
+        "description": "Decompose an e-commerce backend into independent microservices with an API Gateway, Redis cache, and Docker.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Redis, Docker, API Gateway",
+          "Decoupled service boundaries: Auth Service, Catalog Service, Order Service",
+          "Centralized API Gateway routing requests and handling authentication tokens",
+          "Redis caching layer for catalog queries yielding under 10ms response times",
+          "Graceful service degradation and circuit breaker pattern simulation"
+        ],
+        "outcome": "Multi-service e-commerce architecture."
+      },
+      {
+        "taskNumber": 42,
+        "title": "Advanced RBAC Admin System",
+        "description": "Engineer an enterprise-grade Role-Based Access Control system with granular permissions, policy guards, and audit logs.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, JWT, Redis",
+          "Granular permissions matrix (e.g., users:read, users:write, billing:manage)",
+          "Declarative authorization middleware validating permission scopes on every route",
+          "Redis token revocation blacklist for immediate session invalidation on logout",
+          "Comprehensive tamper-evident security audit log with IP and user-agent logging"
+        ],
+        "outcome": "Enterprise-style authorization system."
+      },
+      {
+        "taskNumber": 43,
+        "title": "DevOps CI/CD Full-Stack App",
+        "description": "Establish an automated continuous integration and continuous deployment pipeline using GitHub Actions and cloud hosts.",
+        "features": [
+          "Tech Stack: React, Node.js, PostgreSQL, Docker, GitHub Actions, Vercel/Render/AWS",
+          "Automated GitHub Actions workflow triggering on pull requests and main branch merges",
+          "Automated linting, unit testing, and production build validation steps",
+          "Secure cloud secrets injection and zero-downtime automated deployment",
+          "Build status badges and deployment notifications with rollback procedures"
+        ],
+        "outcome": "CI/CD-enabled full-stack application."
+      },
+      {
+        "taskNumber": 44,
+        "title": "AWS Cloud Full-Stack Deployment",
+        "description": "Deploy a production-ready full-stack architecture on AWS using EC2, RDS PostgreSQL, S3, CloudFront, and Route 53.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, AWS EC2/S3/RDS, CloudFront, Route 53",
+          "Cloud infrastructure provisioning: EC2 compute instance and managed RDS PostgreSQL",
+          "Static React frontend hosting on S3 with global CloudFront CDN distribution",
+          "Nginx reverse proxy with automated Let's Encrypt SSL/HTTPS certificates",
+          "Complete architecture diagram and infrastructure setup documentation"
+        ],
+        "outcome": "Production-style AWS deployment with architecture documentation."
+      },
+      {
+        "taskNumber": 45,
+        "title": "Dockerized Full-Stack Application",
+        "description": "Containerize a multi-tier full-stack application using Docker, Docker Compose, and Nginx reverse proxy.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Docker, Docker Compose, Nginx",
+          "Multi-stage Dockerfiles for optimized, minimal production image sizes",
+          "Docker Compose orchestration connecting frontend, backend, and PostgreSQL containers",
+          "Persistent Docker volumes for database data and isolated internal networks",
+          "Nginx container acting as front reverse proxy routing /api to the Node backend"
+        ],
+        "outcome": "Containerized full-stack application."
+      },
+      {
+        "taskNumber": 46,
+        "title": "Monitoring & Logging Platform",
+        "description": "Implement observability for a Node.js backend using Prometheus metrics, Grafana dashboards, and structured logging.",
+        "features": [
+          "Tech Stack: Node.js, Express.js, PostgreSQL, Docker, Prometheus, Grafana, structured logging",
+          "Structured JSON logging with Winston/Pino including correlation request IDs",
+          "Prometheus metrics endpoint collecting response latency, HTTP codes, and memory usage",
+          "Grafana dashboard visualising requests-per-second, error rates, and CPU load",
+          "Health check endpoints (/health/live, /health/ready) for container liveness probes"
+        ],
+        "outcome": "Observable application with monitoring dashboard."
+      },
+      {
+        "taskNumber": 47,
+        "title": "AI-Powered Full-Stack Assistant",
+        "description": "Build an AI-augmented full-stack web application integrating Large Language Model APIs with conversation memory.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, AI API/Ollama, JWT",
+          "AI API integration (OpenAI/Anthropic/Ollama) with streaming response tokens",
+          "Persistent conversation history and contextual prompt construction",
+          "Client-side typewriter rendering and markdown code-block syntax highlighting",
+          "Rate limiting and token usage monitoring per user to prevent abuse"
+        ],
+        "outcome": "AI-assisted web product with persistent conversations."
+      },
+      {
+        "taskNumber": 48,
+        "title": "Scalable Social Media Platform",
+        "description": "Develop a scalable social media web product featuring feeds, follower relations, notifications, and media uploads.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Redis, Socket.IO, Cloudinary, JWT",
+          "Follow/unfollow relationship graph with personalized timeline feed generation",
+          "Redis caching for active user feeds and fast fan-out message distribution",
+          "Real-time notifications via WebSockets when users like, comment, or follow",
+          "Optimized media pipeline with Cloudinary transformations and responsive delivery"
+        ],
+        "outcome": "Feature-rich social platform with scalable patterns."
+      },
+      {
+        "taskNumber": 49,
+        "title": "Full-Stack Project Management SaaS",
+        "description": "Construct a collaborative project management SaaS platform featuring workspaces, real-time board sync, and team RBAC.",
+        "features": [
+          "Tech Stack: React, Node.js, Express.js, PostgreSQL, Prisma, Redis, Socket.IO, Docker, JWT",
+          "Multi-workspace architecture with organization members and invite links",
+          "Real-time task boards, sprints, custom statuses, and deadline reminders",
+          "Comprehensive audit trail of board updates with user attribution",
+          "Dockerized production deployment with PostgreSQL and Redis containers"
+        ],
+        "outcome": "Multi-user project-management SaaS."
+      },
+      {
+        "taskNumber": 50,
+        "title": "Capstone: Production-Ready Full-Stack Platform",
+        "description": "Deliver a production-ready enterprise full-stack web platform combining modern UI, scalable API, databases, cloud, and CI/CD.",
+        "features": [
+          "Tech Stack: React/Next.js, Node.js/NestJS or Express, PostgreSQL, Redis, Docker, GitHub Actions, AWS/Vercel, S3, JWT",
+          "Comprehensive full-stack architecture adhering to modern clean code standards",
+          "End-to-end security: input validation, JWT auth, RBAC, SSL, and rate limiting",
+          "Automated CI/CD deployment pipelines with automated unit and integration tests",
+          "Complete deliverables: live production URL, public GitHub repo, architecture diagram, API documentation, and presentation walkthrough"
+        ],
+        "outcome": "Production-style capstone with live URL, GitHub, architecture, API docs, tests and final presentation."
       }
     ]
   },
@@ -4021,10 +4527,35 @@ export function getDomainTasks(slug: string): DomainTasks | undefined {
   return undefined;
 }
 
-export function getTasksByDuration(slug: string, durationMonths: number): TaskData[] {
+export function getTasksByDuration(
+  slug: string,
+  durationMonths: number,
+  planTypeOrLimit?: string | number
+): TaskData[] {
   const domain = getDomainTasks(slug);
   if (!domain) return [];
+  const normalizedSlug = domain.slug;
+
+  if (typeof planTypeOrLimit === "number" && planTypeOrLimit > 0) {
+    return domain.tasks.filter((t) => t.taskNumber <= planTypeOrLimit);
+  }
+
+  const isPremium = planTypeOrLimit === "premium";
+
+  if (normalizedSlug === "fullstack") {
+    if (isPremium) {
+      const fullstackLimits: Record<number, number> = { 1: 5, 2: 8, 3: 25, 6: 50 };
+      const limit = fullstackLimits[durationMonths] ?? 5;
+      return domain.tasks.filter((t) => t.taskNumber <= limit);
+    }
+    // Standard Track for Full Stack (₹100): 10 tasks for 3M, 12 tasks for 6M
+    const standardLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+    const limit = standardLimits[durationMonths] ?? 5;
+    return domain.tasks.filter((t) => t.taskNumber <= limit);
+  }
   const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
   const limit = taskLimits[durationMonths] ?? 5;
   return domain.tasks.filter((t) => t.taskNumber <= limit);
 }
+
+

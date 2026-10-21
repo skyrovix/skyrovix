@@ -83,13 +83,13 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
     }
   }, [initialId]);
 
-  const pageUrl = `https://skyrovix.online${canonicalPath}`;
+  const pageUrl = `https://skyrovix.in${canonicalPath}`;
 
   return (
     <div className="w-full">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online/" },
+          { name: "Home", url: "https://skyrovix.in/" },
           { name: "Verify Certificate", url: pageUrl },
         ]}
       />
@@ -100,10 +100,10 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
       />
       <Navbar />
       <AuroraBackground>
-        <section className="relative pb-6 sm:pb-10 pt-8 sm:pt-16 md:pt-24">
+        <section className="relative pb-6 sm:pb-10 pt-20 sm:pt-24 md:pt-28">
           <div className="mx-auto max-w-2xl px-4">
             <FadeUp className="text-center">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#07284a]/15 bg-white/60 dark:bg-[#0f172a]/60 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-medium text-[#07284a] dark:text-[#60a5fa] shadow-sm backdrop-blur">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur">
                 <ShieldCheck className="size-3 sm:size-3.5" /> Credential Verification
               </div>
               <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
@@ -120,7 +120,7 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
         <FadeUp delay={0.1}>
           <div className="rounded-2xl border border-border/50 bg-card p-6 sm:p-8 shadow-sm">
             <div className="flex items-center gap-2.5 mb-1">
-              <ScanLine className="size-5 text-[#07284a] dark:text-[#60a5fa]" />
+              <ScanLine className="size-5 text-[#f95c4b] dark:text-[#ee9590]" />
               <p className="text-sm font-semibold">Enter Offer Letter ID, Intern ID, or Certificate ID</p>
             </div>
             <p className="text-xs text-muted-foreground mb-4">
@@ -138,7 +138,7 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
                   spellCheck="false"
                 />
               </div>
-              <Button type="submit" className="w-full sm:w-auto bg-[#07284a] text-white border-0 hover:bg-[#0d3b66]">
+              <Button type="submit" className="w-full sm:w-auto bg-[#f95c4b] hover:bg-[#e04b3a] text-white font-bold shadow-md shadow-[#f95c4b]/25 hover:-translate-y-0.5 active:translate-y-0 transition-all border-0">
                 <Search className="size-4 mr-1.5" /> Verify
               </Button>
             </form>
@@ -251,8 +251,8 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
                 </div>
 
                 {/* Footer trust badge */}
-                <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#f8fafc] dark:bg-[#0f172a] px-4 py-3 text-xs text-muted-foreground">
-                  <Award className="size-4 text-[#07284a] dark:text-[#60a5fa]" />
+                <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#faf8f2] dark:bg-card/60 border border-border/40 px-4 py-3 text-xs text-muted-foreground">
+                  <Award className="size-4 text-[#f95c4b] dark:text-[#ee9590]" />
                   <span>Digitally verified by Skyrovix — MSME-registered IT company (UDYAM-TN-17-0076606)</span>
                 </div>
               </div>
@@ -303,8 +303,8 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
                 </div>
 
                 {/* Footer trust badge */}
-                <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#f8fafc] dark:bg-[#0f172a] px-4 py-3 text-xs text-muted-foreground">
-                  <Award className="size-4 text-[#07284a] dark:text-[#60a5fa]" />
+                <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#faf8f2] dark:bg-card/60 border border-border/40 px-4 py-3 text-xs text-muted-foreground">
+                  <Award className="size-4 text-[#f95c4b] dark:text-[#ee9590]" />
                   <span>Digitally verified by Skyrovix — MSME-registered IT company (UDYAM-TN-17-0076606)</span>
                 </div>
               </div>
@@ -356,8 +356,8 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
                 </div>
 
                 {/* Footer trust badge */}
-                <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#f8fafc] dark:bg-[#0f172a] px-4 py-3 text-xs text-muted-foreground">
-                  <Award className="size-4 text-[#07284a] dark:text-[#60a5fa]" />
+                <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#faf8f2] dark:bg-card/60 border border-border/40 px-4 py-3 text-xs text-muted-foreground">
+                  <Award className="size-4 text-[#f95c4b] dark:text-[#ee9590]" />
                   <span>Digitally verified by Skyrovix — MSME-registered IT company (UDYAM-TN-17-0076606)</span>
                 </div>
               </div>
@@ -383,11 +383,11 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
                 <ul className="mt-1.5 space-y-1 list-disc list-inside text-xs">
                   <li>Check your Offer Letter ID or Certificate ID for typos</li>
                   <li>Try entering the ID without extra punctuation or spaces</li>
-                  <li>Contact our verification team at <a href="mailto:skyrovix@gmail.com" className="text-[#07284a] dark:text-[#60a5fa] underline">skyrovix@gmail.com</a> for assistance</li>
+                  <li>Contact our verification team at <a href="mailto:support@skyrovix.in" className="text-[#f95c4b] dark:text-[#ee9590] underline font-medium">support@skyrovix.in</a> for assistance</li>
                 </ul>
               </div>
-              <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#f8fafc] dark:bg-[#0f172a] px-4 py-3 text-xs text-muted-foreground">
-                <ShieldCheck className="size-4 text-[#07284a] dark:text-[#60a5fa]" />
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#faf8f2] dark:bg-card/60 border border-border/40 px-4 py-3 text-xs text-muted-foreground">
+                <ShieldCheck className="size-4 text-[#f95c4b] dark:text-[#ee9590]" />
                 <span>All Skyrovix credentials are QR-verified and tamper-proof.</span>
               </div>
             </div>
@@ -407,8 +407,8 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
                   <p className="text-sm text-muted-foreground">{result.message}</p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#f8fafc] dark:bg-[#0f172a] px-4 py-3 text-xs text-muted-foreground">
-                <Clock className="size-4 text-[#07284a] dark:text-[#60a5fa]" />
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#faf8f2] dark:bg-card/60 border border-border/40 px-4 py-3 text-xs text-muted-foreground">
+                <Clock className="size-4 text-[#f95c4b] dark:text-[#ee9590]" />
                 <span>If the issue persists, please check your network connection or contact support.</span>
               </div>
             </div>

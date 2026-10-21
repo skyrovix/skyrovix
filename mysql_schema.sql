@@ -3,7 +3,14 @@
 -- Run this script on your Contabo MySQL Server:
 -- mysql -u root -p skyrovix < mysql_schema.sql
 -- ==========================================================
+CREATE DATABASE IF NOT EXISTS skyrovix
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 
+USE skyrovix;
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -68,6 +75,14 @@ CREATE TABLE IF NOT EXISTS applications (
   hear_about VARCHAR(100),
   referral_name VARCHAR(100),
   coupon_code VARCHAR(100),
+  plan_type VARCHAR(50) NOT NULL DEFAULT 'standard',
+  plan_fee DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  plan_payment_status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  plan_payment_id VARCHAR(100),
+  plan_payment_method VARCHAR(50),
+  plan_paid_at DATETIME(3),
+  discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  agreed_fee DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   submission_status VARCHAR(50) DEFAULT 'in_progress',
   submitted_at DATETIME(3),
   verified TINYINT(1) DEFAULT 0,
@@ -335,6 +350,8 @@ CREATE TABLE IF NOT EXISTS project_challenges (
   evaluation_criteria JSON,
   technologies JSON,
   resources JSON,
+  min_duration INT NOT NULL DEFAULT 3,
+  tier VARCHAR(20) NOT NULL DEFAULT 'tier1',
   submission_deadline DATETIME(3),
   is_published TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -576,6 +593,45 @@ CREATE TABLE IF NOT EXISTS login_sessions (
   FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 31. STUDENT KIT ITEMS (Premium Plan Toolkits & Career Kits)
+CREATE TABLE IF NOT EXISTS student_kit_items (
+  id VARCHAR(36) PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  category VARCHAR(100) NOT NULL DEFAULT 'toolkit',
+  description TEXT,
+  icon VARCHAR(50) NOT NULL DEFAULT 'Package',
+  file_url TEXT,
+  external_url TEXT,
+  download_url TEXT,
+  file_type VARCHAR(50) DEFAULT 'PDF',
+  resource_type VARCHAR(50) DEFAULT 'PDF',
+  file_size VARCHAR(50),
+  format VARCHAR(50) NOT NULL DEFAULT 'ZIP',
+  min_duration INT DEFAULT 3,
+  min_tier INT NOT NULL DEFAULT 1,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 32. GUIDANCE SCHEDULES (Premium Mentorship & Office Hours)
+CREATE TABLE IF NOT EXISTS guidance_schedules (
+  id VARCHAR(36) PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  mentor_name VARCHAR(255) NOT NULL,
+  mentor_role VARCHAR(255),
+  topic VARCHAR(255) NOT NULL,
+  scheduled_at DATETIME(3) NOT NULL,
+  duration_minutes INT NOT NULL DEFAULT 60,
+  meeting_url TEXT,
+  recording_url TEXT,
+  status VARCHAR(50) NOT NULL DEFAULT 'scheduled',
+  notes TEXT,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ==========================================================
 -- DEFAULT SEED DATA
 -- ==========================================================
@@ -584,7 +640,8 @@ CREATE TABLE IF NOT EXISTS login_sessions (
 INSERT INTO fee_settings (id, fee_type, amount, is_enabled, upi_id, payee_name, offer_enabled, offer_amount, offer_name)
 VALUES 
   (UUID(), 'application', 0.00, 0, 'hariharanmahesh34@oksbi', 'Hariharan Mahesh', 0, 0.00, 'Free Application'),
-  (UUID(), 'certificate', 100.00, 1, 'hariharanmahesh34@oksbi', 'Hariharan Mahesh', 0, 0.00, 'Certificate Free Offer')
+  (UUID(), 'certificate', 100.00, 1, 'hariharanmahesh34@oksbi', 'Hariharan Mahesh', 0, 0.00, 'Certificate Free Offer'),
+  (UUID(), 'premium_plan', 200.00, 1, 'hariharanmahesh34@oksbi', 'Hariharan Mahesh', 0, 0.00, 'Premium Plan Flat Fee')
 ON DUPLICATE KEY UPDATE amount = VALUES(amount), is_enabled = VALUES(is_enabled);
 
 -- Default Admin User (hariharan@skyrovix.com / 123harimahesh)

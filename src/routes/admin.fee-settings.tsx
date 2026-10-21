@@ -9,6 +9,7 @@ import { ArrowLeft, IndianRupee } from "lucide-react";
 export const Route = createFileRoute("/admin/fee-settings")({
   ssr: false,
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data: sessionData } = await supabase.auth.getSession();
     let user: any = sessionData?.session?.user;
     if (!user) {

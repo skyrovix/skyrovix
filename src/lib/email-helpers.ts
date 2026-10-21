@@ -12,7 +12,7 @@ export function getOfferLetterEmailHtml(params: {
   verifyUrl: string;
 }): string {
   const { studentName, domainName, durLabel, internId } = params;
-  const dashboardUrl = "https://www.skyrovix.online/dashboard";
+  const dashboardUrl = "https://www.skyrovix.in/dashboard";
   const whatsappUrl = "https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f";
 
   return `<!DOCTYPE html>
@@ -22,27 +22,27 @@ export function getOfferLetterEmailHtml(params: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Skyrovix Internship Offer Letter - ${studentName}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1e293b;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; padding: 32px 12px;">
+<body style="margin: 0; padding: 0; background-color: #faf8f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #181619;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #faf8f2; padding: 32px 12px;">
     <tr>
       <td align="center">
         <!-- Main Container -->
-        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(24, 22, 25, 0.08), 0 8px 10px -6px rgba(24, 22, 25, 0.04); border: 1px solid #e5e7eb;">
           
-          <!-- Top Header Banner -->
+          <!-- Top Header Banner in Skyrovix Signature Obsidian & Coral -->
           <tr>
-            <td style="background: linear-gradient(135deg, #07284a 0%, #0d4373 55%, #1e40af 100%); padding: 38px 32px 32px 32px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #181619 0%, #29242b 55%, #f95c4b 100%); padding: 38px 32px 32px 32px; text-align: center;">
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="center">
-                    <span style="display: inline-block; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); color: #bfdbfe; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 9999px; margin-bottom: 12px;">
+                    <span style="display: inline-block; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); color: #ffd8c8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 9999px; margin-bottom: 12px;">
                       Official Document · Offer Letter
                     </span>
-                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 1px;">
                       SKYROVIX
                     </h1>
-                    <p style="margin: 6px 0 0 0; color: #cbd5e1; font-size: 13px; font-weight: 400; letter-spacing: 0.3px;">
-                      Empowering Future Professionals Through Industry-Ready Learning
+                    <p style="margin: 6px 0 0 0; color: #ffd8c8; font-size: 13px; font-weight: 500; letter-spacing: 0.5px;">
+                      Empowering Future Innovators
                     </p>
                   </td>
                 </tr>
@@ -58,11 +58,11 @@ export function getOfferLetterEmailHtml(params: {
                   ✓ SELECTION CONFIRMED
                 </span>
               </div>
-              <h2 style="margin: 0 0 12px 0; color: #0f172a; font-size: 22px; font-weight: 700; line-height: 1.3;">
+              <h2 style="margin: 0 0 12px 0; color: #181619; font-size: 22px; font-weight: 700; line-height: 1.3;">
                 Congratulations, ${studentName}! 🎓
               </h2>
               <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.6;">
-                We are delighted to congratulate you on your successful selection for the <strong style="color: #07284a;">${domainName} Internship Program</strong> at <strong>Skyrovix</strong>.
+                We are delighted to congratulate you on your successful selection for the <strong style="color: #f95c4b;">${domainName} Internship Program</strong> at <strong>Skyrovix</strong>.
               </p>
               <p style="margin: 0 0 18px 0; color: #475569; font-size: 14px; line-height: 1.6;">
                 Your official <strong>Internship Offer Letter</strong> is attached to this email in PDF format. Please review the internship details, terms, and curriculum milestones below.
@@ -73,31 +73,31 @@ export function getOfferLetterEmailHtml(params: {
           <!-- Summary Particulars Card -->
           <tr>
             <td style="padding: 0 32px 24px 32px;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #faf8f2; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
                 <tr>
-                  <td colspan="2" style="background-color: #07284a; padding: 12px 20px;">
+                  <td colspan="2" style="background-color: #181619; padding: 12px 20px;">
                     <span style="color: #ffffff; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
                       📋 Internship Particulars
                     </span>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px; width: 40%;">Intern ID</td>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #07284a; font-size: 14px; font-weight: 700; font-family: monospace;">
-                    <span style="background-color: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px; border: 1px solid #bae6fd;">${internId}</span>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px; width: 40%;">Intern ID</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 14px; font-weight: 700; font-family: monospace;">
+                    <span style="background-color: #fff1f0; color: #f95c4b; padding: 3px 8px; border-radius: 6px; border: 1px solid #ffd8c8;">${internId}</span>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px;">Domain / Track</td>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600;">${domainName}</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px;">Domain / Track</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 13px; font-weight: 600;">${domainName}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px;">Program Duration</td>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600;">${durLabel}</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px;">Program Duration</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 13px; font-weight: 600;">${durLabel}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px;">Work Mode</td>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600;">Virtual / Remote (100% Online)</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px;">Work Mode</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 13px; font-weight: 600;">Virtual / Remote (100% Online)</td>
                 </tr>
                 <tr>
                   <td style="padding: 12px 20px; color: #64748b; font-size: 13px;">Offer Letter Document</td>
@@ -113,7 +113,7 @@ export function getOfferLetterEmailHtml(params: {
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="center" style="padding-bottom: 12px;">
-                    <a href="${dashboardUrl}" target="_blank" style="display: block; width: 85%; max-width: 380px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 24px; border-radius: 10px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); text-align: center;">
+                    <a href="${dashboardUrl}" target="_blank" style="display: block; width: 85%; max-width: 380px; background: linear-gradient(135deg, #f95c4b 0%, #ee9590 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 24px; border-radius: 10px; box-shadow: 0 4px 14px rgba(249, 92, 75, 0.35); text-align: center;">
                       🚀 Open Student Dashboard
                     </a>
                   </td>
@@ -132,13 +132,13 @@ export function getOfferLetterEmailHtml(params: {
           <!-- Key Next Steps Card -->
           <tr>
             <td style="padding: 0 32px 24px 32px;">
-              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
-                <h3 style="margin: 0 0 12px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+              <div style="background-color: #faf8f2; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px;">
+                <h3 style="margin: 0 0 12px 0; color: #181619; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                   📌 What to do next:
                 </h3>
                 <ol style="margin: 0; padding-left: 20px; color: #334155; font-size: 13px; line-height: 1.7;">
                   <li><strong>Download & Save PDF:</strong> Keep your attached official Offer Letter safe for your academic records.</li>
-                  <li><strong>Access Tasks & Curriculum:</strong> Log in to your <a href="${dashboardUrl}" style="color: #0284c7; text-decoration: underline; font-weight: 600;">Student Dashboard</a> to view your tasks, digital ID card, and project milestones.</li>
+                  <li><strong>Access Tasks & Curriculum:</strong> Log in to your <a href="${dashboardUrl}" style="color: #f95c4b; text-decoration: underline; font-weight: 600;">Student Dashboard</a> to view your tasks, digital ID card, and project milestones.</li>
                   <li><strong>Join Community:</strong> Connect with fellow interns and mentors on the <a href="${whatsappUrl}" style="color: #059669; text-decoration: underline; font-weight: 600;">Official WhatsApp Channel</a> for live announcements and project assistance.</li>
                 </ol>
               </div>
@@ -151,23 +151,23 @@ export function getOfferLetterEmailHtml(params: {
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td width="33%" style="padding: 6px; text-align: center;">
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 6px;">
+                    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 6px;">
                       <div style="font-size: 22px; margin-bottom: 4px;">💼</div>
-                      <div style="font-size: 12px; font-weight: 700; color: #0f172a;">Real Projects</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #181619;">Real Projects</div>
                       <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Portfolio-ready tasks</div>
                     </div>
                   </td>
                   <td width="33%" style="padding: 6px; text-align: center;">
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 6px;">
+                    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 6px;">
                       <div style="font-size: 22px; margin-bottom: 4px;">🤝</div>
-                      <div style="font-size: 12px; font-weight: 700; color: #0f172a;">Mentorship</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #181619;">Mentorship</div>
                       <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Continuous guidance</div>
                     </div>
                   </td>
                   <td width="33%" style="padding: 6px; text-align: center;">
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 6px;">
+                    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 6px;">
                       <div style="font-size: 22px; margin-bottom: 4px;">📜</div>
-                      <div style="font-size: 12px; font-weight: 700; color: #0f172a;">Verified Credential</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #181619;">Verified Credential</div>
                       <div style="font-size: 11px; color: #64748b; margin-top: 2px;">QR-verified Certificate</div>
                     </div>
                   </td>
@@ -179,15 +179,15 @@ export function getOfferLetterEmailHtml(params: {
           <!-- Sign-Off Section -->
           <tr>
             <td style="padding: 0 32px 32px 32px;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top: 1px solid #e2e8f0; padding-top: 20px;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
                 <tr>
                   <td>
                     <p style="margin: 0 0 4px 0; color: #475569; font-size: 13px;">Warm Regards,</p>
-                    <p style="margin: 0; color: #07284a; font-size: 16px; font-weight: 700;">Hariharan S</p>
-                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12px; font-weight: 500;">Founder & CEO · Skyrovix</p>
+                    <p style="margin: 0; color: #181619; font-size: 16px; font-weight: 700;">Hariharan S</p>
+                    <p style="margin: 2px 0 0 0; color: #f95c4b; font-size: 12px; font-weight: 600;">Founder & CEO · Skyrovix</p>
                     <p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 11px; line-height: 1.5;">
-                      Empowering Future Professionals Through Industry-Ready Learning<br>
-                      <a href="https://www.skyrovix.online" style="color: #0284c7; text-decoration: none;">www.skyrovix.online</a> · <a href="mailto:support@skyrovix.online" style="color: #0284c7; text-decoration: none;">support@skyrovix.online</a>
+                      Empowering Future Innovators<br>
+                      <a href="https://www.skyrovix.in" style="color: #f95c4b; text-decoration: none;">www.skyrovix.in</a> · <a href="mailto:skyrovix@gmail.com" style="color: #f95c4b; text-decoration: none;">skyrovix@gmail.com</a>
                     </p>
                   </td>
                 </tr>
@@ -197,12 +197,12 @@ export function getOfferLetterEmailHtml(params: {
 
           <!-- Footer Legal & Disclaimer -->
           <tr>
-            <td style="background-color: #07284a; padding: 22px 32px; text-align: center;">
-              <p style="margin: 0 0 6px 0; color: #93c5fd; font-size: 11px; font-weight: 600;">
-                Registered under MSME, Government of India
+            <td style="background-color: #181619; padding: 22px 32px; text-align: center;">
+              <p style="margin: 0 0 6px 0; color: #ee9590; font-size: 11px; font-weight: 600;">
+                Registered under MSME, Government of India (UDYAM-TN-17-0076606)
               </p>
               <p style="margin: 0; color: #94a3b8; font-size: 11px; line-height: 1.5;">
-                This is an official automated notification regarding your internship enrollment with Skyrovix. If you need assistance, please contact <a href="mailto:support@skyrovix.online" style="color: #38bdf8; text-decoration: underline;">support@skyrovix.online</a>.<br>
+                This is an official automated notification regarding your internship enrollment with Skyrovix. If you need assistance, please contact <a href="mailto:skyrovix@gmail.com" style="color: #ffd8c8; text-decoration: underline;">skyrovix@gmail.com</a>.<br>
                 © ${new Date().getFullYear()} Skyrovix. All rights reserved.
               </p>
             </td>
@@ -227,7 +227,7 @@ export function getCertificateEmailHtml(params: {
   verifyUrl: string;
 }): string {
   const { studentName, domainName, certId, internId, verifyUrl } = params;
-  const dashboardUrl = "https://www.skyrovix.online/dashboard";
+  const dashboardUrl = "https://www.skyrovix.in/dashboard";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -236,22 +236,23 @@ export function getCertificateEmailHtml(params: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Certificate of Completion - ${studentName}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1e293b;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; padding: 32px 12px;">
+<body style="margin: 0; padding: 0; background-color: #faf8f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #181619;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #faf8f2; padding: 32px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0;">
+        <!-- Main Container -->
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(24, 22, 25, 0.08), 0 8px 10px -6px rgba(24, 22, 25, 0.04); border: 1px solid #e5e7eb;">
           
-          <!-- Top Header -->
+          <!-- Top Header in Skyrovix Obsidian & Coral -->
           <tr>
-            <td style="background: linear-gradient(135deg, #07284a 0%, #0d4373 55%, #b45309 100%); padding: 38px 32px 32px 32px; text-align: center;">
-              <span style="display: inline-block; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); color: #fef08a; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 9999px; margin-bottom: 12px;">
+            <td style="background: linear-gradient(135deg, #181619 0%, #29242b 55%, #f95c4b 100%); padding: 38px 32px 32px 32px; text-align: center;">
+              <span style="display: inline-block; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); color: #ffd8c8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 9999px; margin-bottom: 12px;">
                 Verified Credential · Completion Certificate
               </span>
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 1px;">
                 SKYROVIX
               </h1>
-              <p style="margin: 6px 0 0 0; color: #cbd5e1; font-size: 13px;">
+              <p style="margin: 6px 0 0 0; color: #ffd8c8; font-size: 13px; font-weight: 500; letter-spacing: 0.5px;">
                 Certificate of Internship Completion
               </p>
             </td>
@@ -260,16 +261,16 @@ export function getCertificateEmailHtml(params: {
           <!-- Greeting -->
           <tr>
             <td style="padding: 32px 32px 12px 32px;">
-              <div style="display: inline-block; background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 6px 12px; margin-bottom: 16px;">
-                <span style="color: #b45309; font-size: 12px; font-weight: 700;">
+              <div style="display: inline-block; background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 6px 12px; margin-bottom: 16px;">
+                <span style="color: #059669; font-size: 12px; font-weight: 700; letter-spacing: 0.3px;">
                   🏆 PROGRAM COMPLETED SUCCESSFULLY
                 </span>
               </div>
-              <h2 style="margin: 0 0 12px 0; color: #0f172a; font-size: 22px; font-weight: 700;">
+              <h2 style="margin: 0 0 12px 0; color: #181619; font-size: 22px; font-weight: 700;">
                 Congratulations, ${studentName}! 🌟
               </h2>
               <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.6;">
-                We are proud to award you this official <strong>Certificate of Completion</strong> for successfully finishing the <strong>${domainName} Internship Program</strong> at Skyrovix.
+                We are proud to award you this official <strong>Certificate of Completion</strong> for successfully finishing the <strong style="color: #f95c4b;">${domainName} Internship Program</strong> at <strong>Skyrovix</strong>.
               </p>
               <p style="margin: 0 0 18px 0; color: #475569; font-size: 14px; line-height: 1.6;">
                 Your dedication to high-quality code, problem-solving, and practical deliverables has been truly commendable. Your official Certificate is attached to this email as a verified PDF.
@@ -280,32 +281,32 @@ export function getCertificateEmailHtml(params: {
           <!-- Particulars -->
           <tr>
             <td style="padding: 0 32px 24px 32px;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #faf8f2; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
                 <tr>
-                  <td colspan="2" style="background-color: #07284a; padding: 12px 20px;">
-                    <span style="color: #ffffff; font-size: 13px; font-weight: 700; text-transform: uppercase;">
+                  <td colspan="2" style="background-color: #181619; padding: 12px 20px;">
+                    <span style="color: #ffffff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                       📜 Certificate Details
                     </span>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px; width: 40%;">Certificate ID</td>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #07284a; font-size: 14px; font-weight: 700; font-family: monospace;">
-                    <span style="background-color: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 6px; border: 1px solid #fde68a;">${certId}</span>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px; width: 40%;">Certificate ID</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 14px; font-weight: 700; font-family: monospace;">
+                    <span style="background-color: #fff1f0; color: #f95c4b; padding: 3px 8px; border-radius: 6px; border: 1px solid #ffd8c8;">${certId}</span>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px;">Intern ID</td>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-family: monospace;">${internId}</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px;">Intern ID</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 13px; font-family: monospace; font-weight: 600;">${internId}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px;">Domain</td>
-                  <td style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600;">${domainName}</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px;">Domain</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 13px; font-weight: 600;">${domainName}</td>
                 </tr>
                 <tr>
                   <td style="padding: 12px 20px; color: #64748b; font-size: 13px;">Online Verification</td>
                   <td style="padding: 12px 20px; font-size: 13px;">
-                    <a href="${verifyUrl}" target="_blank" style="color: #0284c7; text-decoration: underline; font-weight: 600;">Verify Certificate Online</a>
+                    <a href="${verifyUrl}" target="_blank" style="color: #f95c4b; text-decoration: underline; font-weight: 600;">Verify Certificate Online</a>
                   </td>
                 </tr>
               </table>
@@ -315,7 +316,7 @@ export function getCertificateEmailHtml(params: {
           <!-- Action Button -->
           <tr>
             <td style="padding: 0 32px 24px 32px; text-align: center;">
-              <a href="${verifyUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #b45309 0%, #d97706 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(180, 83, 9, 0.35); text-align: center;">
+              <a href="${verifyUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #f95c4b 0%, #ee9590 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(249, 92, 75, 0.35); text-align: center;">
                 🔍 Verify Your Credential Online
               </a>
             </td>
@@ -324,12 +325,12 @@ export function getCertificateEmailHtml(params: {
           <!-- Sign-Off -->
           <tr>
             <td style="padding: 0 32px 32px 32px;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top: 1px solid #e2e8f0; padding-top: 20px;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
                 <tr>
                   <td>
                     <p style="margin: 0 0 4px 0; color: #475569; font-size: 13px;">Warm Regards,</p>
-                    <p style="margin: 0; color: #07284a; font-size: 16px; font-weight: 700;">Hariharan S</p>
-                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12px; font-weight: 500;">Founder & CEO · Skyrovix</p>
+                    <p style="margin: 0; color: #181619; font-size: 16px; font-weight: 700;">Hariharan S</p>
+                    <p style="margin: 2px 0 0 0; color: #f95c4b; font-size: 12px; font-weight: 600;">Founder & CEO · Skyrovix</p>
                   </td>
                 </tr>
               </table>
@@ -338,12 +339,12 @@ export function getCertificateEmailHtml(params: {
 
           <!-- Footer Legal -->
           <tr>
-            <td style="background-color: #07284a; padding: 22px 32px; text-align: center;">
-              <p style="margin: 0 0 6px 0; color: #93c5fd; font-size: 11px; font-weight: 600;">
+            <td style="background-color: #181619; padding: 22px 32px; text-align: center;">
+              <p style="margin: 0 0 6px 0; color: #ee9590; font-size: 11px; font-weight: 600;">
                 Registered under MSME, Government of India
               </p>
-              <p style="margin: 0; color: #94a3b8; font-size: 11px;">
-                © ${new Date().getFullYear()} Skyrovix. All rights reserved.
+              <p style="margin: 0; color: #9ca3af; font-size: 11px;">
+                © ${new Date().getFullYear()} Skyrovix. All rights reserved. · <a href="https://www.skyrovix.in" style="color: #ffd8c8; text-decoration: none;">www.skyrovix.in</a>
               </p>
             </td>
           </tr>
@@ -367,7 +368,7 @@ export async function sendOfferLetterEmail(params: {
   const dur = durationConfig(params.duration);
   const durLabel = dur?.label ?? `${params.duration} Month(s)`;
 
-  const verifyUrl = `https://www.skyrovix.online/verify?id=${encodeURIComponent(params.internId.trim())}`;
+  const verifyUrl = `https://www.skyrovix.in/verify?id=${encodeURIComponent(params.internId.trim())}`;
 
   const body = `Dear ${params.studentName},
 
@@ -387,18 +388,18 @@ Internship Summary:
 
 Next Steps:
 1. Download and read your attached Offer Letter PDF.
-2. Access your student dashboard at https://www.skyrovix.online/dashboard to review your assigned tasks.
+2. Access your student dashboard at https://www.skyrovix.in/dashboard to review your assigned tasks.
 3. Join our Official WhatsApp Community: https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f
 
 If you have any questions or require assistance at any stage, please contact our support team.
-Email: support@skyrovix.online
-Website: www.skyrovix.online
+Email: support@skyrovix.in
+Website: www.skyrovix.in
 
 Warm Regards,
 Hariharan S
 Founder & CEO, Skyrovix
 Empowering Future Professionals Through Industry-Ready Learning
-www.skyrovix.online | support@skyrovix.online
+www.skyrovix.in | support@skyrovix.in
 
 ---
 Note: This is an automated email from Skyrovix. Please do not reply directly to this message.`;
@@ -411,26 +412,26 @@ Note: This is an automated email from Skyrovix. Please do not reply directly to 
     verifyUrl,
   });
 
-  return sendEmail({
-    data: {
-      to: params.to,
-      studentName: params.studentName,
-      studentId: params.studentId,
-      documentType: "offer_letter",
-      subject: `Dear ${params.studentName}, your Skyrovix Internship Offer Letter`,
-      body,
-      html,
-      referenceId: params.internId,
-      pdfData: {
-        fullName: params.studentName,
-        internId: params.internId,
-        domain: params.domainName,
-        issuedAt: new Date().toISOString(),
-        duration: params.duration,
-        verifyUrl,
-      },
+  const payload = {
+    to: params.to,
+    studentName: params.studentName,
+    studentId: params.studentId,
+    documentType: "offer_letter" as const,
+    subject: `Dear ${params.studentName}, your Skyrovix Internship Offer Letter`,
+    body,
+    html,
+    referenceId: params.internId,
+    pdfData: {
+      fullName: params.studentName,
+      internId: params.internId,
+      domain: params.domainName,
+      issuedAt: new Date().toISOString(),
+      duration: params.duration,
+      verifyUrl,
     },
-  });
+  };
+
+  return sendEmail({ data: payload });
 }
 
 export async function sendCertificateEmail(params: {
@@ -441,7 +442,7 @@ export async function sendCertificateEmail(params: {
   domainName: string;
   internId: string;
 }) {
-  const verifyUrl = `https://www.skyrovix.online/verify?id=${encodeURIComponent(params.certId.trim())}`;
+  const verifyUrl = `https://www.skyrovix.in/verify?id=${encodeURIComponent(params.certId.trim())}`;
 
   const body = `Dear ${params.studentName},
 
@@ -462,7 +463,7 @@ As you move forward in your career, we hope the knowledge and experience gained 
 Warm Regards,
 Hariharan S
 Founder & CEO, Skyrovix
-www.skyrovix.online | support@skyrovix.online
+www.skyrovix.in | support@skyrovix.in
 
 ---
 Note: This is an automated email from Skyrovix. Please do not reply directly to this message.`;
@@ -475,24 +476,24 @@ Note: This is an automated email from Skyrovix. Please do not reply directly to 
     verifyUrl,
   });
 
-  return sendEmail({
-    data: {
-      to: params.to,
-      studentName: params.studentName,
-      studentId: params.studentId,
-      documentType: "certificate",
-      subject: `Certificate of Completion - ${COMPANY.name} Internship Program`,
-      body,
-      html,
-      referenceId: params.certId,
-      pdfData: {
-        fullName: params.studentName,
-        internId: params.internId,
-        domain: params.domainName,
-        issuedAt: new Date().toISOString(),
-        certId: params.certId,
-        verifyUrl,
-      },
+  const payload = {
+    to: params.to,
+    studentName: params.studentName,
+    studentId: params.studentId,
+    documentType: "certificate" as const,
+    subject: `Certificate of Completion - ${COMPANY.name} Internship Program`,
+    body,
+    html,
+    referenceId: params.certId,
+    pdfData: {
+      fullName: params.studentName,
+      internId: params.internId,
+      domain: params.domainName,
+      issuedAt: new Date().toISOString(),
+      certId: params.certId,
+      verifyUrl,
     },
-  });
+  };
+
+  return sendEmail({ data: payload });
 }

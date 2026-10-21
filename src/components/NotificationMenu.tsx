@@ -284,7 +284,7 @@ export function NotificationMenu() {
           timeAgo: formattedDate,
           type: "task_approved",
           read: readIds.includes(projApprId),
-          link: { to: "/dashboard", search: { tab: "projects" } },
+          link: { to: "/dashboard", search: { tab: "tasks" } },
           createdAt: new Date(evaluatedDate).getTime(),
         });
       } else if (psub.status === "rejected") {
@@ -297,7 +297,7 @@ export function NotificationMenu() {
           timeAgo: formattedDate,
           type: "admin_feedback",
           read: readIds.includes(projRejId),
-          link: { to: "/dashboard", search: { tab: "projects" } },
+          link: { to: "/dashboard", search: { tab: "tasks" } },
           createdAt: new Date(evaluatedDate).getTime() + 1000,
           feedbackText: notesClean,
         });
@@ -365,7 +365,7 @@ export function NotificationMenu() {
   const getIcon = (type: NotificationItem["type"]) => {
     switch (type) {
       case "admin_feedback":
-        return <MessageSquare className="size-4 text-blue-600 shrink-0" />;
+        return <MessageSquare className="size-4 text-[#f95c4b] shrink-0" />;
       case "task_approved":
         return <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />;
       case "task_rejected":
@@ -373,11 +373,11 @@ export function NotificationMenu() {
       case "task_pending":
         return <Clock className="size-4 text-amber-500 shrink-0" />;
       case "certificate":
-        return <Award className="size-4 text-blue-500 shrink-0" />;
+        return <Award className="size-4 text-[#f95c4b] shrink-0" />;
       case "offer":
-        return <FileText className="size-4 text-indigo-500 shrink-0" />;
+        return <FileText className="size-4 text-[#ee9590] shrink-0" />;
       default:
-        return <Sparkles className="size-4 text-blue-500 shrink-0" />;
+        return <Sparkles className="size-4 text-[#f95c4b] shrink-0" />;
     }
   };
 
@@ -387,13 +387,13 @@ export function NotificationMenu() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative inline-flex items-center justify-center size-8 sm:size-9 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
+        className="relative inline-flex items-center justify-center size-8 sm:size-9 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:text-[#f95c4b] hover:bg-[#f95c4b]/5 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
         aria-label="Notifications"
         title="Notifications"
       >
         <Bell className="size-3.5 sm:size-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white shadow-xs animate-pulse">
+          <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-[#f95c4b] text-[10px] font-bold text-white shadow-xs animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -401,15 +401,15 @@ export function NotificationMenu() {
 
       {/* Notifications Dropdown Panel */}
       {open && (
-        <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-11 z-[999] w-auto sm:w-[380px] rounded-2xl border border-slate-200/90 bg-white p-0 shadow-2xl backdrop-blur-2xl dark:bg-[#0F172A] dark:border-slate-800 animate-in zoom-in-95 overflow-hidden">
+        <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-11 z-[999] w-auto sm:w-[380px] rounded-2xl border border-border/80 bg-white p-0 shadow-2xl backdrop-blur-2xl dark:bg-[#181619] dark:border-white/10 animate-in zoom-in-95 overflow-hidden">
           
           {/* Panel Header */}
-          <div className="flex items-center justify-between border-b border-border/40 px-4 py-3 bg-slate-50/70 dark:bg-slate-900/60">
+          <div className="flex items-center justify-between border-b border-border/40 px-4 py-3 bg-[#faf8f2]/90 dark:bg-[#181619]/90">
             <div className="flex items-center gap-2">
-              <Bell className="size-4 text-blue-600 dark:text-blue-400" />
+              <Bell className="size-4 text-[#f95c4b]" />
               <h3 className="text-sm font-bold text-foreground">Notifications</h3>
               {unreadCount > 0 && (
-                <Badge className="bg-blue-600 text-white text-[10px] h-4 px-1.5 border-0 font-bold">
+                <Badge className="bg-[#f95c4b] text-white text-[10px] h-4 px-1.5 border-0 font-bold">
                   {unreadCount} New
                 </Badge>
               )}
@@ -420,7 +420,7 @@ export function NotificationMenu() {
                 <button
                   type="button"
                   onClick={markAllRead}
-                  className="text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 px-1.5 py-0.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                  className="text-[11px] font-semibold text-[#f95c4b] hover:text-[#de4334] flex items-center gap-1 px-1.5 py-0.5 rounded-lg hover:bg-[#f95c4b]/10 transition-colors"
                   title="Mark all as read"
                 >
                   <CheckCheck className="size-3" /> Mark all read
@@ -437,13 +437,13 @@ export function NotificationMenu() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex border-b border-border/40 px-3 py-2 gap-2 bg-white dark:bg-[#0F172A]">
+          <div className="flex border-b border-border/40 px-3 py-2 gap-2 bg-white dark:bg-[#181619]">
             <button
               type="button"
               onClick={() => setFilter("all")}
               className={`px-3 py-1 text-xs font-semibold rounded-xl transition ${
                 filter === "all"
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 font-bold"
+                  ? "bg-[#f95c4b]/15 text-[#f95c4b] dark:bg-[#f95c4b]/20 dark:text-[#ee9590] font-bold"
                   : "text-muted-foreground hover:bg-muted/50"
               }`}
             >
@@ -454,7 +454,7 @@ export function NotificationMenu() {
               onClick={() => setFilter("unread")}
               className={`px-3 py-1 text-xs font-semibold rounded-xl transition ${
                 filter === "unread"
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 font-bold"
+                  ? "bg-[#f95c4b]/15 text-[#f95c4b] dark:bg-[#f95c4b]/20 dark:text-[#ee9590] font-bold"
                   : "text-muted-foreground hover:bg-muted/50"
               }`}
             >
@@ -466,7 +466,7 @@ export function NotificationMenu() {
           <div className="max-h-[350px] overflow-y-auto divide-y divide-border/30">
             {filteredNotifications.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
-                <Bell className="size-8 mx-auto mb-2 opacity-30" />
+                <Bell className="size-8 mx-auto mb-2 opacity-30 text-[#f95c4b]" />
                 <p className="text-xs font-medium">No {filter === "unread" ? "unread " : ""}notifications right now.</p>
               </div>
             ) : (
@@ -474,33 +474,33 @@ export function NotificationMenu() {
                 <div
                   key={notif.id}
                   onClick={() => handleNotificationClick(notif)}
-                  className={`group relative flex items-start gap-3 p-3.5 text-xs transition-all cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 ${
-                    !notif.read ? "bg-blue-50/50 dark:bg-blue-950/25" : ""
-                  } ${notif.type === "admin_feedback" ? "border-l-4 border-l-blue-600" : ""}`}
+                  className={`group relative flex items-start gap-3 p-3.5 text-xs transition-all cursor-pointer hover:bg-[#faf8f2] dark:hover:bg-white/[0.04] ${
+                    !notif.read ? "bg-[#f95c4b]/[0.05] dark:bg-[#f95c4b]/[0.08]" : ""
+                  } ${notif.type === "admin_feedback" ? "border-l-4 border-l-[#f95c4b]" : ""}`}
                 >
                   <div className="mt-0.5 shrink-0">{getIcon(notif.type)}</div>
 
                   <div className="flex-1 min-w-0 pr-3">
                     <div className="flex items-center justify-between gap-1">
-                      <p className={`font-semibold truncate ${!notif.read ? "text-blue-950 dark:text-blue-200 font-bold" : "text-foreground"}`}>
+                      <p className={`font-semibold truncate ${!notif.read ? "text-[#181619] dark:text-white font-bold" : "text-foreground"}`}>
                         {notif.title}
                       </p>
                       <span className="text-[10px] text-muted-foreground shrink-0">{notif.timeAgo}</span>
                     </div>
 
-                    <p className={`mt-0.5 leading-relaxed line-clamp-2 ${notif.type === "admin_feedback" ? "text-blue-900 dark:text-blue-300 font-medium" : "text-muted-foreground"}`}>
+                    <p className={`mt-0.5 leading-relaxed line-clamp-2 ${notif.type === "admin_feedback" ? "text-[#403b42] dark:text-slate-200 font-medium" : "text-muted-foreground"}`}>
                       {notif.message}
                     </p>
 
                     {notif.link && (
-                      <span className="mt-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                      <span className="mt-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold text-[#f95c4b] dark:text-[#ee9590] group-hover:translate-x-0.5 transition-transform">
                         View tasks <ChevronRight className="size-3" />
                       </span>
                     )}
                   </div>
 
                   {!notif.read && (
-                    <span className="absolute top-3.5 right-3 size-2 rounded-full bg-blue-600" />
+                    <span className="absolute top-3.5 right-3 size-2 rounded-full bg-[#f95c4b]" />
                   )}
                 </div>
               ))
@@ -508,11 +508,11 @@ export function NotificationMenu() {
           </div>
 
           {/* Footer Navigation */}
-          <div className="border-t border-border/40 p-2 text-center bg-slate-50/70 dark:bg-slate-900/60">
+          <div className="border-t border-border/40 p-2 text-center bg-[#faf8f2]/90 dark:bg-[#181619]/90">
             <Button
               variant="ghost"
               size="sm"
-              className="w-full h-8 text-xs text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl"
+              className="w-full h-8 text-xs text-[#f95c4b] dark:text-[#ee9590] font-bold hover:bg-[#f95c4b]/10 rounded-xl cursor-pointer"
               onClick={() => {
                 setOpen(false);
                 navigate({ to: "/dashboard", search: { tab: "tasks" } });
@@ -532,12 +532,12 @@ export function NotificationMenu() {
           onClick={() => setSelectedNotif(null)}
         >
           <div
-            className="w-full max-w-md rounded-3xl border border-blue-200 bg-white p-6 shadow-2xl dark:bg-[#0F172A] dark:border-blue-900/50 animate-in zoom-in-95 my-auto"
+            className="w-full max-w-md rounded-3xl border border-[#f95c4b]/30 bg-white p-6 shadow-2xl dark:bg-[#181619] dark:border-white/10 animate-in zoom-in-95 my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <MessageSquare className="size-5 text-blue-600 dark:text-blue-400" />
+                <MessageSquare className="size-5 text-[#f95c4b] dark:text-[#ee9590]" />
                 <h3 className="text-base font-bold text-foreground">{selectedNotif.title}</h3>
               </div>
               <button onClick={() => setSelectedNotif(null)} className="text-muted-foreground hover:text-foreground">
@@ -545,8 +545,8 @@ export function NotificationMenu() {
               </button>
             </div>
 
-            <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-4 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200 space-y-2">
-              <p className="font-bold flex items-center gap-1.5 text-xs text-blue-700 dark:text-blue-400">
+            <div className="rounded-2xl border border-[#f95c4b]/20 bg-[#f95c4b]/5 p-4 text-xs text-foreground dark:border-[#f95c4b]/30 dark:bg-[#f95c4b]/10 space-y-2">
+              <p className="font-bold flex items-center gap-1.5 text-xs text-[#f95c4b] dark:text-[#ee9590]">
                 <MessageSquare className="size-4" /> Admin Feedback Note:
               </p>
               <p className="text-sm font-medium leading-relaxed pl-5 text-slate-800 dark:text-slate-200">

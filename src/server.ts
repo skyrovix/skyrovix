@@ -9,7 +9,7 @@ if (typeof setInterval !== "undefined") {
   const STALE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
   setInterval(async () => {
     try {
-      const { dbQuery } = await import("@/lib/db.server");
+      const { dbQuery } = await import("./lib/db.server");
       const cutoff = new Date(Date.now() - STALE_TIMEOUT)
         .toISOString()
         .slice(0, 19)

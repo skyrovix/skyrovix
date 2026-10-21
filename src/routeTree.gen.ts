@@ -16,15 +16,19 @@ import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as InternshipsRouteImport } from './routes/internships'
+import { Route as InternshipRouteImport } from './routes/internship'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DomainsRouteImport } from './routes/domains'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as NavbarLayoutRouteImport } from './routes/_navbar-layout'
+import { Route as InternshipIndexRouteImport } from './routes/internship.index'
 import { Route as DomainsIndexRouteImport } from './routes/domains.index'
 import { Route as NavbarLayoutIndexRouteImport } from './routes/_navbar-layout/index'
 import { Route as VerifyIdRouteImport } from './routes/verify.$id'
+import { Route as InternshipSlugRouteImport } from './routes/internship.$slug'
 import { Route as DomainsSlugRouteImport } from './routes/domains.$slug'
 import { Route as AdminPaymentVerificationRouteImport } from './routes/admin.payment-verification'
 import { Route as AdminFeeSettingsRouteImport } from './routes/admin.fee-settings'
@@ -83,6 +87,16 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InternshipsRoute = InternshipsRouteImport.update({
+  id: '/internships',
+  path: '/internships',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternshipRoute = InternshipRouteImport.update({
+  id: '/internship',
+  path: '/internship',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -112,6 +126,11 @@ const NavbarLayoutRoute = NavbarLayoutRouteImport.update({
   id: '/_navbar-layout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InternshipIndexRoute = InternshipIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InternshipRoute,
+} as any)
 const DomainsIndexRoute = DomainsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -126,6 +145,11 @@ const VerifyIdRoute = VerifyIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => VerifyRoute,
+} as any)
+const InternshipSlugRoute = InternshipSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => InternshipRoute,
 } as any)
 const DomainsSlugRoute = DomainsSlugRouteImport.update({
   id: '/$slug',
@@ -258,6 +282,8 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/domains': typeof DomainsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
+  '/internship': typeof InternshipRouteWithChildren
+  '/internships': typeof InternshipsRoute
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -271,8 +297,10 @@ export interface FileRoutesByFullPath {
   '/admin/fee-settings': typeof AdminFeeSettingsRoute
   '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
+  '/internship/$slug': typeof InternshipSlugRoute
   '/verify/$id': typeof VerifyIdRoute
   '/domains/': typeof DomainsIndexRoute
+  '/internship/': typeof InternshipIndexRoute
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/review': typeof NavbarLayoutAuthenticatedReviewRoute
   '/courses/$slug': typeof NavbarLayoutCoursesSlugRoute
@@ -294,6 +322,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/internships': typeof InternshipsRoute
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -308,8 +337,10 @@ export interface FileRoutesByTo {
   '/admin/fee-settings': typeof AdminFeeSettingsRoute
   '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
+  '/internship/$slug': typeof InternshipSlugRoute
   '/verify/$id': typeof VerifyIdRoute
   '/domains': typeof DomainsIndexRoute
+  '/internship': typeof InternshipIndexRoute
   '/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/review': typeof NavbarLayoutAuthenticatedReviewRoute
   '/courses/$slug': typeof NavbarLayoutCoursesSlugRoute
@@ -334,6 +365,8 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/domains': typeof DomainsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
+  '/internship': typeof InternshipRouteWithChildren
+  '/internships': typeof InternshipsRoute
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -348,9 +381,11 @@ export interface FileRoutesById {
   '/admin/fee-settings': typeof AdminFeeSettingsRoute
   '/admin/payment-verification': typeof AdminPaymentVerificationRoute
   '/domains/$slug': typeof DomainsSlugRoute
+  '/internship/$slug': typeof InternshipSlugRoute
   '/verify/$id': typeof VerifyIdRoute
   '/_navbar-layout/': typeof NavbarLayoutIndexRoute
   '/domains/': typeof DomainsIndexRoute
+  '/internship/': typeof InternshipIndexRoute
   '/_navbar-layout/_authenticated/dashboard': typeof NavbarLayoutAuthenticatedDashboardRoute
   '/_navbar-layout/_authenticated/review': typeof NavbarLayoutAuthenticatedReviewRoute
   '/_navbar-layout/courses/$slug': typeof NavbarLayoutCoursesSlugRoute
@@ -376,6 +411,8 @@ export interface FileRouteTypes {
     | '/contact'
     | '/domains'
     | '/forgot-password'
+    | '/internship'
+    | '/internships'
     | '/privacy'
     | '/refund'
     | '/reset-password'
@@ -389,8 +426,10 @@ export interface FileRouteTypes {
     | '/admin/fee-settings'
     | '/admin/payment-verification'
     | '/domains/$slug'
+    | '/internship/$slug'
     | '/verify/$id'
     | '/domains/'
+    | '/internship/'
     | '/dashboard'
     | '/review'
     | '/courses/$slug'
@@ -412,6 +451,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/forgot-password'
+    | '/internships'
     | '/privacy'
     | '/refund'
     | '/reset-password'
@@ -426,8 +466,10 @@ export interface FileRouteTypes {
     | '/admin/fee-settings'
     | '/admin/payment-verification'
     | '/domains/$slug'
+    | '/internship/$slug'
     | '/verify/$id'
     | '/domains'
+    | '/internship'
     | '/dashboard'
     | '/review'
     | '/courses/$slug'
@@ -451,6 +493,8 @@ export interface FileRouteTypes {
     | '/contact'
     | '/domains'
     | '/forgot-password'
+    | '/internship'
+    | '/internships'
     | '/privacy'
     | '/refund'
     | '/reset-password'
@@ -465,9 +509,11 @@ export interface FileRouteTypes {
     | '/admin/fee-settings'
     | '/admin/payment-verification'
     | '/domains/$slug'
+    | '/internship/$slug'
     | '/verify/$id'
     | '/_navbar-layout/'
     | '/domains/'
+    | '/internship/'
     | '/_navbar-layout/_authenticated/dashboard'
     | '/_navbar-layout/_authenticated/review'
     | '/_navbar-layout/courses/$slug'
@@ -492,6 +538,8 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DomainsRoute: typeof DomainsRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  InternshipRoute: typeof InternshipRouteWithChildren
+  InternshipsRoute: typeof InternshipsRoute
   PrivacyRoute: typeof PrivacyRoute
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -553,6 +601,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/internships': {
+      id: '/internships'
+      path: '/internships'
+      fullPath: '/internships'
+      preLoaderRoute: typeof InternshipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/internship': {
+      id: '/internship'
+      path: '/internship'
+      fullPath: '/internship'
+      preLoaderRoute: typeof InternshipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -595,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NavbarLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/internship/': {
+      id: '/internship/'
+      path: '/'
+      fullPath: '/internship/'
+      preLoaderRoute: typeof InternshipIndexRouteImport
+      parentRoute: typeof InternshipRoute
+    }
     '/domains/': {
       id: '/domains/'
       path: '/'
@@ -615,6 +684,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/verify/$id'
       preLoaderRoute: typeof VerifyIdRouteImport
       parentRoute: typeof VerifyRoute
+    }
+    '/internship/$slug': {
+      id: '/internship/$slug'
+      path: '/$slug'
+      fullPath: '/internship/$slug'
+      preLoaderRoute: typeof InternshipSlugRouteImport
+      parentRoute: typeof InternshipRoute
     }
     '/domains/$slug': {
       id: '/domains/$slug'
@@ -860,6 +936,20 @@ const DomainsRouteChildren: DomainsRouteChildren = {
 const DomainsRouteWithChildren =
   DomainsRoute._addFileChildren(DomainsRouteChildren)
 
+interface InternshipRouteChildren {
+  InternshipSlugRoute: typeof InternshipSlugRoute
+  InternshipIndexRoute: typeof InternshipIndexRoute
+}
+
+const InternshipRouteChildren: InternshipRouteChildren = {
+  InternshipSlugRoute: InternshipSlugRoute,
+  InternshipIndexRoute: InternshipIndexRoute,
+}
+
+const InternshipRouteWithChildren = InternshipRoute._addFileChildren(
+  InternshipRouteChildren,
+)
+
 interface VerifyRouteChildren {
   VerifyIdRoute: typeof VerifyIdRoute
 }
@@ -878,6 +968,8 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DomainsRoute: DomainsRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  InternshipRoute: InternshipRouteWithChildren,
+  InternshipsRoute: InternshipsRoute,
   PrivacyRoute: PrivacyRoute,
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,

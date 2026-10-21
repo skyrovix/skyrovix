@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { getPublicFeeSettings, type PublicFeeSettings } from "@/lib/fee-service";
 import { Button } from "@/components/ui/button";
 import { FounderProfileView } from "@/components/FounderProfileView";
 import { DOMAINS, COMPANY, DURATIONS, durationConfig, generateInternId } from "@/lib/constants";
@@ -14,7 +15,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { AuroraBackground } from "@/components/AuroraBackground";
-import { FadeUp, Reveal, ScaleIn, FadeIn } from "@/components/motion";
+import { FadeUp, Reveal, ScaleIn, FadeIn, MotionRiseIn, MotionStagger } from "@/components/motion";
+import { motion } from "framer-motion";
+import {
+  easings,
+  durations,
+  springs,
+  transitions,
+  fade,
+  slideUp,
+  scaleIn,
+  pop,
+  stagger,
+  brightChatCaret,
+  inViewRiseIn,
+  inViewFadeIn,
+  buttonHoverTap,
+  cardHoverElevation,
+} from "@/lib/symboolic.com-motion.framer";
 import {
   BookOpen, Layers, Monitor, Server, BarChart3, Brain, Palette,
   Code2, Shield, TrendingUp, ArrowRight, Award, FileCheck, Rocket,
@@ -100,19 +118,39 @@ export const Route = createFileRoute("/_navbar-layout/")({
   component: Landing,
 });
 
-const STEPS = [
-  { icon: Rocket, title: "Apply", desc: "Pick a domain and submit your details." },
-  { icon: FileCheck, title: "Offer + ID", desc: "Instant offer letter & digital ID card." },
-  { icon: GraduationCap, title: "5 Tasks", desc: "Build real, portfolio-grade projects." },
-  { icon: IndianRupee, title: "Payment", desc: "Pay ₹100 certification fee via GPay." },
-  { icon: Award, title: "Certificate", desc: "Verified certificate with QR code." },
-];
-
 function Landing() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [applyDomain, setApplyDomain] = useState<string | null>(null);
   const [isFounder, setIsFounder] = useState(false);
+
+  const { data: feeSettings } = useQuery<PublicFeeSettings>({
+    queryKey: ["public-fee-settings"],
+    queryFn: () => getPublicFeeSettings(),
+    staleTime: 5000,
+    refetchInterval: 10000,
+  });
+
+  const certFee = feeSettings?.certificateFee?.amount ?? 100;
+
+  const steps = useMemo(() => [
+    { icon: Rocket, title: "Apply", desc: "Pick a domain and submit your details." },
+    { icon: FileCheck, title: "Offer + ID", desc: "Instant offer letter & digital ID card." },
+    { icon: GraduationCap, title: "5 Tasks", desc: "Build real, portfolio-grade projects." },
+    { icon: IndianRupee, title: "Payment", desc: `Pay ₹${certFee} certification fee via UPI/Cashfree.` },
+    { icon: Award, title: "Certificate", desc: "Verified certificate with QR code." },
+  ], [certFee]);
+
+  const faqItems = useMemo(() => [
+    { q: "What is the Skyrovix internship program?", a: "It is a task-based virtual internship where you complete 5 real-world projects in your chosen domain. You get an instant offer letter, digital ID card, mentor reviews, and a verified certificate with QR code upon completion." },
+    { q: "Is there any application fee?", a: `No. Applying and receiving the offer letter and ID card is completely free. A ₹${certFee} certification fee is payable only after completing all 5 tasks, just before the certificate is issued.` },
+    { q: "How long does the internship take?", a: "The internship is self-paced. Most students complete it in 2–4 weeks, but you can finish faster or take more time depending on your schedule." },
+    { q: "What domains are available?", a: "We offer 25+ domains including Full Stack Development, Frontend, Backend, Data Science, AI & ML, UI/UX Design, Python, Java, Cyber Security, Digital Marketing, and many more." },
+    { q: "Will I get an offer letter and ID card?", a: "Yes. Immediately after applying, you receive an instant offer letter and a digital ID card with your name, domain, intern ID, and a QR code." },
+    { q: "Is the certificate verifiable?", a: "Yes. Every certificate has a unique ID and QR code. Employers can verify its authenticity on our Verify Certificate page." },
+    { q: "Who reviews my task submissions?", a: "Each task is reviewed by our mentor team. You'll receive feedback and can resubmit if needed. A task is marked approved once it meets the required standards." },
+    { q: "Do I get a certificate if I don't complete all tasks?", a: `The certificate is issued only after you complete and get approval on all 5 tasks and pay the ₹${certFee} certification fee.` },
+  ], [certFee]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -133,67 +171,109 @@ function Landing() {
       <BreadcrumbJsonLd items={[{ name: "Home", url: "https://skyrovix.online/" }]} />
       {/* ─── HERO ─── */}
       <AuroraBackground>
-        <section className="relative min-h-[85vh] lg:min-h-[88vh] pt-16 sm:pt-14 pb-12 sm:pb-16 flex items-center justify-center overflow-x-hidden">
+        <section className="relative min-h-[85vh] lg:min-h-[88vh] pt-28 sm:pt-32 pb-12 sm:pb-16 flex items-center justify-center overflow-x-hidden">
           {/* Floating programming language icons across entire hero */}
           <MobileFloatingIcons />
           <div className="mx-auto max-w-7xl px-4 relative z-10 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
 
-              {/* Left Column: Hero Text Content */}
-              <FadeUp y={20} duration={0.8} delay={0.1} className="lg:col-span-7 flex flex-col items-start text-left w-full px-2 sm:px-0">
+              {/* Left Column: Hero Text Content with Symboolic Motion */}
+              <motion.div
+                variants={stagger}
+                initial="initial"
+                animate="animate"
+                className="lg:col-span-7 flex flex-col items-start text-left w-full px-2 sm:px-0"
+              >
 
                 {/* Internship Platform Badge */}
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200/50 dark:border-sky-400/30 bg-blue-50/50 dark:bg-sky-400/10 px-4 py-2 text-[10px] sm:text-xs font-bold text-blue-800 dark:text-sky-300 shadow-sm backdrop-blur-md">
-                  <span className="animate-pulse size-2 rounded-full bg-blue-600 dark:bg-sky-400 shrink-0" />
+                <motion.div
+                  variants={slideUp}
+                  className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-4 py-2 text-[10px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur-md"
+                >
+                  <span className="animate-pulse size-2 rounded-full bg-[#f95c4b] shrink-0" />
                   <span>🎓 INDIA'S MOST PRACTICAL VIRTUAL INTERNSHIP PLATFORM</span>
-                </div>
+                </motion.div>
 
                 {/* Primary Heading */}
-                <h1 className="font-display text-[2.4rem] leading-[1.12] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#07284a] dark:text-white text-left">
+                <motion.h1
+                  variants={slideUp}
+                  className="font-display text-[2.4rem] leading-[1.12] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#181619] dark:text-white text-left"
+                >
                   Build Skills.<br />
                   Gain Experience.<br />
-                  <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-sky-300 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Get Certified.</span>
-                </h1>
+                  <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-[#f95c4b] bg-clip-text text-transparent">Get Certified.</span>
+                </motion.h1>
 
                 {/* Sub-headline description */}
-                <p className="mt-4 sm:mt-5 max-w-xl text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium">
+                <motion.p
+                  variants={slideUp}
+                  className="mt-4 sm:mt-5 max-w-xl text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium"
+                >
                   Skyrovix Internship Program helps students and professionals work on real-world projects, gain practical skills, and receive industry-recognized certificates.
-                </p>
+                </motion.p>
 
-                {/* Checklist items — glassmorphism on dark */}
-                <div className="mt-5 sm:mt-6 grid grid-cols-2 gap-2 max-w-lg w-full">
+                {/* Checklist items — glassmorphism on dark with Stagger */}
+                <motion.div
+                  variants={stagger}
+                  className="mt-5 sm:mt-6 grid grid-cols-2 gap-2 max-w-lg w-full"
+                >
                   {[
-                    { label: "Real-world Projects", icon: Code2, color: "text-blue-600 dark:text-sky-400", bg: "bg-blue-50 dark:bg-sky-400/15 border-blue-100 dark:border-sky-400/25" },
-                    { label: "Mentor Guidance", icon: Users, color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-400/15 border-indigo-100 dark:border-indigo-400/25" },
-                    { label: "Certificate & LOR", icon: FileText, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-400/15 border-emerald-100 dark:border-emerald-400/25" },
-                    { label: "100% Remote", icon: Globe, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-400/15 border-amber-100 dark:border-amber-400/25" },
+                    { label: "Real-world Projects", icon: Code2, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
+                    { label: "Mentor Guidance", icon: Users, color: "text-[#403b42] dark:text-[#ee9590]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
+                    { label: "Certificate & LOR", icon: FileText, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
+                    { label: "100% Remote", icon: Globe, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
                   ].map((item, idx) => (
-                    <div key={idx} className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm hover:scale-[1.02] transition-all duration-200 shadow-sm`}>
+                    <motion.div
+                      key={idx}
+                      variants={slideUp}
+                      whileHover={{ scale: 1.02, transition: transitions.fast }}
+                      className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm transition-all duration-200 shadow-sm`}
+                    >
                       <div className={`size-7 rounded-lg bg-white/80 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0 shadow-sm`}>
                         <item.icon className="size-3.5" />
                       </div>
                       <span className="text-[11px] sm:text-sm font-semibold text-slate-800 dark:text-white/90">{item.label}</span>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
 
-                {/* Buttons Row */}
-                <div className="mt-6 sm:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                  <Link to="/auth" search={{ redirect: undefined }} className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 px-8 py-5 sm:py-6 text-sm sm:text-base font-bold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-                      Explore Internships <ArrowRight className="ml-2 size-4" />
-                    </Button>
-                  </Link>
-                  <a href="#how-it-works" className="w-full sm:w-auto">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl border border-slate-200 dark:border-white/20 px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-400 dark:hover:border-white/30 active:scale-95 transition-all flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md">
-                      <div className="size-6 rounded-full bg-slate-100 dark:bg-white/15 flex items-center justify-center text-slate-800 dark:text-white"><Play className="size-3 fill-current ml-0.5" /></div>
-                      How It Works
-                    </Button>
-                  </a>
-                </div>
+                {/* Buttons Row with Framer Motion hover & tap */}
+                <motion.div
+                  variants={slideUp}
+                  className="mt-6 sm:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto"
+                >
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={transitions.fast}
+                    className="w-full sm:w-auto"
+                  >
+                    <Link to="/auth" search={{ redirect: undefined }} className="w-full sm:w-auto block">
+                      <Button size="lg" className="w-full sm:w-auto rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white border-0 px-8 py-5 sm:py-6 text-sm sm:text-base font-bold shadow-lg shadow-[#f95c4b]/25 transition-all duration-300 cursor-pointer">
+                        Explore Internships <ArrowRight className="ml-2 size-4" />
+                      </Button>
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={transitions.fast}
+                    className="w-full sm:w-auto"
+                  >
+                    <a href="#how-it-works" className="w-full sm:w-auto block">
+                      <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl border border-[#e5e7eb] dark:border-white/15 px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold text-[#181619] dark:text-white hover:bg-white dark:hover:bg-white/10 hover:border-[#f95c4b] transition-all flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md cursor-pointer">
+                        <div className="size-6 rounded-full bg-slate-100 dark:bg-white/15 flex items-center justify-center text-slate-800 dark:text-white"><Play className="size-3 fill-current ml-0.5" /></div>
+                        How It Works
+                      </Button>
+                    </a>
+                  </motion.div>
+                </motion.div>
 
                 {/* Coupon banner */}
-                <div className="mt-6 sm:mt-7 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 dark:border-amber-400/25 max-w-xl w-full flex items-center justify-between gap-3 backdrop-blur-md shadow-sm">
+                <motion.div
+                  variants={slideUp}
+                  className="mt-6 sm:mt-7 p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#f95c4b]/20 max-w-xl w-full flex items-center justify-between gap-3 backdrop-blur-md shadow-sm"
+                >
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                     <div className="size-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0"><Sparkles className="size-5" /></div>
                     <div className="text-left min-w-0">
@@ -201,15 +281,26 @@ function Landing() {
                       <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">First 100 students get internship for FREE!</p>
                     </div>
                   </div>
-                  <button onClick={() => setApplyDomain(DOMAINS[0]?.slug)} className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#07284a] dark:bg-gradient-to-r dark:from-amber-400 dark:to-orange-500 text-white text-[11px] sm:text-xs font-bold shadow-md hover:scale-[1.01] transition-all">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={transitions.fast}
+                    onClick={() => setApplyDomain(DOMAINS[0]?.slug)}
+                    className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[11px] sm:text-xs font-bold shadow-md transition-all cursor-pointer"
+                  >
                     Use Code: FIRST100
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
 
-              </FadeUp>
+              </motion.div>
 
               {/* Right Column: Dynamic Graphic & Stats overlay */}
-              <ScaleIn delay={0.2} className="lg:col-span-5 flex flex-col items-center relative w-full lg:mt-0 mt-10">
+              <motion.div
+                variants={scaleIn}
+                initial="initial"
+                animate="animate"
+                className="lg:col-span-5 flex flex-col items-center relative w-full lg:mt-0 mt-10"
+              >
 
                 {/* SVG Curve Background & Doodles - hidden on mobile to keep it clean */}
                 <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-visible hidden sm:block">
@@ -251,48 +342,72 @@ function Landing() {
                 </div>
 
                 {/* Student team image */}
-                <img
+                <motion.img
+                  variants={scaleIn}
                   src={heroTeamImage}
                   alt="Skyrovix Interns"
                   className="relative z-10 w-full max-w-[440px] sm:max-w-[520px] lg:max-w-[550px] lg:scale-110 lg:translate-y-4 h-auto object-contain select-none pointer-events-none"
                 />
 
-                {/* Floating Badge Cards — visible on all screens */}
+                {/* Floating Badge Cards — visible on all screens with Symboolic spring pop */}
 
                 {/* Real-world Projects — left side */}
-                <div className="absolute top-[30%] left-1 sm:-left-10 lg:-left-28 bg-white dark:bg-[#0f172a] border border-border/70 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 hover:scale-105 transition-transform duration-300">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 font-bold shrink-0"><Code2 className="size-3.5 sm:size-4.5" /></div>
+                <motion.div
+                  variants={pop}
+                  whileHover={{ scale: 1.05 }}
+                  transition={transitions.fast}
+                  className="absolute top-[30%] left-1 sm:-left-10 lg:-left-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default"
+                >
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><Code2 className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Real-world Projects</span>
-                </div>
+                </motion.div>
 
                 {/* Industry Recognized Certificate — top center */}
-                <div className="absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#0f172a] border border-border/70 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 hover:scale-105 transition-transform duration-300 whitespace-nowrap">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 font-bold shrink-0"><GraduationCap className="size-3.5 sm:size-4.5" /></div>
+                <motion.div
+                  variants={pop}
+                  whileHover={{ scale: 1.05 }}
+                  transition={transitions.fast}
+                  className="absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 whitespace-nowrap cursor-default"
+                >
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><GraduationCap className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200">Industry Certificate</span>
-                </div>
+                </motion.div>
 
                 {/* Internship Offer Letter — right side top */}
-                <div className="absolute top-[22%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#0f172a] border border-border/70 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 hover:scale-105 transition-transform duration-300">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 font-bold shrink-0"><FileText className="size-3.5 sm:size-4.5" /></div>
+                <motion.div
+                  variants={pop}
+                  whileHover={{ scale: 1.05 }}
+                  transition={transitions.fast}
+                  className="absolute top-[22%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default"
+                >
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><FileText className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Offer Letter</span>
-                </div>
+                </motion.div>
 
                 {/* Task-based internship — right side bottom */}
-                <div className="absolute bottom-[30%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#0f172a] border border-border/70 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 hover:scale-105 transition-transform duration-300">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 font-bold shrink-0"><Users className="size-3.5 sm:size-4.5" /></div>
+                <motion.div
+                  variants={pop}
+                  whileHover={{ scale: 1.05 }}
+                  transition={transitions.fast}
+                  className="absolute bottom-[30%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default"
+                >
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><Users className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Task-based</span>
-                </div>
+                </motion.div>
 
 
                 {/* Statistics Card — 2×2 on mobile, 4-col on sm+ */}
-                <div className="relative z-20 w-full -mt-4 sm:-mt-6 bg-white dark:bg-[#0f172a] rounded-[24px] sm:rounded-[28px] border border-border/70 shadow-[0_20px_50px_rgba(0,0,0,0.08)] grid grid-cols-2 sm:grid-cols-4 max-w-2xl overflow-hidden">
+                <motion.div
+                  variants={slideUp}
+                  className="relative z-20 w-full -mt-4 sm:-mt-6 bg-white dark:bg-[#201d22] rounded-[24px] sm:rounded-[28px] border border-[#e5e7eb] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] grid grid-cols-2 sm:grid-cols-4 max-w-2xl overflow-hidden"
+                >
 
                   {/* Students Enrolled */}
                   <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-r border-b sm:border-b-0 border-slate-100 dark:border-slate-800/80">
                     <div className="size-9 sm:size-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mb-2">
                       <Users className="size-4 sm:size-5" />
                     </div>
-                    <div className="text-base sm:text-lg font-extrabold text-[#07284a] dark:text-slate-100 leading-tight tracking-tight">Growing Every Day</div>
+                    <div className="text-base sm:text-lg font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">Growing Every Day</div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Students Enrolled</div>
                   </div>
 
@@ -301,7 +416,7 @@ function Landing() {
                     <div className="size-9 sm:size-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 mb-2">
                       <Briefcase className="size-4 sm:size-5" />
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#07284a] dark:text-slate-100 leading-tight tracking-tight">10+</div>
+                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">10+</div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Internship Domains</div>
                   </div>
 
@@ -310,7 +425,7 @@ function Landing() {
                     <div className="size-9 sm:size-10 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mb-2">
                       <Code2 className="size-4 sm:size-5" />
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#07284a] dark:text-slate-100 leading-tight tracking-tight">120+</div>
+                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">120+</div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Projects Available</div>
                   </div>
 
@@ -319,13 +434,13 @@ function Landing() {
                     <div className="size-9 sm:size-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 mb-2">
                       <Star className="size-4 sm:size-5 fill-amber-500" />
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#07284a] dark:text-slate-100 leading-tight tracking-tight">4.9/5</div>
+                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">4.9/5</div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Average Rating</div>
                   </div>
 
-                </div>
+                </motion.div>
 
-              </ScaleIn>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -333,7 +448,7 @@ function Landing() {
 
       {/* ─── TRUSTED BY COLLEGES ─── */}
       <Reveal delay={0.1}>
-        <section className="border-b border-border/30 bg-white/50 dark:bg-slate-950/10 py-8 sm:py-10 relative z-10">
+        <section className="border-b border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-8 sm:py-10 relative z-10">
           <div className="mx-auto max-w-7xl px-4 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
             {/* Left Title */}
             <div className="text-center lg:text-left shrink-0 max-w-[260px]">
@@ -400,7 +515,7 @@ function Landing() {
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-center lg:justify-end text-xs sm:text-[13px] font-extrabold text-blue-600 dark:text-blue-400">
+              <div className="flex items-center justify-center lg:justify-end text-xs sm:text-[13px] font-extrabold text-[#f95c4b] dark:text-[#ee9590]">
                 <span className="whitespace-nowrap">
                   ... and more colleges across India
                 </span>
@@ -414,13 +529,13 @@ function Landing() {
       <section className="py-20 sm:py-24 overflow-hidden relative z-10">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>
-            <div className="relative rounded-3xl border border-border/60 bg-gradient-to-br from-blue-500/5 via-white/50 to-transparent dark:from-blue-950/10 dark:via-[#0f172a]/30 p-8 sm:p-12 backdrop-blur-md shadow-lg">
+            <div className="relative rounded-3xl border border-border/60 bg-gradient-to-br from-[#faf8f2] via-white to-white dark:from-[#201d22] dark:via-[#181619] dark:to-[#181619] p-8 sm:p-12 border-[#e5e7eb] dark:border-white/10 shadow-lg">
               <div className="absolute -top-20 -right-20 size-60 rounded-full bg-blue-500/5 blur-3xl" />
               <div className="relative grid items-center gap-8 sm:grid-cols-2">
                 <div>
-                  <p className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-3.5 py-1 text-xs font-bold tracking-widest text-[#07284a] dark:text-blue-400 uppercase mb-5">About Skyrovix</p>
+                  <p className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3.5 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-5">About Skyrovix</p>
                   <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white">
-                    MSME-registered. <span className="brand-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Student-built.</span>
+                    MSME-registered. <span className="bg-gradient-to-r from-[#f95c4b] to-[#ee9590] bg-clip-text text-transparent">Student-built.</span>
                   </h2>
                   <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed font-medium">
                     Skyrovix runs a task-based virtual internship program across 10+ domains. Apply free, get
@@ -428,19 +543,30 @@ function Landing() {
                     certificate.
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <motion.div
+                  variants={stagger}
+                  initial="initial"
+                  whileInView="animate"
+                  viewport={{ once: true, amount: 0.3 }}
+                  className="grid grid-cols-2 gap-4"
+                >
                   {[
                     { value: "10+", label: "Domains", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50/50 dark:bg-violet-950/20" },
                     { value: "120+", label: "Projects", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
                     { value: "100%", label: "Online", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
-                    { value: "₹100", label: "Cert fee", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
+                    { value: `₹${certFee}`, label: "Cert fee", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
                   ].map((s) => (
-                    <div key={s.label} className="group rounded-2xl border border-slate-200/50 dark:border-slate-800/60 bg-white/70 dark:bg-[#0f172a]/70 p-4 text-center shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300">
+                    <motion.div
+                      key={s.label}
+                      variants={slideUp}
+                      whileHover={{ y: -4, transition: transitions.base }}
+                      className="group rounded-2xl border border-slate-200/50 dark:border-slate-800/60 bg-white/70 dark:bg-[#201d22]/70 p-4 text-center shadow-sm hover:shadow-md transition-all duration-300 cursor-default"
+                    >
                       <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
                       <div className="text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-wider">{s.label}</div>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               </div>
             </div>
           </Reveal>
@@ -451,29 +577,38 @@ function Landing() {
       <CollegeLogoMarquee />
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/40 py-20 sm:py-24 relative z-10">
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24 relative z-10">
         <div className="mx-auto max-w-7xl px-4">
           <Reveal>
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#07284a] dark:text-blue-400 bg-blue-500/5">How it works</Badge>
+              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#f95c4b] dark:text-[#ee9590] bg-[#f95c4b]/10 border-[#f95c4b]/20">How it works</Badge>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-800 dark:text-white">Your journey to certification</h2>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground font-medium">A simple 5-step journey from application to certification.</p>
             </div>
           </Reveal>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {STEPS.map((s, i) => (
-              <FadeUp key={i} delay={0.1 + i * 0.08}>
-                <div className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 p-6 backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-blue-500/25 hover:bg-white dark:hover:bg-[#0f172a]">
-                  <div className="absolute -top-3 left-6 grid size-7 place-items-center rounded-full bg-[#07284a] dark:bg-blue-600 text-xs font-extrabold text-white shadow-md ring-4 ring-blue-500/10 transition-transform duration-300 group-hover:scale-110">{i + 1}</div>
-                  <div className="size-11 rounded-2xl bg-blue-50/70 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4 mt-1">
-                    <s.icon className="size-5 transition-transform duration-500 group-hover:rotate-12" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-[15px]">{s.title}</h3>
-                  <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{s.desc}</p>
+          <motion.div
+            variants={stagger}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.3 }}
+            className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5"
+          >
+            {steps.map((s, i) => (
+              <motion.div
+                key={i}
+                variants={slideUp}
+                whileHover={{ y: -4, transition: transitions.base }}
+                className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 backdrop-blur transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default"
+              >
+                <div className="absolute -top-3 left-6 grid size-7 place-items-center rounded-full bg-[#f95c4b] text-xs font-extrabold text-white shadow-md shadow-[#f95c4b]/30 ring-4 ring-[#f95c4b]/15 transition-transform duration-300 group-hover:scale-110">{i + 1}</div>
+                <div className="size-11 rounded-2xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] group-hover:bg-[#f95c4b] group-hover:text-white transition-all duration-300 mb-4 mt-1">
+                  <s.icon className="size-5 transition-transform duration-500 group-hover:rotate-12" />
                 </div>
-              </FadeUp>
+                <h3 className="font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-[#f95c4b] dark:group-hover:text-[#ee9590] text-[15px]">{s.title}</h3>
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{s.desc}</p>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -515,40 +650,49 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4">
           <Reveal>
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#07284a] dark:text-blue-400 bg-blue-500/5">Why Skyrovix</Badge>
+              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#f95c4b] dark:text-[#ee9590] bg-[#f95c4b]/10 border-[#f95c4b]/20">Why Skyrovix</Badge>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-800 dark:text-white">Built differently</h2>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground font-medium">Everything you need to launch your career — in one platform.</p>
             </div>
           </Reveal>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            variants={stagger}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.3 }}
+            className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {[
               { icon: Briefcase, title: "Real Projects", desc: "Build portfolio-grade work, not toy assignments. Every task ships production-quality code.", bg: "bg-violet-50/80 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400" },
               { icon: MessageSquare, title: "Mentor Reviews", desc: "Get detailed feedback on every submission. Revise, improve, and ship better work.", bg: "bg-emerald-50/80 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400" },
               { icon: Clock, title: "Self-Paced", desc: "Learn on your schedule. Finish in 2 weeks or take 2 months — it's up to you.", bg: "bg-amber-50/80 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400" },
               { icon: Award, title: "Verified Certificate", desc: "Every certificate has a unique ID and QR code. Share it with recruiters instantly.", bg: "bg-purple-50/80 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400" },
               { icon: ShieldCheck, title: "MSME Registered", desc: "Issued by a registered IT company. Adds real weight to your resume and LinkedIn.", bg: "bg-red-50/80 dark:bg-red-950/20 text-red-600 dark:text-red-400" },
-              { icon: IndianRupee, title: "No Hidden Fees", desc: "Apply and start for free. Pay only ₹100 at certification — no strings attached.", bg: "bg-blue-50/80 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400" },
-            ].map((b, i) => (
-              <FadeUp key={b.title} delay={0.1 + i * 0.08}>
-                <div className="group rounded-2xl border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-blue-500/25 hover:bg-white dark:hover:bg-[#0f172a]">
-                  <div className={`grid size-11 place-items-center rounded-2xl ${b.bg} transition-all duration-300 group-hover:scale-110 shadow-sm`}>
-                    <b.icon className="size-5" />
-                  </div>
-                  <h3 className="mt-4 font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-[15px]">{b.title}</h3>
-                  <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{b.desc}</p>
+              { icon: IndianRupee, title: "No Hidden Fees", desc: `Apply and start for free. Pay only ₹${certFee} at certification — no strings attached.`, bg: "bg-blue-50/80 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400" },
+            ].map((b) => (
+              <motion.div
+                key={b.title}
+                variants={slideUp}
+                whileHover={{ y: -4, transition: transitions.base }}
+                className="group rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default"
+              >
+                <div className={`grid size-11 place-items-center rounded-2xl ${b.bg} transition-all duration-300 group-hover:scale-110 shadow-sm`}>
+                  <b.icon className="size-5" />
                 </div>
-              </FadeUp>
+                <h3 className="mt-4 font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-[#f95c4b] dark:group-hover:text-[#ee9590] text-[15px]">{b.title}</h3>
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{b.desc}</p>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ─── DOMAINS ─── */}
-      <section className="border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/40 py-20 sm:py-24 relative z-10">
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24 relative z-10">
         <div className="mx-auto max-w-7xl px-4">
           <Reveal>
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#07284a] dark:text-blue-400 bg-blue-500/5">Domains</Badge>
+              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-semibold rounded-full border border-border/60 uppercase tracking-widest text-[#f95c4b] dark:text-[#ee9590] bg-[#f95c4b]/10 border-[#f95c4b]/20">Domains</Badge>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-800 dark:text-white flex items-center justify-center gap-4">
                 <span className="text-blue-500/30 text-2xl font-light">\\</span>
                 Explore Internship Domains
@@ -558,7 +702,13 @@ function Landing() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+          <motion.div
+            variants={stagger}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.3 }}
+            className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4"
+          >
             {[
               { slug: "fullstack", name: "Full Stack Development", count: "12 Projects", icon: Code2, bg: "bg-violet-50 text-violet-600 dark:bg-violet-950/30 dark:text-violet-400" },
               { slug: "datascience", name: "Data Science & Analytics", count: "12 Projects", icon: BarChart3, bg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400" },
@@ -574,37 +724,47 @@ function Landing() {
                   <div className={`size-12 rounded-2xl flex items-center justify-center shadow-sm ${d.bg} transition-transform duration-300 group-hover:scale-110 group-hover:shadow-md`}>
                     <CardIcon className="size-5" />
                   </div>
-                  <h3 className="mt-4 text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">{d.name}</h3>
+                  <h3 className="mt-4 text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight transition-colors duration-300 group-hover:text-[#f95c4b] dark:group-hover:text-[#ee9590]">{d.name}</h3>
                   <p className="mt-2 text-[10px] sm:text-xs text-muted-foreground font-semibold">{d.count}</p>
                 </div>
               );
 
               if (d.isLink) {
                 return (
-                  <FadeUp key={i} delay={0.05 * i}>
+                  <motion.div
+                    key={i}
+                    variants={slideUp}
+                    whileHover={{ y: -4, transition: transitions.base }}
+                    className="h-full"
+                  >
                     <Link
-                      to="/domains"
+                      to="/internship"
                       search={{ apply: undefined }}
-                      className="group block h-full rounded-2xl border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:border-blue-500/20 hover:bg-white dark:hover:bg-[#0f172a]"
+                      className="group block h-full rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 transition-all duration-300 hover:shadow-lg hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a]"
                     >
                       {cardContent}
                     </Link>
-                  </FadeUp>
+                  </motion.div>
                 );
               }
 
               return (
-                <FadeUp key={i} delay={0.05 * i}>
+                <motion.div
+                  key={i}
+                  variants={slideUp}
+                  whileHover={{ y: -4, transition: transitions.base }}
+                  className="h-full"
+                >
                   <button
                     onClick={() => setApplyDomain(d.slug)}
-                    className="group w-full h-full text-left rounded-2xl border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:border-blue-500/20 hover:bg-white dark:hover:bg-[#0f172a]"
+                    className="group w-full h-full text-left rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 transition-all duration-300 hover:shadow-lg hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-pointer"
                   >
                     {cardContent}
                   </button>
-                </FadeUp>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -624,7 +784,7 @@ function Landing() {
       </section>
 
       {/* ─── FAQ ─── */}
-      <section className="border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/50 py-20 sm:py-24">
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24">
         <div className="mx-auto max-w-3xl px-4">
           <Reveal>
             <div className="mx-auto mb-14 max-w-2xl text-center">
@@ -634,9 +794,9 @@ function Landing() {
             </div>
           </Reveal>
           <Accordion type="single" collapsible className="space-y-3">
-            {FAQ_ITEMS.map((item, i) => (
+            {faqItems.map((item, i) => (
               <Reveal key={i} delay={i * 0.05}>
-                <AccordionItem value={`faq-${i}`} className="rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 px-5 sm:px-6 transition-all hover:border-border">
+                <AccordionItem value={`faq-${i}`} className="rounded-2xl border border-border/50 bg-white/60 dark:bg-[#201d22]/60 px-5 sm:px-6 transition-all hover:border-border">
                   <AccordionTrigger className="py-4 text-left text-sm sm:text-base font-medium hover:no-underline">{item.q}</AccordionTrigger>
                   <AccordionContent className="pb-4 text-sm leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
                 </AccordionItem>
@@ -650,12 +810,12 @@ function Landing() {
       <section className="px-4 py-20 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <Reveal>
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#041e36] via-[#07284a] to-[#0d3b66] p-8 sm:p-12 md:p-16 shadow-2xl shadow-[#07284a]/30">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#181619] via-[#201d22] to-[#181619] border border-white/10 p-8 sm:p-12 md:p-16 shadow-2xl shadow-black/40">
               {/* Diagonal light overlay */}
               <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_40%,rgba(255,255,255,0.02)_50%,transparent_60%)]" />
 
               {/* Glow orbs */}
-              <div className="absolute -top-32 -right-32 size-[500px] rounded-full bg-blue-500/10 blur-[120px]" />
+              <div className="absolute -top-32 -right-32 size-[500px] rounded-full bg-[#f95c4b]/20 blur-[120px]" />
               <div className="absolute -bottom-32 -left-32 size-[400px] rounded-full bg-indigo-500/8 blur-[100px]" />
 
               {/* Decorative rings */}
@@ -668,13 +828,13 @@ function Landing() {
                 <div className="flex-1 text-center lg:text-left">
                   <div className="hidden sm:inline-flex items-center gap-2 rounded-full bg-white/8 px-4 py-1.5 text-xs font-medium text-white/70 border border-white/10 mb-5 backdrop-blur-sm">
                     <span className="size-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    No application fee — pay only ₹100 at certification
+                    No application fee — pay only ₹{certFee} at certification
                   </div>
 
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-[1.15] text-white">
                     Ready to build
                     <br />
-                    <span className="bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent">something real?</span>
+                    <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-white bg-clip-text text-transparent">something real?</span>
                   </h2>
 
                   <p className="mt-4 text-sm sm:text-base text-white/60 max-w-lg leading-relaxed">
@@ -682,15 +842,27 @@ function Landing() {
                   </p>
 
                   <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-3">
-                    <Button asChild size="lg" className="rounded-xl bg-white text-[#07284a] hover:bg-white/95 border-0 shadow-xl shadow-black/15 font-semibold h-12 px-8 transition-all duration-300 hover:scale-[1.04] active:scale-95 group">
-                      <Link to="/auth" search={{ redirect: undefined }}>
-                        Apply now
-                        <ArrowRight className="ml-1.5 size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                      </Link>
-                    </Button>
-                    <Button asChild size="lg" variant="outline" className="rounded-xl bg-white/5 border border-white/15 text-white/90 hover:bg-white/12 hover:text-white h-12 px-8 backdrop-blur-sm transition-all duration-300 hover:scale-[1.04] active:scale-95">
-                      <Link to="/domains" search={{ apply: undefined }}>Explore courses</Link>
-                    </Button>
+                    <motion.div
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={transitions.fast}
+                    >
+                      <Button asChild size="lg" className="rounded-xl bg-[#f95c4b] text-white hover:bg-[#e04b3a] border-0 shadow-xl shadow-[#f95c4b]/30 font-bold h-12 px-8 transition-all duration-300 group cursor-pointer">
+                        <Link to="/auth" search={{ redirect: undefined }}>
+                          Apply now
+                          <ArrowRight className="ml-1.5 size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                        </Link>
+                      </Button>
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={transitions.fast}
+                    >
+                      <Button asChild size="lg" variant="outline" className="rounded-xl bg-white/5 border border-white/15 text-white/90 hover:bg-white/12 hover:text-white h-12 px-8 backdrop-blur-sm transition-all duration-300 cursor-pointer">
+                        <Link to="/internship" search={{ apply: undefined }}>Explore Internships</Link>
+                      </Button>
+                    </motion.div>
                   </div>
 
                   {/* Trust line */}
@@ -713,7 +885,13 @@ function Landing() {
                 </div>
 
                 {/* Right: Visual */}
-                <div className="hidden sm:block shrink-0 w-56 sm:w-64 lg:w-72">
+                <motion.div
+                  variants={scaleIn}
+                  initial="initial"
+                  whileInView="animate"
+                  viewport={{ once: true, amount: 0.3 }}
+                  className="hidden sm:block shrink-0 w-56 sm:w-64 lg:w-72"
+                >
                   <div className="relative">
                     {/* Glow behind card */}
                     <div className="absolute inset-0 bg-gradient-to-b from-blue-400/20 to-purple-400/20 blur-3xl rounded-2xl" />
@@ -749,7 +927,7 @@ function Landing() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </Reveal>
@@ -766,17 +944,6 @@ function Landing() {
   );
 }
 
-const FAQ_ITEMS = [
-  { q: "What is the Skyrovix internship program?", a: "It is a task-based virtual internship where you complete 5 real-world projects in your chosen domain. You get an instant offer letter, digital ID card, mentor reviews, and a verified certificate with QR code upon completion." },
-  { q: "Is there any application fee?", a: "No. Applying and receiving the offer letter and ID card is completely free. A ₹100 certification fee is payable only after completing all 5 tasks, just before the certificate is issued." },
-  { q: "How long does the internship take?", a: "The internship is self-paced. Most students complete it in 2–4 weeks, but you can finish faster or take more time depending on your schedule." },
-  { q: "What domains are available?", a: "We offer 25+ domains including Full Stack Development, Frontend, Backend, Data Science, AI & ML, UI/UX Design, Python, Java, Cyber Security, Digital Marketing, and many more." },
-  { q: "Will I get an offer letter and ID card?", a: "Yes. Immediately after applying, you receive an instant offer letter and a digital ID card with your name, domain, intern ID, and a QR code." },
-  { q: "Is the certificate verifiable?", a: "Yes. Every certificate has a unique ID and QR code. Employers can verify its authenticity on our Verify Certificate page." },
-  { q: "Who reviews my task submissions?", a: "Each task is reviewed by our mentor team. You'll receive feedback and can resubmit if needed. A task is marked approved once it meets the required standards." },
-  { q: "Do I get a certificate if I don't complete all tasks?", a: "The certificate is issued only after you complete and get approval on all 5 tasks and pay the ₹100 certification fee." },
-];
-
 const STATIC_REVIEWS = [
   { id: "s1", rating: 5, content: "The Skyrovix Virtual Internship gave me practical experience through real-world tasks. The structured learning path, quick support, and verified certificate made it an excellent learning experience.", name: "Vishal R", role: "Full Stack Development" },
   { id: "s2", rating: 5, content: "I improved my AI and prompt engineering skills significantly during this internship. The tasks were well designed and the certificate verification made it more valuable.", name: "Gandhi Rajan", role: "Prompt Engineering" },
@@ -789,7 +956,7 @@ const STATIC_REVIEWS = [
   { id: "s9", rating: 4, content: "Very well structured internship. The tasks pushed me to learn Docker, CI/CD and REST APIs. I came out a much better developer than I was before.", name: "Karan P", role: "Backend Development" },
   { id: "s10", rating: 5, content: "The cloud computing track was fantastic. AWS basics to advanced — all covered. Perfect for anyone wanting a cloud career.", name: "Divya K", role: "Cloud Computing" },
   { id: "s11", rating: 5, content: "Self-paced format was a lifesaver during my semester exams. Completed it on weekends and still got a great certificate. 10/10!", name: "Sneha R", role: "Python Development" },
-  { id: "s12", rating: 5, content: "The Java internship tasks were industry-relevant. Got hands-on with Spring Boot and REST APIs. Best ₹100 I've spent for my career.", name: "Aditya S", role: "Java Development" },
+  { id: "s12", rating: 5, content: "The Java internship tasks were industry-relevant. Got hands-on with Spring Boot and REST APIs. Best investment I've spent for my career.", name: "Aditya S", role: "Java Development" },
 ];
 
 type MarqueeItem = { id: string; rating: number; content: string; name: string; role: string };
@@ -808,7 +975,7 @@ function MarqueeCard({ item }: { item: MarqueeItem }) {
   const p = AVATAR_PALETTE[item.name.charCodeAt(0) % AVATAR_PALETTE.length];
 
   return (
-    <div className="relative flex-shrink-0 w-full sm:w-[350px] mx-2 sm:mx-3 select-none rounded-2xl bg-white dark:bg-[#0f172a] flex flex-col overflow-hidden shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.3)] border border-border/30">
+    <div className="relative flex-shrink-0 w-full sm:w-[350px] mx-2 sm:mx-3 select-none rounded-2xl bg-white dark:bg-[#201d22] flex flex-col overflow-hidden shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.3)] border border-border/30">
       {/* Glass accent bar */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500" />
 
@@ -945,7 +1112,7 @@ function ReviewsMarquee() {
                 if (el) el.scrollTo({ left: el.clientWidth * i, behavior: "smooth" });
               }}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === activeIdx ? "w-6 bg-[#07284a]" : "w-1.5 bg-gray-300"
+                i === activeIdx ? "w-6 bg-[#f95c4b]" : "w-1.5 bg-gray-300 dark:bg-white/20"
               }`}
               aria-label={`Go to review ${i + 1}`}
             />
@@ -988,7 +1155,7 @@ function MobileReviewCard({ item }: { item: MarqueeItem }) {
   const p = AVATAR_PALETTE[item.name.charCodeAt(0) % AVATAR_PALETTE.length];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/30 bg-white dark:bg-[#0f172a] p-5 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.3)]">
+    <div className="relative overflow-hidden rounded-2xl border border-border/30 bg-white dark:bg-[#201d22] p-5 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.3)]">
       {/* Glass accent bar */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500" />
 
@@ -1061,7 +1228,14 @@ function TypingText({ texts }: { texts: string[] }) {
   return (
     <span className="font-semibold brand-text">
       {display}
-      <span className="ml-0.5 animate-pulse">|</span>
+      <motion.span
+        variants={brightChatCaret}
+        initial="initial"
+        animate="animate"
+        className="ml-0.5 inline-block"
+      >
+        |
+      </motion.span>
     </span>
   );
 }

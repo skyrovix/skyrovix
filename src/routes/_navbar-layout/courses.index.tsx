@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FadeUp } from "@/components/motion";
+import { motion } from "framer-motion";
+import { transitions, stagger, slideUp } from "@/lib/symboolic.com-motion.framer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -140,11 +142,11 @@ function CoursesIndexPage() {
   };
 
   const courses = dbCourses && dbCourses.length > 0 ? dbCourses : LOCAL_COURSES;
-  const enrollmentMap = new Map(enrollments.map((e) => [e.course_id, e]));
+  const enrollmentMap = new Map((enrollments || []).map((e: any) => [e.course_id, e]));
 
   // Filter courses based on real-time search query
   const filteredCourses = courses.filter(
-    (c) =>
+    (c: any) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.short_description.toLowerCase().includes(search.toLowerCase())
   );
@@ -155,18 +157,21 @@ function CoursesIndexPage() {
       <AuroraBackground>
         <div className="mx-auto max-w-5xl px-4 text-center py-20 relative z-10">
           <FadeUp y={20} duration={0.8} delay={0.1}>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 mb-6 ring-1 ring-blue-500/20">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#f95c4b]/10 text-[#f95c4b] mb-6 border border-[#f95c4b]/20 shadow-sm backdrop-blur-md">
               <BookMarked className="size-3.5" />
               <span>Interactive Learning</span>
             </div>
           </FadeUp>
           <FadeUp y={20} duration={0.8} delay={0.2}>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-500 to-sky-500 bg-clip-text text-transparent">
-              Master Coding through Interactive Lessons
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#181619] dark:text-white leading-[1.15]">
+              Master Coding through{" "}
+              <span className="brand-text">
+                Interactive Lessons
+              </span>
             </h1>
           </FadeUp>
           <FadeUp y={20} duration={0.8} delay={0.3}>
-            <p className="mt-4 text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="mt-4 text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
               Step-by-step topic guides, in-browser code editor playgrounds, module quizzes, and verified certification to boost your developer portfolio.
             </p>
           </FadeUp>
@@ -199,11 +204,17 @@ function CoursesIndexPage() {
             <p className="text-sm font-semibold text-muted-foreground">No courses found matching "{search}"</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {filteredCourses.map((c) => {
+          <motion.div
+            variants={stagger}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.15 }}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+          >
+            {filteredCourses.map((c: any) => {
               const enrollment = enrollmentMap.get(c.id);
               const isEnrolled = !!enrollment;
-              const progress = enrollment?.progress_percent ?? 0;
+              const progress = (enrollment as any)?.progress_percent ?? 0;
               const Icon = COURSE_ICONS[c.icon] || BookOpen;
               const banner = BANNER_MAP[c.slug] || "/images/courses/python.png";
 
@@ -216,110 +227,116 @@ function CoursesIndexPage() {
                   : "bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/20";
 
               return (
-                <Card
+                <motion.div
                   key={c.id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-md hover:shadow-xl hover:border-blue-500/30 transition-all duration-300"
+                  variants={slideUp}
+                  whileHover={{ y: -4, transition: transitions.base }}
+                  className="h-full"
                 >
-                  <div>
-                    {/* Course Banner */}
-                    <div className="relative h-40 overflow-hidden w-full bg-slate-100 dark:bg-slate-900 border-b border-border/30">
-                      <img
-                        src={banner}
-                        alt={c.name}
-                        className="size-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-                      />
-                      <Badge
-                        className={`absolute top-4 right-4 rounded-lg px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ring-1 ${diffCol}`}
-                      >
-                        {c.difficulty}
-                      </Badge>
+                  <Card
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-md hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 h-full"
+                  >
+                    <div>
+                      {/* Course Banner */}
+                      <div className="relative h-40 overflow-hidden w-full bg-slate-100 dark:bg-slate-900 border-b border-border/30">
+                        <img
+                          src={banner}
+                          alt={c.name}
+                          className="size-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                        />
+                        <Badge
+                          className={`absolute top-4 right-4 rounded-lg px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ring-1 ${diffCol}`}
+                        >
+                          {c.difficulty}
+                        </Badge>
+                      </div>
+
+                      {/* Content */}
+                      <CardContent className="p-5 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                            <Icon className="size-5" />
+                          </div>
+                          <h3 className="text-lg font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {c.name}
+                          </h3>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 h-8">
+                          {c.short_description}
+                        </p>
+
+                        {/* Info badges */}
+                        <div className="flex items-center gap-4 text-[11px] text-muted-foreground pt-1">
+                          <span className="flex items-center gap-1">
+                            <Layers className="size-3.5 text-blue-500/70" />
+                            {c.total_topics || LOCAL_COURSES.find(lc => lc.slug === c.slug)?.total_topics} Topics
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="size-3.5 text-blue-500/70" />
+                            {c.duration_weeks} Weeks
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Award className="size-3.5 text-blue-500/70" />
+                            Certificate
+                          </span>
+                        </div>
+                      </CardContent>
                     </div>
 
-                    {/* Content */}
-                    <CardContent className="p-5 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                          <Icon className="size-5" />
+                    {/* Enrollment Tracking / Actions */}
+                    <div className="p-5 border-t border-border/30 bg-muted/10 space-y-4">
+                      {isEnrolled ? (
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-xs font-semibold">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="text-blue-600 dark:text-blue-400">{progress}%</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-300"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <Button
+                            asChild
+                            className="w-full mt-2 rounded-xl text-xs h-10 brand-gradient text-white border-0 shadow-md font-semibold hover:opacity-95"
+                          >
+                            <Link to="/courses/$slug" params={{ slug: c.slug }}>
+                              Continue Learning
+                              <ArrowRight className="size-3.5 ml-1.5" />
+                            </Link>
+                          </Button>
                         </div>
-                        <h3 className="text-lg font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {c.name}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 h-8">
-                        {c.short_description}
-                      </p>
-
-                      {/* Info badges */}
-                      <div className="flex items-center gap-4 text-[11px] text-muted-foreground pt-1">
-                        <span className="flex items-center gap-1">
-                          <Layers className="size-3.5 text-blue-500/70" />
-                          {c.total_topics || LOCAL_COURSES.find(lc => lc.slug === c.slug)?.total_topics} Topics
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="size-3.5 text-blue-500/70" />
-                          {c.duration_weeks} Weeks
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Award className="size-3.5 text-blue-500/70" />
-                          Certificate
-                        </span>
-                      </div>
-                    </CardContent>
-                  </div>
-
-                  {/* Enrollment Tracking / Actions */}
-                  <div className="p-5 border-t border-border/30 bg-muted/10 space-y-4">
-                    {isEnrolled ? (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-xs font-semibold">
-                          <span className="text-muted-foreground">Progress</span>
-                          <span className="text-blue-600 dark:text-blue-400">{progress}%</span>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-3">
+                          <Button
+                            variant="outline"
+                            asChild
+                            className="rounded-xl text-xs h-10 border-border/50 hover:bg-muted/80"
+                          >
+                            <Link to="/courses/$slug/details" params={{ slug: c.slug }}>
+                              View Details
+                            </Link>
+                          </Button>
+                          <Button
+                            onClick={() => handleEnroll(c.id, c.slug)}
+                            disabled={enrollMutation.isPending}
+                            className="rounded-xl text-xs h-10 brand-gradient text-white border-0 font-semibold hover:opacity-95"
+                          >
+                            {enrollMutation.isPending && enrollMutation.variables === c.id ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              "Enroll Now"
+                            )}
+                          </Button>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                        <Button
-                          asChild
-                          className="w-full mt-2 rounded-xl text-xs h-10 brand-gradient text-white border-0 shadow-md font-semibold hover:opacity-95"
-                        >
-                          <Link to="/courses/$slug" params={{ slug: c.slug }}>
-                            Continue Learning
-                            <ArrowRight className="size-3.5 ml-1.5" />
-                          </Link>
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        <Button
-                          variant="outline"
-                          asChild
-                          className="rounded-xl text-xs h-10 border-border/50 hover:bg-muted/80"
-                        >
-                          <Link to="/courses/$slug/details" params={{ slug: c.slug }}>
-                            View Details
-                          </Link>
-                        </Button>
-                        <Button
-                          onClick={() => handleEnroll(c.id, c.slug)}
-                          disabled={enrollMutation.isPending}
-                          className="rounded-xl text-xs h-10 brand-gradient text-white border-0 font-semibold hover:opacity-95"
-                        >
-                          {enrollMutation.isPending && enrollMutation.variables === c.id ? (
-                            <Loader2 className="size-3.5 animate-spin" />
-                          ) : (
-                            "Enroll Now"
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </Card>
+                      )}
+                    </div>
+                  </Card>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

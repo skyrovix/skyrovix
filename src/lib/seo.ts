@@ -106,6 +106,24 @@ export const ROUTE_SEO: Record<
       "skill development platform India",
     ],
   },
+  "/internship": {
+    title: "Virtual Internships — Full Stack, AI, Python, Data Science, Cyber Security | Skyrovix",
+    description:
+      "Explore 10+ virtual internship streams at Skyrovix: Full Stack Development, AI & Machine Learning, Data Science, UI/UX Design, Cyber Security, Python, Java, Cloud Computing, MERN Stack, and more. Apply online with offer letter.",
+    keywords: [
+      "virtual internships",
+      "full stack internship",
+      "AI ML internship",
+      "data science internship",
+      "cyber security internship",
+      "Python internship",
+      "Java internship",
+      "cloud computing internship",
+      "MERN stack internship",
+      "UI UX internship",
+      "virtual internship domains India",
+    ],
+  },
   "/domains": {
     title: "Internship Domains — Full Stack, AI, Python, Data Science, Cyber Security | Skyrovix",
     description:

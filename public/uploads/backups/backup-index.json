@@ -1,0 +1,15 @@
+[
+  {
+    "id": "backup-2026-10-21-1252",
+    "name": "database-2026-10-21-1252.sql",
+    "type": "database",
+    "size": 4270373,
+    "status": "completed",
+    "created_by": "hariharan@skyrovix.com",
+    "created_by_name": "Admin",
+    "created_at": "2026-10-21T12:52:45.136Z",
+    "completed_at": "2026-10-21T12:52:45.136Z",
+    "storage_path": "backup-2026-10-21-1252/database-2026-10-21-1252.sql",
+    "tables_count": 7
+  }
+]

@@ -27,6 +27,8 @@ import { ProjectSubmissionsSection } from "@/components/admin/ProjectSubmissions
 import { PaymentVerificationSection } from "@/components/admin/PaymentVerificationSection";
 import { CouponManagementSection } from "@/components/admin/CouponManagementSection";
 import { FeeSettingsSection } from "@/components/admin/FeeSettingsSection";
+import { ProjectCatalogueAdminSection } from "@/components/admin/ProjectCatalogueAdminSection";
+import { GuidanceAdminSection } from "@/components/admin/GuidanceAdminSection";
 import { OfferLetterDoc, CertificateDoc, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
 import {
   getAdminStudents,
@@ -48,7 +50,7 @@ import {
   PanelRightOpen, FolderTree,   FileQuestion, PieChart, Percent, Briefcase,
   Loader2, Activity, Wifi, WifiOff, LogIn, Monitor, Smartphone, Tablet,
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
-  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck, Github,
+  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck, Github, Crown, Package, Code2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -68,6 +70,7 @@ import {
 export const Route = createFileRoute("/admin")({
   ssr: false,
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data: sessionData } = await supabase.auth.getSession();
     let user: any = sessionData?.session?.user;
     if (!user) {
@@ -117,6 +120,8 @@ const SIDEBAR_GROUPS = [
       { id: "payments", label: "Payment Verification", icon: ShieldCheck },
       { id: "coupons", label: "Coupons & Discounts", icon: Tag },
       { id: "fee-settings", label: "Fee Management", icon: IndianRupee },
+      { id: "project-catalogue", label: "Project Vault (50+)", icon: Code2 },
+      { id: "guidance", label: "Mentorship & Guidance", icon: Users },
       { id: "domains", label: "Internship Domains", icon: FolderTree },
       { id: "tasks", label: "Manage Tasks", icon: ListChecks },
     ]
@@ -146,7 +151,7 @@ const SIDEBAR_GROUPS = [
   }
 ] as const;
 
-type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "promotions" | "popup" | "certificates" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
+type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "project-catalogue" | "guidance" | "promotions" | "popup" | "certificates" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
 
 interface AdminNotification {
   id: string;
@@ -163,16 +168,10 @@ function AdminPanel() {
   const [active, setActive] = useState<SectionId>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dark, setDark] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const [liveNotifs, setLiveNotifs] = useState<AdminNotification[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
-
-  useEffect(() => {
-    if (dark) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [dark]);
 
   useEffect(() => {
     const channel = supabase.channel("admin-realtime");
@@ -279,28 +278,30 @@ function AdminPanel() {
     queryKey: ["admin-overview"],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const [a, s, p, c, v, pr] = await Promise.all([
+      const [a, s, p, c, v, pr, std] = await Promise.all([
         supabase.from("applications").select("id", { count: "exact", head: true }),
         supabase.from("submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("payments").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("certificates").select("id", { count: "exact", head: true }),
         (supabase.from("applications") as any).select("id", { count: "exact", head: true }).eq("submission_status", "submitted"),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
+        (supabase.from("students" as any) as any).select("id", { count: "exact", head: true }),
       ]);
+      const studentCount = Math.max(pr?.count ?? 0, std?.count ?? 0, a?.count ?? 0);
       return {
-        apps: a.count ?? 0,
-        subs: s.count ?? 0,
-        pays: p.count ?? 0,
-        certs: c.count ?? 0,
-        pendingVerification: v.count ?? 0,
-        students: pr.count ?? 0,
+        apps: a?.count ?? 0,
+        subs: s?.count ?? 0,
+        pays: p?.count ?? 0,
+        certs: c?.count ?? 0,
+        pendingVerification: v?.count ?? 0,
+        students: studentCount,
       };
     },
   });
 
   return (
-    <div className={`h-dvh ${dark ? "dark" : ""}`}>
-      <div className="flex h-dvh bg-[#F9FAFB] dark:bg-[#090D16] text-slate-900 dark:text-slate-100">
+    <div className="h-dvh bg-[#faf8f2] text-[#181619]">
+      <div className="flex h-dvh bg-[#faf8f2] text-[#181619]">
         
         {/* ─── Mobile Overlay ─── */}
         {mobileOpen && (
@@ -313,14 +314,17 @@ function AdminPanel() {
         }`}>
           {/* Logo */}
           <div className="flex h-16 items-center justify-between border-b border-border/60 px-4 dark:border-white/5">
-            <Link to="/" className={`flex items-center gap-2 ${!sidebarOpen && "lg:hidden"}`}>
-              <div className="grid size-8 shrink-0 place-items-center rounded-lg brand-gradient text-white shadow-md shadow-[#07284a]/20">
-                <Rocket className="size-4 text-white" />
-              </div>
+            <Link to="/" className={`flex items-center gap-2.5 ${!sidebarOpen && "lg:hidden"}`}>
+              <img src="/images/sk-logo-transparent.png" alt="Skyrovix" className="h-8 w-auto object-contain" />
               {sidebarOpen && (
-                <span className="text-sm font-bold text-slate-900 dark:text-white font-display">
-                  Skyrovix<span className="brand-text">Admin</span>
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-[#181619] dark:text-white font-display tracking-tight">
+                    Skyrovix
+                  </span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-[#f95c4b]/10 text-[#f95c4b] border border-[#f95c4b]/20">
+                    Admin
+                  </span>
+                </div>
               )}
             </Link>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden lg:grid size-8 place-items-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition">
@@ -408,12 +412,6 @@ function AdminPanel() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setDark(!dark)}
-                className="grid size-9 place-items-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-              >
-                {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-              </button>
               <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
                 <DropdownMenuTrigger asChild>
                   <button
@@ -447,12 +445,12 @@ function AdminPanel() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <div className="ml-2 flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer">
-                <div className="grid size-8 place-items-center rounded-full bg-blue-600 text-white font-bold text-xs font-display">
+                <div className="grid size-8 place-items-center rounded-full brand-gradient text-white font-bold text-xs font-display shadow-sm shadow-[#f95c4b]/20">
                   {user?.email?.charAt(0).toUpperCase() ?? "H"}
                 </div>
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-semibold text-slate-800 dark:text-white leading-tight">{user?.email?.split("@")[0] ?? "Hariharan S"}</span>
-                  <span className="text-[9px] text-slate-400 font-medium leading-none">Super Admin</span>
+                  <span className="text-xs font-semibold text-[#181619] dark:text-white leading-tight">{user?.email?.split("@")[0] ?? "Hariharan S"}</span>
+                  <span className="text-[9px] text-[#f95c4b] font-bold leading-none">Super Admin</span>
                 </div>
                 <ChevronDown className="size-3.5 text-slate-400" />
               </div>
@@ -476,6 +474,8 @@ function AdminPanel() {
             {active === "payments" && <PaymentVerificationSection adminId={user?.id || ""} />}
             {active === "coupons" && <CouponManagementSection adminId={user?.id || ""} />}
             {active === "fee-settings" && <FeeSettingsSection adminId={user?.id || ""} />}
+            {active === "project-catalogue" && <ProjectCatalogueAdminSection />}
+            {active === "guidance" && <GuidanceAdminSection />}
             {active === "promotions" && <PromotionsSection />}
             {active === "popup" && <PromoPopupSection />}
             {active === "certificates" && <CertificatesSection />}
@@ -613,8 +613,21 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
       const { data } = await supabase.from("applications").select("status");
       const counts = { pending: 0, shortlisted: 0, approved: 0, ongoing: 0, completed: 0, rejected: 0 };
       data?.forEach(x => {
-        if (x.status && x.status in counts) {
-          counts[x.status as keyof typeof counts] += 1;
+        const s = (x.status || "").toLowerCase().trim();
+        if (s === "pending" || s === "payment_pending") {
+          counts.pending += 1;
+        } else if (s === "shortlisted") {
+          counts.shortlisted += 1;
+        } else if (s === "approved" || s === "confirmed") {
+          counts.approved += 1;
+        } else if (s === "ongoing" || s === "active") {
+          counts.ongoing += 1;
+        } else if (s === "completed") {
+          counts.completed += 1;
+        } else if (s === "rejected") {
+          counts.rejected += 1;
+        } else if (s in counts) {
+          counts[s as keyof typeof counts] += 1;
         }
       });
       return counts;
@@ -754,11 +767,11 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
             <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-display">
               {overview?.apps ?? 0}
             </p>
-            <span className="hidden sm:inline-block text-[10px] sm:text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+            <span className="hidden sm:inline-block text-[10px] sm:text-[11px] font-semibold text-[#f95c4b]">
               {pendingReview} Pending Review
             </span>
           </div>
-          <div className="grid size-10 sm:size-12 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400">
+          <div className="grid size-10 sm:size-12 place-items-center rounded-xl bg-[#f95c4b]/10 text-[#f95c4b]">
             <FileText className="size-5 sm:size-6" />
           </div>
         </div>
@@ -790,7 +803,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
               Verified & Issued
             </span>
           </div>
-          <div className="grid size-10 sm:size-12 place-items-center rounded-xl bg-amber-50 text-amber-600 dark:bg-[#07284a]/20 dark:text-amber-400">
+          <div className="grid size-10 sm:size-12 place-items-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400">
             <Award className="size-5 sm:size-6" />
           </div>
         </div>
@@ -807,7 +820,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Recent Task Submissions</h3>
               <button 
                 onClick={() => onNavigate("submissions")}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:text-blue-300 px-3 py-1.5 rounded-lg transition"
+                className="text-xs font-semibold text-[#f95c4b] hover:text-[#f95c4b]/80 bg-[#f95c4b]/10 hover:bg-[#f95c4b]/15 px-3 py-1.5 rounded-lg transition"
               >
                 View All
               </button>
@@ -842,7 +855,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
                       <tr key={sub.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
                         <td className="py-3 pr-2">
                           <div className="flex items-center gap-2">
-                            <div className="grid size-7 place-items-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 font-bold font-display text-[10px]">
+                            <div className="grid size-7 place-items-center rounded-full bg-[#f95c4b]/10 text-[#f95c4b] font-bold font-display text-[10px]">
                               {initial}
                             </div>
                             <div>
@@ -851,7 +864,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 pr-2 text-blue-600 dark:text-blue-400 font-medium">
+                        <td className="py-3 pr-2 text-[#f95c4b] font-medium">
                           Task {sub.tasks?.task_number}: {sub.tasks?.title || "Solution Project"}
                         </td>
                         <td className="py-3 pr-2 text-slate-500">{domainLabels[sub.applications?.domain] || "Full Stack Development"}</td>
@@ -938,7 +951,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
                         <span className="text-slate-900 dark:text-white">{d.value}</span>
                       </div>
                       <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                        <div className="h-full rounded-full bg-blue-600" style={{ width: `${pct}%` }} />
+                        <div className="h-full rounded-full brand-gradient" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   );
@@ -956,7 +969,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
           {/* Quick Actions Grid */}
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-1.5">
-              <Zap className="size-4 text-blue-500 animate-pulse" /> Quick Actions
+              <Zap className="size-4 text-[#f95c4b] animate-pulse" /> Quick Actions
             </h3>
             
             <div className="grid gap-3 grid-cols-2">
@@ -964,7 +977,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
                 onClick={() => toast.info("Announcements module loaded. Add feature announcement popup in Settings tab.")}
                 className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40 text-center transition"
               >
-                <Megaphone className="size-5 text-blue-500 mb-1.5" />
+                <Megaphone className="size-5 text-[#f95c4b] mb-1.5" />
                 <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Add Announcement</span>
               </button>
 
@@ -1011,7 +1024,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
 
             <button
               onClick={() => onNavigate("settings")}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/10"
+              className="w-full mt-4 brand-gradient hover:opacity-90 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm shadow-[#f95c4b]/20"
             >
               Explore All Features <ChevronRight className="size-3.5 text-white" />
             </button>
@@ -1021,7 +1034,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center justify-between">
               <span>Upcoming Deadlines</span>
-              <span className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 cursor-pointer">View All</span>
+              <span className="text-[10px] font-semibold text-[#f95c4b] hover:text-[#f95c4b]/80 cursor-pointer">View All</span>
             </h3>
             
             <div className="space-y-4 text-xs">
@@ -1048,7 +1061,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="flex flex-col items-center size-9 bg-blue-50 text-blue-600 rounded-lg shrink-0 justify-center font-bold">
+                <div className="flex flex-col items-center size-9 bg-[#f95c4b]/10 text-[#f95c4b] rounded-lg shrink-0 justify-center font-bold">
                   <span className="text-[9px] leading-none uppercase">Jul</span>
                   <span className="text-base leading-none">27</span>
                 </div>
@@ -1124,21 +1137,22 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
       </div>
 
       {/* Upgrade Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-[#07284a] to-slate-900 p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="relative overflow-hidden rounded-3xl bg-[#181619] p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10">
+        <div className="absolute -right-10 -top-10 size-40 rounded-full bg-[#f95c4b]/20 blur-3xl pointer-events-none" />
         {/* Rocket graphic */}
         <div className="absolute right-12 top-0 bottom-0 pointer-events-none opacity-10 flex items-center">
-          <Rocket className="size-36 rotate-45" />
+          <Rocket className="size-36 rotate-45 text-[#f95c4b]" />
         </div>
         <div className="space-y-1 relative z-10 text-center sm:text-left">
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/10 px-2.5 py-0.5 rounded-full mb-1">
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#ee9590] uppercase tracking-widest bg-[#f95c4b]/15 px-2.5 py-0.5 rounded-full mb-1 border border-[#f95c4b]/20">
             Premium Features
           </span>
-          <h3 className="text-lg font-bold">Upgrade Your Platform</h3>
-          <p className="text-xs text-slate-300">Unlock premium features, advanced analytics & priority support.</p>
+          <h3 className="text-lg font-bold font-display">Upgrade Your Platform</h3>
+          <p className="text-xs text-white/70">Unlock premium features, advanced analytics & priority support.</p>
         </div>
         <button
           onClick={() => toast.success("Welcome to Premium Workspace Suite!")}
-          className="relative z-10 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg shadow-blue-500/10 shrink-0"
+          className="relative z-10 brand-gradient hover:opacity-90 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-1 shadow-md shadow-[#f95c4b]/20 shrink-0"
         >
           Upgrade Now <ChevronRight className="size-3.5 text-white" />
         </button>
@@ -1158,6 +1172,7 @@ function ApplicationsSection() {
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [planFilter, setPlanFilter] = useState<string>("all");
 
   const { data } = useQuery({
     queryKey: ["admin-apps"],
@@ -1173,6 +1188,9 @@ function ApplicationsSection() {
     if (statusFilter !== "all") {
       list = list.filter((a: any) => a.status === statusFilter);
     }
+    if (planFilter !== "all") {
+      list = list.filter((a: any) => (a.plan_type || "standard") === planFilter);
+    }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter((a: any) =>
@@ -1184,7 +1202,7 @@ function ApplicationsSection() {
       );
     }
     return list;
-  }, [data, statusFilter, search]);
+  }, [data, statusFilter, planFilter, search]);
 
   const [sendingOfferId, setSendingOfferId] = useState<string | null>(null);
   const [syncingEmails, setSyncingEmails] = useState(false);
@@ -1322,21 +1340,38 @@ function ApplicationsSection() {
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="flex flex-col md:flex-row items-center gap-3 justify-between">
-        <div className="flex flex-wrap gap-1.5 rounded-xl bg-muted/50 p-1 w-full md:w-auto">
-          {(["all", "pending", "approved", "ongoing", "completed", "rejected"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-all ${
-                statusFilter === s ? "bg-white text-foreground shadow-sm dark:bg-[#1E293B]" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-1 rounded-xl bg-muted/50 p-1">
+            {(["all", "pending", "approved", "ongoing", "completed", "rejected"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`rounded-lg px-2.5 py-1.5 text-xs font-medium capitalize transition-all ${
+                  statusFilter === s ? "bg-white text-foreground shadow-sm dark:bg-[#1E293B]" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1 rounded-xl bg-muted/50 p-1">
+            {(["all", "standard", "premium"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPlanFilter(p)}
+                className={`rounded-lg px-2.5 py-1.5 text-xs font-medium capitalize transition-all flex items-center gap-1 ${
+                  planFilter === p ? "bg-white text-foreground shadow-sm dark:bg-[#1E293B]" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {p === "premium" && <Crown className="size-3 text-amber-500 inline" />}
+                {p === "all" ? "All Plans" : p === "premium" ? "Premium" : "Standard"}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="relative w-full md:w-72 shrink-0">
+        <div className="relative w-full lg:w-72 shrink-0">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/60" />
           <Input
             placeholder="Search name, college, ID..."
@@ -1403,6 +1438,34 @@ function ApplicationsSection() {
                   <div><p className="text-muted-foreground text-xs">Phone</p><p>{selectedApp.phone ?? "—"}</p></div>
                   <div><p className="text-muted-foreground text-xs">Domain</p><p>{getDomain(selectedApp.domain)?.name ?? selectedApp.domain}</p></div>
                   <div><p className="text-muted-foreground text-xs">Status</p><Badge className="text-xs">{selectedApp.status}</Badge></div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Plan Type</p>
+                    <div className="mt-0.5">
+                      {selectedApp.plan_type === "premium" ? (
+                        <Badge className="bg-gradient-to-r from-amber-500 to-indigo-600 text-white border-0 text-xs gap-1 font-semibold">
+                          <Crown className="size-3" /> Premium ({selectedApp.duration || 3}M)
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">Standard ({selectedApp.duration || 1}M)</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Plan Payment</p>
+                    <p className="text-xs font-semibold mt-0.5">
+                      {selectedApp.plan_type === "premium" ? (
+                        selectedApp.plan_payment_status === "paid" ? (
+                          <span className="text-emerald-600 dark:text-emerald-400">₹{selectedApp.plan_fee || 200} · Paid</span>
+                        ) : selectedApp.plan_payment_status === "waived" ? (
+                          <span className="text-indigo-600 dark:text-indigo-400">Waived (₹0 Free Coupon)</span>
+                        ) : (
+                          <span className="text-amber-600 dark:text-amber-400">Pending (₹{selectedApp.plan_fee || 200})</span>
+                        )
+                      ) : (
+                        <span className="text-muted-foreground">Standard (Free)</span>
+                      )}
+                    </p>
+                  </div>
                   <div className="col-span-2"><p className="text-muted-foreground text-xs">College</p><p>{selectedApp.college} · {selectedApp.course} ({selectedApp.year})</p></div>
                   <div className="col-span-2"><p className="text-muted-foreground text-xs">Intern ID</p><p className="font-mono text-xs">{selectedApp.intern_id ?? "—"}</p></div>
                   <div><p className="text-muted-foreground text-xs">Applied</p><p>{new Date(selectedApp.created_at).toLocaleDateString("en-IN")}</p></div>
@@ -1469,6 +1532,7 @@ function ApplicationsSection() {
               <th className="px-4 py-3 text-left">Student</th>
               <th className="px-4 py-3 text-left">Domain</th>
               <th className="px-4 py-3 text-left">College</th>
+              <th className="px-4 py-3 text-left">Plan & Fee</th>
               <th className="px-4 py-3 text-left">Date</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Email Status</th>
@@ -1477,7 +1541,7 @@ function ApplicationsSection() {
           </thead>
           <tbody>
             {data?.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">No matching applications found.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No matching applications found.</td></tr>
             )}
             {filtered?.map((a) => {
               const dd = getDomain(a.domain);
@@ -1491,6 +1555,32 @@ function ApplicationsSection() {
                   </td>
                   <td className="px-4 py-3"><Badge variant="secondary" className="text-xs">{dd?.name ?? a.domain}</Badge></td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{a.college} · {a.course} {a.year}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-0.5">
+                      {a.plan_type === "premium" ? (
+                        <Badge className="bg-gradient-to-r from-amber-500 to-indigo-600 text-white border-0 text-[11px] gap-1 w-fit font-semibold shadow-xs">
+                          <Crown className="size-3" /> Premium ({a.duration || 3}M)
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-border/60 text-muted-foreground text-[11px] w-fit font-medium">
+                          Standard ({a.duration || 1}M)
+                        </Badge>
+                      )}
+                      <span className="text-[11px]">
+                        {a.plan_type === "premium" ? (
+                          a.plan_payment_status === "paid" ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">₹{a.plan_fee || 200} · Paid</span>
+                          ) : a.plan_payment_status === "waived" ? (
+                            <span className="text-indigo-600 dark:text-indigo-400 font-medium">Waived (₹0)</span>
+                          ) : (
+                            <span className="text-amber-600 dark:text-amber-400 font-medium">₹{a.plan_fee || 200} · Pending</span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground">Standard Free</span>
+                        )}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(a.created_at).toLocaleDateString("en-IN")}</td>
                   <td className="px-4 py-3">
                     <Badge className={`text-xs ${
@@ -1612,7 +1702,8 @@ function SubmissionsSection() {
         return [];
       }
     },
-    refetchInterval: 10_000,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
   });
 
   const { data: allSubmissionHistory } = useQuery({
@@ -1629,179 +1720,297 @@ function SubmissionsSection() {
         return [];
       }
     },
-    refetchInterval: 10_000,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
   });
 
   const [subFilter, setSubFilter] = useState<"all" | "pending" | "resubmitted" | "reviewed">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25;
   const [viewingSub, setViewingSub] = useState<any | null>(null);
   const [viewingPrevSub, setViewingPrevSub] = useState<{ current: any; previous: any } | null>(null);
 
-  // Helper to extract full resubmission context for any submission
+  // 1. High-performance memoized index of histories by submission_id: O(H) once
+  const historiesBySubId = useMemo(() => {
+    const map = new Map<string, any[]>();
+    if (!allSubmissionHistory) return map;
+    for (let i = 0; i < allSubmissionHistory.length; i++) {
+      const h = allSubmissionHistory[i];
+      const sid = h.submission_id;
+      if (!sid) continue;
+      let list = map.get(sid);
+      if (!list) {
+        list = [];
+        map.set(sid, list);
+      }
+      list.push(h);
+    }
+    return map;
+  }, [allSubmissionHistory]);
+
+  // 2. High-performance memoized index of submissions: O(N) once instead of O(N^2)
+  const subMetaMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (!data || data.length === 0) return map;
+
+    // Fast ID lookup map
+    const byId = new Map<string, any>();
+    // Group by application_id:task_id
+    const byTaskGroup = new Map<string, any[]>();
+
+    for (let i = 0; i < data.length; i++) {
+      const s = data[i];
+      byId.set(s.id, s);
+      const groupKey = `${s.application_id}:${s.task_id}`;
+      let group = byTaskGroup.get(groupKey);
+      if (!group) {
+        group = [];
+        byTaskGroup.set(groupKey, group);
+      }
+      group.push(s);
+    }
+
+    // Sort each group once chronologically (oldest to newest)
+    for (const [_, group] of byTaskGroup) {
+      group.sort((a, b) => new Date(a.submitted_at || 0).getTime() - new Date(b.submitted_at || 0).getTime());
+    }
+
+    // Calculate metadata for each submission in O(1)
+    for (let i = 0; i < data.length; i++) {
+      const sub = data[i];
+      const subHistories = historiesBySubId.get(sub.id) || [];
+      const hasRejectedToPendingHistory = subHistories.some((h: any) => 
+        (h.previous_status === "rejected" && h.new_status === "pending") ||
+        (h.reason && (h.reason.includes("Student resubmitted") || h.reason.includes("Resubmission") || h.reason.includes("resubmitted"))) ||
+        (h.previous_status === "rejected")
+      );
+
+      const groupKey = `${sub.application_id}:${sub.task_id}`;
+      const allForTask = byTaskGroup.get(groupKey) || [sub];
+      const currentIndex = allForTask.findIndex((o: any) => o.id === sub.id);
+
+      let prevSub: any = null;
+      if (sub.previous_submission_id) {
+        prevSub = byId.get(sub.previous_submission_id) || null;
+      }
+      if (!prevSub && currentIndex > 0) {
+        prevSub = allForTask[currentIndex - 1];
+      }
+      if (!prevSub && allForTask.length > 1) {
+        prevSub = allForTask.find((o: any) => o.id !== sub.id && (o.status === "rejected" || o.reviewed_at));
+      }
+
+      let count = sub.resubmission_count;
+      if (count === undefined || count === null || count === 0) {
+        const match = sub.notes?.match(/\[Resubmission #(\d+)/i);
+        if (match) count = parseInt(match[1], 10);
+      }
+
+      const historyResubCount = subHistories.filter((h: any) => 
+        (h.previous_status === "rejected" && h.new_status === "pending") ||
+        (h.reason && h.reason.includes("Student resubmitted"))
+      ).length;
+
+      const hasEarlierRejection = currentIndex > 0 && allForTask.slice(0, currentIndex).some((o: any) => o.status === "rejected" || o.reviewed_at);
+      const hasAnyRejectionForTask = allForTask.some((o: any) => o.id !== sub.id && (o.status === "rejected" || o.reviewed_at));
+
+      const isResub = Boolean(
+        hasRejectedToPendingHistory ||
+        sub.previous_submission_id ||
+        (count !== undefined && count !== null && count > 0) ||
+        historyResubCount > 0 ||
+        hasEarlierRejection ||
+        hasAnyRejectionForTask ||
+        (prevSub && (prevSub.status === "rejected" || prevSub.reviewed_at)) ||
+        (sub.status === "pending" && (sub.reviewed_at || sub.feedback))
+      );
+
+      const displayCount = (count !== undefined && count !== null && count > 0)
+        ? count
+        : (historyResubCount > 0 ? historyResubCount : (currentIndex > 0 ? currentIndex + 1 : (isResub ? 2 : 1)));
+
+      let prevFeedback = prevSub?.feedback || (isResub && sub.feedback ? sub.feedback : null);
+      if (!prevFeedback && subHistories.length > 0) {
+        const rejHist = subHistories.find((h: any) => h.previous_status === "rejected" && h.reason && !h.reason.includes("Student resubmitted"));
+        if (rejHist) prevFeedback = rejHist.reason;
+      }
+
+      map.set(sub.id, {
+        isResubmitted: isResub,
+        resubmissionNumber: displayCount,
+        previousSub: prevSub,
+        prevFeedback,
+        allForTask,
+        subHistories,
+      });
+    }
+
+    return map;
+  }, [data, historiesBySubId]);
+
+  const defaultMeta = useMemo(() => ({
+    isResubmitted: false,
+    resubmissionNumber: 1,
+    previousSub: null,
+    prevFeedback: null,
+    allForTask: [],
+    subHistories: [],
+  }), []);
+
+  // O(1) instant lookup
   const getSubMeta = useCallback((sub: any) => {
-    if (!sub) return { isResubmitted: false, resubmissionNumber: 1, previousSub: null, prevFeedback: null, allForTask: [], subHistories: [] };
+    if (!sub?.id) return defaultMeta;
+    return subMetaMap.get(sub.id) || defaultMeta;
+  }, [subMetaMap, defaultMeta]);
 
-    // 1. All history entries for this submission
-    const subHistories = (allSubmissionHistory || []).filter((h: any) => h.submission_id === sub.id);
-    const hasRejectedToPendingHistory = subHistories.some((h: any) => 
-      (h.previous_status === "rejected" && h.new_status === "pending") ||
-      (h.reason && (h.reason.includes("Student resubmitted") || h.reason.includes("Resubmission") || h.reason.includes("resubmitted"))) ||
-      (h.previous_status === "rejected")
-    );
+  // Derived filtered lists in a single fast pass O(N)
+  const { resubmittedList, freshPendingList, reviewedList } = useMemo(() => {
+    const resub: any[] = [];
+    const fresh: any[] = [];
+    const reviewed: any[] = [];
 
-    // 2. Chronological lookup for same intern & task
-    const allForTask = (data || [])
-      .filter((o: any) => o.application_id === sub.application_id && o.task_id === sub.task_id)
-      .sort((a: any, b: any) => new Date(a.submitted_at || 0).getTime() - new Date(b.submitted_at || 0).getTime());
+    if (!data) return { resubmittedList: resub, freshPendingList: fresh, reviewedList: reviewed };
 
-    const currentIndex = allForTask.findIndex((o: any) => o.id === sub.id);
-    let prevSub: any = null;
-    if (sub.previous_submission_id && data) {
-      prevSub = data.find((o: any) => o.id === sub.previous_submission_id) || null;
-    }
-    if (!prevSub && currentIndex > 0) {
-      prevSub = allForTask[currentIndex - 1];
-    }
-    if (!prevSub && allForTask.length > 1) {
-      prevSub = allForTask.find((o: any) => o.id !== sub.id && (o.status === "rejected" || o.reviewed_at));
-    }
-
-    // Explicit count check
-    let count = sub.resubmission_count;
-    if (count === undefined || count === null || count === 0) {
-      const match = sub.notes?.match(/\[Resubmission #(\d+)/i);
-      if (match) count = parseInt(match[1], 10);
+    for (let i = 0; i < data.length; i++) {
+      const s = data[i];
+      if (s.status !== "pending") {
+        reviewed.push(s);
+      } else {
+        const meta = subMetaMap.get(s.id);
+        if (meta?.isResubmitted) {
+          resub.push(s);
+        } else {
+          fresh.push(s);
+        }
+      }
     }
 
-    // Count resubmission events from submission_history
-    const historyResubCount = subHistories.filter((h: any) => 
-      (h.previous_status === "rejected" && h.new_status === "pending") ||
-      (h.reason && h.reason.includes("Student resubmitted"))
-    ).length;
-
-    const hasEarlierRejection = allForTask.slice(0, Math.max(0, currentIndex)).some((o: any) => o.status === "rejected" || o.reviewed_at);
-    const hasAnyRejectionForTask = allForTask.some((o: any) => o.id !== sub.id && (o.status === "rejected" || o.reviewed_at));
-
-    const isResub = Boolean(
-      hasRejectedToPendingHistory ||
-      sub.previous_submission_id ||
-      (count !== undefined && count !== null && count > 0) ||
-      historyResubCount > 0 ||
-      hasEarlierRejection ||
-      hasAnyRejectionForTask ||
-      (prevSub && (prevSub.status === "rejected" || prevSub.reviewed_at)) ||
-      (sub.status === "pending" && (sub.reviewed_at || sub.feedback))
-    );
-
-    const displayCount = (count !== undefined && count !== null && count > 0)
-      ? count
-      : (historyResubCount > 0 ? historyResubCount : (currentIndex > 0 ? currentIndex + 1 : (isResub ? 2 : 1)));
-
-    let prevFeedback = prevSub?.feedback || (isResub && sub.feedback ? sub.feedback : null);
-    if (!prevFeedback && subHistories.length > 0) {
-      const rejHist = subHistories.find((h: any) => h.previous_status === "rejected" && h.reason && !h.reason.includes("Student resubmitted"));
-      if (rejHist) prevFeedback = rejHist.reason;
-    }
-
-    return {
-      isResubmitted: isResub,
-      resubmissionNumber: displayCount,
-      previousSub: prevSub,
-      prevFeedback,
-      allForTask,
-      subHistories,
-    };
-  }, [data, allSubmissionHistory]);
-
-  // 1. Resubmissions waiting for review: status === "pending" AND isResubmitted
-  const resubmittedList = useMemo(() => {
-    return (data ?? []).filter((s: any) => {
-      if (s.status !== "pending") return false;
-      const meta = getSubMeta(s);
-      return meta.isResubmitted;
-    });
-  }, [data, getSubMeta]);
-
-  // 2. Pending Review (New first-time submissions): status === "pending" AND NOT isResubmitted
-  const freshPendingList = useMemo(() => {
-    return (data ?? []).filter((s: any) => {
-      if (s.status !== "pending") return false;
-      const meta = getSubMeta(s);
-      return !meta.isResubmitted;
-    });
-  }, [data, getSubMeta]);
-
-  // 3. Reviewed: status !== "pending" (all previously approved and rejected submissions)
-  const reviewedList = useMemo(() => {
-    return (data ?? []).filter((s: any) => s.status !== "pending");
-  }, [data]);
+    return { resubmittedList: resub, freshPendingList: fresh, reviewedList: reviewed };
+  }, [data, subMetaMap]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];
+    const query = searchQuery.trim().toLowerCase();
+
     return data.filter((s: any) => {
-      const name = s.applications?.full_name?.toLowerCase() || "";
-      const internId = s.applications?.intern_id?.toLowerCase() || "";
-      const domain = s.applications?.domain?.toLowerCase() || "";
-      const title = s.tasks?.title?.toLowerCase() || "";
-      const query = searchQuery.toLowerCase();
-      const matchesSearch = !query || name.includes(query) || internId.includes(query) || domain.includes(query) || title.includes(query);
+      if (query) {
+        const name = s.applications?.full_name?.toLowerCase() || "";
+        const internId = s.applications?.intern_id?.toLowerCase() || "";
+        const domain = s.applications?.domain?.toLowerCase() || "";
+        const title = s.tasks?.title?.toLowerCase() || "";
+        const matchesSearch = name.includes(query) || internId.includes(query) || domain.includes(query) || title.includes(query);
+        if (!matchesSearch) return false;
+      }
 
-      if (!matchesSearch) return false;
-
-      const meta = getSubMeta(s);
-      if (subFilter === "pending") return s.status === "pending" && !meta.isResubmitted;
-      if (subFilter === "resubmitted") return s.status === "pending" && meta.isResubmitted;
+      if (subFilter === "all") return true;
       if (subFilter === "reviewed") return s.status !== "pending";
+
+      const meta = subMetaMap.get(s.id);
+      if (subFilter === "pending") return s.status === "pending" && !meta?.isResubmitted;
+      if (subFilter === "resubmitted") return s.status === "pending" && Boolean(meta?.isResubmitted);
       return true;
     });
-  }, [data, subFilter, searchQuery, getSubMeta]);
+  }, [data, subFilter, searchQuery, subMetaMap]);
+
+  // Paginated subset to keep DOM light and render in < 5ms
+  const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredData.slice(start, start + pageSize);
+  }, [filteredData, currentPage, pageSize]);
+
+  const handleFilterChange = (filter: "all" | "pending" | "resubmitted" | "reviewed") => {
+    setSubFilter(filter);
+    setCurrentPage(1);
+  };
 
   const loadHistory = async (id: string) => {
+    if (showHistory === id) {
+      setShowHistory(null);
+      return;
+    }
+    // Instant lookup from memory
+    const inMem = historiesBySubId.get(id);
+    if (inMem && inMem.length > 0) {
+      setHistoryData(inMem);
+      setShowHistory(id);
+      return;
+    }
     const { data: history } = await (supabase.from("submission_history" as any) as any)
       .select("*")
       .eq("submission_id", id)
       .eq("table_name", tableName)
       .order("created_at", { ascending: false });
     setHistoryData(history ?? []);
-    setShowHistory(showHistory === id ? null : id);
+    setShowHistory(id);
   };
 
   const changeStatus = async (id: string, newStatus: string, feedbackText?: string) => {
     setLoadingId(id);
     const reason = feedbackText !== undefined ? feedbackText : rejectReason;
     const currentSub = data?.find((s: any) => s.id === id);
-    const { error } = await supabase.from(tableName as any).update({ status: newStatus, feedback: reason || null, reviewed_at: new Date().toISOString() }).eq("id", id);
-    if (error) { setLoadingId(null); return toast.error(error.message); }
-    await (supabase.from("submission_history" as any) as any).insert({
-      submission_id: id,
-      table_name: tableName,
-      previous_status: currentSub?.status ?? null,
-      new_status: newStatus,
-      changed_by: (await supabase.auth.getUser()).data.user?.id,
-      reason: reason || null,
+    const nowIso = new Date().toISOString();
+
+    // 1. Instant Optimistic UI Update: updates cache in 0ms so user gets instant visual feedback
+    qc.setQueryData(["admin-subs"], (old: any[] | undefined) => {
+      if (!old) return old;
+      return old.map((s: any) => s.id === id ? { ...s, status: newStatus, feedback: reason || null, reviewed_at: nowIso } : s);
     });
 
-    // Automatically check and sync application completion condition & certificate payment unlock
-    if (currentSub?.application_id) {
-      try {
-        const { syncApplicationTaskStatusServer } = await import("@/lib/fee-service");
-        const syncRes = await syncApplicationTaskStatusServer({ data: { applicationId: currentSub.application_id } });
-        if (syncRes.verified) {
-          toast.success("🎉 All required tasks verified! Certificate payment unlocked for student.");
-        }
-      } catch (syncErr) {
-        console.warn("Could not sync task status:", syncErr);
-      }
-    }
-
-    setLoadingId(null);
+    // Close dialog immediately for responsiveness
     setConfirmAction(null);
     setViewingSub(null);
     setRejectReason("");
+    setLoadingId(null);
     toast.success(`Submission marked as ${newStatus}`);
-    qc.invalidateQueries({ queryKey: ["admin-subs"] });
-    qc.invalidateQueries({ queryKey: ["admin-sub-history-all"] });
-    qc.invalidateQueries({ queryKey: ["admin-applications"] });
+
+    try {
+      // 2. Perform DB update
+      const { error } = await supabase.from(tableName as any).update({
+        status: newStatus,
+        feedback: reason || null,
+        reviewed_at: nowIso,
+      }).eq("id", id);
+
+      if (error) {
+        toast.error(`Update failed: ${error.message}`);
+        qc.invalidateQueries({ queryKey: ["admin-subs"] });
+        return;
+      }
+
+      const currentUser = (await supabase.auth.getUser()).data.user;
+      await (supabase.from("submission_history" as any) as any).insert({
+        submission_id: id,
+        table_name: tableName,
+        previous_status: currentSub?.status ?? null,
+        new_status: newStatus,
+        changed_by: currentUser?.id ?? null,
+        reason: reason || null,
+      });
+
+      // 3. Automatically check and sync application completion condition & certificate payment unlock
+      if (currentSub?.application_id) {
+        try {
+          const { syncApplicationTaskStatusServer } = await import("@/lib/fee-service");
+          const syncRes = await syncApplicationTaskStatusServer({ data: { applicationId: currentSub.application_id } });
+          if (syncRes?.verified) {
+            toast.success("🎉 All required tasks verified! Certificate payment unlocked for student.");
+          }
+        } catch (syncErr) {
+          console.warn("Could not sync task status:", syncErr);
+        }
+      }
+
+      // Re-validate in background
+      qc.invalidateQueries({ queryKey: ["admin-subs"] });
+      qc.invalidateQueries({ queryKey: ["admin-sub-history-all"] });
+      qc.invalidateQueries({ queryKey: ["admin-applications"] });
+    } catch (err: any) {
+      console.error("changeStatus error:", err);
+      toast.error(`Error: ${err?.message || "Failed to update submission"}`);
+      qc.invalidateQueries({ queryKey: ["admin-subs"] });
+    }
   };
 
   return (
@@ -1824,21 +2033,21 @@ function SubmissionsSection() {
         <div className="flex flex-wrap gap-1 bg-muted/60 p-1 rounded-xl">
           <button
             type="button"
-            onClick={() => setSubFilter("all")}
+            onClick={() => handleFilterChange("all")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${subFilter === "all" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
           >
             All Submissions ({data?.length ?? 0})
           </button>
           <button
             type="button"
-            onClick={() => setSubFilter("pending")}
+            onClick={() => handleFilterChange("pending")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${subFilter === "pending" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
           >
             <Clock className="size-3 text-amber-500" /> Pending Review ({freshPendingList.length})
           </button>
           <button
             type="button"
-            onClick={() => setSubFilter("resubmitted")}
+            onClick={() => handleFilterChange("resubmitted")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
               subFilter === "resubmitted" ? "bg-purple-600 text-white shadow-sm font-bold" : "text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
             }`}
@@ -1847,7 +2056,7 @@ function SubmissionsSection() {
           </button>
           <button
             type="button"
-            onClick={() => setSubFilter("reviewed")}
+            onClick={() => handleFilterChange("reviewed")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${subFilter === "reviewed" ? "bg-white text-foreground shadow-sm dark:bg-slate-800" : "text-muted-foreground hover:text-foreground"}`}
           >
             <CheckCircle2 className="size-3 text-slate-500" /> Reviewed ({reviewedList.length})
@@ -1859,7 +2068,10 @@ function SubmissionsSection() {
           <Input
             placeholder="Search intern name, ID, domain..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             className="pl-9 h-9 text-xs rounded-xl"
           />
         </div>
@@ -1895,20 +2107,82 @@ function SubmissionsSection() {
             )}
           </div>
         ) : (
-          filteredData.map((s: any) => (
-            <SubmissionCard
-              key={s.id}
-              sub={s}
-              subMeta={getSubMeta(s)}
-              loadingId={loadingId}
-              onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }}
-              onViewSub={(subObj: any) => setViewingSub(subObj)}
-              onViewPrevSub={(subObj: any, prevObj: any) => setViewingPrevSub({ current: subObj, previous: prevObj })}
-              onHistory={() => loadHistory(s.id)}
-              showHistory={showHistory === s.id}
-              historyData={historyData}
-            />
-          ))
+          <>
+            {paginatedData.map((s: any) => (
+              <SubmissionCard
+                key={s.id}
+                sub={s}
+                subMeta={getSubMeta(s)}
+                loadingId={loadingId}
+                onAction={(status: string, label: string, subObj: any) => { setConfirmAction({ id: s.id, status, label, sub: subObj }); setRejectReason(subObj?.feedback || ""); }}
+                onViewSub={(subObj: any) => setViewingSub(subObj)}
+                onViewPrevSub={(subObj: any, prevObj: any) => setViewingPrevSub({ current: subObj, previous: prevObj })}
+                onHistory={() => loadHistory(s.id)}
+                showHistory={showHistory === s.id}
+                historyData={historyData}
+              />
+            ))}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 pb-1 border-t border-border/40 text-xs">
+                <div className="text-muted-foreground text-[11px]">
+                  Showing <span className="font-semibold text-foreground">{(currentPage - 1) * pageSize + 1}</span> to{" "}
+                  <span className="font-semibold text-foreground">{Math.min(currentPage * pageSize, filteredData.length)}</span> of{" "}
+                  <span className="font-semibold text-foreground">{filteredData.length}</span> submissions
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs rounded-xl"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  >
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`size-8 rounded-lg text-xs font-semibold transition ${
+                            currentPage === pageNum
+                              ? "bg-primary text-primary-foreground shadow-xs"
+                              : "text-muted-foreground hover:bg-muted"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs rounded-xl"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -3078,8 +3352,12 @@ function VerificationSection() {
 
         const subs = appSubs.get(app.id) || [];
         const approvedCount = subs.filter((s: any) => s.status === "approved").length;
-        const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
-        const requiredDomainTasks = taskLimits[app.duration ?? 1] ?? (app.total_tasks || 5);
+        const taskLimits: Record<number, number> = app.domain === "fullstack"
+          ? { 1: 5, 2: 8, 3: 25, 6: 50 }
+          : { 1: 5, 2: 8, 3: 10, 6: 12 };
+        const requiredDomainTasks = (app.total_tasks && app.total_tasks > 0)
+          ? app.total_tasks
+          : (taskLimits[app.duration ?? 1] ?? 5);
         const requiredTotalTasks = requiredDomainTasks + 1; // Task 0 (LinkedIn) + Domain Tasks 1..limit
 
         const isTasksDone = app.all_tasks_verified === true || (approvedCount >= requiredTotalTasks);
@@ -3970,7 +4248,7 @@ function StudentsSection() {
             className="h-9 px-3 rounded-xl gap-1.5 text-xs shrink-0"
             title="Refresh students list"
           >
-            <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin text-blue-600" : ""}`} />
+            <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin text-[#f95c4b]" : ""}`} />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
@@ -3982,7 +4260,7 @@ function StudentsSection() {
           onClick={() => setFilter("all")}
           className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
             filter === "all"
-              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              ? "bg-[#181619] text-white shadow-sm dark:bg-[#181619]"
               : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
           }`}
         >
@@ -3997,7 +4275,7 @@ function StudentsSection() {
           onClick={() => setFilter("account_only")}
           className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
             filter === "account_only"
-              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              ? "bg-[#181619] text-white shadow-sm dark:bg-[#181619]"
               : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
           }`}
         >
@@ -4012,7 +4290,7 @@ function StudentsSection() {
           onClick={() => setFilter("applied")}
           className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-medium transition ${
             filter === "applied"
-              ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+              ? "bg-[#181619] text-white shadow-sm dark:bg-[#181619]"
               : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground border border-border/50 dark:bg-slate-800/60"
           }`}
         >
@@ -5031,7 +5309,7 @@ function AnalyticsSection() {
                     </div>
                     <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-500"
+                        className="h-full rounded-full brand-gradient transition-all duration-500"
                         style={{ width: `${d.pct}%` }}
                       />
                     </div>
@@ -5115,7 +5393,7 @@ function AnalyticsSection() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Globe className="size-5 text-blue-600" />
+              <Globe className="size-5 text-[#f95c4b]" />
               Location & Discovery Analytics
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -5142,7 +5420,7 @@ function AnalyticsSection() {
                       <span className="text-slate-500 dark:text-slate-400 font-semibold">{c.count} students ({c.pct}%)</span>
                     </div>
                     <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-500" style={{ width: `${c.pct}%` }} />
+                      <div className="h-full rounded-full brand-gradient transition-all duration-500" style={{ width: `${c.pct}%` }} />
                     </div>
                   </div>
                 ))}
@@ -5167,7 +5445,7 @@ function AnalyticsSection() {
                       <span className="text-slate-500 dark:text-slate-400 font-semibold">{s.count} ({s.pct}%)</span>
                     </div>
                     <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500" style={{ width: `${s.pct}%` }} />
+                      <div className="h-full rounded-full brand-gradient transition-all duration-500" style={{ width: `${s.pct}%` }} />
                     </div>
                   </div>
                 ))}

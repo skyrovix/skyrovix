@@ -160,12 +160,12 @@ export function ManualUpiPaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden bg-card border-border/60 shadow-2xl">
         <DialogHeader className="p-6 pb-4 border-b border-border/30 bg-muted/20">
-          <div className="flex items-center gap-2.5">
-            <div className="size-10 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white grid place-items-center shadow-md shadow-blue-500/20">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-2xl brand-gradient text-white grid place-items-center shadow-lg shadow-[#f95c4b]/20">
               <CreditCard className="size-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-foreground">{displayTitle}</DialogTitle>
+              <DialogTitle className="text-lg font-bold text-foreground font-display">{displayTitle}</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
                 {displayDesc}
               </DialogDescription>
@@ -176,30 +176,30 @@ export function ManualUpiPaymentDialog({
         <div className="p-6 space-y-5">
           {/* Mandatory Skyrovix Disclaimer */}
           {paymentType === "application" ? (
-            <div className="rounded-2xl border border-blue-200/80 bg-blue-50/80 dark:border-blue-900/40 dark:bg-blue-950/40 p-3.5 text-xs text-blue-900 dark:text-blue-200 leading-relaxed shadow-sm space-y-1">
+            <div className="rounded-2xl border border-border/80 bg-muted/30 p-3.5 text-xs text-foreground leading-relaxed shadow-xs space-y-1">
               <div className="flex items-center justify-between">
-                <p className="font-bold flex items-center gap-1.5 text-blue-800 dark:text-blue-300">
-                  <Shield className="size-3.5" /> Application Processing Fee
+                <p className="font-bold flex items-center gap-1.5 text-foreground">
+                  <Shield className="size-3.5 text-[#f95c4b]" /> Application Processing Fee
                 </p>
-                <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] font-bold">
+                <Badge variant="outline" className="bg-[#f95c4b]/10 text-[#f95c4b] border-[#f95c4b]/20 text-[10px] font-bold">
                   Application Processing Fee — Not a Certification Fee
                 </Badge>
               </div>
-              <p className="text-[11px] leading-relaxed">
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Application processing fee only. This charge is applicable only to your internship application. It is NOT a certification fee. Certificate charges, if applicable, are separate and are governed by the certificate eligibility and promotional rules.
               </p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/80 dark:border-indigo-900/40 dark:bg-indigo-950/40 p-3.5 text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed shadow-sm space-y-1">
+            <div className="rounded-2xl border border-border/80 bg-muted/30 p-3.5 text-xs text-foreground leading-relaxed shadow-xs space-y-1">
               <div className="flex items-center justify-between">
-                <p className="font-bold flex items-center gap-1.5 text-indigo-800 dark:text-indigo-300">
-                  <Shield className="size-3.5" /> Certificate Issuance Fee
+                <p className="font-bold flex items-center gap-1.5 text-foreground">
+                  <Shield className="size-3.5 text-[#f95c4b]" /> Certificate Issuance Fee
                 </p>
-                <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300 text-[10px] font-bold">
+                <Badge variant="outline" className="bg-[#f95c4b]/10 text-[#f95c4b] border-[#f95c4b]/20 text-[10px] font-bold">
                   Official Certificate Verification &amp; Issuance
                 </Badge>
               </div>
-              <p className="text-[11px] leading-relaxed">
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Standard certificate issuance fee for verified internship completion. This charge is applicable to applications not covered by promotional certificate waiver offers.
               </p>
             </div>
@@ -258,11 +258,11 @@ export function ManualUpiPaymentDialog({
           {/* Amount Due Card */}
           <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-slate-50/60 to-white dark:from-slate-800/40 dark:to-slate-900/40 p-4 flex items-center justify-between shadow-xs">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider font-display">
                 Total Amount Due
               </p>
               <div className="flex items-baseline gap-2 mt-0.5">
-                <p className={`text-2xl font-black ${isFreeClaim ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
+                <p className={`text-2xl font-black ${isFreeClaim ? "text-emerald-600 dark:text-emerald-400" : "text-[#f95c4b]"} font-display`}>
                   ₹{effectiveAmount}
                 </p>
                 {appliedCoupon && appliedCoupon.discountAmount > 0 && (
@@ -273,7 +273,7 @@ export function ManualUpiPaymentDialog({
               </div>
             </div>
             <div className="text-right">
-              <Badge className={isFreeClaim ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>
+              <Badge className={isFreeClaim ? "bg-emerald-600 text-white" : "brand-gradient text-white border-0 shadow-xs"}>
                 {isFreeClaim ? "100% Free Waiver" : "Online Gateway"}
               </Badge>
               {appliedCoupon && appliedCoupon.discountAmount > 0 && (
@@ -291,7 +291,7 @@ export function ManualUpiPaymentDialog({
                 <Sparkles className="size-7" />
               </div>
               <div>
-                <h4 className="font-bold text-base text-foreground">100% Free Certificate Waiver</h4>
+                <h4 className="font-bold text-base text-foreground font-display">100% Free Certificate Waiver</h4>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Your coupon covers the entire certificate fee. Click below to claim your waiver instantly.
                 </p>
@@ -314,20 +314,20 @@ export function ManualUpiPaymentDialog({
               </Button>
             </div>
           ) : (
-            <div className="rounded-2xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-white dark:to-slate-900/40 p-5 space-y-4 shadow-sm">
+            <div className="rounded-2xl border border-[#f95c4b]/25 bg-gradient-to-br from-[#f95c4b]/[0.06] via-[#ee9590]/[0.03] to-white dark:to-[#0f172a] p-5 space-y-4 shadow-sm relative overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="size-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shrink-0">
-                    <Zap className="size-5" />
+                  <div className="size-11 rounded-xl brand-gradient text-white flex items-center justify-center shadow-md shadow-[#f95c4b]/20 shrink-0">
+                    <Zap className="size-5 fill-current" />
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#f95c4b] font-display">
                         Automated Gateway
                       </span>
-                      <Badge className="bg-emerald-600 text-white text-[9px] px-1.5 py-0">Instant Approval</Badge>
+                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[9px] px-1.5 py-0 font-bold">Instant Approval</Badge>
                     </div>
-                    <h4 className="text-sm font-bold text-foreground">
+                    <h4 className="text-sm font-bold text-foreground font-display">
                       Pay Online via Cashfree
                     </h4>
                     <p className="text-[11px] text-muted-foreground">
@@ -339,7 +339,7 @@ export function ManualUpiPaymentDialog({
                 <Button
                   type="button"
                   onClick={() => setShowCashfreeSummary(true)}
-                  className="w-full sm:w-auto h-10 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/25 shrink-0 gap-1.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+                  className="w-full sm:w-auto h-10 px-5 rounded-xl brand-gradient hover:opacity-95 text-white font-bold text-xs shadow-md shadow-[#f95c4b]/25 shrink-0 gap-1.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 border-0"
                 >
                   Pay ₹{effectiveAmount} Now <ArrowRight className="size-3.5" />
                 </Button>
@@ -356,7 +356,7 @@ export function ManualUpiPaymentDialog({
                 </div>
 
                 <div className="p-2 rounded-lg bg-background/50 border border-border/30 flex items-center gap-2">
-                  <CreditCard className="size-3.5 text-blue-600 shrink-0" />
+                  <CreditCard className="size-3.5 text-[#f95c4b] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold text-foreground truncate">Cards</p>
                     <p className="text-[9px] text-muted-foreground truncate">Debit / Credit</p>

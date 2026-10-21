@@ -5,16 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DOMAINS, DURATIONS, durationConfig, generateInternId, getDomain } from "@/lib/constants";
+import { DOMAINS, DURATIONS, durationConfig, getDomainTaskCount, generateInternId, getDomain, getAvailableDurations } from "@/lib/constants";
 import { validateCoupon } from "@/lib/coupons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { getPublicFeeSettings, submitApplicationServer, type PublicFeeSettings } from "@/lib/fee-service";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Sparkles, IndianRupee } from "lucide-react";
+import { Loader2, CheckCircle2, Sparkles, IndianRupee, Crown, Lock, Check, ShieldCheck, Gift } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { INDIA_STATES, STATE_DISTRICTS } from "@/lib/india-locations";
+import { PaymentSummaryDialog } from "@/components/payment/PaymentSummaryDialog";
 
 interface Props {
   open: boolean;
@@ -28,11 +29,29 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
   const navigate = useNavigate();
   const [applyDomain, setApplyDomain] = useState(defaultDomain ?? "");
   const [applyDuration, setApplyDuration] = useState(1);
+  const [planType, setPlanType] = useState<"standard" | "premium">("standard");
   const [applying, setApplying] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [couponCode, setCouponCode] = useState("");
-  const [couponApplied, setCouponApplied] = useState<{ code: string; discount: string } | null>(null);
+  const [couponApplied, setCouponApplied] = useState<{
+    code: string;
+    discountType: "percentage" | "fixed" | "free";
+    discountValue: number;
+    discount: string;
+  } | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState<{
+    open: boolean;
+    productType?: "application" | "premium_plan";
+    applicationId: string;
+    productService: string;
+    amount: number;
+    discountAmount: number;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    couponCode?: string | null;
+  } | null>(null);
 
   // Location and Hear about us fields
   const [country, setCountry] = useState("India");
@@ -46,7 +65,8 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
   const { data: feeSettings } = useQuery<PublicFeeSettings>({
     queryKey: ["public-fee-settings"],
     queryFn: () => getPublicFeeSettings(),
-    staleTime: 30_000,
+    staleTime: 5000,
+    refetchInterval: 10000,
   });
 
   const handleApplyCoupon = async () => {
@@ -55,7 +75,12 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
     try {
       const result = await validateCoupon(couponCode.trim(), applyDomain || undefined);
       if (result.valid) {
-        setCouponApplied({ code: result.code!, discount: result.discountType === "percentage" ? `${result.discountValue}% OFF` : `₹${result.discountValue} OFF` });
+        setCouponApplied({
+          code: result.code!,
+          discountType: result.discountType as any,
+          discountValue: Number(result.discountValue || 0),
+          discount: result.discountType === "percentage" ? `${result.discountValue}% OFF` : `₹${result.discountValue} OFF`,
+        });
         toast.success(`Coupon applied! ${result.discountType === "percentage" ? `${result.discountValue}%` : `₹${result.discountValue}`} discount`);
       } else {
         setCouponApplied(null);
@@ -77,9 +102,11 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
   const reset = () => {
     setApplyDomain(defaultDomain ?? "");
     setApplyDuration(1);
+    setPlanType("standard");
     setPhotoFile(null);
     setCouponCode("");
     setCouponApplied(null);
+    setPendingPayment(null);
     setCountry("India");
     setState("");
     setDistrict("");
@@ -88,6 +115,43 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
     setHearAbout("");
     setReferralName("");
   };
+
+  const currentDomain = defaultDomain || applyDomain;
+  const availableDurations = getAvailableDurations(currentDomain);
+
+  const isPremiumPlanGlobalEnabled = Boolean(
+    feeSettings?.premiumPlan?.isEnabled ?? feeSettings?.premiumPlan?.enabled ?? false
+  );
+
+  const handleDurationChange = (val: number) => {
+    setApplyDuration(val);
+    if (!isPremiumPlanGlobalEnabled || currentDomain !== "fullstack" || (val !== 3 && val !== 6)) {
+      setPlanType("standard");
+    }
+  };
+
+  const isPremiumEligible =
+    isPremiumPlanGlobalEnabled && currentDomain === "fullstack" && (applyDuration === 3 || applyDuration === 6);
+  const isPremiumTrack = isPremiumEligible && planType === "premium";
+  const standardFee = feeSettings?.applicationFee?.isEnabled && feeSettings.applicationFee.amount > 0
+    ? feeSettings.applicationFee.amount
+    : (feeSettings?.certificateFee?.amount ?? 100);
+  const premiumFee = feeSettings?.premiumPlan?.amount ?? 200;
+  const baseFee = isPremiumTrack ? premiumFee : standardFee;
+  const dur = durationConfig(applyDuration, currentDomain, isPremiumTrack ? "premium" : "standard");
+
+  let couponDiscount = 0;
+  if (couponApplied) {
+    if (couponApplied.discountType === "free" || (couponApplied.discountType === "percentage" && couponApplied.discountValue >= 100)) {
+      couponDiscount = baseFee;
+    } else if (couponApplied.discountType === "percentage") {
+      couponDiscount = Math.round((baseFee * couponApplied.discountValue) / 100);
+    } else {
+      couponDiscount = Math.min(baseFee, couponApplied.discountValue);
+    }
+  }
+
+  const finalPayable = Math.max(0, baseFee - couponDiscount);
 
   const submitApplication = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -105,6 +169,15 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
     if ((hearAbout === "Friend / Classmate" || hearAbout === "Existing Skyrovix Intern") && !referralName.trim()) {
       return toast.error("Referral Name is required for selected referral source");
     }
+
+    const currentDomain = defaultDomain || applyDomain;
+    const effectivePlan =
+      isPremiumPlanGlobalEnabled &&
+      currentDomain === "fullstack" &&
+      (applyDuration === 3 || applyDuration === 6) &&
+      planType === "premium"
+        ? "premium"
+        : "standard";
 
     const fd = new FormData(e.currentTarget);
     setApplying(true);
@@ -152,18 +225,20 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
       }
 
       const intern_id = generateInternId();
-      const dur = durationConfig(applyDuration);
+      const dur = durationConfig(applyDuration, currentDomain, effectivePlan);
+      const studentFullName = String(fd.get("full_name"));
+      const studentPhone = String(fd.get("phone"));
 
       const appResult = await submitApplicationServer({
         data: {
           userId: currentUser.id,
-          domain,
+          domain: currentDomain,
           duration: applyDuration,
-          totalTasks: dur?.tasks ?? 5,
+          totalTasks: dur?.tasks ?? getDomainTaskCount(currentDomain, applyDuration, effectivePlan),
           internId: intern_id,
-          fullName: String(fd.get("full_name")),
+          fullName: studentFullName,
           email: currentUser.email ?? "",
-          phone: String(fd.get("phone")),
+          phone: studentPhone,
           college: String(fd.get("college")),
           course: String(fd.get("course")),
           year: String(fd.get("year")),
@@ -179,6 +254,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
             hearAbout === "Friend / Classmate" || hearAbout === "Existing Skyrovix Intern"
               ? referralName
               : null,
+          planType: effectivePlan,
         },
       });
 
@@ -189,18 +265,13 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
         toast.success("🎉 You qualified for the Certificate Free Offer! Your certificate is ₹0 upon task completion.");
       }
 
-      if (requiresAppFee) {
-        onOpenChange(false);
-        reset();
-        onSuccess?.();
-        toast.info(`Application created! Please complete your ₹${appResult.appFeeAmount} application fee payment to proceed.`);
-        navigate({ to: "/dashboard", search: { tab: "payment" } as any });
-        return;
-      }
+      // Note: Upfront payment is not required. Completion fee is paid only after task completion & admin approval.
+      onOpenChange(false);
 
+      const assignedInternId = appResult.application?.intern_id || intern_id;
       const studentEmail = (currentUser.email || appResult.application.email || "").trim();
-      const domainObj = getDomain(domain);
-      const domainName = domainObj?.name ?? domain;
+      const domainObj = getDomain(currentDomain);
+      const domainName = domainObj?.name ?? currentDomain;
 
       if (studentEmail) {
         toast.loading(`Sending your Offer Letter to ${studentEmail}...`, { id: "offer-letter-delivery" });
@@ -210,7 +281,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
             to: studentEmail,
             studentName: appResult.application.full_name,
             studentId: currentUser.id,
-            internId: intern_id,
+            internId: assignedInternId,
             domainName,
             duration: applyDuration,
           });
@@ -220,14 +291,14 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
               email_sent_at: new Date().toISOString(),
               email_error: null,
               offer_issued_at: new Date().toISOString(),
-            }).eq("intern_id", intern_id);
+            }).eq("intern_id", assignedInternId);
             toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { id: "offer-letter-delivery", duration: 8000 });
           } else {
             console.warn("[Email] Delivery warning:", result.error);
             await (supabase.from("applications" as any) as any).update({
               email_status: "failed",
               email_error: result.error || "Email delivery failed",
-            }).eq("intern_id", intern_id);
+            }).eq("intern_id", assignedInternId);
             toast.success("Application submitted successfully! You can view and download your Offer Letter from your Dashboard.", { id: "offer-letter-delivery", duration: 8000 });
           }
         } catch (e: any) {
@@ -432,7 +503,18 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
           {!defaultDomain && (
             <div>
               <Label className="text-xs sm:text-sm">Domain</Label>
-              <Select value={applyDomain} onValueChange={setApplyDomain} required>
+              <Select
+                value={applyDomain}
+                onValueChange={(val) => {
+                  setApplyDomain(val);
+                  if (isPremiumPlanGlobalEnabled && val === "fullstack" && (applyDuration === 3 || applyDuration === 6)) {
+                    setPlanType("premium");
+                  } else {
+                    setPlanType("standard");
+                  }
+                }}
+                required
+              >
                 <SelectTrigger className="mt-1 rounded-xl h-9 sm:h-10 text-sm">
                   <SelectValue placeholder="Select a domain" />
                 </SelectTrigger>
@@ -445,16 +527,18 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
             </div>
           )}
           <div className="col-span-2">
-            <Label className="text-xs sm:text-sm">Duration</Label>
-            <div className="mt-1 grid grid-cols-2 gap-1.5 sm:gap-2">
-              {DURATIONS.map((d) => (
+            <Label className="text-xs sm:text-sm font-semibold">
+              Internship Duration
+            </Label>
+            <div className="mt-1 grid gap-1.5 sm:gap-2 grid-cols-2 sm:grid-cols-4">
+              {availableDurations.map((d) => (
                 <button
                   key={d.value}
                   type="button"
-                  onClick={() => setApplyDuration(d.value)}
-                  className={`rounded-xl border p-2 sm:p-3 text-left transition-all ${
+                  onClick={() => handleDurationChange(d.value)}
+                  className={`rounded-xl border p-2 sm:p-3 text-left transition-all cursor-pointer ${
                     applyDuration === d.value
-                      ? "border-[#07284a] bg-[#07284a]/10 dark:border-[#60a5fa] dark:bg-[#60a5fa]/10 ring-1 ring-[#07284a]/20"
+                      ? "border-[#f95c4b] bg-[#f95c4b]/10 dark:border-[#ee9590] dark:bg-[#f95c4b]/15 ring-1 ring-[#f95c4b]/30"
                       : "border-border/60 bg-white/50 dark:bg-[#0f172a]/50 hover:border-border"
                   }`}
                 >
@@ -464,10 +548,220 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
               ))}
             </div>
           </div>
+
+          {/* ─── Choose Your Internship Plan Section ─── */}
+          <div className="col-span-2 border-t border-border/40 pt-3 mt-1">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
+                  <Sparkles className="size-4 text-primary" /> Internship Plan &amp; Benefits
+                </h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {isPremiumPlanGlobalEnabled && currentDomain === "fullstack" && (applyDuration === 3 || applyDuration === 6)
+                    ? `₹${premiumFee} Full Stack Intensive Track with 25/50 Real-World Deployed Projects & LOR for Selected Students.`
+                    : `₹${standardFee} Common Standard Track with sequential tasks, mentor review & official certificate.`}
+                </p>
+              </div>
+              {isPremiumTrack && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-indigo-600 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-white shadow-xs">
+                  <Crown className="size-3" /> Full Stack Intensive
+                </span>
+              )}
+            </div>
+
+            {isPremiumPlanGlobalEnabled && currentDomain === "fullstack" ? (
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                {/* Standard Plan Card */}
+                <div
+                  onClick={() => setPlanType("standard")}
+                  className={`rounded-2xl border p-3.5 transition-all cursor-pointer flex flex-col justify-between ${
+                    !isPremiumTrack
+                      ? "border-[#f95c4b] bg-gradient-to-br from-[#f95c4b]/5 via-white to-orange-50/30 dark:from-[#f95c4b]/10 dark:via-slate-900 dark:to-slate-800 ring-2 ring-[#f95c4b]/25 shadow-sm"
+                      : "border-border/60 bg-white/40 dark:bg-slate-900/40 hover:border-border"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="size-7 rounded-lg bg-blue-600/10 text-[#f95c4b] dark:text-blue-400 flex items-center justify-center font-bold text-xs">
+                          S
+                        </div>
+                        <span className="font-bold text-sm text-foreground">Standard Track (₹{standardFee} Common)</span>
+                      </div>
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        ₹{standardFee}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] font-semibold text-foreground mt-2">
+                      {applyDuration === 1
+                        ? "5 structured tasks"
+                        : applyDuration === 2
+                        ? "8 structured tasks"
+                        : applyDuration === 3
+                        ? "10 structured tasks"
+                        : "12 structured tasks"}
+                    </p>
+
+                    <ul className="mt-2 space-y-1 text-[10.5px] text-muted-foreground leading-snug">
+                      <li className="flex items-center gap-1.5">
+                        <Check className="size-3 text-emerald-600 shrink-0" />
+                        <span>Official Offer Letter &amp; Student ID Card</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="size-3 text-emerald-600 shrink-0" />
+                        <span>Task verification &amp; mentor evaluation</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="size-3 text-emerald-600 shrink-0" />
+                        <span>QR-Verified Certificate upon completion &amp; approval</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-border/40 flex items-center justify-between text-[10.5px]">
+                    <span className="text-muted-foreground">Standard Curriculum:</span>
+                    <span className="font-semibold text-foreground">₹{standardFee} Common</span>
+                  </div>
+                </div>
+
+                {/* Full Stack 3M & 6M Premium Intensive Track Card */}
+                <div
+                  onClick={() => {
+                    if (applyDuration === 1 || applyDuration === 2) {
+                      toast.info(`Select 3-Month or 6-Month duration above to unlock the ₹${premiumFee} Intensive Track with 25/50 Projects & LOR.`);
+                      return;
+                    }
+                    setPlanType("premium");
+                  }}
+                  className={`rounded-2xl border p-3.5 transition-all flex flex-col justify-between ${
+                    applyDuration === 1 || applyDuration === 2
+                      ? "border-border/40 bg-slate-100/50 dark:bg-slate-900/30 opacity-60 cursor-not-allowed"
+                      : isPremiumTrack
+                      ? "border-indigo-500 bg-gradient-to-br from-indigo-50/70 via-purple-50/30 to-white dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900 ring-2 ring-indigo-500/40 shadow-md cursor-pointer"
+                      : "border-border/60 bg-white/40 dark:bg-slate-900/40 hover:border-indigo-300 dark:hover:border-indigo-800 cursor-pointer"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="size-7 rounded-lg bg-gradient-to-br from-amber-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                          <Crown className="size-4" />
+                        </div>
+                        <span className="font-bold text-sm text-foreground flex items-center gap-1">
+                          Full Stack Intensive Track (3M / 6M)
+                        </span>
+                      </div>
+                      <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                        ₹{premiumFee}
+                      </span>
+                    </div>
+
+                    {applyDuration === 1 || applyDuration === 2 ? (
+                      <div className="mt-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10.5px] text-amber-800 dark:text-amber-300 flex items-start gap-1.5 leading-snug">
+                        <Lock className="size-3.5 shrink-0 mt-0.5 text-amber-600" />
+                        <span>Select 3-Month (25 tasks) or 6-Month (50 tasks) above to unlock the ₹{premiumFee} Track with LOR.</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-[11px] font-semibold text-foreground mt-2">
+                          {applyDuration === 3 ? "25 Real-World Deployed Projects" : "50 Real-World Deployed Projects"}
+                        </p>
+
+                        <ul className="mt-2 space-y-1 text-[10.5px] text-muted-foreground leading-snug">
+                          <li className="flex items-center gap-1.5">
+                            <Check className="size-3 text-indigo-600 shrink-0 font-bold" />
+                            <span className="font-bold text-foreground">
+                              {applyDuration === 3 ? "25 Real-World Deployment Tasks (Live URL)" : "50 Real-World Deployment Tasks (Live URL)"}
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            <Check className="size-3 text-amber-600 shrink-0 font-bold" />
+                            <span className="font-bold text-foreground">
+                              Letter of Recommendation (LOR) for Selected Top Performers
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            <Check className="size-3 text-indigo-600 shrink-0 font-bold" />
+                            <span className="font-bold text-foreground">Complete Architecture Blueprints &amp; Live Deployment</span>
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            <Check className="size-3 text-indigo-600 shrink-0 font-bold" />
+                            <span className="font-bold text-foreground">Curated Course References &amp; Top YouTube Channel Guides</span>
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            <Check className="size-3 text-indigo-600 shrink-0" />
+                            <span>Production Deployment Verified Credential</span>
+                          </li>
+                        </ul>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-border/40 flex items-center justify-between text-[10.5px]">
+                    <span className="text-muted-foreground">Full Stack Exclusive Fee:</span>
+                    <span className="font-black text-indigo-600 dark:text-indigo-400">₹{premiumFee} Only</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {/* Standard Plan Card for non-fullstack */}
+                <div className="rounded-2xl border border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/5 via-white to-orange-50/20 dark:from-[#f95c4b]/10 dark:via-slate-900 dark:to-slate-800 p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-8 rounded-xl bg-[#f95c4b]/15 text-[#f95c4b] flex items-center justify-center font-bold text-sm">
+                        S
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-foreground">Standard Curriculum Track</span>
+                        <p className="text-[11px] text-muted-foreground">
+                          {applyDuration === 1 ? "1 Month · 5 Structured Tasks" :
+                           applyDuration === 2 ? "2 Months · 8 Structured Tasks" :
+                           applyDuration === 3 ? "3 Months · 10 Structured Tasks" :
+                           "6 Months · 12 Structured Tasks"}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      ₹{standardFee}
+                    </span>
+                  </div>
+
+                  <ul className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10.5px] text-muted-foreground border-t border-border/40 pt-2.5">
+                    <li className="flex items-center gap-1.5">
+                      <Check className="size-3 text-emerald-600 shrink-0" />
+                      <span>Official Offer Letter &amp; ID</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <Check className="size-3 text-emerald-600 shrink-0" />
+                      <span>Sequential Task Verification</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <Check className="size-3 text-emerald-600 shrink-0" />
+                      <span>MSME-Registered Certificate</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-muted/50 border border-border/40 text-[11px] text-muted-foreground flex items-center gap-2">
+                  <Sparkles className="size-3.5 text-amber-500 shrink-0" />
+                  <span>
+                    <strong>Fee:</strong> Common registration fee is ₹{standardFee} for all standard domains.
+                    {isPremiumPlanGlobalEnabled && (
+                      <> The ₹{premiumFee} fee applies strictly to Full Stack 3M &amp; 6M intensive tracks (25/50 tasks + LOR).</>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div>
             <Label className="text-xs sm:text-sm">Profile Photo</Label>
             <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)} className="mt-1 rounded-xl h-9 sm:h-10 text-sm file:truncate" />
           </div>
+
           <div className="col-span-2">
             {couponApplied ? (
               <div className="flex items-center justify-between rounded-xl border border-green-200 dark:border-green-800/30 bg-green-50 dark:bg-green-950/20 p-2.5 sm:p-3">
@@ -493,15 +787,82 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
               </div>
             )}
           </div>
-          <Button type="submit" className="w-full col-span-2 rounded-xl bg-[#07284a] hover:bg-[#07284a]/90 text-white border-0 h-10 sm:h-11 text-sm" disabled={applying}>
-            {applying ? "Submitting..." : (
-              feeSettings?.applicationFee?.isEnabled && feeSettings.applicationFee.amount > 0
-                ? `Continue to Pay Fee (₹${feeSettings.applicationFee.amount})`
-                : "Submit Application"
+
+          {/* ─── Dynamic Live Fee & Coupon Summary ─── */}
+          <div className="col-span-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-3 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border/40">
+              <span className="font-medium">Selected Duration:</span>
+              <span className="font-semibold text-foreground">
+                {applyDuration} Month{applyDuration > 1 ? "s" : ""} • {isPremiumTrack ? `Intensive Track (₹${premiumFee})` : `Standard Track (₹${standardFee})`} ({dur?.tasks ?? 5} Tasks)
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border/40">
+              <span className="font-medium">Upfront Registration:</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">₹0 (Free to Start)</span>
+            </div>
+
+            <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border/40">
+              <span className="font-medium">Completion &amp; Certificate Fee:</span>
+              <span className="font-semibold text-foreground">
+                {finalPayable === 0 ? "₹0 (Free Waiver)" : `₹${finalPayable} (Payable after task completion)`}
+              </span>
+            </div>
+
+            {couponApplied && couponDiscount > 0 && (
+              <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 pb-1 border-b border-border/40">
+                <span className="font-medium">Coupon Discount ({couponApplied.code}):</span>
+                <span className="font-bold">-₹{couponDiscount}</span>
+              </div>
             )}
+
+            <div className="flex items-center justify-between pt-1 text-sm font-extrabold text-foreground">
+              <span>Pay Today:</span>
+              <span className="text-base text-emerald-600 dark:text-emerald-400 flex items-center font-black">
+                ₹0 (Instant Offer Letter)
+              </span>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full col-span-2 rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white font-bold shadow-md shadow-[#f95c4b]/25 hover:-translate-y-0.5 active:translate-y-0 transition-all border-0 h-10 sm:h-11 text-sm cursor-pointer" disabled={applying}>
+            {applying ? "Submitting & Sending Offer Letter..." : "Submit Application & Get Instant Offer Letter"}
           </Button>
+          <p className="col-span-2 text-[11px] text-center text-muted-foreground mt-0.5">
+            Your official Offer Letter will be emailed automatically. Post-completion fee of ₹{finalPayable} unlocks only after admin approves all tasks.
+          </p>
         </form>
       </DialogContent>
+
+      {/* Cashfree Payment Gateway Trigger */}
+      {pendingPayment && (
+        <PaymentSummaryDialog
+          open={pendingPayment.open}
+          onOpenChange={(op) => {
+            if (!op) {
+              setPendingPayment(null);
+              reset();
+              navigate({ to: "/dashboard" });
+            }
+          }}
+          productType={pendingPayment.productType || "premium_plan"}
+          productService={pendingPayment.productService}
+          amount={pendingPayment.amount}
+          discountAmount={pendingPayment.discountAmount}
+          customerName={pendingPayment.customerName}
+          customerEmail={pendingPayment.customerEmail}
+          customerPhone={pendingPayment.customerPhone}
+          userId={user?.id}
+          applicationId={pendingPayment.applicationId}
+          couponCode={pendingPayment.couponCode}
+          onSuccess={() => {
+            setPendingPayment(null);
+            reset();
+            onSuccess?.();
+            toast.success("Payment verified! Welcome to Skyrovix Virtual Internship.");
+            navigate({ to: "/dashboard" });
+          }}
+        />
+      )}
     </Dialog>
   );
 }

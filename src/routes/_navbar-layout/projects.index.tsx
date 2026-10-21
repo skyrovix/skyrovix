@@ -11,6 +11,8 @@ import {
   Loader2, Sparkles, X,
 } from "lucide-react";
 import { FadeUp } from "@/components/motion";
+import { motion } from "framer-motion";
+import { transitions, stagger, slideUp } from "@/lib/symboolic.com-motion.framer";
 import { AuroraBackground } from "@/components/AuroraBackground";
 
 // Fallback project challenges list in case database is empty or down
@@ -136,19 +138,19 @@ function ProjectsIndexPage() {
           
           {/* Eyebrow Badge */}
           <FadeUp y={15} duration={0.6} delay={0.05}>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/70 dark:border-sky-400/30 bg-blue-50/90 dark:bg-sky-400/10 px-4 py-1.5 text-xs font-bold text-blue-700 dark:text-sky-300 shadow-sm backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-4 py-1.5 text-xs font-bold text-[#f95c4b] shadow-sm backdrop-blur-md">
               <Sparkles className="size-3.5 text-amber-500 animate-pulse" />
               <span>INDUSTRY-DERIVED BENCHMARKS</span>
-              <span className="size-1 rounded-full bg-blue-400 dark:bg-sky-400" />
-              <span className="text-blue-600 dark:text-sky-400 font-semibold">PORTFOLIO READY</span>
+              <span className="size-1 rounded-full bg-[#f95c4b]" />
+              <span className="text-[#f95c4b] font-semibold">PORTFOLIO READY</span>
             </div>
           </FadeUp>
 
           {/* Main Headline */}
           <FadeUp y={20} duration={0.7} delay={0.15}>
-            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#07284a] dark:text-white leading-[1.15] max-w-4xl mx-auto">
+            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#181619] dark:text-white leading-[1.15] max-w-4xl mx-auto">
               Real-World Project Challenges.<br />
-              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-sky-300 dark:via-blue-400 dark:to-indigo-300 bg-clip-text text-transparent">
+              <span className="brand-text">
                 Built for Production.
               </span>
             </h1>
@@ -173,7 +175,7 @@ function ProjectsIndexPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by project title, tech stack (React, Python, Docker), or industry..."
-              className="h-12 border-0 pl-11 pr-10 text-sm bg-slate-100/80 dark:bg-slate-800/60 rounded-2xl focus-visible:ring-1 focus-visible:ring-blue-500 placeholder:text-muted-foreground/70"
+              className="h-12 border-0 pl-11 pr-10 text-sm bg-slate-100/80 dark:bg-slate-800/60 rounded-2xl focus-visible:ring-1 focus-visible:ring-[#f95c4b] placeholder:text-muted-foreground/70"
             />
             {search && (
               <button
@@ -204,7 +206,7 @@ function ProjectsIndexPage() {
                   onClick={() => setSelectedDifficulty(lvl.id)}
                   className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap cursor-pointer ${
                     selectedDifficulty === lvl.id
-                      ? "bg-[#07284a] text-white shadow-sm dark:bg-blue-600"
+                      ? "bg-[#181619] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
                 >
@@ -246,7 +248,13 @@ function ProjectsIndexPage() {
             <p className="text-sm font-semibold text-muted-foreground">No projects matching "{search}" were found.</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <motion.div
+            variants={stagger}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.15 }}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+          >
             {filteredProjects.map((p: any) => {
               const date = p.submission_deadline
                 ? new Date(p.submission_deadline).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
@@ -264,69 +272,75 @@ function ProjectsIndexPage() {
                   : "bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20";
 
               return (
-                <Card
+                <motion.div
                   key={p.id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-md hover:shadow-xl hover:border-blue-500/30 transition-all duration-300"
+                  variants={slideUp}
+                  whileHover={{ y: -4, transition: transitions.base }}
+                  className="h-full"
                 >
-                  <CardContent className="p-6 space-y-4">
-                    {/* Header line */}
-                    <div className="flex items-center justify-between gap-2">
-                      <Badge className={`rounded-lg px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide ring-1 ${diffCol}`}>
-                        {diff}
-                      </Badge>
-                      <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                        <Briefcase className="size-3.5" />
-                        {p.industry}
-                      </span>
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-base font-extrabold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {p.title}
-                    </h3>
-
-                    {/* Background preview */}
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                      {p.business_background}
-                    </p>
-
-                    {/* Technologies list */}
-                    <div className="space-y-2.5 pt-1">
-                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                        <Code className="size-3.5" /> Tech Stack
+                  <Card
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-md hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 h-full"
+                  >
+                    <CardContent className="p-6 space-y-4">
+                      {/* Header line */}
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge className={`rounded-lg px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide ring-1 ${diffCol}`}>
+                          {diff}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
+                          <Briefcase className="size-3.5" />
+                          {p.industry}
+                        </span>
                       </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {p.technologies.slice(0, 3).map((tech: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="bg-muted/50 text-muted-foreground border-0 text-[10px] px-2 py-0.5 rounded font-medium">
-                            {tech}
-                          </Badge>
-                        ))}
-                        {p.technologies.length > 3 && (
-                          <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-0 text-[10px] px-2 py-0.5 rounded font-medium">
-                            +{p.technologies.length - 3} More
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
 
-                  {/* Footer Actions */}
-                  <div className="p-6 border-t border-border/30 bg-muted/10 grid grid-cols-2 gap-3">
-                    <Button asChild variant="outline" className="rounded-xl text-xs h-10 border-border/50 bg-white hover:bg-muted/85">
-                      <Link to="/projects/$id" params={{ id: p.id }}>
-                        View Details
-                      </Link>
-                    </Button>
-                    <Button asChild className="rounded-xl text-xs h-10 brand-gradient text-white border-0 font-semibold shadow hover:opacity-95">
-                      <Link to="/projects/$id/submit" params={{ id: p.id }}>
-                        Submit Solution
-                      </Link>
-                    </Button>
-                  </div>
-                </Card>
+                      {/* Title */}
+                      <h3 className="text-base font-extrabold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {p.title}
+                      </h3>
+
+                      {/* Background preview */}
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                        {p.business_background}
+                      </p>
+
+                      {/* Technologies list */}
+                      <div className="space-y-2.5 pt-1">
+                        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          <Code className="size-3.5" /> Tech Stack
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {p.technologies.slice(0, 3).map((tech: string, idx: number) => (
+                            <Badge key={idx} variant="secondary" className="bg-muted/50 text-muted-foreground border-0 text-[10px] px-2 py-0.5 rounded font-medium">
+                              {tech}
+                            </Badge>
+                          ))}
+                          {p.technologies.length > 3 && (
+                            <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-0 text-[10px] px-2 py-0.5 rounded font-medium">
+                              +{p.technologies.length - 3} More
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+
+                    {/* Footer Actions */}
+                    <div className="p-6 border-t border-border/30 bg-muted/10 grid grid-cols-2 gap-3">
+                      <Button asChild variant="outline" className="rounded-xl text-xs h-10 border-border/50 bg-white hover:bg-muted/85">
+                        <Link to="/projects/$id" params={{ id: p.id }}>
+                          View Details
+                        </Link>
+                      </Button>
+                      <Button asChild className="rounded-xl text-xs h-10 brand-gradient text-white border-0 font-semibold shadow hover:opacity-95">
+                        <Link to="/projects/$id/submit" params={{ id: p.id }}>
+                          Submit Solution
+                        </Link>
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </main>
     </div>

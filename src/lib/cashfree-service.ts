@@ -58,7 +58,7 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
       userId?: string | null;
       applicationId?: string | null;
       courseId?: string | null;
-      productType: "certificate" | "application" | "course" | "custom";
+      productType: "certificate" | "application" | "course" | "custom" | "premium_plan";
       productService?: string;
       customerName: string;
       customerEmail: string;
@@ -105,7 +105,19 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
     }
 
     // 1. Calculate price securely on server (Never trust client amount)
-    let calculatedAmount = 100; // Default ₹100 for certificate
+    // Always fetch live fee settings from public.fee_settings
+    const feeSettingsRes = await dbQuery(
+      "SELECT fee_type, amount, is_enabled, offer_enabled, offer_amount, offer_start_at, offer_end_at FROM public.fee_settings"
+    );
+    const certFeeSetting = feeSettingsRes.rows.find((r: any) => r.fee_type === "certificate");
+    const premFeeSetting = feeSettingsRes.rows.find((r: any) => r.fee_type === "premium_plan");
+    const appFeeSetting = feeSettingsRes.rows.find((r: any) => r.fee_type === "application");
+
+    const liveCertAmount = Number(certFeeSetting?.amount ?? 100);
+    const livePremAmount = Number(premFeeSetting?.amount ?? 200);
+    const liveAppAmount = Number(appFeeSetting?.amount ?? 0);
+
+    let calculatedAmount = liveCertAmount;
     let discountAmount = 0;
     let serviceTitle = data.productService || "Skyrovix Service";
 
@@ -121,24 +133,34 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
           );
         }
 
-        // Get application domain for title
+        // Get application domain & plan for title and price
         const appRes = await dbQuery(
-          "SELECT domain, course FROM public.applications WHERE id = $1",
+          "SELECT domain, course, plan_type, plan_fee, agreed_fee FROM public.applications WHERE id = $1",
           [applicationId]
         );
         if (appRes.rows.length > 0) {
           const d = appRes.rows[0];
-          serviceTitle = `Skyrovix Certificate — ${d.domain || d.course || "Internship"}`;
+          const isPremiumPlan = d.plan_type === "premium";
+          if (isPremiumPlan) {
+            calculatedAmount = Number(d.plan_fee) > 0 ? Number(d.plan_fee) : livePremAmount;
+            serviceTitle = `Skyrovix Full Stack Intensive Track Certificate (25/50 Projects + LOR) — ${d.domain || "Full Stack"}`;
+          } else {
+            calculatedAmount = liveCertAmount;
+            serviceTitle = `Skyrovix Certificate — ${d.domain || d.course || "Internship"}`;
+          }
         }
+      } else {
+        calculatedAmount = liveCertAmount;
       }
 
-      // Read fee settings
-      const feeRes = await dbQuery(
-        "SELECT amount, is_enabled, offer_enabled, offer_amount FROM public.fee_settings WHERE fee_type = 'certificate'"
-      );
-      if (feeRes.rows.length > 0) {
-        const row = feeRes.rows[0];
-        calculatedAmount = Number(row.amount ?? 100);
+      // Check promotional offer if standard certificate
+      if (certFeeSetting?.offer_enabled && applicationId) {
+        const nowMs = Date.now();
+        const startMs = certFeeSetting.offer_start_at ? new Date(certFeeSetting.offer_start_at).getTime() : 0;
+        const endMs = certFeeSetting.offer_end_at ? new Date(certFeeSetting.offer_end_at).getTime() : Infinity;
+        if (nowMs >= startMs && nowMs <= endMs) {
+          calculatedAmount = Number(certFeeSetting.offer_amount ?? 0);
+        }
       }
 
       // Apply coupon discount if provided
@@ -171,10 +193,7 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
       }
     } else if (productType === "application") {
       serviceTitle = "Skyrovix Internship Application Fee";
-      const feeRes = await dbQuery(
-        "SELECT amount FROM public.fee_settings WHERE fee_type = 'application'"
-      );
-      calculatedAmount = Number(feeRes.rows[0]?.amount ?? 0);
+      calculatedAmount = liveAppAmount;
       if (calculatedAmount <= 0) {
         throw new Error("Application fee is currently free.");
       }
@@ -186,6 +205,58 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
       if (courseRes.rows.length > 0) {
         serviceTitle = `Course: ${courseRes.rows[0].title}`;
         calculatedAmount = Number(courseRes.rows[0].price ?? 499);
+      }
+    } else if (productType === "premium_plan") {
+      serviceTitle = "Skyrovix Premium Internship Plan (3/6 Months)";
+      calculatedAmount = livePremAmount;
+
+      if (applicationId) {
+        const appRes = await dbQuery(
+          "SELECT domain, course, duration, plan_type, plan_payment_status, plan_fee FROM public.applications WHERE id = $1",
+          [applicationId]
+        );
+        if (appRes.rows.length > 0) {
+          const a = appRes.rows[0];
+          if (a.plan_payment_status === "paid") {
+            throw new Error("This premium enrollment is already paid and confirmed.");
+          }
+          if (Number(a.plan_fee) > 0) {
+            calculatedAmount = Number(a.plan_fee);
+          }
+          serviceTitle = `Skyrovix Premium Plan — ${a.domain || a.course || "Internship"} (${a.duration}M)`;
+        }
+      }
+
+      if (couponCode && couponCode.trim()) {
+        const cRes = await dbQuery(
+          "SELECT * FROM public.coupons WHERE LOWER(code) = LOWER($1) AND is_active = true",
+          [couponCode.trim()]
+        );
+        if (cRes.rows.length > 0) {
+          const c = cRes.rows[0];
+          const isExpired = c.expires_at && new Date(c.expires_at).getTime() < Date.now();
+          const applies = c.applies_to === "application" || c.applies_to === "both";
+          if (!isExpired && applies) {
+            if (
+              c.discount_type === "free" ||
+              (c.discount_type === "percentage" && Number(c.discount_value) >= 100)
+            ) {
+              discountAmount = calculatedAmount;
+            } else if (c.discount_type === "percentage") {
+              discountAmount = (calculatedAmount * Number(c.discount_value)) / 100;
+            } else {
+              discountAmount = Number(c.discount_value);
+            }
+          }
+          if (discountAmount > calculatedAmount) discountAmount = calculatedAmount;
+          calculatedAmount = Math.max(0, calculatedAmount - discountAmount);
+        }
+      }
+
+      if (calculatedAmount <= 0) {
+        throw new Error(
+          "The payable amount is ₹0 after discount. Please complete enrollment directly without payment gateway."
+        );
       }
     }
 
@@ -312,6 +383,17 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
             [existingOrder.entity_id]
           );
         }
+      } else if (existingOrder.product_type === "premium_plan" && existingOrder.entity_id) {
+        await dbQuery(
+          `UPDATE public.applications
+           SET plan_payment_status = 'paid',
+               plan_payment_id = COALESCE(plan_payment_id, $1),
+               plan_paid_at = COALESCE(plan_paid_at, now()),
+               status = 'approved',
+               updated_at = now()
+           WHERE id = $2`,
+          [existingOrder.cashfree_payment_id || orderId, existingOrder.entity_id]
+        );
       }
       return {
         success: true,
@@ -427,9 +509,9 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
           // 3. Add / update legacy payment_records for admin verification transparency
           await client.query(
             `INSERT INTO public.payment_records (
-               user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
-             ) VALUES ($1, $2, 'certificate', $3, $4, 'approved', now(), 'Verified instantly via Cashfree Payment Gateway')
-             ON CONFLICT DO NOTHING`,
+               id, user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
+             ) VALUES (UUID(), $1, $2, 'certificate', $3, $4, 'approved', NOW(), 'Verified instantly via Cashfree Payment Gateway')
+             ON DUPLICATE KEY UPDATE id=id`,
             [
               existingOrder.user_id,
               applicationId,
@@ -442,9 +524,12 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
           await client.query(
             `INSERT INTO public.payments (
                id, application_id, utr_number, amount, status, coupon_code, discount_amount, verified_at
-             ) VALUES ($1, $2, $3, $4, 'verified', $5, $6, now())
-             ON CONFLICT (application_id)
-             DO UPDATE SET utr_number = EXCLUDED.utr_number, amount = EXCLUDED.amount, status = 'verified', verified_at = now()`,
+             ) VALUES ($1, $2, $3, $4, 'verified', $5, $6, NOW())
+             ON DUPLICATE KEY UPDATE
+               utr_number = VALUES(utr_number),
+               amount = VALUES(amount),
+               status = 'verified',
+               verified_at = NOW()`,
             [
               existingOrder.id,
               applicationId,
@@ -474,9 +559,46 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
 
           await client.query(
             `INSERT INTO public.payment_records (
-               user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
-             ) VALUES ($1, $2, 'application', $3, $4, 'approved', now(), 'Verified instantly via Cashfree Payment Gateway')
-             ON CONFLICT DO NOTHING`,
+               id, user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
+             ) VALUES (UUID(), $1, $2, 'application', $3, $4, 'approved', NOW(), 'Verified instantly via Cashfree Payment Gateway')
+             ON DUPLICATE KEY UPDATE id=id`,
+            [
+              existingOrder.user_id,
+              applicationId,
+              existingOrder.amount,
+              cfPaymentId || orderId,
+            ]
+          );
+
+          const appRes = await client.query(
+            "SELECT * FROM public.applications WHERE id = $1",
+            [applicationId]
+          );
+          appForEmail = appRes.rows[0];
+        } else if (existingOrder.product_type === "premium_plan" && existingOrder.entity_id) {
+          const applicationId = existingOrder.entity_id;
+          await client.query(
+            `UPDATE public.applications
+             SET plan_payment_status = 'paid',
+                 plan_payment_id = $1,
+                 plan_payment_method = $2,
+                 plan_paid_at = COALESCE(plan_paid_at, now()),
+                 status = 'approved',
+                 offer_issued_at = COALESCE(offer_issued_at, now()),
+                 updated_at = now()
+             WHERE id = $3`,
+            [
+              cfPaymentId || orderId,
+              paymentMethod || "CASHFREE_GATEWAY",
+              applicationId,
+            ]
+          );
+
+          await client.query(
+            `INSERT INTO public.payment_records (
+               id, user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
+             ) VALUES (UUID(), $1, $2, 'application', $3, $4, 'approved', NOW(), 'Verified instantly via Cashfree Payment Gateway (Premium Plan)')
+             ON DUPLICATE KEY UPDATE id=id`,
             [
               existingOrder.user_id,
               applicationId,
@@ -526,16 +648,18 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
               }
             }).catch((err) => console.error("[Cashfree verify] Certificate email error:", err));
           }
-        } else if (existingOrder.product_type === "application") {
+        } else if (existingOrder.product_type === "application" || existingOrder.product_type === "premium_plan") {
           const targetEmail = (appForEmail.email || "").trim() || (existingOrder.customer_email || "").trim();
           if (targetEmail) {
             import("@/lib/email-helpers").then(async ({ sendOfferLetterEmail }) => {
+              const domainObj = getDomain(appForEmail.domain);
+              const domainName = domainObj?.name ?? appForEmail.domain ?? "Internship Track";
               const emailRes = await sendOfferLetterEmail({
                 to: targetEmail,
                 studentName: appForEmail.full_name || existingOrder.customer_name,
                 studentId: appForEmail.user_id || existingOrder.user_id || "",
                 internId: appForEmail.intern_id || "SKX-INTERN",
-                domainName: appForEmail.domain || "Internship Track",
+                domainName,
                 duration: appForEmail.duration || 1,
               });
               if (emailRes.success) {

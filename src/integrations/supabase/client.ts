@@ -79,8 +79,9 @@ class QueryBuilder {
   private _select: string = "*";
   private _values: any = null;
   private _filters: Array<{
-    type: "eq" | "neq" | "in" | "lte" | "gte" | "like" | "ilike";
+    type: "eq" | "neq" | "in" | "lte" | "gte" | "gt" | "lt" | "like" | "ilike" | "is" | "not" | "contains";
     column: string;
+    operator?: string;
     value?: any;
     values?: any[];
   }> = [];
@@ -89,13 +90,24 @@ class QueryBuilder {
   private _single = false;
   private _maybeSingle = false;
 
+  private _count?: "exact" | "planned" | "estimated";
+  private _head?: boolean;
+
   constructor(table: string) {
     this._table = table;
   }
 
-  select(columns: string = "*") {
+  select(columns: string = "*", options?: { count?: "exact" | "planned" | "estimated"; head?: boolean }) {
+    if (this._action !== "select") {
+      this._select = columns;
+      if (options?.count) this._count = options.count;
+      if (options?.head !== undefined) this._head = options.head;
+      return this;
+    }
     this._action = "select";
     this._select = columns;
+    if (options?.count) this._count = options.count;
+    if (options?.head !== undefined) this._head = options.head;
     return this;
   }
 
@@ -132,8 +144,18 @@ class QueryBuilder {
     return this;
   }
 
-  in(column: string, values: any[]) {
-    this._filters.push({ type: "in", column, values });
+  gt(column: string, value: any) {
+    this._filters.push({ type: "gt", column, value });
+    return this;
+  }
+
+  gte(column: string, value: any) {
+    this._filters.push({ type: "gte", column, value });
+    return this;
+  }
+
+  lt(column: string, value: any) {
+    this._filters.push({ type: "lt", column, value });
     return this;
   }
 
@@ -142,8 +164,23 @@ class QueryBuilder {
     return this;
   }
 
-  gte(column: string, value: any) {
-    this._filters.push({ type: "gte", column, value });
+  is(column: string, value: any) {
+    this._filters.push({ type: "is", column, value });
+    return this;
+  }
+
+  not(column: string, operator: string, value: any) {
+    this._filters.push({ type: "not", column, operator, value });
+    return this;
+  }
+
+  contains(column: string, value: any) {
+    this._filters.push({ type: "contains", column, value });
+    return this;
+  }
+
+  in(column: string, values: any[]) {
+    this._filters.push({ type: "in", column, values });
     return this;
   }
 
@@ -154,6 +191,11 @@ class QueryBuilder {
 
   ilike(column: string, pattern: string) {
     this._filters.push({ type: "ilike", column, value: pattern });
+    return this;
+  }
+
+  range(from: number, to: number) {
+    this._limit = to - from + 1;
     return this;
   }
 
@@ -177,7 +219,7 @@ class QueryBuilder {
     return this;
   }
 
-  async execute(): Promise<{ data: any; error: any }> {
+  async execute(): Promise<{ data: any; count: number | null; error: any }> {
     const payload = {
       table: this._table,
       action: this._action,
@@ -188,16 +230,23 @@ class QueryBuilder {
       limit: this._limit,
       single: this._single,
       maybeSingle: this._maybeSingle,
+      count: this._count,
+      head: this._head,
     };
 
     try {
-      return await runMysqlQueryServerFn({ data: payload });
+      const res = await runMysqlQueryServerFn({ data: payload });
+      return {
+        data: res?.data ?? null,
+        count: res?.count ?? (Array.isArray(res?.data) ? res.data.length : null),
+        error: res?.error ?? null,
+      };
     } catch (err: any) {
-      return { data: null, error: { message: err.message || "Query failed" } };
+      return { data: null, count: null, error: { message: err.message || "Query failed" } };
     }
   }
 
-  then(onfulfilled?: (value: { data: any; error: any }) => any, onrejected?: (reason: any) => any) {
+  then(onfulfilled?: (value: { data: any; count: number | null; error: any }) => any, onrejected?: (reason: any) => any) {
     return this.execute().then(onfulfilled, onrejected);
   }
 }
@@ -210,6 +259,9 @@ export const supabase = {
     },
 
     async getUser(token?: string): Promise<{ data: { user: User | null }; error: any }> {
+      if (typeof window === "undefined") {
+        return { data: { user: null }, error: null };
+      }
       const activeToken = token || getStoredSession()?.access_token;
       if (!activeToken) {
         return { data: { user: null }, error: null };

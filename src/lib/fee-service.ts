@@ -31,6 +31,14 @@ export interface PublicFeeSettings {
     payee_name?: string;
     qr_code_url?: string | null;
   };
+  premiumPlan: {
+    isEnabled: boolean;
+    enabled?: boolean;
+    amount: number;
+    upi_id?: string;
+    payee_name?: string;
+    qr_code_url?: string | null;
+  };
   certificateOffer: CertificateOfferInfo;
   upi: {
     upiId: string;
@@ -42,7 +50,7 @@ export interface PublicFeeSettings {
 export interface AdminFeeSettingsResponse {
   settings: Array<{
     id: string;
-    fee_type: "application" | "certificate";
+    fee_type: "application" | "certificate" | "premium_plan";
     amount: number;
     is_enabled: boolean;
     upi_id: string;
@@ -140,44 +148,6 @@ export function evaluateOfferStatus(
   return { isActive: true, status: "active" };
 }
 
-// Client-safe backward-compatible function stubs that delegate to server when run in Node/SSR
-export async function checkIsAdmin(userId?: string | null): Promise<boolean> {
-  const { checkIsAdmin: fn } = await import("@/lib/fee-service.server");
-  return fn(userId);
-}
-
-export async function fetchPublicFeeSettings(): Promise<PublicFeeSettings> {
-  const { fetchPublicFeeSettings: fn } = await import("@/lib/fee-service.server");
-  return fn();
-}
-
-export async function validateCouponLogic(data: {
-  code: string;
-  userId?: string;
-  applicationId?: string;
-  domain?: string;
-  target?: "certificate" | "application";
-}): Promise<CouponValidationResult> {
-  const { validateCouponLogic: fn } = await import("@/lib/fee-service.server");
-  return fn(data);
-}
-
-export async function submitPaymentProofLogic(data: {
-  userId: string;
-  applicationId?: string | null;
-  paymentType: "application" | "certificate";
-  utrNumber: string;
-  screenshotUrl?: string | null;
-  couponCode?: string | null;
-}) {
-  const { submitPaymentProofLogic: fn } = await import("@/lib/fee-service.server");
-  return fn(data);
-}
-
-export async function syncApplicationTaskStatus(applicationId: string) {
-  const { syncApplicationTaskStatus: fn } = await import("@/lib/fee-service.server");
-  return fn(applicationId);
-}
 
 // ==========================================================
 // CREATE SERVER FN RPC ENDPOINTS
@@ -202,6 +172,7 @@ export const updateAdminFeeSettings = createServerFn({ method: "POST" })
     adminId: string;
     applicationFee: { amount: number; isEnabled: boolean };
     certificateFee: { amount: number; isEnabled: boolean };
+    premiumPlan?: { amount: number; isEnabled: boolean };
     certificateOffer?: {
       isEnabled: boolean;
       amount: number;
@@ -364,6 +335,7 @@ export const submitApplicationServer = createServerFn({ method: "POST" })
     pincode?: string | null;
     hearAbout?: string | null;
     referralName?: string | null;
+    planType?: "standard" | "premium";
   })
   .handler(async ({ data }) => {
     const { submitApplicationServer } = await import("@/lib/fee-service.server");

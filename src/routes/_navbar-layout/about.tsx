@@ -71,7 +71,7 @@ function AboutPage() {
       <AuroraBackground>
         <section className="mx-auto max-w-5xl px-4 pt-4 sm:pt-8 pb-12 sm:pb-20 md:pb-24 text-center">
           <FadeUp>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#07284a]/15 bg-white/60 dark:bg-[#0f172a]/60 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-medium text-[#07284a] dark:text-[#60a5fa] shadow-sm backdrop-blur mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur mb-6">
               <Sparkles className="size-3 sm:size-3.5" /> About Skyrovix
             </div>
             <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
@@ -86,12 +86,12 @@ function AboutPage() {
       </AuroraBackground>
 
       {/* ─── MISSION + STATS ─── */}
-      <section className="border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/50 py-20 sm:py-24">
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div>
-                <p className="inline-flex items-center gap-1.5 rounded-full border border-[#07284a]/30 bg-[#07284a]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#07284a] uppercase mb-4">
+                <p className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-4">
                   Our Mission
                 </p>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.15]">
@@ -125,8 +125,8 @@ function AboutPage() {
                   { value: "₹0", label: "Application fee" },
                 ].map((s, i) => (
                   <FadeUp key={s.label} delay={0.1 + i * 0.08}>
-                    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 p-6 text-center card-elevated hover:card-elevated-hover">
-                      <div className="absolute -top-6 -right-6 size-20 rounded-full bg-[#07284a]/5 dark:bg-[#07284a]/10 blur-2xl" />
+                    <div className="relative overflow-hidden rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-6 text-center card-elevated hover:card-elevated-hover">
+                      <div className="absolute -top-6 -right-6 size-20 rounded-full bg-[#f95c4b]/5 dark:bg-[#f95c4b]/10 blur-2xl" />
                       <div className="relative">
                         <div className="text-3xl font-bold brand-text">{s.value}</div>
                         <div className="mt-1 text-sm text-muted-foreground">{s.label}</div>
@@ -135,7 +135,7 @@ function AboutPage() {
                   </FadeUp>
                 ))}
                 <FadeUp delay={0.35}>
-                  <div className="col-span-2 flex items-center gap-3.5 rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 p-4 card-elevated hover:card-elevated-hover">
+                  <div className="col-span-2 flex items-center gap-3.5 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-4 card-elevated hover:card-elevated-hover">
                     <img src={msme} alt="MSME Registered" className="h-10 w-auto object-contain" />
                     <div className="text-xs">
                       <p className="font-semibold text-slate-800 dark:text-slate-200">Govt. Registered Enterprise</p>
@@ -154,7 +154,7 @@ function AboutPage() {
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#0f172a]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#201d22]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
                 What We Stand For
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Values</h2>
@@ -168,8 +168,8 @@ function AboutPage() {
               { icon: Building2, title: "MSME Registered", desc: "Registered under Govt. of India MSME (UDYAM-TN-17-0076606)." },
             ].map((v, i) => (
               <FadeUp key={v.title} delay={0.1 + i * 0.1}>
-                <div className="group rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 p-6 transition-all card-elevated hover:card-elevated-hover text-center sm:text-left">
-                  <div className="mx-auto sm:mx-0 grid size-11 place-items-center rounded-xl bg-[#07284a]/10 dark:bg-[#07284a]/20 text-[#07284a] dark:text-[#60a5fa] transition-all group-hover:bg-[#07284a] group-hover:text-white">
+                <div className="group rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-6 transition-all card-elevated hover:card-elevated-hover text-center sm:text-left">
+                  <div className="mx-auto sm:mx-0 grid size-11 place-items-center rounded-xl bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 text-[#f95c4b] dark:text-[#ee9590] transition-all group-hover:bg-[#f95c4b] group-hover:text-white">
                     <v.icon className="size-5" />
                   </div>
                   <h3 className="mt-4 font-semibold">{v.title}</h3>
@@ -182,11 +182,11 @@ function AboutPage() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/50 py-20 sm:py-24">
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#0f172a]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#201d22]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
                 <GraduationCap className="size-3.5" /> How It Works
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Your internship journey</h2>
@@ -201,11 +201,11 @@ function AboutPage() {
               { step: "04", icon: BadgeCheck, title: "Earn Certificate", desc: "Finish your track, get a QR-verified certificate. Share it on LinkedIn, resume, everywhere." },
             ].map((s, i) => (
               <FadeUp key={s.step} delay={0.1 + i * 0.1}>
-                <div className="group relative rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 p-6 transition-all card-elevated hover:card-elevated-hover">
-                  <div className="absolute -top-3 -right-3 flex size-8 items-center justify-center rounded-full bg-[#07284a] text-[10px] font-bold text-white shadow-sm">
+                <div className="group relative rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-6 transition-all card-elevated hover:card-elevated-hover">
+                  <div className="absolute -top-3 -right-3 flex size-8 items-center justify-center rounded-full bg-[#f95c4b] text-[10px] font-bold text-white shadow-sm shadow-[#f95c4b]/30">
                     {s.step}
                   </div>
-                  <div className="grid size-11 place-items-center rounded-xl bg-[#07284a]/10 dark:bg-[#07284a]/20 text-[#07284a] dark:text-[#60a5fa] transition-all group-hover:bg-[#07284a] group-hover:text-white">
+                  <div className="grid size-11 place-items-center rounded-xl bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 text-[#f95c4b] dark:text-[#ee9590] transition-all group-hover:bg-[#f95c4b] group-hover:text-white">
                     <s.icon className="size-5" />
                   </div>
                   <h3 className="mt-4 font-semibold">{s.title}</h3>
@@ -218,11 +218,11 @@ function AboutPage() {
       </section>
 
       {/* ─── THE SKYROVIX PLATFORM & ORGANIZATION DETAILS ─── */}
-      <section className="relative border-y border-border/40 bg-[#f8fafc]/50 dark:bg-[#020617]/50 overflow-hidden py-20 sm:py-28">
+      <section className="relative border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] overflow-hidden py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>
             <div className="text-center mb-14 sm:mb-20">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#0f172a]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#201d22]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
                 <Sparkles className="size-3.5" /> Organization &amp; Ecosystem
               </div>
               <h2 className="text-3xl sm:text-5xl font-bold tracking-tight">
@@ -238,9 +238,9 @@ function AboutPage() {
           <div className="grid lg:grid-cols-2 gap-8 items-stretch">
             {/* Column 1: Core Company & Mission */}
             <Reveal className="h-full">
-              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-border/60 bg-white/70 dark:bg-[#0f172a]/70 p-8 sm:p-10 shadow-sm backdrop-blur">
+              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-border/60 bg-white/70 dark:bg-[#201d22]/70 p-8 sm:p-10 shadow-sm backdrop-blur">
                 <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#07284a]/20 bg-[#07284a]/10 px-3 py-1 text-xs font-semibold text-[#07284a] dark:text-[#60a5fa] uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-semibold text-[#f95c4b] dark:text-[#ee9590] uppercase tracking-wider">
                     <Building2 className="size-3.5" /> Company Profile
                   </div>
 
@@ -267,15 +267,15 @@ function AboutPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-[#07284a]/10 bg-[#07284a]/5 dark:bg-[#07284a]/15 p-4 flex items-start gap-3">
-                    <Quote className="mt-0.5 size-4 shrink-0 text-[#07284a]" />
+                  <div className="rounded-2xl border border-[#f95c4b]/15 bg-[#f95c4b]/5 dark:bg-[#f95c4b]/10 p-4 flex items-start gap-3">
+                    <Quote className="mt-0.5 size-4 shrink-0 text-[#f95c4b] dark:text-[#ee9590]" />
                     <p className="text-xs text-muted-foreground italic leading-relaxed">
                       &ldquo;Our vision is simple: ensure every engineering, arts, and science student graduates with functional, portfolio-ready code and an authentic understanding of real-world software development.&rdquo;
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-border/40 mt-8 grid grid-cols-2 gap-4">
+                <div className="pt-8 border-t border-[#e5e7eb] dark:border-white/10 mt-8 grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Headquarters</p>
                     <p className="text-sm font-bold text-foreground mt-0.5">Tamil Nadu, India</p>
@@ -290,7 +290,7 @@ function AboutPage() {
 
             {/* Column 2: Platform Standards & Trust */}
             <Reveal className="h-full" delay={0.15}>
-              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-border/60 bg-white/70 dark:bg-[#0f172a]/70 p-8 sm:p-10 shadow-sm backdrop-blur">
+              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-border/60 bg-white/70 dark:bg-[#201d22]/70 p-8 sm:p-10 shadow-sm backdrop-blur">
                 <div className="space-y-6">
                   <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50/60 dark:bg-emerald-950/30 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                     <ShieldCheck className="size-3.5" /> Integrity &amp; Verification
@@ -305,27 +305,27 @@ function AboutPage() {
                   </p>
 
                   <div className="grid gap-3.5 pt-2">
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                        <Award className="size-4 text-blue-600" /> Tamper-Proof Cryptographic Certificates
+                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#28242b] border border-border/60 space-y-1">
+                      <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                        <Award className="size-4 text-[#f95c4b]" /> Tamper-Proof Cryptographic Certificates
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Every certificate includes a unique Certificate ID, cryptographic SHA verification hash, and direct QR code authentication via <code className="text-blue-600 font-mono">/verify-certificate</code>.
+                        Every certificate includes a unique Certificate ID, cryptographic SHA verification hash, and direct QR code authentication via <code className="text-[#f95c4b] font-mono">/verify-certificate</code>.
                       </p>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                        <Search className="size-4 text-purple-600" /> Mentor Review &amp; Code Quality Audits
+                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#28242b] border border-border/60 space-y-1">
+                      <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                        <Search className="size-4 text-[#f95c4b]" /> Mentor Review &amp; Code Quality Audits
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         Experienced developers review student pull requests and hosted deployments. Constructive revisions ensure work meets genuine production benchmarks.
                       </p>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                        <Lock className="size-4 text-emerald-600" /> Student Data Security &amp; Privacy
+                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#28242b] border border-border/60 space-y-1">
+                      <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                        <Lock className="size-4 text-emerald-600 dark:text-emerald-400" /> Student Data Security &amp; Privacy
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         Enterprise-level PostgreSQL database security with Row-Level Security (RLS) and a strict zero-data-selling guarantee.
@@ -334,7 +334,7 @@ function AboutPage() {
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-border/40 mt-8 grid grid-cols-2 gap-4">
+                <div className="pt-8 border-t border-[#e5e7eb] dark:border-white/10 mt-8 grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Recognition</p>
                     <p className="text-sm font-bold text-foreground mt-0.5">Govt. MSME Certified</p>
@@ -349,7 +349,7 @@ function AboutPage() {
           </div>
 
           {/* Technology Domains Grid */}
-          <div className="mt-12 sm:mt-16 rounded-3xl border border-border/60 bg-white/50 dark:bg-[#0f172a]/50 p-6 sm:p-10 text-center">
+          <div className="mt-12 sm:mt-16 rounded-3xl border border-border/60 bg-white/50 dark:bg-[#201d22]/50 p-6 sm:p-10 text-center">
             <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3">Industry-Ready Domains Offered at Skyrovix</h3>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
               Our structured internship curricula cover the full spectrum of high-demand technology disciplines:
@@ -361,7 +361,7 @@ function AboutPage() {
                 "UI/UX Product Design", "Cyber Security", "Android App Development", "Flutter & React Native",
                 "Data Analytics & Power BI", "Database Management", "Prompt Engineering", "Software Testing"
               ].map((domain) => (
-                <span key={domain} className="rounded-xl border border-border/60 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 shadow-2xs">
+                <span key={domain} className="rounded-xl border border-border/60 bg-white dark:bg-[#201d22] px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs">
                   {domain}
                 </span>
               ))}
@@ -374,21 +374,38 @@ function AboutPage() {
       <section className="px-4 py-20 sm:py-24">
         <div className="mx-auto max-w-5xl">
           <Reveal>
-            <div className="relative overflow-hidden rounded-3xl border border-[#07284a]/20 bg-gradient-to-br from-[#07284a] via-[#0d3b66] to-[#1d4ed8] p-8 sm:p-12 md:p-16 text-center text-white shadow-2xl shadow-[#07284a]/25">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_50%)]" />
-              <div className="absolute -right-20 -top-20 size-80 rounded-full bg-white/5 blur-3xl" />
-              <div className="absolute -bottom-20 -left-20 size-60 rounded-full bg-white/5 blur-3xl" />
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#181619] via-[#201d22] to-[#181619] border border-white/10 p-8 sm:p-12 md:p-16 text-center text-white shadow-2xl shadow-black/40">
+              {/* Diagonal light overlay */}
+              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_40%,rgba(255,255,255,0.02)_50%,transparent_60%)]" />
+
+              {/* Glow orbs */}
+              <div className="absolute -top-32 -right-32 size-[450px] rounded-full bg-[#f95c4b]/20 blur-[120px]" />
+              <div className="absolute -bottom-32 -left-32 size-[350px] rounded-full bg-[#ee9590]/15 blur-[100px]" />
+
+              {/* Decorative rings */}
+              <div className="absolute top-10 right-10 size-32 rounded-full border border-white/5" />
+              <div className="absolute top-16 right-16 size-48 rounded-full border border-white/5" />
+              <div className="absolute -bottom-8 -left-8 size-40 rounded-full border border-white/5" />
+
               <div className="relative">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Be part of the Skyrovix journey</h2>
-                <p className="mt-3 text-sm sm:text-base text-white/80 max-w-lg mx-auto">Get your offer letter in seconds. No application fee.</p>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/8 px-4 py-1.5 text-xs font-medium text-white/70 border border-white/10 mb-5 backdrop-blur-sm">
+                  <span className="size-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                  Instant Offer Letter &amp; Verified Certificate
+                </div>
+                <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight leading-[1.15] text-white">
+                  Be part of the <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-white bg-clip-text text-transparent">Skyrovix journey</span>
+                </h2>
+                <p className="mt-3 text-sm sm:text-base text-white/70 max-w-lg mx-auto leading-relaxed">
+                  Get your offer letter in seconds. No application fee.
+                </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-3">
-                  <Link to="/domains">
-                    <span className="group inline-flex items-center gap-2 rounded-xl bg-white text-[#07284a] px-7 py-3.5 text-sm font-semibold shadow-lg hover:bg-white/90 transition-all btn-premium hover:btn-premium-hover active:btn-premium-active cursor-pointer">
+                  <Link to="/internship">
+                    <span className="group inline-flex items-center gap-2 rounded-xl bg-[#f95c4b] text-white px-7 py-3.5 text-sm font-bold shadow-xl shadow-[#f95c4b]/30 hover:bg-[#e04b3a] transition-all btn-premium hover:btn-premium-hover active:btn-premium-active cursor-pointer">
                       Browse Internships <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                     </span>
                   </Link>
                   <Link to="/contact">
-                    <span className="inline-flex items-center gap-2 rounded-xl bg-transparent border-2 border-white/30 text-white px-7 py-3.5 text-sm font-semibold hover:bg-white/10 transition-all btn-premium active:btn-premium-active cursor-pointer">
+                    <span className="inline-flex items-center gap-2 rounded-xl bg-white/5 border border-white/15 text-white/90 px-7 py-3.5 text-sm font-semibold hover:bg-white/10 hover:text-white backdrop-blur-sm transition-all btn-premium active:btn-premium-active cursor-pointer">
                       Get in Touch
                     </span>
                   </Link>

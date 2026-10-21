@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { durationConfig, getDomain } from "@/lib/constants";
 import { downloadOfferLetter } from "@/components/pdf-docs";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/sk-logo-transparent.png";
 import seal from "@/assets/seal.jpg";
 import msme from "@/assets/msme.png";
 import sigFounder from "@/assets/hari sig.jpeg";
@@ -131,16 +131,16 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white dark:bg-slate-900 border-b border-border/60 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="grid size-9 sm:size-10 shrink-0 place-items-center rounded-xl bg-[#07284a] text-white shadow-xs ring-2 ring-[#07284a]/20">
-              <FileText className="size-4 sm:size-5 text-sky-400" />
+            <div className="grid size-9 sm:size-10 shrink-0 place-items-center rounded-xl bg-[#181619] text-[#f95c4b] shadow-xs ring-2 ring-[#f95c4b]/20">
+              <FileText className="size-4 sm:size-5 text-[#f95c4b]" />
             </div>
             <div className="truncate">
               <div className="flex items-center gap-2">
                 <DialogTitle className="text-sm sm:text-base font-bold text-foreground truncate">
                   Internship Offer Letter
                 </DialogTitle>
-                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#f95c4b]/10 text-[#f95c4b] border border-[#f95c4b]/20">
+                  <span className="size-1.5 rounded-full bg-[#f95c4b] animate-pulse" />
                   Official Credential
                 </span>
               </div>
@@ -156,7 +156,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
             <Button
               size="sm"
               variant="outline"
-              className="h-8 sm:h-9 text-xs rounded-xl gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60"
+              className="h-8 sm:h-9 text-xs rounded-xl gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer"
               onClick={handleCopyId}
               title="Copy Intern ID"
             >
@@ -167,7 +167,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
             <Button
               size="sm"
               variant="outline"
-              className="h-8 sm:h-9 text-xs rounded-xl gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60"
+              className="h-8 sm:h-9 text-xs rounded-xl gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer"
               onClick={handlePrint}
               title="Print Offer Letter"
             >
@@ -177,7 +177,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
 
             <Button
               size="sm"
-              className="brand-gradient text-white rounded-xl h-8 sm:h-9 text-xs font-bold gap-1.5 shadow-xs hover:shadow-md transition-all"
+              className="brand-gradient text-white rounded-xl h-8 sm:h-9 text-xs font-bold gap-1.5 shadow-xs hover:shadow-md transition-all cursor-pointer"
               onClick={handleDownload}
               disabled={downloading}
             >
@@ -197,7 +197,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
             <Button
               size="sm"
               variant="ghost"
-              className="size-8 sm:size-9 p-0 rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="size-8 sm:size-9 p-0 rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               onClick={() => onOpenChange(false)}
               title="Close Preview"
             >
@@ -223,10 +223,10 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 />
                 <div className="h-9 w-px bg-slate-300 mx-0.5" />
                 <div>
-                  <h2 className="text-base sm:text-lg font-black tracking-wide text-[#07284a] leading-tight">
+                  <h2 className="text-base sm:text-lg font-black tracking-wide text-[#181619] leading-tight">
                     SKYROVIX
                   </h2>
-                  <p className="text-[11px] font-bold text-sky-500 leading-tight">
+                  <p className="text-[11px] font-bold text-[#f95c4b] leading-tight">
                     Empowering Future Innovators
                   </p>
                   <p className="text-[10px] text-slate-500 mt-0.5">
@@ -240,13 +240,13 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                   INTERNSHIP ID
                 </div>
-                <div className="text-xs sm:text-sm font-black font-mono text-[#07284a]">
+                <div className="text-xs sm:text-sm font-black font-mono text-[#f95c4b]">
                   {app.intern_id}
                 </div>
                 <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">
                   ISSUE DATE
                 </div>
-                <div className="text-xs font-bold text-[#07284a]">
+                <div className="text-xs font-bold text-[#181619]">
                   {dateStr}
                 </div>
               </div>
@@ -254,10 +254,10 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
 
             {/* Document Title Banner */}
             <div className="mt-4 mb-3">
-              <h1 className="text-lg sm:text-xl font-black tracking-wide uppercase text-[#07284a]">
+              <h1 className="text-lg sm:text-xl font-black tracking-wide uppercase text-[#181619]">
                 INTERNSHIP OFFER LETTER
               </h1>
-              <p className="text-xs font-bold text-[#b45309] mt-0.5">
+              <p className="text-xs font-bold text-[#f95c4b] mt-0.5">
                 Date: {dateStr}
               </p>
             </div>
@@ -280,7 +280,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
 
             {/* Table: INTERNSHIP PROGRAM PARTICULARS (8 Rows) */}
             <div className="rounded border border-slate-300 overflow-hidden mb-4 shadow-2xs">
-              <div className="bg-[#07284a] text-white px-3.5 py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
+              <div className="bg-[#181619] text-white px-3.5 py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
                 INTERNSHIP PROGRAM PARTICULARS
               </div>
               <div className="text-xs divide-y divide-slate-200">
@@ -288,15 +288,15 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   <span className="col-span-5 text-slate-600 font-medium">Internship Track</span>
                   <span className="col-span-7 font-bold text-slate-900">{domainName}</span>
                 </div>
-                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-slate-50">
+                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-[#faf8f2]">
                   <span className="col-span-5 text-slate-600 font-medium">Intern ID</span>
-                  <span className="col-span-7 font-mono font-bold text-slate-900">{app.intern_id}</span>
+                  <span className="col-span-7 font-mono font-bold text-[#f95c4b]">{app.intern_id}</span>
                 </div>
                 <div className="grid grid-cols-12 px-3.5 py-1.5 bg-white">
                   <span className="col-span-5 text-slate-600 font-medium">Program Duration</span>
                   <span className="col-span-7 font-bold text-slate-900">{durLabel}</span>
                 </div>
-                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-slate-50">
+                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-[#faf8f2]">
                   <span className="col-span-5 text-slate-600 font-medium">Commencement Date</span>
                   <span className="col-span-7 font-bold text-slate-900">{dateStr}</span>
                 </div>
@@ -304,7 +304,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   <span className="col-span-5 text-slate-600 font-medium">Estimated Completion</span>
                   <span className="col-span-7 font-bold text-slate-900">{endDateStr}</span>
                 </div>
-                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-slate-50">
+                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-[#faf8f2]">
                   <span className="col-span-5 text-slate-600 font-medium">Stipend Specification</span>
                   <span className="col-span-7 font-bold text-slate-900">Unpaid (Performance-Based Internship)</span>
                 </div>
@@ -312,16 +312,17 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   <span className="col-span-5 text-slate-600 font-medium">Location & Model</span>
                   <span className="col-span-7 font-bold text-slate-900">Remote / Virtual (Task-Based, Flexible Hours)</span>
                 </div>
-                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-slate-50">
+                <div className="grid grid-cols-12 px-3.5 py-1.5 bg-[#faf8f2]">
                   <span className="col-span-5 text-slate-600 font-medium">Official Domain Portal</span>
-                  <span className="col-span-7 font-mono font-bold text-slate-900">https://skyrovix.in</span>
+                  <span className="col-span-7 font-mono font-bold text-[#181619]">https://skyrovix.in</span>
                 </div>
               </div>
             </div>
 
             {/* Card 1: GENERAL TERMS & CONDITIONS OF INTERNSHIP (5 terms) */}
-            <div className="rounded-md bg-slate-50 border border-slate-200/90 p-3 sm:p-3.5 mb-3">
-              <h3 className="text-[11px] sm:text-xs font-bold text-[#07284a] uppercase tracking-wide mb-2">
+            <div className="rounded-md bg-[#faf8f2] border border-slate-200/90 p-3 sm:p-3.5 mb-3">
+              <h3 className="text-[11px] sm:text-xs font-bold text-[#181619] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-[#f95c4b]" />
                 GENERAL TERMS & CONDITIONS OF INTERNSHIP:
               </h3>
               <div className="space-y-1.5 text-xs text-slate-600 leading-snug">
@@ -344,8 +345,9 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
             </div>
 
             {/* Card 2: CERTIFICATE OF COMPLETION */}
-            <div className="rounded-md bg-slate-50 border border-slate-200/90 p-3 sm:p-3.5 mb-3">
-              <h3 className="text-[11px] sm:text-xs font-bold text-[#07284a] uppercase tracking-wide mb-1">
+            <div className="rounded-md bg-[#faf8f2] border border-slate-200/90 p-3 sm:p-3.5 mb-3">
+              <h3 className="text-[11px] sm:text-xs font-bold text-[#f95c4b] uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-[#f95c4b]" />
                 CERTIFICATE OF COMPLETION
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -367,11 +369,11 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   alt="Founder Signature"
                   className="h-14 sm:h-16 object-contain mb-1"
                 />
-                <div className="w-40 sm:w-44 border-t-2 border-slate-700 mb-1" />
-                <span className="text-xs sm:text-[13px] font-bold text-[#07284a]">
+                <div className="w-40 sm:w-44 border-t-2 border-[#181619] mb-1" />
+                <span className="text-xs sm:text-[13px] font-bold text-[#181619]">
                   Hariharan S
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-[#f95c4b] uppercase tracking-wider">
                   Founder & CEO
                 </span>
                 <span className="text-[9px] text-slate-400">
@@ -398,11 +400,11 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   alt="Co-Founder Signature"
                   className="h-14 sm:h-16 object-contain mb-1"
                 />
-                <div className="w-40 sm:w-44 border-t-2 border-slate-700 mb-1" />
-                <span className="text-xs sm:text-[13px] font-bold text-[#07284a]">
+                <div className="w-40 sm:w-44 border-t-2 border-[#181619] mb-1" />
+                <span className="text-xs sm:text-[13px] font-bold text-[#181619]">
                   Maheshwaran S
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-[#f95c4b] uppercase tracking-wider">
                   Co-Founder
                 </span>
                 <span className="text-[9px] text-slate-400">
@@ -430,13 +432,13 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
 
               {/* Center: Legal entity & UDYAM */}
               <div className="flex-1 text-center text-slate-600">
-                <div className="font-bold text-[#07284a] text-xs sm:text-sm tracking-tight">
+                <div className="font-bold text-[#181619] text-xs sm:text-sm tracking-tight">
                   SKYROVIX
                 </div>
                 <div className="text-slate-600 text-[10px] sm:text-[11px] font-medium mt-0.5">
                   UDYAM Registry: UDYAM-TN-17-0076606
                 </div>
-                <div className="text-sky-600 text-[10px] sm:text-[11px] font-semibold mt-0.5">
+                <div className="text-[#f95c4b] text-[10px] sm:text-[11px] font-semibold mt-0.5">
                   skyrovix@gmail.com | www.skyrovix.in
                 </div>
               </div>

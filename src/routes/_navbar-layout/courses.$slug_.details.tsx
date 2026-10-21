@@ -399,7 +399,7 @@ function CourseDetailsPage() {
         <div className="space-y-12">
           {/* Overview */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">Course Description</h2>
+            <h2 className="text-xl font-bold text-foreground">Course Description</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {longDescription}
             </p>
@@ -407,7 +407,7 @@ function CourseDetailsPage() {
 
           {/* Learning Outcomes Grid */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">What You Will Learn</h2>
+            <h2 className="text-xl font-bold text-foreground">What You Will Learn</h2>
             <div className="grid sm:grid-cols-2 gap-3.5">
               {learningOutcomes.map((item, idx) => (
                 <div key={idx} className="flex gap-2.5 items-start p-3.5 rounded-xl border border-border/40 bg-white/40 dark:bg-[#0f172a]/40 backdrop-blur-sm">
@@ -420,7 +420,7 @@ function CourseDetailsPage() {
 
           {/* Curriculum Accordion */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">Course Syllabus</h2>
+            <h2 className="text-xl font-bold text-foreground">Course Syllabus</h2>
             {modules.length === 0 ? (
               <p className="text-sm text-muted-foreground italic">Syllabus details loading or no topics available yet.</p>
             ) : (
@@ -431,7 +431,7 @@ function CourseDetailsPage() {
                     value={`item-${idx}`}
                     className="border border-border/50 rounded-xl px-4 bg-white/50 dark:bg-[#0f172a]/50 backdrop-blur-sm overflow-hidden"
                   >
-                    <AccordionTrigger className="hover:no-underline py-4 text-sm font-bold text-[#07284a] dark:text-[#60a5fa]">
+                    <AccordionTrigger className="hover:no-underline py-4 text-sm font-bold text-foreground">
                       <div className="flex items-center gap-3 text-left">
                         <span className="flex-1">{mod.title}</span>
                         <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold border-0">
@@ -459,7 +459,7 @@ function CourseDetailsPage() {
 
           {/* Projects Gained */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">Hands-on Projects</h2>
+            <h2 className="text-xl font-bold text-foreground">Hands-on Projects</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {projects.map((proj, idx) => (
                 <Card key={idx} className="bg-white/40 dark:bg-[#0f172a]/40 border-border/50">
@@ -479,7 +479,7 @@ function CourseDetailsPage() {
 
           {/* Skills badge list */}
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">Skills Gained</h2>
+            <h2 className="text-xl font-bold text-foreground">Skills Gained</h2>
             <div className="flex flex-wrap gap-2">
               {skills.map((skill, idx) => (
                 <Badge key={idx} variant="secondary" className="rounded-lg px-2.5 py-1 text-xs bg-muted/60 text-muted-foreground border-0 font-medium">
@@ -491,7 +491,7 @@ function CourseDetailsPage() {
 
           {/* Prerequisites */}
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">Course Prerequisites</h2>
+            <h2 className="text-xl font-bold text-foreground">Course Prerequisites</h2>
             <ul className="space-y-2">
               {prerequisites.map((pre, idx) => (
                 <li key={idx} className="flex gap-2.5 items-center text-xs text-muted-foreground">
@@ -504,7 +504,7 @@ function CourseDetailsPage() {
 
           {/* Benefits */}
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">Benefits Checklist</h2>
+            <h2 className="text-xl font-bold text-foreground">Benefits Checklist</h2>
             <div className="grid sm:grid-cols-2 gap-2">
               {benefits.map((ben, idx) => (
                 <div key={idx} className="flex gap-2 items-center text-xs text-muted-foreground">
@@ -522,7 +522,7 @@ function CourseDetailsPage() {
 
           {/* FAQ Accordion */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[#07284a] dark:text-[#60a5fa]">Frequently Asked Questions</h2>
+            <h2 className="text-xl font-bold text-foreground">Frequently Asked Questions</h2>
             <Accordion type="single" collapsible className="space-y-2 w-full">
               {faqs.map((faq, idx) => (
                 <AccordionItem
@@ -618,7 +618,7 @@ function CourseDetailsPage() {
 
             {/* Related Courses */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-[#07284a] dark:text-[#60a5fa] uppercase tracking-wider">Suggested Courses</h3>
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Suggested Courses</h3>
               <div className="space-y-3">
                 {otherCourses.map((rc) => (
                   <Card key={rc.id} className="bg-white/40 dark:bg-[#0f172a]/40 border-border/40 hover:border-blue-500/20 transition-colors">

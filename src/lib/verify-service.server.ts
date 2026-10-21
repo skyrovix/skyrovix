@@ -1,4 +1,4 @@
-import { dbQuery } from "@/lib/db.server";
+import { dbQuery } from "./db.server";
 
 export interface VerificationResultData {
   idType: "offer_letter" | "certificate" | "course" | "project";

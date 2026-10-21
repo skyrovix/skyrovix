@@ -3,6 +3,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FadeUp } from "@/components/motion";
+import { motion } from "framer-motion";
+import { transitions, stagger, slideUp } from "@/lib/symboolic.com-motion.framer";
 import { BreadcrumbJsonLd, WebPageJsonLd } from "@/components/JsonLd";
 import { useRecentReviews } from "@/lib/reviews";
 import { Star, Quote, Users, Award, TrendingUp, ThumbsUp, ChevronRight, Rocket } from "lucide-react";
@@ -156,7 +158,11 @@ function ReviewCard({
   color,
 }: (typeof STATIC_TESTIMONIALS)[0]) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-300">
+    <motion.div
+      variants={slideUp}
+      whileHover={{ y: -4, transition: transitions.base }}
+      className="flex flex-col gap-4 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-6 shadow-sm hover:shadow-lg hover:border-[#ee9590] transition-all duration-300 cursor-default"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className={`grid size-10 shrink-0 place-items-center rounded-full ${color} text-white text-sm font-bold`}>
@@ -178,12 +184,12 @@ function ReviewCard({
       </div>
 
       <div className="mt-auto pt-3 border-t border-slate-50">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11.5px] font-medium text-blue-700">
-          <span className="size-1.5 rounded-full bg-blue-400 inline-block"></span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f95c4b]/10 px-3 py-1 text-[11.5px] font-bold text-[#f95c4b]">
+          <span className="size-1.5 rounded-full bg-[#f95c4b] inline-block"></span>
           {domain}
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -212,7 +218,7 @@ function ReviewsPage() {
         <section className="relative pb-10 sm:pb-14 pt-28 sm:pt-32 md:pt-36">
           <div className="mx-auto max-w-4xl px-4 text-center">
             <FadeUp>
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#07284a]/15 bg-white/70 px-4 py-1.5 text-xs font-semibold text-[#07284a] shadow-sm backdrop-blur">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-4 py-1.5 text-xs font-bold text-[#f95c4b] shadow-sm backdrop-blur">
                 <ThumbsUp className="size-3.5" />
                 Real Reviews · Verified Students
               </div>
@@ -256,16 +262,24 @@ function ReviewsPage() {
                 <p className="text-sm text-slate-500 mt-2">Most recent reviews from our students</p>
               </div>
             </FadeUp>
-            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <motion.div
+              variants={stagger}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true, amount: 0.2 }}
+              className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            >
               {liveReviews!.map((review) => {
                 const name = review.profiles?.full_name ?? "Anonymous";
                 const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
                 const colors = ["bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-orange-500", "bg-pink-500"];
                 const color = colors[name.charCodeAt(0) % colors.length];
                 return (
-                  <div
+                  <motion.div
                     key={review.id}
-                    className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-300"
+                    variants={slideUp}
+                    whileHover={{ y: -4, transition: transitions.base }}
+                    className="flex flex-col gap-4 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-6 shadow-sm hover:shadow-lg hover:border-[#ee9590] transition-all duration-300 cursor-default"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
@@ -295,15 +309,15 @@ function ReviewsPage() {
                       <p className="text-[13px] text-slate-600 leading-relaxed">{review.content}</p>
                     </div>
                     <div className="mt-auto pt-3 border-t border-slate-50">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11.5px] font-medium text-blue-700">
-                        <span className="size-1.5 rounded-full bg-blue-400 inline-block"></span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f95c4b]/10 px-3 py-1 text-[11.5px] font-bold text-[#f95c4b]">
+                        <span className="size-1.5 rounded-full bg-[#f95c4b] inline-block"></span>
                         {review.target_type === "internship" ? "Internship" : "Course"}
                       </span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
@@ -319,11 +333,17 @@ function ReviewsPage() {
               <p className="text-sm text-slate-500 mt-2">Experiences shared by students across India</p>
             </div>
           </FadeUp>
-          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            variants={stagger}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.2 }}
+            className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {STATIC_TESTIMONIALS.map((testimonial) => (
               <ReviewCard key={testimonial.name} {...testimonial} />
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -342,21 +362,33 @@ function ReviewsPage() {
               Get hands-on experience, earn a Govt. MSME registered certificate, and build the skills employers are looking for.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                to="/auth"
-                search={{ redirect: undefined }}
-                className="inline-flex items-center gap-2 rounded-xl bg-white text-[#002244] px-7 py-3.5 text-sm font-bold shadow-lg hover:bg-slate-50 transition-colors"
+              <motion.div
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={transitions.fast}
               >
-                <Rocket className="size-4" />
-                Start Your Internship
-              </Link>
-              <Link
-                to="/domains"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/25 text-white px-7 py-3.5 text-sm font-semibold hover:bg-white/10 transition-colors"
+                <Link
+                  to="/auth"
+                  search={{ redirect: undefined }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white text-[#002244] px-7 py-3.5 text-sm font-bold shadow-lg hover:bg-slate-50 transition-colors"
+                >
+                  <Rocket className="size-4" />
+                  Start Your Internship
+                </Link>
+              </motion.div>
+              <motion.div
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={transitions.fast}
               >
-                Explore Domains
-                <ChevronRight className="size-4" />
-              </Link>
+                <Link
+                  to="/internship"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/25 text-white px-7 py-3.5 text-sm font-semibold hover:bg-white/10 transition-colors"
+                >
+                  Explore Internships
+                  <ChevronRight className="size-4" />
+                </Link>
+              </motion.div>
             </div>
           </FadeUp>
         </div>

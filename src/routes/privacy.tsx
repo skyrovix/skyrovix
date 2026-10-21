@@ -63,13 +63,13 @@ function PrivacyPage() {
 
       {/* Hero Header */}
       <AuroraBackground>
-        <section className="relative pb-10 sm:pb-16 pt-10 sm:pt-20">
+        <section className="relative pb-10 sm:pb-16 pt-20 sm:pt-24">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
             <FadeUp>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50/80 dark:bg-emerald-950/40 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 backdrop-blur shadow-sm">
                 <Shield className="size-3.5" /> Data Protection & Student Privacy
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <h1 className="font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-[#181619] dark:text-white">
                 Privacy <span className="brand-text">Policy</span>
               </h1>
               <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">

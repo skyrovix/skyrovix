@@ -10,7 +10,7 @@ import { useState } from "react";
 
 const FAQS = [
   { q: "How do I apply for an internship?", a: "Browse our domains, pick a track, fill the application form, and receive your offer letter instantly — no interview needed." },
-  { q: "Is there any application fee?", a: "No. Applications are completely free. The only charge is a ₹100 certification fee upon completion." },
+  { q: "Is there any application fee?", a: "No. Applications are completely free. The only charge is a nominal certification fee upon completion." },
   { q: "How long does it take to get a certificate?", a: "Once you complete all tasks in your track, your certificate is issued within 24–48 hours after final review." },
   { q: "Can I verify my certificate online?", a: "Yes. Every certificate has a unique QR code and ID. Use our Verify Certificate page to check authenticity instantly." },
   { q: "What if I need help during my internship?", a: "You can reach us anytime via email or the contact form below. Our team responds within 1–2 business days." },
@@ -87,10 +87,10 @@ function ContactPage() {
       />
       <Navbar />
       <AuroraBackground>
-        <section className="relative pb-6 sm:pb-10 pt-8 sm:pt-16 md:pt-24">
+        <section className="relative pb-6 sm:pb-10 pt-20 sm:pt-24 md:pt-28">
           <div className="mx-auto max-w-5xl px-4">
             <FadeUp className="text-center">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#07284a]/15 bg-white/60 dark:bg-[#0f172a]/60 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-medium text-[#07284a] dark:text-[#60a5fa] shadow-sm backdrop-blur">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur">
                 <Sparkles className="size-3 sm:size-3.5" /> Get in Touch
               </div>
               <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
@@ -110,7 +110,7 @@ function ContactPage() {
             <div className="space-y-3">
               {ITEMS.map((it) => (
                 <div key={it.label} className="group flex items-start gap-4 rounded-2xl border border-border/50 bg-card p-5 transition-all hover:border-[#07284a]/20 hover:shadow-sm hover:bg-[#f8fafc]/50 dark:hover:bg-[#0f172a]/50">
-                  <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#07284a]/10 text-[#07284a] dark:bg-[#07284a]/20 dark:text-[#60a5fa] transition-all group-hover:bg-[#07284a] group-hover:text-white">
+                  <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#f95c4b]/10 text-[#f95c4b] dark:bg-[#f95c4b]/20 dark:text-[#ee9590] transition-all group-hover:bg-[#f95c4b] group-hover:text-white">
                     <it.icon className="size-5" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -123,7 +123,7 @@ function ContactPage() {
                               href={link.href}
                               target="_blank"
                               rel="noreferrer"
-                              className="font-medium text-foreground hover:text-[#07284a] dark:hover:text-[#60a5fa] hover:underline transition-colors"
+                              className="font-medium text-foreground hover:text-[#f95c4b] dark:hover:text-[#ee9590] hover:underline transition-colors"
                             >
                               {link.label}
                             </a>
@@ -134,7 +134,7 @@ function ContactPage() {
                         ))}
                       </div>
                     ) : it.href ? (
-                      <a href={it.href} className="truncate font-medium text-foreground hover:text-[#07284a] dark:hover:text-[#60a5fa] transition-colors">{it.value}</a>
+                      <a href={it.href} className="truncate font-medium text-foreground hover:text-[#f95c4b] dark:hover:text-[#ee9590] transition-colors">{it.value}</a>
                     ) : (
                       <p className="truncate font-medium">{it.value}</p>
                     )}
@@ -170,17 +170,17 @@ function ContactPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your Name</label>
-                <input name="name" required placeholder="Hariharan S" className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-all focus:border-[#07284a] focus:ring-1 focus:ring-[#07284a]/20" />
+                <input name="name" required placeholder="Hariharan S" className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-all focus:border-[#f95c4b] focus:ring-2 focus:ring-[#f95c4b]/20" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email Address</label>
-                <input name="email" type="email" required placeholder="you@example.com" className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-all focus:border-[#07284a] focus:ring-1 focus:ring-[#07284a]/20" />
+                <input name="email" type="email" required placeholder="you@example.com" className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-all focus:border-[#f95c4b] focus:ring-2 focus:ring-[#f95c4b]/20" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Message</label>
-                <textarea name="message" rows={5} required placeholder="Tell us how we can help..." className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-all focus:border-[#07284a] focus:ring-1 focus:ring-[#07284a]/20 resize-none" />
+                <textarea name="message" rows={5} required placeholder="Tell us how we can help..." className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-all focus:border-[#f95c4b] focus:ring-2 focus:ring-[#f95c4b]/20 resize-none" />
               </div>
-              <button type="submit" className="w-full rounded-xl bg-[#07284a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0d3b66] transition-all active:scale-[0.98] shadow-md shadow-[#07284a]/20">
+              <button type="submit" className="w-full rounded-xl bg-[#f95c4b] px-4 py-3 text-sm font-bold text-white hover:bg-[#e04b3a] transition-all active:scale-[0.98] shadow-md shadow-[#f95c4b]/25 hover:-translate-y-0.5">
                 Send message
               </button>
             </form>
@@ -202,7 +202,7 @@ function ContactPage() {
                   <div key={i} className="rounded-2xl border border-border/50 bg-card overflow-hidden transition-all hover:border-[#07284a]/20">
                     <button
                       onClick={() => setOpenIdx(openIdx === i ? null : i)}
-                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold transition-colors hover:text-[#07284a] dark:hover:text-[#60a5fa]"
+                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold transition-colors hover:text-[#f95c4b] dark:hover:text-[#ee9590]"
                     >
                       <span>{faq.q}</span>
                       <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform duration-200 ${openIdx === i ? "rotate-180" : ""}`} />

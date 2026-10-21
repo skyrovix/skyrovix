@@ -311,7 +311,7 @@ function ProjectDetailPage() {
             {/* Requirements Checklist */}
             <TabsContent value="requirements" className="mt-6 space-y-6">
               <div className="space-y-4">
-                <h3 className="text-base font-bold text-[#07284a] dark:text-[#60a5fa] flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <CheckCircle2 className="size-4 text-emerald-500" /> Business Rules & Scope
                 </h3>
                 <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed pl-5 list-disc">
@@ -322,8 +322,8 @@ function ProjectDetailPage() {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-base font-bold text-[#07284a] dark:text-[#60a5fa] flex items-center gap-2">
-                  <Database className="size-4 text-blue-500" /> Technical Scope & Stack
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Database className="size-4 text-[#f95c4b]" /> Technical Scope & Stack
                 </h3>
                 <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed pl-5 list-disc">
                   {project.technical_requirements.map((req: string, idx: number) => (
@@ -333,8 +333,8 @@ function ProjectDetailPage() {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-base font-bold text-[#07284a] dark:text-[#60a5fa] flex items-center gap-2">
-                  <FileText className="size-4 text-blue-500" /> Expected Deliverables
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <FileText className="size-4 text-[#f95c4b]" /> Expected Deliverables
                 </h3>
                 <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed pl-5 list-disc">
                   {project.expected_deliverables.map((req: string, idx: number) => (
@@ -347,19 +347,19 @@ function ProjectDetailPage() {
             {/* Brief Background */}
             <TabsContent value="brief" className="mt-6 space-y-6">
               <div className="space-y-3">
-                <h3 className="text-base font-bold text-[#07284a] dark:text-[#60a5fa]">Business Background</h3>
+                <h3 className="text-base font-bold text-foreground">Business Background</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{project.business_background}</p>
               </div>
 
               <div className="space-y-3 pt-3">
-                <h3 className="text-base font-bold text-[#07284a] dark:text-[#60a5fa]">Problem Statement</h3>
+                <h3 className="text-base font-bold text-foreground">Problem Statement</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{project.problem_statement}</p>
               </div>
             </TabsContent>
 
             {/* Evaluation Criteria */}
             <TabsContent value="evaluation" className="mt-6 space-y-4">
-              <h3 className="text-base font-bold text-[#07284a] dark:text-[#60a5fa]">How We Evaluate</h3>
+              <h3 className="text-base font-bold text-foreground">How We Evaluate</h3>
               <p className="text-xs text-muted-foreground">Solutions are graded across 11 key industry standards. Requirements checklist highlights:</p>
               <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed pl-5 list-disc">
                 {project.evaluation_criteria.map((cri: string, idx: number) => (
@@ -374,8 +374,8 @@ function ProjectDetailPage() {
             <Card className="border border-border/50 bg-white/70 dark:bg-[#0f172a]/70 backdrop-blur shadow rounded-2xl">
               <CardContent className="p-6 space-y-6">
                 <div className="flex justify-between items-center pb-4 border-b border-border/20">
-                  <h3 className="font-extrabold text-sm text-[#07284a] dark:text-[#60a5fa] flex items-center gap-2">
-                    <BarChart3 className="size-4" /> Grading & Evaluation Details
+                  <h3 className="font-extrabold text-sm text-foreground flex items-center gap-2">
+                    <BarChart3 className="size-4 text-[#f95c4b]" /> Grading & Evaluation Details
                   </h3>
                   <Badge className={`rounded-xl px-2.5 py-0.5 text-[10px] font-bold uppercase ${
                     submission.status === "approved"
@@ -558,7 +558,7 @@ function ProjectDetailPage() {
                           href={res.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-between text-xs text-[#07284a] dark:text-[#60a5fa] hover:underline"
+                          className="flex items-center justify-between text-xs text-[#f95c4b] dark:text-[#ee9590] hover:underline"
                         >
                           <span className="truncate pr-2 font-medium">{res.name}</span>
                           <ExternalLink className="size-3 shrink-0" />

@@ -132,15 +132,30 @@ function detail(
 
 export const INTERNSHIP_DETAILS: Record<string, InternshipDetail> = {
   fullstack: detail({
-    tagline: "Build end-to-end web applications with React, Node.js, and databases — the complete full-stack internship.",
-    longDescription: "This internship takes you through the entire web development stack. You will build responsive frontends with React, develop robust backends with Node.js and Express, manage databases with MongoDB and PostgreSQL, and deploy applications to production. By the end, you will have built multiple full-stack projects for your portfolio.",
+    tagline: "3 & 6-Month Full Stack Internship — 25 to 50 progressive projects from browser fundamentals to production cloud architectures.",
+    longDescription: "The Skyrovix Full Stack roadmap intentionally moves from browser fundamentals to React, backend APIs, SQL/NoSQL databases, authentication, real-time systems, cloud storage, payments, AI, Docker, CI/CD, AWS and production architecture. 3-Month students master 25 sequential project milestones; 6-Month students master all 50 enterprise projects with clean folder structure, Git/GitHub commits, API docs, and live deployments.",
     projects: [
-      { title: "Personal Portfolio Website", description: "Responsive portfolio website showcasing projects, skills, experience, and resume.", difficulty: "Beginner" },
-      { title: "To-Do List Application", description: "Task management app with user authentication and CRUD operations.", difficulty: "Beginner" },
-      { title: "E-Commerce Store", description: "Complete online shopping platform with payment integration.", difficulty: "Intermediate" },
-      { title: "AI-Powered Project Management System (Capstone)", description: "Enterprise-level project management platform with AI-powered features for teams.", difficulty: "Advanced" },
+      { title: "Personal Portfolio & Landing Pages (Projects 01–02)", description: "Semantic HTML5, CSS3, Flexbox/Grid, and responsive design deployed on Vercel.", difficulty: "Beginner" },
+      { title: "DOM & API Apps: Weather, Expenses & Notes (Projects 03–08)", description: "Local storage persistence, Fetch API, Chart.js financial dashboards, and async event handling.", difficulty: "Beginner+" },
+      { title: "React Component Architecture & Node APIs (Projects 09–20)", description: "Vite, React Router, Tailwind, REST API architecture, Express middleware, MongoDB CRUD, Multer, and JWT authentication.", difficulty: "Intermediate" },
+      { title: "SQL/NoSQL Systems, Blog & Notes Platform (Projects 21–25)", description: "MySQL connection pooling, PostgreSQL with Prisma ORM, MongoDB product aggregation, and full-stack multi-user cloud notes (End of 3-Month Track).", difficulty: "Full Stack" },
+      { title: "Enterprise Systems: Management, LMS & Real-Time (Projects 26–40)", description: "Student/Employee systems, Cashfree payment gateway sandbox, Socket.IO real-time chat, collaborative boards, and S3 cloud storage.", difficulty: "Advanced Full Stack" },
+      { title: "Microservices, Docker, DevOps, AI & Capstone (Projects 41–50)", description: "Redis caching, API Gateway, Docker Compose, GitHub Actions CI/CD, AWS EC2/S3/RDS/CloudFront, Prometheus/Grafana monitoring, and production-ready Capstone.", difficulty: "Expert Capstone" },
     ],
-    skills: ["React", "Node.js", "MongoDB", "PostgreSQL", "Express.js", "REST APIs", "Git", "Docker", "TypeScript", "Tailwind CSS"],
+    toolsAndTechnologies: [
+      "HTML5 & CSS3", "JavaScript (ES6+)", "React & Vite", "Tailwind CSS",
+      "Node.js & Express.js", "MySQL & PostgreSQL", "MongoDB & Prisma",
+      "JWT & bcrypt (RBAC)", "Postman / REST", "Socket.IO (Real-Time)",
+      "Docker & Docker Compose", "AWS (EC2, S3, RDS, CloudFront)",
+      "Prometheus & Grafana", "GitHub Actions CI/CD", "Cashfree Sandbox", "AI APIs"
+    ],
+    skills: [
+      "Frontend UI/UX", "Component Architecture", "REST API Engineering",
+      "Relational SQL Schema Design", "NoSQL Data Modeling", "JWT & Role-Based Access Control",
+      "Real-Time WebSockets", "Cloud Object Storage", "Payment Gateway Integration",
+      "Containerization & Microservices", "CI/CD Automation", "Production Cloud Deployment"
+    ],
+    duration: "3 or 6 Months (Full Stack Exclusive)",
   }),
   frontend: detail({
     tagline: "Create stunning, responsive user interfaces with modern React and Tailwind CSS.",

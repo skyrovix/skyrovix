@@ -18,7 +18,7 @@ import { ApplicationFormDialog } from "@/components/ApplicationFormDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { INDIA_STATES, STATE_DISTRICTS } from "@/lib/india-locations";
-import { DOMAINS, DURATIONS, durationConfig, PAYMENT, COMPANY, generateInternId, generateCertId, getDomain, getPublicSiteUrl } from "@/lib/constants";
+import { DOMAINS, DURATIONS, durationConfig, PAYMENT, COMPANY, generateInternId, generateCertId, getDomain, getPublicSiteUrl, getAvailableDurations } from "@/lib/constants";
 import { validateCoupon, calculateDiscountedAmount, formatDiscount } from "@/lib/coupons";
 import type { CouponResult } from "@/lib/coupons";
 import { getPublicFeeSettings, claimFreeCouponCertificate, claimFreeCertificate, submitPaymentProof, submitApplicationServer } from "@/lib/fee-service";
@@ -29,7 +29,6 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { IDCard } from "@/components/IDCard";
 import { TasksSection } from "@/components/TasksSection";
-import { InternshipProgressTracker } from "@/components/InternshipProgressTracker";
 import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadIDCard, downloadOfferLetter, downloadPdf } from "@/components/pdf-docs";
 import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,9 +39,11 @@ import {
   Target, BarChart3, Layers, Brain, Linkedin, Play, ChevronLeft,
   ListChecks, LayoutDashboard, Flag, AlertTriangle, AlertCircle, Zap, Hash, Circle, Loader2,
   TrendingUp, Lock, Unlock, Eye, LogOut,
-  Settings, Wallet, CreditCard, ScrollText, Briefcase, Code2,
-  Share2, HelpCircle, Package, Users, Instagram,
+  Settings, Wallet, CreditCard, ScrollText, Briefcase,
+  Share2, HelpCircle, Package, Instagram, Crown, Menu,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { StudentDashboardSidebar } from "@/components/dashboard/StudentDashboardSidebar";
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -103,18 +104,20 @@ function DashboardHero({ badge, title, description, icon: Icon }: {
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#07284a]/8 via-[#07284a]/3 to-blue-400/8 p-8 sm:p-12">
-      <div className="absolute -right-24 -top-24 size-64 rounded-full bg-[#07284a]/15 blur-[120px]" />
-      <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-blue-400/10 blur-[100px]" />
-      <div className="absolute right-1/4 bottom-0 size-32 rounded-full bg-emerald-400/5 blur-[80px]" />
+    <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-white/95 via-white/80 to-[#f95c4b]/5 p-8 sm:p-12 shadow-sm backdrop-blur-sm">
+      <div className="absolute -right-24 -top-24 size-64 rounded-full bg-[#f95c4b]/10 blur-[100px] pointer-events-none" />
+      <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-[#ee9590]/15 blur-[90px] pointer-events-none" />
+      <div className="absolute right-1/4 bottom-0 size-32 rounded-full bg-[#f95c4b]/5 blur-[70px] pointer-events-none" />
       <div className="relative flex items-start gap-6">
-        <div className="hidden sm:grid size-16 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-lg shadow-[#07284a]/20">
+        <div className="hidden sm:grid size-16 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-lg shadow-[#f95c4b]/20">
           <Icon className="size-8" />
         </div>
         <div>
-          <Badge variant="secondary" className="mb-4 px-3 py-1.5 text-xs"><Sparkles className="mr-1.5 size-3" />{badge}</Badge>
-          <h1 className="text-3xl sm:text-4xl font-bold font-display">{title}</h1>
-          <p className="mt-3 max-w-2xl text-sm sm:text-base text-muted-foreground/80 leading-relaxed">{description}</p>
+          <Badge className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] shadow-none hover:bg-[#f95c4b]/15">
+            <Sparkles className="mr-1 size-3 text-[#f95c4b]" />{badge}
+          </Badge>
+          <h1 className="text-3xl sm:text-4xl font-extrabold font-display tracking-tight text-[#181619]">{title}</h1>
+          <p className="mt-3 max-w-2xl text-sm sm:text-base text-[#181619]/70 leading-relaxed font-sans">{description}</p>
         </div>
       </div>
     </div>
@@ -195,6 +198,14 @@ type Application = {
   email_status?: string | null;
   email_sent_at?: string | null;
   email_error?: string | null;
+  plan_type?: "standard" | "premium" | null;
+  plan_fee?: number | null;
+  plan_payment_status?: string | null;
+  plan_payment_id?: string | null;
+  plan_payment_method?: string | null;
+  plan_paid_at?: string | null;
+  discount_amount?: number | null;
+  agreed_fee?: number | null;
 };
 
 function Dashboard() {
@@ -251,10 +262,21 @@ function Dashboard() {
       return data ?? [];
     },
     enabled: !!user,
-    refetchInterval: 10_000,
-    staleTime: 5_000,
+    refetchInterval: 3_000,
+    staleTime: 2_000,
     placeholderData: (prev) => prev,
   });
+
+  const { data: feeSettings } = useQuery({
+    queryKey: ["public-fee-settings"],
+    queryFn: () => getPublicFeeSettings(),
+    staleTime: 2_000,
+    refetchInterval: 3_000,
+  });
+
+  const isPremiumPlanGlobalEnabled = Boolean(
+    feeSettings?.premiumPlan?.isEnabled ?? feeSettings?.premiumPlan?.enabled ?? false
+  );
 
   const appsWithProfile = useMemo(() => {
     if (!appsList) return [];
@@ -293,7 +315,7 @@ function Dashboard() {
       return data ?? [];
     },
     enabled: !!appsList?.length,
-    refetchInterval: 10_000,
+    refetchInterval: 3_000,
     placeholderData: (prev) => prev,
   });
 
@@ -306,7 +328,7 @@ function Dashboard() {
       return data ?? [];
     },
     enabled: !!appsList?.length,
-    refetchInterval: 10_000,
+    refetchInterval: 3_000,
     placeholderData: (prev) => prev,
   });
 
@@ -332,16 +354,37 @@ function Dashboard() {
     return allAppSubmissions.filter((s: any) => s.application_id === app.id);
   }, [allAppSubmissions, app]);
 
-  const taskLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+  const getAppTaskLimit = (appDomain?: string | null, appDuration?: number | null, totalTasks?: number | null, planType?: string | null) => {
+    const isPremiumActive = Boolean(isPremiumPlanGlobalEnabled && planType === "premium");
+    if (appDomain === "fullstack") {
+      if (isPremiumActive) {
+        const fsLimits: Record<number, number> = { 1: 5, 2: 8, 3: 25, 6: 50 };
+        return fsLimits[appDuration ?? 1] ?? 5;
+      }
+      const fsLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+      return fsLimits[appDuration ?? 1] ?? 5;
+    }
+    if (totalTasks && totalTasks > 0) return totalTasks;
+    const defaultLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
+    return defaultLimits[appDuration ?? 1] ?? 5;
+  };
+
   const { data: internTasks } = useQuery({
-    queryKey: ["my-tasks", app?.domain, app?.duration],
+    queryKey: ["my-tasks", app?.domain, app?.duration, app?.total_tasks, app?.plan_type, isPremiumPlanGlobalEnabled],
     queryFn: async () => {
       if (!app) return [];
-      const limit = taskLimits[app.duration ?? 1] ?? 5;
-      const { data } = await supabase.from("tasks").select("id, task_number").eq("domain", app.domain).lte("task_number", limit).order("task_number");
+      const limit = getAppTaskLimit(app.domain, app.duration, app.total_tasks, app.plan_type);
+      const { data } = await supabase
+        .from("tasks")
+        .select("id, task_number")
+        .eq("domain", app.domain)
+        .gt("task_number", 0)
+        .lte("task_number", limit)
+        .order("task_number");
       return data ?? [];
     },
     enabled: !!app,
+    refetchInterval: 3_000,
     placeholderData: (prev) => prev,
   });
 
@@ -359,52 +402,8 @@ function Dashboard() {
       return data ?? [];
     },
     enabled: !!appsList?.length,
+    refetchInterval: 3_000,
     placeholderData: (prev) => prev,
-  });
-
-  const { data: feeSettings } = useQuery({
-    queryKey: ["public-fee-settings"],
-    queryFn: async () => {
-      try {
-        const { data: rows, error } = await (supabase.from("fee_settings" as any) as any)
-          .select("*")
-          .order("fee_type");
-        if (!error && rows && rows.length > 0) {
-          const appRow = rows.find((r: any) => r.fee_type === "application");
-          const certRow = rows.find((r: any) => r.fee_type === "certificate");
-          const defaultUpiId = certRow?.upi_id || appRow?.upi_id || PAYMENT.upiId;
-          const defaultPayeeName = certRow?.payee_name || appRow?.payee_name || PAYMENT.payeeName;
-          return {
-            applicationFee: {
-              isEnabled: Boolean(appRow?.is_enabled),
-              enabled: Boolean(appRow?.is_enabled),
-              amount: Number(appRow?.amount ?? 0),
-              upi_id: appRow?.upi_id || defaultUpiId,
-              payee_name: appRow?.payee_name || defaultPayeeName,
-              qr_code_url: appRow?.qr_code_url || null,
-            },
-            certificateFee: {
-              isEnabled: Boolean(certRow?.is_enabled),
-              enabled: Boolean(certRow?.is_enabled),
-              amount: Number(certRow?.amount ?? 0),
-              upi_id: certRow?.upi_id || defaultUpiId,
-              payee_name: certRow?.payee_name || defaultPayeeName,
-              qr_code_url: certRow?.qr_code_url || null,
-            },
-            upi: {
-              upiId: defaultUpiId,
-              payeeName: defaultPayeeName,
-              qrCodeUrl: certRow?.qr_code_url || appRow?.qr_code_url || null,
-            },
-          };
-        }
-      } catch (err) {
-        console.warn("[dashboard] Direct fee_settings fetch error:", err);
-      }
-      return getPublicFeeSettings();
-    },
-    staleTime: 10_000,
-    refetchInterval: 15_000,
   });
 
   const { data: allPaymentRecords } = useQuery({
@@ -419,7 +418,7 @@ function Dashboard() {
       return (data as any[]) ?? [];
     },
     enabled: !!appsList?.length,
-    refetchInterval: 10_000,
+    refetchInterval: 3_000,
     placeholderData: (prev) => prev,
   });
 
@@ -429,13 +428,17 @@ function Dashboard() {
   }, [allPayments, app]);
 
   const certFeeConfig = feeSettings?.certificateFee ?? {
-    enabled: false,
-    amount: 0,
+    enabled: true,
+    amount: 100,
     upi_id: PAYMENT.upiId,
     payee_name: PAYMENT.payeeName,
     qr_code_url: null,
   };
-  const certFeeAmount = certFeeConfig.enabled ? certFeeConfig.amount : 0;
+  const premiumPlanAmount = feeSettings?.premiumPlan?.amount ?? 200;
+  const normalCertAmount = feeSettings?.certificateFee?.amount ?? 100;
+  const certFeeAmount = app?.plan_type === "premium"
+    ? (Number(app?.plan_fee) || premiumPlanAmount)
+    : (certFeeConfig.enabled && certFeeConfig.amount > 0 ? certFeeConfig.amount : normalCertAmount);
 
   const appFeeConfig = feeSettings?.applicationFee ?? {
     enabled: false,
@@ -465,7 +468,8 @@ function Dashboard() {
 
   const cert = certificate;
   const domain = app ? getDomain(app.domain) : null;
-  const internTotal = internTasks?.length ?? 0;
+  const internLimit = getAppTaskLimit(app?.domain, app?.duration, app?.total_tasks, app?.plan_type);
+  const internTotal = internLimit > 0 ? internLimit : (internTasks?.length ?? 0);
   const internApproved = internSubmissions?.filter((s: any) => s.status === "approved").length ?? 0;
   const internPending = internSubmissions?.filter((s: any) => s.status === "pending").length ?? 0;
   const internCompleted = internApproved;
@@ -479,7 +483,7 @@ function Dashboard() {
         try {
           const aSubs = allAppSubmissions.filter((s: any) => s.application_id === a.id);
           const aApproved = aSubs.filter((s: any) => s.status === "approved").length;
-          const limit = taskLimits[a.duration ?? 1] ?? 5;
+          const limit = getAppTaskLimit(a.domain, a.duration, a.total_tasks, a.plan_type);
           const aCert = allAppCerts.find((c: any) => c.application_id === a.id);
           if (aApproved >= limit && aCert) {
             const { error: updErr } = await (supabase.from("applications") as any).update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", a.id);
@@ -494,7 +498,15 @@ function Dashboard() {
   }, [appsList, allAppSubmissions, allAppCerts, allTasksByDomain, qc]);
 
   const searchParams = Route.useSearch();
-  const active = searchParams.tab ?? "tasks";
+  const rawTab = searchParams.tab ?? "tasks";
+  const active =
+    rawTab === "projects" ||
+    rawTab === "guidance" ||
+    rawTab === "student-guide" ||
+    rawTab === "guide" ||
+    rawTab === "student-guidance"
+      ? "tasks"
+      : rawTab;
   const [detailView, setDetailView] = useState<{ type: "app"; id: string } | null>(null);
   const [utrNumber, setUtrNumber] = useState("");
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
@@ -507,6 +519,40 @@ function Dashboard() {
   const [generatingCert, setGeneratingCert] = useState(false);
   const [claimingFreeCert, setClaimingFreeCert] = useState(false);
   const certTriggered = useRef(false);
+  const [upgradePayment, setUpgradePayment] = useState<any | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const isPremium = Boolean(
+    isPremiumPlanGlobalEnabled &&
+    app &&
+    app.plan_type === "premium" &&
+    (app.plan_payment_status === "paid" || app.plan_payment_status === "waived")
+  );
+
+  const handleTriggerUpgrade = (targetApp?: any) => {
+    const a = targetApp || app;
+    if (!a) return;
+    if (!isPremiumPlanGlobalEnabled) {
+      toast.info("The Premium Plan is currently inactive.");
+      return;
+    }
+    if (a.domain !== "fullstack") {
+      toast.info(`The ₹${premiumPlanAmount} Premium Plan is available exclusively for Full Stack Development internships.`);
+      return;
+    }
+    setUpgradePayment({
+      open: true,
+      applicationId: a.id,
+      productService: `Skyrovix Premium Internship Plan (${a.duration ?? 3} Months)`,
+      amount: premiumPlanAmount,
+      discountAmount: 0,
+      customerName: a.full_name,
+      customerEmail: a.email,
+      customerPhone: a.phone || profile?.phone || "",
+      couponCode: null,
+    });
+  };
 
   const submissionStatus = app?.submission_status ?? "in_progress";
   const requiredTasks = Number(app?.total_tasks) || 5;
@@ -660,10 +706,14 @@ function Dashboard() {
       return toast.error("You are already enrolled or have a pending application in this domain!");
     }
 
+    if (newDomain !== "fullstack" && (newDuration === 3 || newDuration === 6)) {
+      return toast.error("3-Month and 6-Month internships are exclusively available for Full Stack Development. Please select 1-Month or 2-Months.");
+    }
+
     setSubmittingNewApp(true);
     try {
       const intern_id = generateInternId();
-      const dur = durationConfig(newDuration);
+      const dur = durationConfig(newDuration, newDomain);
 
       const appResult = await submitApplicationServer({
         data: {
@@ -959,7 +1009,7 @@ function Dashboard() {
         const dd = getDomain(da.domain);
         const daSubs = allAppSubmissions?.filter((s: any) => s.application_id === da.id) ?? [];
         const daApproved = daSubs.filter((s: any) => s.status === "approved").length;
-        const daTotal = allTasksByDomain?.[da.domain]?.length ?? 5;
+        const daTotal = getAppTaskLimit(da.domain, da.duration, da.total_tasks, da.plan_type);
         const daCert = allAppCerts?.find((c: any) => c.application_id === da.id) ?? null;
         
         const daAppPayment = (allPaymentRecords as any[])?.find((p) => p.application_id === da.id && p.payment_type === "application") ?? null;
@@ -1015,22 +1065,22 @@ function Dashboard() {
             </div>
 
             {/* Internship Title */}
-            <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-white/60 p-6 sm:p-8 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5">
-              <div className="absolute -right-16 -top-16 size-48 rounded-full bg-[#07284a]/10 blur-[80px]" />
+            <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-white/80 p-6 sm:p-8 backdrop-blur-xl shadow-sm">
+              <div className="absolute -right-16 -top-16 size-48 rounded-full bg-[#f95c4b]/10 blur-[80px] pointer-events-none" />
               <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${dd?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-md`}>
+                  <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${dd?.color ?? "from-[#f95c4b] to-[#ee9590]"} text-white shadow-md`}>
                     <span className="text-2xl font-bold">{dd?.icon ?? "?"}</span>
                   </div>
                   <div>
-                    <h2 className="font-display text-2xl font-bold">{dd?.name ?? da.domain}</h2>
+                    <h2 className="font-display text-2xl font-bold text-[#181619]">{dd?.name ?? da.domain}</h2>
                     <p className="text-xs text-muted-foreground mt-1">{da.intern_id} · {da.duration} Month{(da.duration ?? 1) > 1 ? "s" : ""}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Badge className={`text-xs px-3 py-1.5 rounded-xl border-0 ${
                     da.status === "completed" ? "bg-emerald-500 text-white" :
-                    da.status === "ongoing" ? "bg-blue-600 text-white" :
+                    da.status === "ongoing" ? "bg-[#f95c4b] text-white" :
                     da.status === "approved" ? "bg-amber-500 text-white" :
                     "bg-gray-500 text-white"
                   }`}>
@@ -1054,21 +1104,21 @@ function Dashboard() {
                 <IDCardSection app={da} onViewOfferLetter={() => setPreviewOfferApp(da)} />
 
                 {/* Offer Letter View/Download Card */}
-                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl border border-border/40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl border border-border/60 bg-white/80 backdrop-blur-xl shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="grid size-10 place-items-center rounded-2xl brand-gradient text-white shadow-md">
                       <FileText className="size-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-foreground">Internship Offer Letter</h4>
+                      <h4 className="font-bold text-sm text-[#181619]">Internship Offer Letter</h4>
                       <p className="text-xs text-muted-foreground">
                         Ref: <span className="font-mono font-semibold">{da.intern_id}</span> · Issued: {new Date(da.offer_issued_at || da.created_at).toLocaleDateString("en-IN")}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white dark:bg-slate-800" onClick={() => setPreviewOfferApp(da)}>
-                      <Eye className="size-3.5 text-blue-500" /> View Offer Letter
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white border-border/60 hover:bg-[#faf8f2]" onClick={() => setPreviewOfferApp(da)}>
+                      <Eye className="size-3.5 text-[#f95c4b]" /> View Offer Letter
                     </Button>
                     <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadOfferLetter({
                       fullName: da.full_name,
@@ -1085,10 +1135,12 @@ function Dashboard() {
                 {/* Summary Panel */}
                 <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
                   <h3 className="flex items-center gap-2 font-bold text-sm"><ScrollText className="size-4 text-primary" /> Application Details</h3>
-                  <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Start Date</p><p className="font-semibold mt-0.5">{new Date(da.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">End Date</p><p className="font-semibold mt-0.5">{da.completed_at ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type === "premium" && isPremiumPlanGlobalEnabled ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type === "premium" ? "pending" : "not_required")}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
                       <p className="text-muted-foreground">App Fee Status</p>
                       {daIsAppFeeRequired ? (
@@ -1110,7 +1162,7 @@ function Dashboard() {
                     app={da}
                     internApproved={daApproved}
                     internTotal={daTotal}
-                    certFeeAmount={certFeeAmount}
+                    certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
                     certFeeConfig={certFeeConfig}
                     certPaymentRecord={daCertPayment}
                     onGenerateCert={() => handleGenerateFreeCert(da.id)}
@@ -1124,44 +1176,6 @@ function Dashboard() {
             {/* Quest Log / Tasks Section for Ongoing & Approved Internships (not for completed) */}
             {da.status !== "completed" && (
               <div className="space-y-4 pt-2">
-                <InternshipProgressTracker
-                  app={da}
-                  isAppFeeRequired={daIsAppFeeRequired}
-                  appFeeAmount={appFeeAmount}
-                  appFeeStatus={
-                    daIsAppFeeApproved
-                      ? "approved"
-                      : daAppPayment?.status === "pending" || daAppPayment?.status === "under_review"
-                      ? "pending"
-                      : daIsAppFeeRequired
-                      ? "pending"
-                      : "not_required"
-                  }
-                  tasksWithMeta={(allTasksByDomain?.[da.domain] ?? []).map((t: any) => {
-                    const sub = (daSubs ?? []).find((s: any) => s.task_id === t.id);
-                    return {
-                      taskNumber: t.task_number,
-                      title: `Task ${t.task_number}`,
-                      status: sub?.status === "approved" ? "completed" : sub?.status === "pending" ? "pending" : "ongoing",
-                      isLocked: daIsAppFeeRequired && !daIsAppFeeApproved,
-                      submission: sub,
-                    };
-                  })}
-                  allTasksApproved={daTasksCompleted}
-                  certFeeAmount={certFeeAmount}
-                  certPaymentStatus={daCertPaymentState.toLowerCase()}
-                  onOpenAppPayment={() => {
-                    navigate({ search: { tab: "payment" } as any });
-                  }}
-                  onOpenCertPayment={() => {
-                    if (daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED") {
-                      navigate({ search: { tab: "certificates" } as any });
-                    } else {
-                      setShowCertPaymentPopup(true);
-                    }
-                  }}
-                />
-
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
                     <ListChecks className="size-5 text-primary" /> Quest Log — {dd?.name ?? da.domain} Tasks
@@ -1172,12 +1186,15 @@ function Dashboard() {
                   submissions={daSubs ?? []}
                   appId={da.id}
                   duration={da.duration ?? undefined}
+                  totalTasks={da.total_tasks}
+                  planType={da.plan_type}
+                  isPremiumPlanEnabled={isPremiumPlanGlobalEnabled}
                   submissionStatus={daSubmissionStatus}
                   isAppFeeRequired={daIsAppFeeRequired}
                   appFeeAmount={appFeeAmount}
                   appFeePayment={daAppPayment}
                   isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
-                  certFeeAmount={certFeeAmount}
+                  certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
                   onOpenCertPayment={() => setShowCertPaymentPopup(true)}
                   onNavigateCertificates={() => {
                     navigate({ search: { tab: "certificates" } as any });
@@ -1272,17 +1289,17 @@ function Dashboard() {
                   </div>
                 </div>
               ) : appPayment?.status === "pending" ? (
-                <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40">
+                <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/8 via-white to-white p-6 shadow-sm">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-3.5">
-                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20">
                         <Clock className="size-6 animate-pulse" />
                       </div>
                       <div>
-                        <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                        <Badge className="border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] text-[10px] uppercase font-bold tracking-wider mb-1">
                           Under Review
                         </Badge>
-                        <h3 className="text-base font-extrabold text-foreground">Application Under Review — Verification in Progress</h3>
+                        <h3 className="text-base font-extrabold text-[#181619]">Application Under Review — Verification in Progress</h3>
                         <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
                           Your payment proof (UTR: <span className="font-mono font-bold text-foreground">{appPayment.utr_number}</span>, Amount: <span className="font-bold text-emerald-600">₹{appPayment.amount}</span>) is being verified by the Skyrovix Admin team. Your Offer Letter, ID Card, and internship tasks will be automatically unlocked once approved!
                         </p>
@@ -1291,7 +1308,7 @@ function Dashboard() {
                     <Button
                       onClick={() => navigate({ search: { tab: "payment" } as any })}
                       variant="outline"
-                      className="rounded-xl text-xs h-9 px-4 shrink-0 cursor-pointer"
+                      className="rounded-xl text-xs h-9 px-4 shrink-0 cursor-pointer border-border/60 hover:bg-[#faf8f2]"
                     >
                       View Payment Status
                     </Button>
@@ -1323,16 +1340,16 @@ function Dashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40">
+                <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/8 via-white to-white p-6 shadow-sm">
                   <div className="flex items-start gap-3.5">
-                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20">
                       <Clock className="size-6" />
                     </div>
                     <div>
-                      <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                      <Badge className="border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] text-[10px] uppercase font-bold tracking-wider mb-1">
                         Pending Approval
                       </Badge>
-                      <h3 className="text-base font-extrabold text-foreground">Application Awaiting Admin Approval</h3>
+                      <h3 className="text-base font-extrabold text-[#181619]">Application Awaiting Admin Approval</h3>
                       <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
                         Your application has been submitted and is awaiting administrator verification. Your Offer Letter and tasks will be activated shortly.
                       </p>
@@ -1344,7 +1361,17 @@ function Dashboard() {
           )}
 
           {/* Welcome Banner */}
-          <HeroSection app={app} internApproved={internApproved} durationLimit={internTotal} cert={cert} payment={payment} onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)} />
+          <HeroSection
+            app={app}
+            internApproved={internApproved}
+            durationLimit={internTotal}
+            cert={cert}
+            payment={payment}
+            onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)}
+            isPremium={isPremium}
+            onUpgradeToPremium={isPremiumPlanGlobalEnabled && app?.domain === "fullstack" ? () => handleTriggerUpgrade(app) : undefined}
+            premiumPlanAmount={premiumPlanAmount}
+          />
           
           {/* Stats details card row */}
           <StatsCards internApproved={internApproved} internPending={internPending} durationLimit={internTotal} cert={cert} payment={payment} onNavigateCertificates={() => navigate({ search: { tab: "certificates" } as any })} onNavigateTasks={() => navigate({ search: { tab: "tasks" } as any })} />
@@ -1352,52 +1379,11 @@ function Dashboard() {
           {/* Stepper progress timeline */}
           <TimelineSection steps={timelineSteps} currentStep={currentStep} />
 
-          {/* Internship Workflow Progress Tracker */}
-          {app && (
-            <InternshipProgressTracker
-              app={app}
-              isAppFeeRequired={isAppFeeRequired}
-              appFeeAmount={appFeeAmount}
-              appFeeStatus={
-                isAppFeeApproved
-                  ? "approved"
-                  : appPayment?.status === "pending" || appPayment?.status === "under_review"
-                  ? "pending"
-                  : isAppFeeRequired
-                  ? "pending"
-                  : "not_required"
-              }
-              tasksWithMeta={(internTasks || []).map((t: any) => {
-                const sub = (internSubmissions || []).find((s: any) => s.task_id === t.id);
-                return {
-                  taskNumber: t.task_number,
-                  title: `Task ${t.task_number}`,
-                  status: sub?.status === "approved" ? "completed" : sub?.status === "pending" ? "pending" : "ongoing",
-                  isLocked: isAppFeeLocked,
-                  submission: sub,
-                };
-              })}
-              allTasksApproved={isTasksCompleted}
-              certFeeAmount={certFeeAmount}
-              certPaymentStatus={certPaymentState.toLowerCase()}
-              onOpenAppPayment={() => {
-                navigate({ search: { tab: "payment" } as any });
-              }}
-              onOpenCertPayment={() => {
-                if (certPaymentState === "APPROVED" || certPaymentState === "WAIVED" || certPaymentState === "FREE_OFFER" || certPaymentState === "NOT_REQUIRED") {
-                  navigate({ search: { tab: "certificates" } as any });
-                } else {
-                  setShowCertPaymentPopup(true);
-                }
-              }}
-            />
-          )}
-
           {/* Certificate Payment Action Banner when all tasks are complete */}
           {isTasksCompleted && !isCertPaymentVerified && (certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED") && (
-            <div className="rounded-3xl border-2 border-indigo-500/30 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 p-6 sm:p-7 shadow-lg backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-r from-[#f95c4b]/10 via-[#ee9590]/10 to-amber-500/5 p-6 sm:p-7 shadow-lg backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className="size-13 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/25 shrink-0">
+                <div className="size-13 rounded-2xl brand-gradient text-white flex items-center justify-center shadow-lg shadow-[#f95c4b]/25 shrink-0">
                   <Award className="size-7" />
                 </div>
                 <div>
@@ -1405,7 +1391,7 @@ function Dashboard() {
                     <Badge className="bg-emerald-600 text-white text-[10px] font-bold">🎉 ALL TASKS VERIFIED</Badge>
                     <span className="text-xs font-bold text-muted-foreground">Action Required</span>
                   </div>
-                  <h3 className="text-base sm:text-lg font-black text-foreground">
+                  <h3 className="text-base sm:text-lg font-black text-[#181619]">
                     Pay Certificate Fee to Unlock Your Certificate
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
@@ -1416,7 +1402,7 @@ function Dashboard() {
               <Button
                 type="button"
                 onClick={() => setShowCertPaymentPopup(true)}
-                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/25 shrink-0 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ee9590] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-[#f95c4b]/25 shrink-0 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
               >
                 <CreditCard className="size-4" /> Pay ₹{certFeeAmount} Now
               </Button>
@@ -1435,12 +1421,15 @@ function Dashboard() {
               submissions={internSubmissions ?? []}
               appId={app.id}
               duration={app.duration ?? undefined}
+              totalTasks={app.total_tasks}
+              planType={app.plan_type}
+              isPremiumPlanEnabled={isPremiumPlanGlobalEnabled}
               submissionStatus={submissionStatus}
               isAppFeeRequired={isAppFeeRequired}
               appFeeAmount={appFeeAmount}
               appFeePayment={appPayment}
               isCertPaymentRequired={certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED"}
-              certFeeAmount={certFeeAmount}
+              certFeeAmount={app.plan_type === "premium" ? (Number(app.plan_fee) || premiumPlanAmount) : certFeeAmount}
               onOpenCertPayment={() => setShowCertPaymentPopup(true)}
               onNavigateCertificates={() => {
                 navigate({ search: { tab: "certificates" } as any });
@@ -1505,20 +1494,20 @@ function Dashboard() {
                   const aSubs = allAppSubmissions?.filter((s: any) => s.application_id === a.id) ?? [];
                   const aApproved = aSubs.filter((s: any) => s.status === "approved").length;
                   const aCert = allAppCerts?.find((c: any) => c.application_id === a.id) ?? null;
-                  const appTaskCount = taskLimits[a.duration ?? 1] ?? 5;
+                  const appTaskCount = getAppTaskLimit(a.domain, a.duration, a.total_tasks, a.plan_type);
                   return (
                     <div key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })}
-                      className="w-full text-left rounded-2xl border border-border/40 bg-white/60 p-4 backdrop-blur-xl transition-all hover:shadow-md hover:bg-white/80 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 group cursor-pointer">
+                      className="w-full text-left rounded-2xl border border-border/60 bg-white/80 p-4 backdrop-blur-xl transition-all hover:shadow-md hover:bg-white group cursor-pointer shadow-sm">
                       <div className="flex items-center gap-4">
-                        <div className={`grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${d?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-sm`}>
+                        <div className={`grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${d?.color ?? "from-[#f95c4b] to-[#ee9590]"} text-white shadow-sm`}>
                           <span className="text-lg font-bold">{d?.icon ?? "?"}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-bold text-sm text-foreground">{d?.name ?? a.domain}</p>
+                            <p className="font-bold text-sm text-[#181619]">{d?.name ?? a.domain}</p>
                             <Badge className={`text-[10px] px-2 py-0.5 rounded-md border-0 ${
                               a.status === "completed" ? "bg-emerald-600 text-white" :
-                              a.status === "ongoing" ? "bg-blue-600 text-white" :
+                              a.status === "ongoing" ? "bg-[#f95c4b] text-white" :
                               a.status === "approved" ? "bg-amber-500 text-white" :
                               "bg-gray-550 text-white"
                             }`}>
@@ -1540,13 +1529,13 @@ function Dashboard() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                          className="rounded-xl h-8 text-xs bg-white border-border/60 hover:bg-[#faf8f2]"
                           onClick={(e) => {
                             e.stopPropagation();
                             setPreviewOfferApp(a);
                           }}
                         >
-                          <Eye className="mr-1.5 size-3.5 text-blue-500" /> View Offer Letter
+                          <Eye className="mr-1.5 size-3.5 text-[#f95c4b]" /> View Offer Letter
                         </Button>
                         <Button
                           size="sm"
@@ -1641,7 +1630,7 @@ function Dashboard() {
         const dd = getDomain(da.domain);
         const daSubs = allAppSubmissions?.filter((s: any) => s.application_id === da.id) ?? [];
         const daApproved = daSubs.filter((s: any) => s.status === "approved").length;
-        const daTotal = allTasksByDomain?.[da.domain]?.length ?? 5;
+        const daTotal = getAppTaskLimit(da.domain, da.duration, da.total_tasks, da.plan_type);
         const daCert = allAppCerts?.find((c: any) => c.application_id === da.id) ?? null;
         const daAppPayment = (allPaymentRecords as any[])?.find((p) => p.application_id === da.id && p.payment_type === "application") ?? null;
         const daCertPayment = (allPaymentRecords as any[])?.find((p) => p.application_id === da.id && p.payment_type === "certificate") ?? null;
@@ -1692,20 +1681,20 @@ function Dashboard() {
                 <ChevronLeft className="size-4" /> Back to Internships
               </Button>
             </div>
-            <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-white/60 p-6 sm:p-8 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5">
-              <div className="absolute -right-16 -top-16 size-48 rounded-full bg-[#07284a]/10 blur-[80px]" />
+            <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-white/80 p-6 sm:p-8 backdrop-blur-xl shadow-sm">
+              <div className="absolute -right-16 -top-16 size-48 rounded-full bg-[#f95c4b]/10 blur-[80px] pointer-events-none" />
               <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${dd?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-md`}>
+                  <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${dd?.color ?? "from-[#f95c4b] to-[#ee9590]"} text-white shadow-md`}>
                     <span className="text-2xl font-bold">{dd?.icon ?? "?"}</span>
                   </div>
                   <div>
-                    <h2 className="font-display text-2xl font-bold">{dd?.name ?? da.domain}</h2>
+                    <h2 className="font-display text-2xl font-bold text-[#181619]">{dd?.name ?? da.domain}</h2>
                     <p className="text-xs text-muted-foreground mt-1">{da.intern_id} · {da.duration} Month{(da.duration ?? 1) > 1 ? "s" : ""}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge className={`text-xs px-3 py-1.5 rounded-xl border-0 ${da.status === "completed" ? "bg-emerald-500 text-white" : da.status === "ongoing" ? "bg-blue-600 text-white" : da.status === "approved" ? "bg-amber-500 text-white" : "bg-gray-500 text-white"}`}>
+                  <Badge className={`text-xs px-3 py-1.5 rounded-xl border-0 ${da.status === "completed" ? "bg-emerald-500 text-white" : da.status === "ongoing" ? "bg-[#f95c4b] text-white" : da.status === "approved" ? "bg-amber-500 text-white" : "bg-gray-500 text-white"}`}>
                     {da.status === "completed" ? "Completed" : da.status === "ongoing" ? "Ongoing" : da.status === "approved" ? "Approved" : da.status === "pending" ? "Pending Approval" : da.status}
                   </Badge>
                   <SubmissionStatusBadge status={daSubmissionStatus} />
@@ -1718,21 +1707,21 @@ function Dashboard() {
                 <IDCardSection app={da} onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)} />
 
                 {/* Offer Letter View/Download Card */}
-                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl border border-border/40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl border border-border/60 bg-white/80 backdrop-blur-xl shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="grid size-10 place-items-center rounded-2xl brand-gradient text-white shadow-md">
                       <FileText className="size-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-foreground">Internship Offer Letter</h4>
+                      <h4 className="font-bold text-sm text-[#181619]">Internship Offer Letter</h4>
                       <p className="text-xs text-muted-foreground">
                         Ref: <span className="font-mono font-semibold">{da.intern_id}</span> · Issued: {new Date(da.offer_issued_at || da.created_at).toLocaleDateString("en-IN")}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white dark:bg-slate-800" onClick={() => setPreviewOfferApp(da)}>
-                      <Eye className="size-3.5 text-blue-500" /> View Offer Letter
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 h-9 bg-white border-border/60 hover:bg-[#faf8f2]" onClick={() => setPreviewOfferApp(da)}>
+                      <Eye className="size-3.5 text-[#f95c4b]" /> View Offer Letter
                     </Button>
                     <Button size="sm" className="brand-gradient text-white rounded-xl text-xs gap-1.5 h-9 font-bold shadow-sm" onClick={() => downloadOfferLetter({
                       fullName: da.full_name,
@@ -1748,10 +1737,12 @@ function Dashboard() {
 
                 <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
                   <h3 className="flex items-center gap-2 font-bold text-sm"><ScrollText className="size-4 text-primary" /> Application Details</h3>
-                  <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Start Date</p><p className="font-semibold mt-0.5">{new Date(da.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">End Date</p><p className="font-semibold mt-0.5">{da.completed_at ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type === "premium" && isPremiumPlanGlobalEnabled ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type === "premium" ? "pending" : "not_required")}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
                       <p className="text-muted-foreground">App Fee Status</p>
                       {daIsAppFeeRequired ? (
@@ -1771,7 +1762,7 @@ function Dashboard() {
                     app={da}
                     internApproved={daApproved}
                     internTotal={daTotal}
-                    certFeeAmount={certFeeAmount}
+                    certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
                     certFeeConfig={certFeeConfig}
                     certPaymentRecord={daCertPayment}
                     onGenerateCert={() => handleGenerateFreeCert(da.id)}
@@ -1785,50 +1776,6 @@ function Dashboard() {
             {/* Quest Log / Tasks Section for Ongoing & Approved Internships (not for completed) */}
             {da.status !== "completed" && (
               <div className="space-y-4 pt-2">
-                <InternshipProgressTracker
-                  app={da}
-                  isAppFeeRequired={daIsAppFeeRequired}
-                  appFeeAmount={appFeeAmount}
-                  appFeeStatus={
-                    daIsAppFeeApproved
-                      ? "approved"
-                      : daAppPayment?.status === "pending" || daAppPayment?.status === "under_review"
-                      ? "pending"
-                      : daIsAppFeeRequired
-                      ? "pending"
-                      : "not_required"
-                  }
-                  tasksWithMeta={(allTasksByDomain?.[da.domain] ?? []).map((t: any) => {
-                    const sub = (daSubs ?? []).find((s: any) => s.task_id === t.id);
-                    return {
-                      taskNumber: t.task_number,
-                      title: `Task ${t.task_number}`,
-                      status: sub?.status === "approved" ? "completed" : sub?.status === "pending" ? "pending" : "ongoing",
-                      isLocked: daIsAppFeeRequired && !daIsAppFeeApproved,
-                      submission: sub,
-                    };
-                  })}
-                  allTasksApproved={daTasksCompleted}
-                  certFeeAmount={certFeeAmount}
-                  certPaymentStatus={daCertPaymentState.toLowerCase()}
-                  onOpenAppPayment={() => {
-                    navigate({ search: { tab: "payment" } as any });
-                  }}
-                  onOpenCertPayment={() => {
-                    if (daCertPaymentState === "APPROVED" || daCertPaymentState === "WAIVED" || (daCertPaymentState as string) === "FREE_OFFER" || daCertPaymentState === "NOT_REQUIRED") {
-                      navigate({ search: { tab: "certificates" } as any });
-                    } else {
-                      setShowCertPaymentPopup(true);
-                    }
-                  }}
-                  onNavigateTasks={() => {
-                    navigate({ search: { tab: "tasks" } as any });
-                  }}
-                  onNavigateCertificates={() => {
-                    navigate({ search: { tab: "certificates" } as any });
-                  }}
-                />
-
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
                     <ListChecks className="size-5 text-primary" /> Quest Log — {dd?.name ?? da.domain} Tasks
@@ -1839,12 +1786,15 @@ function Dashboard() {
                   submissions={daSubs ?? []}
                   appId={da.id}
                   duration={da.duration ?? undefined}
+                  totalTasks={da.total_tasks}
+                  planType={da.plan_type}
+                  isPremiumPlanEnabled={isPremiumPlanGlobalEnabled}
                   submissionStatus={daSubmissionStatus}
                   isAppFeeRequired={daIsAppFeeRequired}
                   appFeeAmount={appFeeAmount}
                   appFeePayment={daAppPayment}
                   isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
-                  certFeeAmount={certFeeAmount}
+                  certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
                   onOpenCertPayment={() => setShowCertPaymentPopup(true)}
                   onOpenAppPayment={() => {
                     navigate({ search: { tab: "payment" } as any });
@@ -1896,39 +1846,62 @@ function Dashboard() {
                   const d = getDomain(a.domain);
                   const aSubs = allAppSubmissions?.filter((s: any) => s.application_id === a.id) ?? [];
                   const aApproved = aSubs.filter((s: any) => s.status === "approved").length;
-                  const aTotal = taskLimits[a.duration ?? 1] ?? 5;
+                  const aTotal = getAppTaskLimit(a.domain, a.duration, a.total_tasks, a.plan_type);
                   const pct = aTotal > 0 ? Math.round((aApproved / aTotal) * 100) : 0;
                   const aCert = allAppCerts?.find((c: any) => c.application_id === a.id);
                   return (
                     <div key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })} className="w-full text-left rounded-3xl border border-emerald-200/60 bg-gradient-to-r from-emerald-50/50 to-white/60 p-5 backdrop-blur-xl dark:from-emerald-950/20 dark:to-slate-900/60 dark:border-emerald-800/30 shadow-sm hover:shadow-md hover:border-emerald-300/80 transition-all duration-200 hover:-translate-y-0.5 group cursor-pointer">
                       <div className="flex items-start gap-4">
-                        <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${d?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-md text-2xl`}>
+                        <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${d?.color ?? "from-[#f95c4b] to-[#ee9590]"} text-white shadow-md text-2xl`}>
                           {d?.icon ?? "🎓"}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h3 className="font-bold text-base text-foreground">{d?.name ?? a.domain}</h3>
+                            <h3 className="font-bold text-base text-[#181619]">{d?.name ?? a.domain}</h3>
                             <Badge className="text-[10px] px-2 py-0.5 rounded-lg border-0 bg-emerald-500 text-white">{a.status === "ongoing" ? "Active" : a.status}</Badge>
+                            {a.plan_type === "premium" && isPremiumPlanGlobalEnabled ? (
+                              <Badge className="text-[10px] px-2 py-0.5 rounded-lg border-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold flex items-center gap-1">
+                                <Crown className="size-2.5" /> Premium Plan
+                              </Badge>
+                            ) : (
+                              <Badge className="text-[10px] px-2 py-0.5 rounded-lg border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] font-bold">
+                                Standard Plan
+                              </Badge>
+                            )}
                             {aCert && <Badge className="text-[10px] px-2 py-0.5 rounded-lg border-0 bg-emerald-600 text-white">Certified</Badge>}
                           </div>
-                          <p className="text-xs text-muted-foreground mb-3">ID: <span className="font-mono font-bold">{a.intern_id}</span> · {a.duration ?? 1} month{(a.duration ?? 1) > 1 ? "s" : ""} · Applied {new Date(a.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            ID: <span className="font-mono font-bold text-[#181619]">{a.intern_id}</span> · {a.duration ?? 1} month{(a.duration ?? 1) > 1 ? "s" : ""} · {a.plan_type === "premium" && isPremiumPlanGlobalEnabled ? "Premium Tier" : "Standard Tier"} · Applied {new Date(a.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                          </p>
                           <div className="flex items-center gap-3">
                             <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                              <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-700" style={{ width: `${pct}%` }} />
+                              <div className="h-full rounded-full bg-gradient-to-r from-[#f95c4b] to-emerald-500 transition-all duration-700" style={{ width: `${pct}%` }} />
                             </div>
-                            <span className="text-xs font-bold text-foreground shrink-0">{aApproved}/{aTotal} tasks</span>
+                            <span className="text-xs font-bold text-[#181619] shrink-0">{aApproved}/{aTotal} tasks</span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-emerald-200/40 dark:border-emerald-800/20">
+                          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-emerald-200/40">
+                            {isPremiumPlanGlobalEnabled && a.plan_type !== "premium" && a.domain === "fullstack" && (a.duration === 3 || a.duration === 6) && (
+                              <Button
+                                size="sm"
+                                className="rounded-xl h-8 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold hover:from-amber-600 hover:to-orange-600 border-0 gap-1.5 shadow-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleTriggerUpgrade(a);
+                                }}
+                              >
+                                <Crown className="size-3" /> Upgrade to Premium (₹{premiumPlanAmount})
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="outline"
-                              className="rounded-xl h-8 text-xs bg-white dark:bg-slate-800 border-border/60 hover:bg-slate-100"
+                              className="rounded-xl h-8 text-xs bg-white border-border/60 hover:bg-[#faf8f2]"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setPreviewOfferApp(a);
                               }}
                             >
-                              <Eye className="mr-1.5 size-3.5 text-blue-500" /> View Offer Letter
+                              <Eye className="mr-1.5 size-3.5 text-[#f95c4b]" /> View Offer Letter
                             </Button>
                             <Button
                               size="sm"
@@ -1969,7 +1942,7 @@ function Dashboard() {
                   return (
                     <div key={a.id} onClick={() => setDetailView({ type: "app", id: a.id })} className="w-full text-left rounded-3xl border border-border/40 bg-white/50 p-5 backdrop-blur-xl dark:bg-slate-900/50 dark:border-white/5 shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-200 hover:-translate-y-0.5 group cursor-pointer">
                       <div className="flex items-start gap-4">
-                        <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${d?.color ?? "from-[#07284a] to-blue-600"} text-white shadow-md text-2xl opacity-70`}>
+                        <div className={`grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${d?.color ?? "from-[#181619] to-[#363238]"} text-white shadow-md text-2xl opacity-70`}>
                           {d?.icon ?? "🎓"}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -2029,13 +2002,13 @@ function Dashboard() {
           )}
 
           {/* ─── Apply for New Internship Form ─── */}
-          <div className="rounded-3xl border border-[#07284a]/20 bg-gradient-to-br from-[#07284a]/5 to-blue-400/5 backdrop-blur-xl p-6 sm:p-8 space-y-6">
+          <div className="rounded-3xl border border-[#f95c4b]/20 bg-gradient-to-br from-[#f95c4b]/5 via-white to-[#ee9590]/5 backdrop-blur-xl p-6 sm:p-8 space-y-6 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <div className="grid size-10 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md">
+              <div className="grid size-10 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20">
                 <Sparkles className="size-5" />
               </div>
               <div>
-                <h3 className="font-bold text-base text-foreground">Apply for New Internship Domain</h3>
+                <h3 className="font-bold text-base text-[#181619]">Apply for New Internship Domain</h3>
                 <p className="text-xs text-muted-foreground">Fill in the details to start a new internship stream instantly.</p>
               </div>
             </div>
@@ -2044,7 +2017,16 @@ function Dashboard() {
               {/* Domain Selector */}
               <div className="space-y-2">
                 <Label className="text-xs sm:text-sm font-bold text-foreground">Select Internship Domain *</Label>
-                <Select value={newDomain} onValueChange={setNewDomain} required>
+                <Select
+                  value={newDomain}
+                  onValueChange={(val) => {
+                    setNewDomain(val);
+                    if (val !== "fullstack" && newDuration > 2) {
+                      setNewDuration(1);
+                    }
+                  }}
+                  required
+                >
                   <SelectTrigger className="rounded-xl h-11 bg-background/50 border-border/60">
                     <SelectValue placeholder="Choose a learning stream..." />
                   </SelectTrigger>
@@ -2063,17 +2045,19 @@ function Dashboard() {
 
               {/* Duration */}
               <div className="space-y-2">
-                <Label className="text-xs sm:text-sm font-bold text-foreground">Internship Duration *</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {DURATIONS.map((d) => (
+                <Label className="text-xs sm:text-sm font-bold text-foreground">
+                  Internship Duration * {newDomain && newDomain !== "fullstack" && <span className="text-[11px] font-normal text-muted-foreground">(1M &amp; 2M for this domain)</span>}
+                </Label>
+                <div className={`grid gap-3 ${(getAvailableDurations(newDomain).length as number) === 2 ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4"}`}>
+                  {getAvailableDurations(newDomain).map((d) => (
                     <button
                       key={d.value}
                       type="button"
                       onClick={() => setNewDuration(d.value)}
                       className={`rounded-2xl border p-3.5 text-left transition-all ${
                         newDuration === d.value
-                          ? "border-[#07284a] bg-[#07284a]/5 dark:border-blue-500 dark:bg-blue-500/10 ring-1 ring-[#07284a]/10"
-                          : "border-border/60 bg-background/30 hover:border-border"
+                          ? "border-[#f95c4b] bg-[#f95c4b]/10 ring-2 ring-[#f95c4b]/20 text-[#181619]"
+                          : "border-border/60 bg-white/70 hover:border-border hover:bg-white"
                       }`}
                     >
                       <p className="text-xs sm:text-sm font-extrabold text-foreground">{d.label}</p>
@@ -2201,7 +2185,7 @@ function Dashboard() {
               {/* Submit */}
               <Button
                 type="submit"
-                className="w-full brand-gradient text-white border-0 rounded-2xl h-12 text-sm font-extrabold shadow-lg shadow-[#07284a]/15 hover:shadow-xl hover:shadow-[#07284a]/25 transition-all"
+                className="w-full brand-gradient text-white border-0 rounded-2xl h-12 text-sm font-extrabold shadow-lg shadow-[#f95c4b]/20 hover:shadow-xl hover:shadow-[#f95c4b]/30 transition-all"
                 disabled={submittingNewApp}
               >
                 {submittingNewApp ? (
@@ -2237,16 +2221,16 @@ function Dashboard() {
             {isAppFeeRequired ? (
               !isAppFeeApproved ? (
                 isAppPaymentPending ? (
-                  <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40">
+                  <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/8 via-white to-white p-6 shadow-sm">
                     <div className="flex items-start gap-3.5">
-                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20">
                         <Clock className="size-6 animate-pulse" />
                       </div>
                       <div>
-                        <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider mb-1">
+                        <Badge className="border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] text-[10px] uppercase font-bold tracking-wider mb-1">
                           ⏳ Verification Pending
                         </Badge>
-                        <h3 className="font-bold text-base text-foreground">Application Fee Payment Under Review</h3>
+                        <h3 className="font-bold text-base text-[#181619]">Application Fee Payment Under Review</h3>
                         <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
                           Your payment proof (UTR: <span className="font-mono font-bold text-foreground">{appPayment?.utr_number}</span>, Amount: <span className="font-bold text-emerald-600">₹{appPayment?.amount || appFeeAmount}</span>) is awaiting admin verification. Tasks will unlock immediately after approval.
                         </p>
@@ -2428,20 +2412,20 @@ function Dashboard() {
                   </Button>
                 </div>
               ) : certPaymentState === "PENDING" ? (
-                <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-500/10 via-blue-50/50 to-white p-6 sm:p-8 shadow-md dark:from-blue-950/30 dark:to-slate-900/60 dark:border-blue-800/40 space-y-4">
+                <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/8 via-white to-white p-6 sm:p-8 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-md">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20">
                         <Clock className="size-6 animate-pulse" />
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-black uppercase tracking-wider text-muted-foreground font-display">CERTIFICATE PAYMENT</span>
-                          <Badge className="bg-blue-600 text-white border-0 text-[10px] uppercase font-bold tracking-wider">
+                          <span className="text-xs font-black uppercase tracking-wider text-[#181619]/60 font-display">CERTIFICATE PAYMENT</span>
+                          <Badge className="border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] text-[10px] uppercase font-bold tracking-wider">
                             ⏳ Verification Pending
                           </Badge>
                         </div>
-                        <h3 className="font-bold text-base text-foreground">Certificate Payment Under Review</h3>
+                        <h3 className="font-bold text-base text-[#181619]">Certificate Payment Under Review</h3>
                         <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
                           Your certificate payment proof (UTR: <span className="font-mono font-bold text-foreground">{certPaymentRecord?.utr_number || certPaymentRecord?.utr || "Submitted"}</span>, Amount: <span className="font-bold text-emerald-600">₹{certPaymentRecord?.amount || certFeeAmount}</span>) is waiting for admin verification.
                         </p>
@@ -2498,10 +2482,6 @@ function Dashboard() {
       );
     }
 
-
-
-
-
     if (active === "help") {
       const faqs = [
         { q: "How do I submit a task?", a: "Click 'Submit Task' on any task card in the My Tasks section. Fill in the form with your GitHub link, PDF, or screenshot and click Submit for Review." },
@@ -2525,13 +2505,13 @@ function Dashboard() {
               </details>
             ))}
           </div>
-          <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 text-center space-y-3">
-            <div className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#07284a] to-blue-600 text-white mx-auto shadow-lg">
+          <div className="rounded-3xl border border-border/60 bg-white/80 p-6 backdrop-blur-xl shadow-sm text-center space-y-3">
+            <div className="grid size-14 place-items-center rounded-2xl brand-gradient text-white mx-auto shadow-lg shadow-[#f95c4b]/20">
               <Mail className="size-6" />
             </div>
-            <h3 className="font-bold text-base">Still need help?</h3>
+            <h3 className="font-bold text-base text-[#181619]">Still need help?</h3>
             <p className="text-sm text-muted-foreground">Our support team is available Mon–Sat, 9am–6pm IST.</p>
-            <Button asChild className="brand-gradient text-white border-0 rounded-2xl px-6 h-10 font-semibold shadow-md">
+            <Button asChild className="brand-gradient text-white border-0 rounded-2xl px-6 h-10 font-semibold shadow-md shadow-[#f95c4b]/20">
               <a href="mailto:support@skyrovix.com">Email Support</a>
             </Button>
           </div>
@@ -2543,19 +2523,16 @@ function Dashboard() {
   };
 
   const navItems = [
-    { id: "overview",   label: "Overview",              icon: LayoutDashboard },
-    { id: "tasks",      label: "My Tasks",               icon: ListChecks },
-    { id: "internships",label: "My Internships",         icon: Briefcase },
-    { id: "payment",    label: "Payment",                icon: CreditCard },
-    { id: "certificates",label: "Certificates",          icon: Award },
-    { id: "profile",    label: "Profile",                icon: User },
-
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "tasks", label: "My Tasks", icon: ListChecks },
+    { id: "internships", label: "My Internships", icon: Briefcase },
+    { id: "certificates", label: "Certificates", icon: Award },
+    { id: "payment", label: "Payment", icon: CreditCard },
+    { id: "profile", label: "Profile", icon: User },
   ];
 
-
-
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen">
       <style>{`
         @keyframes drift-sphere-1 {
           0% { transform: translate(0px, 0px) scale(1); }
@@ -2582,22 +2559,96 @@ function Dashboard() {
           animation: premium-glow 8s ease infinite;
         }
       `}</style>
-      <div className="flex min-h-screen overflow-x-hidden bg-gradient-to-br from-[#F8FAFC] to-[#EEF2FF] dark:from-[#0B1120] dark:to-[#0F172A]">
+      <div className="min-h-screen bg-[#faf8f2]">
         {/* Background blobs */}
         <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-40 -left-40 size-96 rounded-full bg-[#07284a]/15 blur-[120px] dark:bg-[#07284a]/20 animate-drift-1" />
-          <div className="absolute top-1/3 -right-32 size-80 rounded-full bg-blue-400/15 blur-[100px] dark:bg-blue-600/10 animate-drift-2" />
-          <div className="absolute -bottom-48 left-1/3 size-[500px] rounded-full bg-violet-400/10 blur-[140px] dark:bg-violet-600/5 animate-drift-1" />
-          <div className="absolute top-2/3 left-1/4 size-64 rounded-full bg-emerald-400/5 blur-[80px] dark:bg-emerald-600/5 animate-drift-2" />
+          <div className="absolute -top-40 -left-40 size-96 rounded-full bg-[#f95c4b]/10 blur-[120px] animate-drift-1" />
+          <div className="absolute top-1/3 -right-32 size-80 rounded-full bg-[#ee9590]/15 blur-[100px] animate-drift-2" />
+          <div className="absolute -bottom-48 left-1/3 size-[500px] rounded-full bg-[#f95c4b]/5 blur-[140px] animate-drift-1" />
+          <div className="absolute top-2/3 left-1/4 size-64 rounded-full bg-[#ee9590]/10 blur-[80px] animate-drift-2" />
         </div>
 
         <Confetti active={!!cert} />
 
-        {/* ─── Main Area ─── */}
-        <div className="flex-1 min-w-0">
-          <main className="mx-auto max-w-7xl px-4 py-8 min-w-0">
-            {renderContent()}
-          </main>
+        {/* Dashboard Shell with Left Sidebar & Full-Width Content */}
+        <div className="mx-auto w-full max-w-[1700px] flex px-3 sm:px-4 lg:px-6 py-4 sm:py-6 gap-5 lg:gap-6 items-start relative">
+          {/* Left Desktop Sidebar (Sticky inside dashboard container, stops above footer) */}
+          <StudentDashboardSidebar
+            activeTab={active}
+            onSelectTab={(tabId) => navigate({ search: { tab: tabId } as any })}
+            app={app}
+            domainName={domain?.name}
+            isPremium={isPremium}
+            onUpgradeToPremium={isPremiumPlanGlobalEnabled && app?.domain === "fullstack" ? () => handleTriggerUpgrade(app) : undefined}
+            collapsed={sidebarCollapsed}
+            onToggleCollapsed={() => setSidebarCollapsed(!sidebarCollapsed)}
+            premiumFee={premiumPlanAmount}
+            isPremiumPlanEnabled={isPremiumPlanGlobalEnabled}
+          />
+
+          {/* Main Content Area */}
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
+            {/* Mobile Navigation Trigger Bar (screens < lg) */}
+            <div className="lg:hidden flex items-center justify-between p-3 rounded-2xl bg-white/95 border border-border/70 shadow-xs backdrop-blur-md">
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#181619] text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                <Menu className="size-4" />
+                <span>Dashboard Menu</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#181619]">
+                  {navItems.find((n) => n.id === active)?.label || "Overview"}
+                </span>
+                <span className="size-2 rounded-full bg-[#f95c4b]" />
+              </div>
+
+              <div className="size-8 rounded-xl brand-gradient text-white grid place-items-center text-xs font-bold shadow-xs">
+                {(app?.full_name || "S").slice(0, 1).toUpperCase()}
+              </div>
+            </div>
+
+            {/* Mobile Drawer Sheet */}
+            <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+              <SheetContent side="left" className="p-3.5 w-72 bg-white flex flex-col justify-between">
+                <SheetHeader className="text-left pb-2 border-b border-border/40">
+                  <SheetTitle className="text-xs font-black uppercase tracking-wider text-[#181619] flex items-center gap-2">
+                    <span className="size-6 rounded-lg brand-gradient text-white grid place-items-center text-xs">
+                      S
+                    </span>
+                    Student Workspace
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto py-2">
+                  <StudentDashboardSidebar
+                    activeTab={active}
+                    onSelectTab={(tabId) => {
+                      setMobileNavOpen(false);
+                      navigate({ search: { tab: tabId } as any });
+                    }}
+                    app={app}
+                    domainName={domain?.name}
+                    isPremium={isPremium}
+                    onUpgradeToPremium={app?.domain === "fullstack" ? () => {
+                      setMobileNavOpen(false);
+                      handleTriggerUpgrade(app);
+                    } : undefined}
+                    collapsed={false}
+                    isMobileSheet={true}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Main Content Body (Clean & wide without top horizontal pills) */}
+            <main className="w-full min-w-0">
+              {renderContent()}
+            </main>
+          </div>
         </div>
       </div>
 
@@ -2610,14 +2661,41 @@ function Dashboard() {
         }}
       />
 
+      {/* Cashfree Payment for Upgrading to Premium */}
+      {upgradePayment && (
+        <PaymentSummaryDialog
+          open={upgradePayment.open}
+          onOpenChange={(o) => setUpgradePayment((p: any) => (p ? { ...p, open: o } : null))}
+          productType="premium_plan"
+          productService="Skyrovix Premium Internship Plan Upgrade"
+          amount={upgradePayment.amount}
+          discountAmount={upgradePayment.discountAmount}
+          applicationId={upgradePayment.applicationId}
+          userId={user?.id}
+          customerName={upgradePayment.customerName}
+          customerEmail={upgradePayment.customerEmail}
+          customerPhone={upgradePayment.customerPhone}
+          onSuccess={() => {
+            setUpgradePayment(null);
+            qc.invalidateQueries({ queryKey: ["my-applications"] });
+            toast.success("Payment verified! Welcome to Skyrovix Premium Internship.");
+            navigate({ search: { tab: "tasks" } as any });
+          }}
+        />
+      )}
+
       {/* Certificate Payment Popup Dialog (Auto-triggered when all tasks completed) */}
       {app && (
         <PaymentSummaryDialog
           open={showCertPaymentPopup}
           onOpenChange={setShowCertPaymentPopup}
           productType="certificate"
-          productService={`Skyrovix Certificate Fee — ${domain?.name ?? app.domain}`}
-          amount={certFeeAmount}
+          productService={
+            app.plan_type === "premium"
+              ? `Skyrovix Full Stack Intensive Track Certificate (${app.duration ?? 3} Months • ${app.total_tasks || (app.duration === 6 ? 50 : 25)} Projects + LOR)`
+              : `Skyrovix Certificate Fee — ${domain?.name ?? app.domain}`
+          }
+          amount={app.plan_type === "premium" ? (Number(app.plan_fee) || premiumPlanAmount) : certFeeAmount}
           customerName={app.full_name}
           customerEmail={app.email}
           customerPhone={app.phone ?? profile?.phone ?? ""}
@@ -2673,17 +2751,37 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 
 // ─── HERO ───
 
-function HeroSection({ app, internApproved, durationLimit, cert, payment, onViewOfferLetter }: { app: any; internApproved: number; durationLimit: number; cert?: any; payment?: any; onViewOfferLetter?: (app: any) => void }) {
+function HeroSection({
+  app,
+  internApproved,
+  durationLimit,
+  cert,
+  payment,
+  onViewOfferLetter,
+  isPremium,
+  onUpgradeToPremium,
+  premiumPlanAmount = 200,
+}: {
+  app: any;
+  internApproved: number;
+  durationLimit: number;
+  cert?: any;
+  payment?: any;
+  onViewOfferLetter?: (app: any) => void;
+  isPremium?: boolean;
+  onUpgradeToPremium?: () => void;
+  premiumPlanAmount?: number;
+}) {
   const domain = getDomain(app.domain);
   const internTotal = durationLimit || 4;
   const pct = durationLimit > 0 ? Math.min(100, Math.round((internApproved / durationLimit) * 100)) : 0;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#06182c] via-[#092b4f] to-[#0c3f73] text-white p-4 sm:p-7 md:p-9 shadow-2xl shadow-[#06182c]/40 border border-white/10 animate-premium-glow hover:shadow-blue-500/10 transition-all duration-500">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#181619] via-[#242026] to-[#181619] text-white p-4 sm:p-7 md:p-9 shadow-xl shadow-[#181619]/25 border border-white/10 animate-premium-glow hover:shadow-[#f95c4b]/10 transition-all duration-500">
       {/* Decorative ambient lights */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.07),transparent_60%)] pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 size-72 rounded-full bg-blue-500/15 blur-[90px] pointer-events-none" />
-      <div className="absolute -top-24 right-1/4 size-64 rounded-full bg-emerald-500/10 blur-[80px] pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 size-72 rounded-full bg-[#f95c4b]/15 blur-[90px] pointer-events-none" />
+      <div className="absolute -top-24 right-1/4 size-64 rounded-full bg-[#ee9590]/10 blur-[80px] pointer-events-none" />
       
       {/* Grid Pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] pointer-events-none" />
@@ -2701,25 +2799,34 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, onView
                 {app.photo_url ? (
                   <img src={app.photo_url} alt="" className="size-12 sm:size-14 rounded-2xl object-cover border-2 border-white/20 shadow-md" />
                 ) : (
-                  <div className="size-12 sm:size-14 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-lg sm:text-xl shadow-md border-2 border-white/20">
+                  <div className="size-12 sm:size-14 rounded-2xl brand-gradient flex items-center justify-center font-bold text-white text-lg sm:text-xl shadow-md border-2 border-white/20">
                     {app.full_name?.charAt(0)?.toUpperCase() ?? "I"}
                   </div>
                 )}
-                <div className="absolute -bottom-1 -right-1 grid size-4.5 place-items-center rounded-full bg-emerald-500 text-white ring-2 ring-[#06182c]">
+                <div className="absolute -bottom-1 -right-1 grid size-4.5 place-items-center rounded-full bg-emerald-500 text-white ring-2 ring-[#181619]">
                   <CheckCircle2 className="size-3" />
                 </div>
               </div>
 
               {/* Name & Domain info */}
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-widest text-blue-200 border border-white/10 backdrop-blur-md mb-0.5">
-                  <Sparkles className="size-2.5 text-amber-300" /> Welcome Intern
+                <div className="inline-flex items-center gap-1 rounded-full bg-[#f95c4b]/15 px-2.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-widest text-[#ee9590] border border-[#f95c4b]/20 backdrop-blur-md mb-0.5">
+                  <Sparkles className="size-2.5 text-[#f95c4b]" /> Welcome Intern
                 </div>
                 <h1 className="text-xl sm:text-3xl md:text-4xl font-black font-display leading-tight tracking-tight text-white truncate">
                   {app.full_name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                  <span className="text-xs font-semibold text-cyan-300 truncate">{domain?.name ?? app.domain}</span>
+                  <span className="text-xs font-semibold text-[#ee9590] truncate">{domain?.name ?? app.domain}</span>
+                  {isPremium ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 shadow-md shadow-amber-500/20">
+                      <Crown className="size-3 fill-current" /> Premium Plan
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#f95c4b]/20 text-[#ee9590] border border-[#f95c4b]/30">
+                      Standard Plan
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -2727,7 +2834,7 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, onView
                       toast.success(`Copied Intern ID: ${app.intern_id}`);
                     }}
                     title="Click to copy Intern ID"
-                    className="inline-flex items-center gap-1 text-[10.5px] font-mono text-blue-200/90 bg-white/10 hover:bg-white/20 active:scale-95 px-2 py-0.5 rounded-md border border-white/10 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1 text-[10.5px] font-mono text-white/80 bg-white/10 hover:bg-white/20 active:scale-95 px-2 py-0.5 rounded-md border border-white/10 transition-all cursor-pointer"
                   >
                     <span>ID: {app.intern_id}</span>
                     <Copy className="size-2.5 opacity-70" />
@@ -2745,26 +2852,30 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, onView
                     strokeDasharray="251.32" strokeDashoffset={251.32 - (251.32 * pct) / 100} style={{ transition: "stroke-dashoffset 1s ease" }} />
                   <defs>
                     <linearGradient id="progress-gradient-mob" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#38bdf8" />
-                      <stop offset="100%" stopColor="#34d399" />
+                      <stop offset="0%" stopColor="#f95c4b" />
+                      <stop offset="100%" stopColor="#ee9590" />
                     </linearGradient>
                   </defs>
                 </svg>
                 <span className="absolute text-[11px] font-black text-white">{pct}%</span>
               </div>
-              <span className="text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider mt-0.5">Progress</span>
+              <span className="text-[8.5px] font-bold text-[#ee9590] uppercase tracking-wider mt-0.5">Progress</span>
             </div>
           </div>
 
-          {/* Minimalist Frosted Meta Strip (Eliminates bulky dark boxes) */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/10 text-xs text-blue-200/90 backdrop-blur-md">
+          {/* Minimalist Frosted Meta Strip */}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/10 text-xs text-white/80 backdrop-blur-md">
             <div className="flex items-center gap-1.5">
-              <Calendar className="size-3.5 text-cyan-300 shrink-0" />
+              <Calendar className="size-3.5 text-[#ee9590] shrink-0" />
               <span>Enrolled: <strong className="text-white font-semibold">{new Date(app.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</strong></span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Clock className="size-3.5 text-cyan-300 shrink-0" />
+              <Clock className="size-3.5 text-[#ee9590] shrink-0" />
               <span>Duration: <strong className="text-white font-semibold">{app.duration ?? 1} Month{(app.duration ?? 1) > 1 ? "s" : ""}</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="size-3.5 text-amber-300 shrink-0" />
+              <span>Tier: <strong className="text-amber-300 font-semibold">{isPremium ? "Premium Plan" : "Standard Plan"}</strong></span>
             </div>
             <div className="hidden sm:flex items-center gap-1.5">
               <ListChecks className="size-3.5 text-emerald-300 shrink-0" />
@@ -2782,7 +2893,7 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, onView
                 onClick={() => onViewOfferLetter?.(app)}
                 className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white/[0.08] hover:bg-white/[0.15] active:scale-90 border border-white/10 transition-all text-center group cursor-pointer shadow-sm hover:shadow-md"
               >
-                <div className="grid size-10 place-items-center rounded-xl bg-blue-500/20 text-blue-300 group-hover:scale-110 group-hover:bg-blue-500/30 transition-all">
+                <div className="grid size-10 place-items-center rounded-xl bg-[#f95c4b]/20 text-[#f95c4b] group-hover:scale-110 group-hover:bg-[#f95c4b]/30 transition-all">
                   <Eye className="size-5" />
                 </div>
                 <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">View Offer</span>
@@ -2799,7 +2910,7 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, onView
                 })}
                 className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white/[0.08] hover:bg-white/[0.15] active:scale-90 border border-white/10 transition-all text-center group cursor-pointer shadow-sm hover:shadow-md"
               >
-                <div className="grid size-10 place-items-center rounded-xl bg-sky-500/20 text-sky-300 group-hover:scale-110 group-hover:bg-sky-500/30 transition-all">
+                <div className="grid size-10 place-items-center rounded-xl bg-[#ee9590]/20 text-[#ee9590] group-hover:scale-110 group-hover:bg-[#ee9590]/30 transition-all">
                   <Download className="size-5" />
                 </div>
                 <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">Offer Letter</span>
@@ -2818,27 +2929,50 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, onView
                 <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">ID Card</span>
               </button>
 
-              <button
-                type="button"
-                onClick={cert ? () => downloadPdf(
-                  <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
-                  `Certificate_${cert.certificate_id}.pdf`
-                ) : undefined}
-                disabled={!cert}
-                className={`flex flex-col items-center justify-center p-2 rounded-2xl ${cert ? "bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-90 border-emerald-400/30 cursor-pointer shadow-sm hover:shadow-emerald-500/20" : "bg-white/[0.03] border-white/5 opacity-40 cursor-not-allowed"} border transition-all text-center group`}
-              >
-                <div className={`grid size-10 place-items-center rounded-xl ${cert ? "bg-emerald-500/30 text-emerald-300 group-hover:scale-110" : "bg-white/5 text-white/40"} transition-all`}>
-                  <Award className="size-5" />
-                </div>
-                <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">{cert ? "Certificate" : "Locked"}</span>
-              </button>
+              {!isPremium && app.domain === "fullstack" && (app.duration === 3 || app.duration === 6) && onUpgradeToPremium ? (
+                <button
+                  type="button"
+                  onClick={onUpgradeToPremium}
+                  className="flex flex-col items-center justify-center p-2 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-400/40 transition-all text-center group cursor-pointer shadow-sm"
+                >
+                  <div className="grid size-10 place-items-center rounded-xl bg-amber-500/30 text-amber-300 group-hover:scale-110 transition-all">
+                    <Crown className="size-5" />
+                  </div>
+                  <span className="mt-1 text-[10px] font-black text-amber-300 leading-tight">Upgrade ₹{premiumPlanAmount}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={cert ? () => downloadPdf(
+                    <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
+                    `Certificate_${cert.certificate_id}.pdf`
+                  ) : undefined}
+                  disabled={!cert}
+                  className={`flex flex-col items-center justify-center p-2 rounded-2xl ${cert ? "bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-90 border-emerald-400/30 cursor-pointer shadow-sm hover:shadow-emerald-500/20" : "bg-white/[0.03] border-white/5 opacity-40 cursor-not-allowed"} border transition-all text-center group`}
+                >
+                  <div className={`grid size-10 place-items-center rounded-xl ${cert ? "bg-emerald-500/30 text-emerald-300 group-hover:scale-110" : "bg-white/5 text-white/40"} transition-all`}>
+                    <Award className="size-5" />
+                  </div>
+                  <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">{cert ? "Certificate" : "Locked"}</span>
+                </button>
+              )}
             </div>
 
             {/* Desktop Full Buttons */}
             <div className="hidden md:flex flex-wrap gap-2.5">
+              {!isPremium && app.domain === "fullstack" && (app.duration === 3 || app.duration === 6) && onUpgradeToPremium && (
+                <Button
+                  size="sm"
+                  onClick={onUpgradeToPremium}
+                  className="rounded-2xl h-10 text-xs font-black bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white border-0 gap-2 shadow-lg shadow-amber-500/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <Crown className="size-4" /> Upgrade to Premium (₹{premiumPlanAmount})
+                </Button>
+              )}
+
               <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
                 onClick={() => onViewOfferLetter?.(app)}>
-                <Eye className="size-4 text-blue-300" /> View Offer Letter
+                <Eye className="size-4 text-[#ee9590]" /> View Offer Letter
               </Button>
 
               <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
@@ -2849,7 +2983,7 @@ function HeroSection({ app, internApproved, durationLimit, cert, payment, onView
                   issuedAt: app.offer_issued_at || app.created_at,
                   duration: app.duration ?? 1,
                 })}>
-                <Download className="size-4 text-blue-300" /> Download Offer Letter
+                <Download className="size-4 text-[#ee9590]" /> Download Offer Letter
               </Button>
 
               <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
@@ -2946,7 +3080,8 @@ function StatsCards({
     {
       icon: Award, label: "Verified Certificate", value: cert ? "Issued" : "None",
       sub: cert ? "Download PDF" : "Locked",
-      color: "from-rose-500 to-pink-600", bg: "bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400",
+      color: cert ? "from-[#f95c4b] to-[#ee9590]" : "from-[#181619] to-[#363238]",
+      bg: cert ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400" : "bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 text-[#f95c4b] dark:text-[#ee9590]",
     },
   ];
 
@@ -3057,32 +3192,32 @@ function ProfilePanel({ app, onChange }: { app: Application; onChange: () => voi
 
   if (editing) return (
     <div className="space-y-6">
-      <Card className="overflow-hidden rounded-3xl border-border/40 bg-white/60 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 shadow-xl transition-all duration-300">
-        <div className="relative bg-gradient-to-br from-[#07284a] via-[#0a3d6b] to-[#0d5a9e] px-6 py-8 text-white overflow-hidden">
+      <Card className="overflow-hidden rounded-3xl border-border/60 bg-white/80 backdrop-blur-xl shadow-xl transition-all duration-300">
+        <div className="relative bg-gradient-to-r from-[#181619] via-[#242026] to-[#181619] px-6 py-8 text-white overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_60%)] pointer-events-none" />
-          <div className="absolute -right-12 -top-12 size-40 rounded-full bg-white/5 blur-2xl" />
-          <div className="absolute -bottom-12 -left-12 size-40 rounded-full bg-blue-400/5 blur-2xl" />
+          <div className="absolute -right-12 -top-12 size-40 rounded-full bg-[#f95c4b]/15 blur-2xl" />
+          <div className="absolute -bottom-12 -left-12 size-40 rounded-full bg-[#ee9590]/10 blur-2xl" />
           <div className="relative z-10">
             <h3 className="text-xl font-extrabold font-display">Edit Profile Information</h3>
-            <p className="text-xs text-blue-200 mt-1">Make sure all details are accurate to ensure clean certificate generation.</p>
+            <p className="text-xs text-[#ee9590] mt-1">Make sure all details are accurate to ensure clean certificate generation.</p>
           </div>
         </div>
         <CardContent className="p-6 sm:p-8">
           <form onSubmit={save} className="space-y-6">
             {/* Avatar Upload */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 rounded-2xl border border-dashed border-border/60 bg-gradient-to-br from-slate-50/50 to-white p-6 dark:from-slate-800/20 dark:to-slate-900/20">
+            <div className="flex flex-col sm:flex-row items-center gap-6 rounded-2xl border border-dashed border-border/60 bg-gradient-to-br from-[#faf8f2] to-white p-6">
               <div className="relative group shrink-0">
-                <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-[#07284a] to-blue-500 opacity-30 blur-sm group-hover:opacity-50 transition-opacity" />
+                <div className="absolute -inset-1 rounded-3xl brand-gradient opacity-30 blur-sm group-hover:opacity-50 transition-opacity" />
                 {(photoPreview || app.photo_url) ? (
-                  <img src={photoPreview || app.photo_url || ""} alt="" className="relative size-24 rounded-2xl object-cover border-4 border-white dark:border-slate-800 shadow-md transition-all group-hover:scale-105" />
+                  <img src={photoPreview || app.photo_url || ""} alt="" className="relative size-24 rounded-2xl object-cover border-4 border-white shadow-md transition-all group-hover:scale-105" />
                 ) : (
-                  <div className="relative grid size-24 place-items-center rounded-2xl border-4 border-white dark:border-slate-800 brand-gradient text-3xl font-extrabold text-white shadow-md transition-all group-hover:scale-105">
+                  <div className="relative grid size-24 place-items-center rounded-2xl border-4 border-white brand-gradient text-3xl font-extrabold text-white shadow-md transition-all group-hover:scale-105">
                     {app.full_name.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <p className="text-sm font-bold text-foreground">Profile Photo</p>
+                <p className="text-sm font-bold text-[#181619]">Profile Photo</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5 mb-3">Upload a clear, professional photo for your ID card and certificate.</p>
                 <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)} className="h-10 file:text-xs rounded-xl border-border/60 bg-white max-w-xs cursor-pointer" />
               </div>
@@ -3090,7 +3225,7 @@ function ProfilePanel({ app, onChange }: { app: Application; onChange: () => voi
 
             {/* Personal Information */}
             <div className="space-y-4">
-              <h4 className="flex items-center gap-2 text-xs font-bold text-blue-700 dark:text-blue-400 tracking-wider uppercase border-b border-border/20 pb-2">
+              <h4 className="flex items-center gap-2 text-xs font-bold text-[#f95c4b] tracking-wider uppercase border-b border-border/20 pb-2">
                 <User className="size-3.5" /> Personal Information
               </h4>
               <div className="grid gap-4 md:grid-cols-2">
@@ -3134,7 +3269,7 @@ function ProfilePanel({ app, onChange }: { app: Application; onChange: () => voi
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-border/20">
-              <Button type="submit" disabled={saving} className="brand-gradient text-white border-0 rounded-xl px-8 h-12 font-bold shadow-lg shadow-[#07284a]/15 gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all">
+              <Button type="submit" disabled={saving} className="brand-gradient text-white border-0 rounded-xl px-8 h-12 font-bold shadow-lg shadow-[#f95c4b]/20 gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all">
                 {saving ? <><Loader2 className="size-4 animate-spin" /> Saving Details…</> : <><CheckCircle2 className="size-4" /> Save Changes</>}
               </Button>
               <Button type="button" variant="outline" className="rounded-xl px-8 h-12 font-bold border-border/60 gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all" onClick={() => { setEditing(false); setPhotoFile(null); }}>
@@ -3150,9 +3285,9 @@ function ProfilePanel({ app, onChange }: { app: Application; onChange: () => voi
   return (
     <div className="space-y-6">
       {/* Profile Info & Stats */}
-      <Card className="overflow-hidden rounded-3xl border-border/40 bg-white/60 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 shadow-xl transition-all duration-300">
+      <Card className="overflow-hidden rounded-3xl border-border/60 bg-white/80 backdrop-blur-xl shadow-xl transition-all duration-300">
         {/* Modern Radial Gradient Banner */}
-        <div className="h-32 bg-gradient-to-r from-[#07284a] via-[#093a6c] to-[#0a4c8f] relative">
+        <div className="h-32 bg-gradient-to-r from-[#181619] via-[#242026] to-[#181619] relative">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_60%)] pointer-events-none" />
           <div className="absolute top-4 right-4 flex gap-1.5">
             <Badge className="bg-white/15 text-white border-0 backdrop-blur-md rounded-lg font-mono text-[10px] tracking-wide uppercase px-2 py-0.5">
@@ -3166,30 +3301,30 @@ function ProfilePanel({ app, onChange }: { app: Application; onChange: () => voi
           <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-12 mb-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 text-center sm:text-left">
               {app.photo_url ? (
-                <img src={app.photo_url} alt="" className="size-24 rounded-3xl border-4 border-white dark:border-slate-900 object-cover shadow-lg relative z-10" />
+                <img src={app.photo_url} alt="" className="size-24 rounded-3xl border-4 border-white object-cover shadow-lg relative z-10" />
               ) : (
-                <div className="grid size-24 place-items-center rounded-3xl border-4 border-white dark:border-slate-900 brand-gradient text-3xl font-extrabold text-white shadow-lg relative z-10">
+                <div className="grid size-24 place-items-center rounded-3xl border-4 border-white brand-gradient text-3xl font-extrabold text-white shadow-lg relative z-10">
                   {app.full_name.charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="pb-1">
-                <h3 className="text-2xl font-extrabold font-display text-foreground leading-snug tracking-tight">{app.full_name}</h3>
+                <h3 className="text-2xl font-extrabold font-display text-[#181619] leading-snug tracking-tight">{app.full_name}</h3>
                 <p className="text-xs text-muted-foreground flex items-center justify-center sm:justify-start gap-1.5 mt-0.5">
-                  <Mail className="size-3.5 text-primary shrink-0" />
-                  <span className="font-semibold">{app.email}</span>
+                  <Mail className="size-3.5 text-[#f95c4b] shrink-0" />
+                  <span className="font-semibold text-[#181619]/80">{app.email}</span>
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="rounded-xl border-border/60 h-9 font-semibold gap-1.5 bg-white/40 shadow-sm shrink-0 mb-1 hover:-translate-y-0.5 transition-transform" onClick={() => setEditing(true)}>
-              <User className="size-4 text-primary" /> Edit Profile
+            <Button variant="outline" size="sm" className="rounded-xl border-border/60 h-9 font-semibold gap-1.5 bg-white shadow-sm shrink-0 mb-1 hover:-translate-y-0.5 hover:bg-[#faf8f2] transition-transform" onClick={() => setEditing(true)}>
+              <User className="size-4 text-[#f95c4b]" /> Edit Profile
             </Button>
           </div>
 
           {/* Grid Layout Cards */}
           <div className="grid gap-6 md:grid-cols-2 mt-4">
             {/* Personal Details Panel */}
-            <div className="rounded-2xl border border-border/30 bg-white/40 p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="flex items-center gap-2 text-xs font-bold text-blue-700 dark:text-blue-400 tracking-wider uppercase border-b border-border/20 pb-2">
+            <div className="rounded-2xl border border-border/60 bg-white/70 p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="flex items-center gap-2 text-xs font-bold text-[#f95c4b] tracking-wider uppercase border-b border-border/20 pb-2">
                 <User className="size-3.5" /> Personal Details
               </h4>
               <div className="space-y-3 text-xs">
@@ -3209,8 +3344,8 @@ function ProfilePanel({ app, onChange }: { app: Application; onChange: () => voi
             </div>
 
             {/* Academic Credentials Panel */}
-            <div className="rounded-2xl border border-border/30 bg-white/40 p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="flex items-center gap-2 text-xs font-bold text-blue-700 dark:text-blue-400 tracking-wider uppercase border-b border-border/20 pb-2">
+            <div className="rounded-2xl border border-border/60 bg-white/70 p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="flex items-center gap-2 text-xs font-bold text-[#f95c4b] tracking-wider uppercase border-b border-border/20 pb-2">
                 <Building className="size-3.5" /> Academic Information
               </h4>
               <div className="space-y-3 text-xs">
@@ -3258,9 +3393,9 @@ function TimelineSection({ steps, currentStep, onNavigateCertificates }: { steps
       {/* Desktop Horizontal Stepper */}
       <div className="hidden md:flex items-center justify-between relative px-4">
         {/* Connection Line */}
-        <div className="absolute left-8 right-8 top-5 h-0.5 bg-muted dark:bg-slate-800 -z-10">
+        <div className="absolute left-8 right-8 top-5 h-0.5 bg-muted -z-10">
           <div 
-            className="h-full bg-gradient-to-r from-[#07284a] via-blue-500 to-emerald-500 transition-all duration-700 ease-out" 
+            className="h-full bg-gradient-to-r from-[#181619] via-[#f95c4b] to-emerald-500 transition-all duration-700 ease-out" 
             style={{ width: `${currentStep < 0 ? 100 : (currentStep / (steps.length - 1)) * 100}%` }}
           />
         </div>
@@ -3276,19 +3411,19 @@ function TimelineSection({ steps, currentStep, onNavigateCertificates }: { steps
               className={`flex flex-col items-center text-center relative z-10 w-32 ${i === 2 && onNavigateCertificates ? "cursor-pointer" : ""}`}>
               <div className="relative">
                 {isActive && (
-                  <div className="absolute -inset-2 rounded-full border-2 border-[#07284a] dark:border-blue-500 animate-stepper-pulse pointer-events-none" />
+                  <div className="absolute -inset-2 rounded-full border-2 border-[#f95c4b] animate-stepper-pulse pointer-events-none" />
                 )}
                 <div className={`grid size-10 place-items-center rounded-full transition-all duration-500 border-2 ${
                   isDone 
                     ? "bg-emerald-500 border-emerald-400 text-white scale-100 shadow-md shadow-emerald-500/20" 
                     : isActive 
-                      ? "bg-[#07284a] border-blue-500 text-white ring-4 ring-[#07284a]/20 dark:ring-[#07284a]/50" 
-                      : "bg-white dark:bg-slate-800 border-muted dark:border-slate-700 text-muted-foreground"
+                      ? "bg-[#181619] border-[#f95c4b] text-white ring-4 ring-[#f95c4b]/20" 
+                      : "bg-white border-muted text-muted-foreground"
                 }`}>
                   {isDone ? <CheckCircle2 className="size-5" /> : <span className="text-xs font-bold">{i + 1}</span>}
                 </div>
               </div>
-              <p className={`mt-3 text-xs font-medium max-w-full leading-snug ${isActive ? "text-[#07284a] dark:text-[#07284a]/85 font-bold" : isDone ? "text-muted-foreground" : "text-muted-foreground/60"}`}>
+              <p className={`mt-3 text-xs font-medium max-w-full leading-snug ${isActive ? "text-[#181619] font-bold" : isDone ? "text-muted-foreground" : "text-muted-foreground/60"}`}>
                 {s.label}
               </p>
             </div>
@@ -3299,9 +3434,9 @@ function TimelineSection({ steps, currentStep, onNavigateCertificates }: { steps
       {/* Mobile Vertical Stepper */}
       <div className="md:hidden relative pl-6 space-y-6">
         {/* Connecting line */}
-        <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-muted dark:bg-slate-800 -z-10">
+        <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-muted -z-10">
           <div 
-            className="w-full bg-gradient-to-b from-[#07284a] via-blue-500 to-emerald-500 transition-all duration-700 ease-out" 
+            className="w-full bg-gradient-to-b from-[#181619] via-[#f95c4b] to-emerald-500 transition-all duration-700 ease-out" 
             style={{ height: `${currentStep < 0 ? 100 : (currentStep / (steps.length - 1)) * 100}%` }}
           />
         </div>
@@ -3313,20 +3448,20 @@ function TimelineSection({ steps, currentStep, onNavigateCertificates }: { steps
             <div key={i} className="flex items-center gap-4 relative">
               <div className="relative shrink-0">
                 {isActive && (
-                  <div className="absolute -inset-1 rounded-full border border-[#07284a] dark:border-blue-500 animate-stepper-pulse pointer-events-none" />
+                  <div className="absolute -inset-1 rounded-full border border-[#f95c4b] animate-stepper-pulse pointer-events-none" />
                 )}
                 <div className={`grid size-6 place-items-center rounded-full transition-all duration-500 border ${
                   isDone 
                     ? "bg-emerald-500 border-emerald-400 text-white shadow-sm" 
                     : isActive 
-                      ? "bg-[#07284a] border-blue-500 text-white ring-2 ring-[#07284a]/20" 
-                      : "bg-white dark:bg-slate-800 border-muted dark:border-slate-700 text-muted-foreground"
+                      ? "bg-[#181619] border-[#f95c4b] text-white ring-2 ring-[#f95c4b]/20" 
+                      : "bg-white border-muted text-muted-foreground"
                 }`}>
                   {isDone ? <CheckCircle2 className="size-3.5" /> : <span className="text-[10px] font-bold">{i + 1}</span>}
                 </div>
               </div>
               <div className={`min-w-0 ${isActive ? "font-semibold text-foreground" : isDone ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
-                <p className={`text-xs ${isActive ? "text-[#07284a] dark:text-[#07284a]/80" : ""}`}>{s.label}</p>
+                <p className={`text-xs ${isActive ? "text-[#181619] font-bold" : ""}`}>{s.label}</p>
               </div>
             </div>
           );
@@ -3351,7 +3486,7 @@ function UnlockedCertificateCard({ app, cert, domain }: any) {
         <div className="absolute -right-20 -top-20 size-64 rounded-full bg-emerald-500/10 blur-[80px] pointer-events-none" />
         
         <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="grid size-16 place-items-center rounded-2xl brand-gradient text-white shadow-xl shadow-[#07284a]/10 shrink-0">
+          <div className="grid size-16 place-items-center rounded-2xl brand-gradient text-white shadow-xl shadow-[#f95c4b]/25 shrink-0">
             <Award className="size-9" />
           </div>
           <div className="flex-1 text-center md:text-left">
@@ -3603,20 +3738,20 @@ function LockedCertificateCard({
   // STATE 5: Payment Submitted -> Pending Admin Review (Section 30, 37)
   if (paymentStatus === "pending" || paymentStatus === "under_review") {
     return (
-      <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-blue-950/20 dark:to-slate-900/60 dark:border-blue-800/40 shadow-sm relative overflow-hidden space-y-4">
+      <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/8 via-white to-white p-6 sm:p-8 shadow-sm relative overflow-hidden space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-blue-500 text-white shadow-md shadow-blue-500/25">
+            <div className="grid size-14 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20">
               <Clock className="size-7" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-blue-800 dark:text-blue-300 font-display">CERTIFICATE</span>
-                <Badge className="bg-blue-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+                <span className="text-xs font-black uppercase tracking-wider text-[#181619]/60 font-display">CERTIFICATE</span>
+                <Badge className="border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] text-xs px-2.5 py-0.5 font-bold">
                   ⏳ PAYMENT VERIFICATION PENDING
                 </Badge>
               </div>
-              <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+              <h3 className="font-display text-xl font-extrabold text-[#181619] mt-1">
                 Certificate Payment Waiting Verification
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
@@ -3629,7 +3764,7 @@ function LockedCertificateCard({
           <Button
             onClick={() => navigate({ search: { tab: "payment" } as any })}
             variant="outline"
-            className="rounded-xl text-xs h-10 px-4 shrink-0 font-bold border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/40 cursor-pointer"
+            className="rounded-xl text-xs h-10 px-4 shrink-0 font-bold border-[#f95c4b]/30 text-[#f95c4b] hover:bg-[#f95c4b]/10 cursor-pointer"
           >
             View Payment on Payment Page
           </Button>
@@ -3641,7 +3776,7 @@ function LockedCertificateCard({
   // STATE 6: Payment Resubmission Required (Section 29, 37)
   if (paymentStatus === "resubmission_required") {
     return (
-      <div className="rounded-3xl border border-amber-300/80 bg-gradient-to-br from-amber-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-amber-950/20 dark:to-slate-900/60 dark:border-amber-800/40 shadow-sm relative overflow-hidden space-y-4">
+      <div className="rounded-3xl border border-amber-300/80 bg-gradient-to-br from-amber-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl shadow-sm relative overflow-hidden space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/25">
@@ -3649,7 +3784,7 @@ function LockedCertificateCard({
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 font-display">CERTIFICATE</span>
+                <span className="text-xs font-black uppercase tracking-wider text-amber-800 font-display">CERTIFICATE</span>
                 <Badge className="bg-amber-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
                   ⚠️ Resubmission Required
                 </Badge>
@@ -3675,23 +3810,23 @@ function LockedCertificateCard({
 
   // STATE 7: Payment Required (Section 29, 33 Case A, 37)
   return (
-    <div className="rounded-3xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/80 via-white to-white p-6 sm:p-8 backdrop-blur-xl dark:from-indigo-950/20 dark:to-slate-900/60 dark:border-indigo-800/40 shadow-sm relative overflow-hidden space-y-4">
+    <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-br from-[#f95c4b]/8 via-[#ee9590]/8 to-white p-6 sm:p-8 shadow-sm relative overflow-hidden space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/25">
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20">
             <CreditCard className="size-7" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-indigo-800 dark:text-indigo-300 font-display">CERTIFICATE</span>
-              <Badge className="bg-indigo-600 text-white border-0 text-xs px-2.5 py-0.5 font-bold">
+              <span className="text-xs font-black uppercase tracking-wider text-[#181619]/60 font-display">CERTIFICATE</span>
+              <Badge className="bg-[#181619] text-white border-0 text-xs px-2.5 py-0.5 font-bold">
                 💳 PAYMENT REQUIRED
               </Badge>
-              <Badge variant="outline" className="border-indigo-300 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
+              <Badge variant="outline" className="border-[#f95c4b]/30 text-[#f95c4b] bg-[#f95c4b]/10 text-xs font-bold">
                 Fee: ₹{effectiveCertFee}
               </Badge>
             </div>
-            <h3 className="font-display text-xl font-extrabold text-foreground mt-1">
+            <h3 className="font-display text-xl font-extrabold text-[#181619] mt-1">
               Certificate Fee: ₹{effectiveCertFee}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
@@ -3701,7 +3836,7 @@ function LockedCertificateCard({
         </div>
         <Button
           onClick={() => onOpenCertPayment ? onOpenCertPayment() : navigate({ search: { tab: "payment" } as any })}
-          className="brand-gradient text-white rounded-xl font-bold text-sm h-11 px-6 shadow-md shrink-0 gap-2 cursor-pointer"
+          className="brand-gradient text-white rounded-xl font-bold text-sm h-11 px-6 shadow-md shadow-[#f95c4b]/20 shrink-0 gap-2 cursor-pointer hover:opacity-95"
         >
           <CreditCard className="size-4" /> Pay ₹{effectiveCertFee} Now
         </Button>
@@ -3715,11 +3850,11 @@ function CertificateSection({ cert, app, compact }: any) {
   const domain = getDomain(app?.domain);
   const inner = (
     <>
-      <div className="rounded-xl bg-gradient-to-br from-[#07284a]/10 to-blue-50 p-4 text-center dark:from-[#07284a]/40 dark:to-blue-950/30 border border-[#07284a]/20 dark:border-[#07284a]/50">
-        <div className="mx-auto grid size-14 place-items-center rounded-2xl brand-gradient text-white shadow-md mb-3">
+      <div className="rounded-2xl bg-gradient-to-br from-[#f95c4b]/8 via-white to-[#ee9590]/5 p-4 text-center border border-[#f95c4b]/20 shadow-sm">
+        <div className="mx-auto grid size-14 place-items-center rounded-2xl brand-gradient text-white shadow-md shadow-[#f95c4b]/20 mb-3">
           <Award className="size-7" />
         </div>
-        <p className="font-bold text-sm text-foreground">{domain?.name}</p>
+        <p className="font-bold text-sm text-[#181619]">{domain?.name}</p>
         <p className="text-[10px] text-muted-foreground font-mono mt-1">{cert.certificate_id}</p>
       </div>
       <div className="mt-4 space-y-2">
@@ -3750,17 +3885,17 @@ function IDCardSection({ app, onViewOfferLetter }: { app: Application | null; on
   if (!app) return null;
   const domain = getDomain(app.domain);
   return (
-    <div className="rounded-3xl border border-border/40 bg-white/60 p-5 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5">
-      <h3 className="flex items-center gap-2 font-bold mb-4 text-sm text-foreground"><Shield className="size-4 text-primary" /> Digital ID Card</h3>
+    <div className="rounded-3xl border border-border/60 bg-white/80 p-5 backdrop-blur-xl shadow-sm">
+      <h3 className="flex items-center gap-2 font-bold mb-4 text-sm text-[#181619]"><Shield className="size-4 text-primary" /> Digital ID Card</h3>
       <IDCard internId={app.intern_id} fullName={app.full_name} domain={domain?.name ?? app.domain} photoUrl={app.photo_url} issuedAt={app.offer_issued_at} email={app.email} />
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Badge className="bg-emerald-600 text-white text-[10px] border-0"><CheckCircle2 className="mr-1 size-3" /> ACTIVE</Badge>
         <div className="flex flex-wrap gap-2 ml-auto">
-          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white dark:bg-slate-800 hover:bg-slate-100"
+          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white hover:bg-[#faf8f2]"
             onClick={() => onViewOfferLetter?.(app)}>
-            <Eye className="mr-1 size-3 text-blue-500" /> View Offer Letter
+            <Eye className="mr-1 size-3 text-[#f95c4b]" /> View Offer Letter
           </Button>
-          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white dark:bg-slate-800 hover:bg-slate-100"
+          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-border/60 bg-white hover:bg-[#faf8f2]"
             onClick={() => downloadOfferLetter({
               fullName: app.full_name,
               internId: app.intern_id,
@@ -3770,7 +3905,7 @@ function IDCardSection({ app, onViewOfferLetter }: { app: Application | null; on
             })}>
             <Download className="mr-1 size-3 text-emerald-500" /> Download Offer Letter
           </Button>
-          <Button size="sm" className="brand-gradient text-white border-0 rounded-xl h-8 text-xs font-semibold"
+          <Button size="sm" className="brand-gradient text-white border-0 rounded-xl h-8 text-xs font-semibold shadow-sm"
             onClick={() => downloadIDCard({
               fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at || app.created_at, photoUrl: app.photo_url, email: app.email
             })}>
@@ -3785,12 +3920,12 @@ function IDCardSection({ app, onViewOfferLetter }: { app: Application | null; on
 // ─── SUBMISSION STATUS BADGE ───
 function SubmissionStatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    in_progress: { label: "In Progress", className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-    submitted: { label: "Submitted", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-    approved: { label: "Approved", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
-    rejected: { label: "Rejected", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+    in_progress: { label: "In Progress", className: "border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] font-bold" },
+    submitted: { label: "Submitted", className: "bg-amber-100 text-amber-700 font-bold" },
+    approved: { label: "Approved", className: "bg-emerald-100 text-emerald-700 font-bold" },
+    rejected: { label: "Rejected", className: "bg-red-100 text-red-700 font-bold" },
   };
-  const c = config[status] ?? { label: status, className: "bg-gray-100 text-gray-700" };
+  const c = config[status] ?? { label: status, className: "bg-gray-100 text-gray-700 font-bold" };
   return <Badge className={`text-xs ${c.className}`}>{c.label}</Badge>;
 }
 
@@ -3803,21 +3938,21 @@ function WelcomeDashboard({ user, onCreated }: { user: any; onCreated: () => voi
   return (
     <div className="space-y-8">
       {/* Hero welcome */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-white/70 backdrop-blur-xl p-6 sm:p-10 dark:bg-slate-900/60 dark:border-white/5">
-        <div className="absolute -right-20 -top-20 size-64 rounded-full bg-[#07284a]/15 blur-[100px]" />
-        <div className="absolute -bottom-20 -left-20 size-64 rounded-full bg-blue-400/15 blur-[100px]" />
+      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-white/80 backdrop-blur-xl p-6 sm:p-10 shadow-sm">
+        <div className="absolute -right-20 -top-20 size-64 rounded-full bg-[#f95c4b]/10 blur-[100px] pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 size-64 rounded-full bg-[#ee9590]/15 blur-[100px] pointer-events-none" />
         <div className="relative">
-          <Badge variant="secondary" className="mb-3 bg-primary/10 text-primary border-0"><Sparkles className="mr-1 size-3" /> Welcome</Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl text-foreground">Hi {displayName} 👋</h1>
+          <Badge className="mb-3 border border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b]"><Sparkles className="mr-1 size-3" /> Welcome</Badge>
+          <h1 className="font-display text-3xl font-bold sm:text-4xl text-[#181619]">Hi {displayName} 👋</h1>
           <p className="mt-2 max-w-2xl text-sm sm:text-base text-muted-foreground leading-relaxed">
             Your Skyrovix learning hub. Select your internship domain, complete practical tasks, and apply for an internship anytime.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button size="lg" className="brand-gradient text-white border-0 rounded-2xl h-11" onClick={() => setShowApplyDialog(true)}>
+            <Button size="lg" className="brand-gradient text-white border-0 rounded-2xl h-11 hover:opacity-95 shadow-md shadow-[#f95c4b]/20" onClick={() => setShowApplyDialog(true)}>
               <FileText className="mr-2 size-4" /> Apply for Internship
             </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-2xl h-11 bg-white">
-              <Link to="/domains"><Layers className="mr-2 size-4" /> Explore Domains</Link>
+            <Button asChild size="lg" variant="outline" className="rounded-2xl h-11 bg-white border-border/60 hover:bg-[#faf8f2]">
+              <Link to="/internship"><Layers className="mr-2 size-4" /> Explore Internships</Link>
             </Button>
             <Button size="lg" variant="outline" className="rounded-2xl h-11 bg-white hover:bg-slate-50 gap-2 text-xs font-bold" onClick={() => window.open("https://www.instagram.com/skyrovix?stkn=ZXY2ZXdxZTM5czNr", "_blank")}>
               <Instagram className="size-4 text-pink-600" /> Instagram
@@ -3834,10 +3969,10 @@ function WelcomeDashboard({ user, onCreated }: { user: any; onCreated: () => voi
 
       {/* Quick action tiles */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link to="/domains" className="group rounded-3xl border border-border/45 bg-white/60 p-5 backdrop-blur transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-slate-900/60">
-          <div className="grid size-11 place-items-center rounded-2xl bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"><Layers className="size-5" /></div>
-          <p className="mt-4 font-bold text-foreground">Internship Domains</p>
-          <p className="text-xs text-muted-foreground mt-1">Pick a domain to specialise in.</p>
+        <Link to="/internship" className="group rounded-3xl border border-border/60 bg-white/80 p-5 backdrop-blur transition-all duration-300 hover:shadow-lg hover:-translate-y-1 shadow-sm">
+          <div className="grid size-11 place-items-center rounded-2xl bg-[#f95c4b]/10 text-[#f95c4b]"><Layers className="size-5" /></div>
+          <p className="mt-4 font-bold text-foreground">Internship Streams</p>
+          <p className="text-xs text-muted-foreground mt-1">Pick an internship domain to specialise in.</p>
         </Link>
         <Link to="/verify-certificate" className="group rounded-3xl border border-border/45 bg-white/60 p-5 backdrop-blur transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-slate-900/60">
           <div className="grid size-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"><Shield className="size-5" /></div>

@@ -6,14 +6,15 @@ import {
   Code2, Database, Brain, Palette, Shield, Cloud, ArrowRight,
   Building2, Users, CheckCircle2, Award, Clock, Mail, MapPin,
   HelpCircle, LayoutDashboard, Lock, FileSignature, 
-  RotateCcw, Map, Star, FileText, Briefcase, ChevronDown
+  RotateCcw, Map, Star, FileText, Briefcase, ChevronDown,
+  BookOpen
 } from "lucide-react";
 
 export function Footer() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <footer className="relative border-t border-slate-100 bg-white text-slate-600" role="contentinfo">
+    <footer className="relative border-t border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] text-[#403b42] dark:text-[#f2f0e9]/80" role="contentinfo">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-8">
         
         {/* Main Columns Grid - 5 Columns */}
@@ -31,14 +32,14 @@ export function Footer() {
               <Link 
                 to="/auth"
                 search={{ redirect: undefined }}
-                className="group flex items-center justify-center gap-2 w-full h-10 rounded-lg bg-[#002244] text-white text-[13px] font-semibold shadow-sm hover:bg-[#003366] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                className="group flex items-center justify-center gap-2 w-full h-10 rounded-lg bg-[#f95c4b] text-white text-[13px] font-bold shadow-sm shadow-[#f95c4b]/25 hover:bg-[#e04b3a] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
               >
                 <Rocket className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                 <span>Start Internship</span>
               </Link>
               <Link 
                 to="/verify-certificate"
-                className="flex items-center justify-center gap-2 w-full h-10 rounded-lg bg-white border border-slate-200 text-slate-800 text-[13px] font-semibold shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                className="flex items-center justify-center gap-2 w-full h-10 rounded-lg bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 text-[#181619] dark:text-[#f2f0e9] text-[13px] font-semibold shadow-sm hover:bg-[#f2f0e9] dark:hover:bg-white/5 hover:border-[#ee9590] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
               >
                 <ShieldCheck className="size-3.5 text-slate-600" />
                 <span>Verify Certificate</span>
@@ -62,7 +63,7 @@ export function Footer() {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50/20 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
+                  className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-[#f95c4b] hover:border-[#f95c4b] hover:bg-[#f95c4b]/10 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
                 >
                   <item.icon className="size-3.5" />
                 </a>
@@ -74,37 +75,37 @@ export function Footer() {
           <details open className="group space-y-3 text-left">
             <summary className="flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
               <div>
-                <h4 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Internship Domains</h4>
-                <div className="h-[2px] w-6 bg-blue-600 mt-2"></div>
+                <h4 className="text-[12px] font-bold text-[#181619] dark:text-[#f2f0e9] uppercase tracking-wider">Internship Domains</h4>
+                <div className="h-[2px] w-6 bg-[#f95c4b] mt-2"></div>
               </div>
               <ChevronDown className="size-4 text-slate-400 lg:hidden transition-transform duration-200 group-open:rotate-180" />
             </summary>
             <div className="pt-3">
               <ul className="space-y-2.5">
                 {[
-                  { to: "/domains", label: "Full Stack Development", icon: Code2 },
-                  { to: "/domains", label: "Python Development", icon: Code2 },
-                  { to: "/domains", label: "Java Development", icon: Code2 },
-                  { to: "/domains", label: "Data Science", icon: Database },
-                  { to: "/domains", label: "AI & Machine Learning", icon: Brain },
-                  { to: "/domains", label: "UI/UX Design", icon: Palette },
-                  { to: "/domains", label: "Cyber Security", icon: Shield },
-                  { to: "/domains", label: "Cloud Computing", icon: Cloud },
+                  { to: "/internship", label: "Full Stack Development", icon: Code2 },
+                  { to: "/internship", label: "Python Development", icon: Code2 },
+                  { to: "/internship", label: "Java Development", icon: Code2 },
+                  { to: "/internship", label: "Data Science", icon: Database },
+                  { to: "/internship", label: "AI & Machine Learning", icon: Brain },
+                  { to: "/internship", label: "UI/UX Design", icon: Palette },
+                  { to: "/internship", label: "Cyber Security", icon: Shield },
+                  { to: "/internship", label: "Cloud Computing", icon: Cloud },
                 ].map((link, idx) => (
                   <li key={idx}>
                     <Link 
                       to={link.to} 
                       search={{ apply: link.label }}
-                      className="group flex items-center gap-2 text-[13px] text-slate-600 hover:text-blue-600 transition-colors duration-150"
+                      className="group flex items-center gap-2 text-[13px] text-[#403b42] dark:text-[#f2f0e9]/80 hover:text-[#f95c4b] dark:hover:text-[#ee9590] transition-colors duration-150"
                     >
-                      <link.icon className="size-3.5 text-slate-400 shrink-0 group-hover:text-blue-500 transition-colors" />
+                      <link.icon className="size-3.5 text-[#403b42]/60 dark:text-[#f2f0e9]/50 shrink-0 group-hover:text-[#f95c4b] transition-colors" />
                       <span className="truncate">{link.label}</span>
                     </Link>
                   </li>
                 ))}
               </ul>
-              <Link to="/domains" className="group inline-flex items-center gap-1.5 text-[13px] font-semibold text-blue-600 hover:text-blue-700 mt-3 transition-colors">
-                <span>View All Domains</span>
+              <Link to="/internship" className="group inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#f95c4b] hover:text-[#e04b3a] mt-3 transition-colors">
+                <span>View All Internships</span>
                 <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
@@ -114,8 +115,8 @@ export function Footer() {
           <details open className="group space-y-3 text-left">
             <summary className="flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
               <div>
-                <h4 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Company</h4>
-                <div className="h-[2px] w-6 bg-blue-600 mt-2"></div>
+                <h4 className="text-[12px] font-bold text-[#181619] dark:text-[#f2f0e9] uppercase tracking-wider">Company</h4>
+                <div className="h-[2px] w-6 bg-[#f95c4b] mt-2"></div>
               </div>
               <ChevronDown className="size-4 text-slate-400 lg:hidden transition-transform duration-200 group-open:rotate-180" />
             </summary>
@@ -130,9 +131,9 @@ export function Footer() {
                   <li key={idx}>
                     <Link 
                       to={link.to} 
-                      className="group flex items-center gap-2 text-[13px] text-slate-600 hover:text-blue-600 transition-colors duration-150"
+                      className="group flex items-center gap-2 text-[13px] text-[#403b42] dark:text-[#f2f0e9]/80 hover:text-[#f95c4b] dark:hover:text-[#ee9590] transition-colors duration-150"
                     >
-                      <link.icon className="size-3.5 text-slate-400 shrink-0 group-hover:text-blue-500 transition-colors" />
+                      <link.icon className="size-3.5 text-[#403b42]/60 dark:text-[#f2f0e9]/50 shrink-0 group-hover:text-[#f95c4b] transition-colors" />
                       <span>{link.label}</span>
                     </Link>
                   </li>
@@ -145,8 +146,8 @@ export function Footer() {
           <details open className="group space-y-3 text-left">
             <summary className="flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
               <div>
-                <h4 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Resources</h4>
-                <div className="h-[2px] w-6 bg-blue-600 mt-2"></div>
+                <h4 className="text-[12px] font-bold text-[#181619] dark:text-[#f2f0e9] uppercase tracking-wider">Resources</h4>
+                <div className="h-[2px] w-6 bg-[#f95c4b] mt-2"></div>
               </div>
               <ChevronDown className="size-4 text-slate-400 lg:hidden transition-transform duration-200 group-open:rotate-180" />
             </summary>
@@ -163,9 +164,9 @@ export function Footer() {
                   <li key={idx}>
                     <Link 
                       to={link.to} 
-                      className="group flex items-center gap-2 text-[13px] text-slate-600 hover:text-blue-600 transition-colors duration-150"
+                      className="group flex items-center gap-2 text-[13px] text-[#403b42] dark:text-[#f2f0e9]/80 hover:text-[#f95c4b] dark:hover:text-[#ee9590] transition-colors duration-150"
                     >
-                      <link.icon className="size-3.5 text-slate-400 shrink-0 group-hover:text-blue-500 transition-colors" />
+                      <link.icon className="size-3.5 text-[#403b42]/60 dark:text-[#f2f0e9]/50 shrink-0 group-hover:text-[#f95c4b] transition-colors" />
                       <span>{link.label}</span>
                     </Link>
                   </li>
@@ -178,8 +179,8 @@ export function Footer() {
           <details open className="group space-y-3 text-left">
             <summary className="flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
               <div>
-                <h4 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Contact & Trust</h4>
-                <div className="h-[2px] w-6 bg-blue-600 mt-2"></div>
+                <h4 className="text-[12px] font-bold text-[#181619] dark:text-[#f2f0e9] uppercase tracking-wider">Contact & Trust</h4>
+                <div className="h-[2px] w-6 bg-[#f95c4b] mt-2"></div>
               </div>
               <ChevronDown className="size-4 text-slate-400 lg:hidden transition-transform duration-200 group-open:rotate-180" />
             </summary>
@@ -188,7 +189,7 @@ export function Footer() {
                 <li>
                   <a 
                     href="mailto:skyrovix@gmail.com" 
-                    className="group flex items-start gap-2.5 text-[13px] text-slate-600 hover:text-blue-600 transition-colors duration-150"
+                    className="group flex items-start gap-2.5 text-[13px] text-[#403b42] dark:text-[#f2f0e9]/80 hover:text-[#f95c4b] dark:hover:text-[#ee9590] transition-colors duration-150"
                   >
                     <Mail className="size-4 text-slate-400 shrink-0 mt-0.5 group-hover:text-blue-500 transition-colors" />
                     <span className="truncate">skyrovix@gmail.com</span>
@@ -218,7 +219,7 @@ export function Footer() {
         </div>
 
         {/* Banner Row: Horizontal Stats Card - hidden on mobile */}
-        <div className="hidden md:block mb-8 sm:mb-10 rounded-2xl border border-slate-100 bg-[#f8fafc]/80 p-4 sm:p-6 shadow-sm">
+        <div className="hidden md:block mb-8 sm:mb-10 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-4 sm:p-6 shadow-sm">
           <div className="grid grid-cols-5 gap-4 items-center justify-center">
             {[
               { title: "Growing Every Day", subtitle: "Students Enrolled", icon: Users, colorClass: "bg-blue-50 text-blue-500" },
@@ -235,7 +236,7 @@ export function Footer() {
                   <stat.icon className="size-5" />
                 </div>
                 <div className="text-left leading-tight whitespace-nowrap">
-                  <p className="text-base font-bold text-slate-800">{stat.title}</p>
+                  <p className="text-base font-bold text-[#181619] dark:text-white">{stat.title}</p>
                   <p className="text-[11.5px] font-medium text-slate-500 mt-0.5">{stat.subtitle}</p>
                 </div>
               </div>
@@ -244,7 +245,7 @@ export function Footer() {
         </div>
 
         {/* Copyright / Bottom Bar */}
-        <div className="border-t border-slate-100 pt-6">
+        <div className="border-t border-[#e5e7eb] dark:border-white/10 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row text-[12.5px] text-slate-500 font-medium">
             <p>&copy; {new Date().getFullYear()} Skyrovix. All Rights Reserved.</p>
             <p className="flex items-center gap-1.5">
@@ -254,13 +255,13 @@ export function Footer() {
             </p>
             <nav aria-label="Bottom legal links" className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-                <Link to="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-                <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link>
-                <Link to="/refund" className="hover:text-blue-600 transition-colors">Refund & Cancellation</Link>
+                <Link to="/privacy" className="hover:text-[#f95c4b] transition-colors">Privacy Policy</Link>
+                <Link to="/terms" className="hover:text-[#f95c4b] transition-colors">Terms & Conditions</Link>
+                <Link to="/refund" className="hover:text-[#f95c4b] transition-colors">Refund & Cancellation</Link>
               </div>
               <button 
                 onClick={scrollToTop} 
-                className="hover:text-blue-600 transition-all inline-flex items-center gap-1 font-semibold hover:-translate-y-0.5 active:translate-y-0"
+                className="hover:text-[#f95c4b] transition-all inline-flex items-center gap-1 font-semibold hover:-translate-y-0.5 active:translate-y-0"
                 aria-label="Scroll back to top"
               >
                 <span>Back to Top</span>
