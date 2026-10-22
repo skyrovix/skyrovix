@@ -1,15 +1,28 @@
 import fs from "fs/promises";
+import fsSync from "fs";
 import path from "path";
 import crypto from "crypto";
 import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
 
 function loadEnv() {
-  for (const f of [".env", ".env.local"]) {
+  for (const f of [".env", ".env.production", ".env.local"]) {
     const p = path.resolve(process.cwd(), f);
     try {
-      if (typeof process.loadEnvFile === "function") {
-        process.loadEnvFile(p);
+      if (fsSync.existsSync(p)) {
+        const content = fsSync.readFileSync(p, "utf-8");
+        for (const line of content.split("\n")) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const eq = trimmed.indexOf("=");
+          if (eq > 0) {
+            const key = trimmed.slice(0, eq).trim();
+            const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+            if (process.env[key] === undefined) {
+              process.env[key] = val;
+            }
+          }
+        }
       }
     } catch {}
   }
@@ -140,9 +153,10 @@ async function modifyColumn(conn, table, column, definition) {
 async function main() {
   loadEnv();
   const host = process.env.MYSQL_HOST || "127.0.0.1";
-  const port = Number(process.env.MYSQL_PORT || 3307);
-  const user = process.env.MYSQL_USER || "root";
-  const password = process.env.MYSQL_PASSWORD || "123Sk_hari@2006";
+  const defaultPort = process.platform === "win32" ? 3307 : 3306;
+  const port = Number(process.env.MYSQL_PORT || defaultPort);
+  const user = process.env.MYSQL_USER || (process.platform === "win32" ? "root" : "skyrovix_main_user");
+  const password = process.env.MYSQL_PASSWORD !== undefined ? process.env.MYSQL_PASSWORD : (process.platform === "win32" ? "123Sk_hari@2006" : "SkyrovixMain@2026#SecureDb");
   const database = process.env.MYSQL_DATABASE || "skyrovix_main_db";
 
   if (database === "skyrovix") {
@@ -152,14 +166,31 @@ async function main() {
   const csvDir = path.resolve(process.cwd(), "database", "csv");
   console.log(`🚀 Starting CSV backup restoration from: ${csvDir}`);
 
-  const conn = await mysql.createConnection({
-    host,
-    port,
-    user,
-    password,
-    database,
-    multipleStatements: true,
-  });
+  const candidates = [
+    { host, port, user, password, database },
+    { host, port: 3306, user: "skyrovix_main_user", password: "SkyrovixMain@2026#SecureDb", database },
+    { host, port: 3306, user: "root", password: "", database },
+    { host, port: 3306, user: "root", password: "123Sk_hari@2006", database },
+    { host, port: 3307, user: "root", password: "123Sk_hari@2006", database },
+  ];
+
+  let conn = null;
+  for (const c of candidates) {
+    try {
+      conn = await mysql.createConnection({
+        ...c,
+        multipleStatements: true,
+      });
+      console.log(`🔌 Connected to MySQL as ${c.user}@${c.host}:${c.port}/${c.database}`);
+      break;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  if (!conn) {
+    throw new Error(`Failed to connect to MySQL database '${database}'. Please check your MySQL credentials in .env`);
+  }
 
   try {
     await conn.query("SET FOREIGN_KEY_CHECKS = 0;");

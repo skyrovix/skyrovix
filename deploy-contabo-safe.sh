@@ -146,6 +146,10 @@ cp "${APP_DIR}/.env.production" "${APP_DIR}/.env"
 # 8. Install & Build
 echo "🏗️ Installing dependencies and compiling application..."
 npm install --production=false
+
+echo "📥 Restoring student backups, applications, tasks, and admin credentials..."
+node scripts/restore-csv-backups.mjs
+
 npm run build
 
 # 9. Start / Restart PM2 Dedicated Process
