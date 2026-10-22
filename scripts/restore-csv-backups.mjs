@@ -270,11 +270,7 @@ async function main() {
       if (!id || !email) continue;
 
       const fullName = (s.full_name || email.split("@")[0]).trim();
-      const isAdminUser =
-        email === "hariharan@skyrovix.com" ||
-        email === "harimaheshwaran34@gmail.com" ||
-        email === "hariharan1152007@gmail.com" ||
-        email === "hariharanmahesh34@gmail.com";
+      const isAdminUser = email === "hariharan@skyrovix.com";
 
       let passwordHash = s.encrypted_password_hash || "";
       if (isAdminUser) {

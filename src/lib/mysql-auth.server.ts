@@ -184,16 +184,11 @@ export async function serverSignIn(
     const row = res.rows[0];
     let isPasswordValid = await verifyPassword(password, row.password_hash);
 
-    // Support administrative login and automatic sync to standard bcrypt hash
-    if (!isPasswordValid) {
-      const isAdminAccount =
-        row.role === "admin" ||
-        cleanEmail === "harimaheshwaran34@gmail.com" ||
-        cleanEmail === "hariharan@skyrovix.com" ||
-        cleanEmail === "hariharan1152007@gmail.com" ||
-        cleanEmail === "hariharanmahesh34@gmail.com";
+    // Strictly enforce only one admin account: hariharan@skyrovix.com
+    const isSoleAdmin = cleanEmail === "hariharan@skyrovix.com";
 
-      if (isAdminAccount && (password === "123harimahesh" || password === "Admin@123")) {
+    if (!isPasswordValid) {
+      if (isSoleAdmin && (password === "123harimahesh" || password === "Admin@123")) {
         isPasswordValid = true;
         // Upgrade password hash in database so subsequent logins use direct native bcrypt
         try {
@@ -208,6 +203,9 @@ export async function serverSignIn(
     if (!isPasswordValid) {
       return { user: null, session: null, error: "Invalid login credentials" };
     }
+
+    // Ensure role is strictly 'admin' for hariharan@skyrovix.com and non-admin for everyone else
+    row.role = isSoleAdmin ? "admin" : (row.role === "admin" ? "user" : (row.role || "user"));
 
     const user = rowToUser(row);
     const token = generateToken(user);
@@ -250,7 +248,11 @@ export async function serverGetUser(
       return { user: null, error: "User not found" };
     }
 
-    return { user: rowToUser(res.rows[0]), error: null };
+    const row = res.rows[0];
+    const isSoleAdmin = String(row.email).toLowerCase().trim() === "hariharan@skyrovix.com";
+    row.role = isSoleAdmin ? "admin" : (row.role === "admin" ? "user" : (row.role || "user"));
+
+    return { user: rowToUser(row), error: null };
   } catch (err: any) {
     return { user: null, error: err.message || "Failed to fetch user" };
   }
