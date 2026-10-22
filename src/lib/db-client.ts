@@ -261,7 +261,11 @@ export const dbClient = {
       if (typeof window === "undefined") {
         return { data: { user: null }, error: null };
       }
-      const activeToken = token || getStoredSession()?.access_token;
+      const stored = getStoredSession();
+      if (!token && stored?.user) {
+        return { data: { user: stored.user }, error: null };
+      }
+      const activeToken = token || stored?.access_token;
       if (!activeToken) {
         return { data: { user: null }, error: null };
       }
@@ -271,9 +275,13 @@ export const dbClient = {
           headers: { Authorization: `Bearer ${activeToken}` },
         });
         const json = await res.json();
+        if (json.user && stored) {
+          stored.user = json.user;
+          setStoredSession(stored);
+        }
         return { data: { user: json.user || null }, error: json.error ? { message: json.error } : null };
       } catch (err: any) {
-        return { data: { user: null }, error: { message: err.message } };
+        return { data: { user: stored?.user || null }, error: { message: err.message } };
       }
     },
 

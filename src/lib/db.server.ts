@@ -5,8 +5,8 @@ let _pool: mysql.Pool | null = null;
 let _activePort: number | null = null;
 
 export function getDbPool(): mysql.Pool {
-  loadEnv();
   if (!_pool) {
+    loadEnv();
     const host = process.env.MYSQL_HOST || process.env.DB_HOST || "127.0.0.1";
     const defaultPort = Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3307);
     const port = _activePort || defaultPort;
@@ -27,7 +27,7 @@ export function getDbPool(): mysql.Pool {
       password,
       database,
       waitForConnections: true,
-      connectionLimit: 15,
+      connectionLimit: 25,
       queueLimit: 0,
       enableKeepAlive: true,
       keepAliveInitialDelay: 10000,
@@ -113,7 +113,7 @@ export function adaptSqlForMysql(sql: string): string {
   return prepareMysqlQueryAndParams(sql).sql;
 }
 
-let _schemaMigrated = false;
+let _schemaMigrated = true;
 
 async function ensureSchemaMigrated(pool: mysql.Pool) {
   if (_schemaMigrated) return;

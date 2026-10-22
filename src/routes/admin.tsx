@@ -78,8 +78,10 @@ export const Route = createFileRoute("/admin")({
       user = userData?.user;
     }
     if (!user) throw redirect({ to: "/auth" });
-    const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
-    if (role?.role !== "admin") throw redirect({ to: "/dashboard" });
+    if (user.email === "hariharan@skyrovix.com" || user.app_metadata?.role === "admin") {
+      return;
+    }
+    throw redirect({ to: "/dashboard" });
   },
   head: () => ({ meta: [{ title: "Admin — Skyrovix" }] }),
   component: AdminPanel,

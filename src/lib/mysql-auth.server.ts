@@ -67,6 +67,25 @@ export function verifyJwtToken(token: string): any {
   }
 }
 
+export function userFromToken(token: string): MysqlUser | null {
+  if (!token) return null;
+  const cleanToken = token.startsWith("Bearer ") ? token.slice(7).trim() : token.trim();
+  const payload = verifyJwtToken(cleanToken);
+  if (!payload || !payload.sub) return null;
+  const email = String(payload.email || "").toLowerCase().trim();
+  const isSoleAdmin = email === "hariharan@skyrovix.com";
+  const role = isSoleAdmin ? "admin" : (payload.app_metadata?.role === "admin" ? "user" : (payload.app_metadata?.role || "user"));
+
+  return {
+    id: String(payload.sub),
+    email,
+    user_metadata: payload.user_metadata || {},
+    app_metadata: { provider: "email", role },
+    created_at: "",
+    updated_at: "",
+  };
+}
+
 function rowToUser(row: any): MysqlUser {
   let userMetadata: any = {};
   if (row.raw_user_meta_data) {

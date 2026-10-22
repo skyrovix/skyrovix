@@ -30,26 +30,17 @@ function AuthPage() {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const { startTracking } = useLoginTracker();
 
-  const checkRoleAndRedirect = async (userId: string, _userEmail?: string) => {
-    try {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
-      if (data?.role === "admin") {
-        window.location.href = "/admin";
-      } else {
-        window.location.href = redirect;
-      }
-    } catch (err) {
-      window.location.href = redirect;
+  const checkRoleAndRedirect = async (userId: string, userEmail?: string, appMetadata?: any) => {
+    const email = (userEmail || "").trim().toLowerCase();
+    if (email === "hariharan@skyrovix.com" || appMetadata?.role === "admin") {
+      window.location.href = "/admin";
+      return;
     }
+    window.location.href = redirect;
   };
 
   useEffect(() => {
-    // Scrub any sensitive params that leaked into the URL (e.g. from a
-    // pre-hydration native form submit or password manager autofill).
+    // Scrub any sensitive params that leaked into the URL
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       let dirty = false;
@@ -57,10 +48,23 @@ function AuthPage() {
         if (url.searchParams.has(key)) { url.searchParams.delete(key); dirty = true; }
       }
       if (dirty) window.history.replaceState({}, "", url.pathname + (url.search ? url.search : "") + url.hash);
+
+      // Fast check from local storage
+      const stored = localStorage.getItem("skyrovix_auth_session");
+      if (stored) {
+        try {
+          const u = JSON.parse(stored).user;
+          if (u?.email === "hariharan@skyrovix.com" || u?.app_metadata?.role === "admin") {
+            window.location.href = "/admin";
+            return;
+          }
+        } catch {}
+      }
     }
+
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
-        checkRoleAndRedirect(data.user.id, data.user.email);
+        checkRoleAndRedirect(data.user.id, data.user.email, data.user.app_metadata);
       }
     });
   }, [redirect]);
@@ -84,7 +88,7 @@ function AuthPage() {
     toast.success("Welcome back!");
     if (authData?.user) {
       startTracking(authData.user.id);
-      await checkRoleAndRedirect(authData.user.id, authData.user.email ?? rawEmail);
+      await checkRoleAndRedirect(authData.user.id, authData.user.email ?? rawEmail, authData.user.app_metadata);
     } else {
       window.location.href = redirect;
     }
