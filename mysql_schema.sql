@@ -644,24 +644,23 @@ VALUES
   (UUID(), 'premium_plan', 200.00, 1, 'hariharanmahesh34@oksbi', 'Hariharan Mahesh', 0, 0.00, 'Premium Plan Flat Fee')
 ON DUPLICATE KEY UPDATE amount = VALUES(amount), is_enabled = VALUES(is_enabled);
 
--- Default Admin User (hariharan@skyrovix.com / 123harimahesh)
--- password_hash for '123harimahesh': '$2a$10$wK1Wwz8uE064wLhyWq.l4.jW2uV7g8uXwZ607n65J.h3eXnB5606e'
+-- Default Admin User (hariharan@skyrovix.com / Admin@123 / 123harimahesh)
 INSERT INTO users (id, email, password_hash, full_name, raw_user_meta_data, is_verified)
 VALUES (
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  '15430c49-f28f-459e-ba3f-411b18519445',
   'hariharan@skyrovix.com',
-  '$2a$10$i5yq9z7B.xVn9Qk6.2z19.fDqR/rE1j4uS8sQyR.Vj8n3k9z8d5XG',
+  '$2b$10$bxTZ5YsCda5mi6eTctu05.sKz.OE3r1iZv4fNuNzR.O07onX/pQyu',
   'Hariharan S',
   '{"full_name": "Hariharan S"}',
   1
-) ON DUPLICATE KEY UPDATE full_name = VALUES(full_name);
+) ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), full_name = VALUES(full_name);
 
 INSERT INTO user_roles (id, user_id, role)
-VALUES (UUID(), 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'admin')
+VALUES (UUID(), '15430c49-f28f-459e-ba3f-411b18519445', 'admin')
 ON DUPLICATE KEY UPDATE role = 'admin';
 
 INSERT INTO profiles (id, full_name, email)
-VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Hariharan S', 'hariharan@skyrovix.com')
+VALUES ('15430c49-f28f-459e-ba3f-411b18519445', 'Hariharan S', 'hariharan@skyrovix.com')
 ON DUPLICATE KEY UPDATE full_name = VALUES(full_name);
 
 -- Seed Core Tasks 1 to 5 for All Domains
