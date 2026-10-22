@@ -436,7 +436,7 @@ async function updateApplicationEmailStatus(
         `UPDATE applications SET email_status = ?, email_error = ?, email_sent_at = ?${extraSql} WHERE intern_id = ?`,
         [emailStatus, emailError, emailSentAt, ...extraParams, referenceId]
       );
-      if (res.affectedRows && res.affectedRows > 0) return;
+      if (res.rowCount && res.rowCount > 0) return;
     }
 
     if (userId) {
@@ -489,7 +489,7 @@ async function logToDb(
 
 export async function backfillCompletedCertificatesServer() {
   loadEnv(true);
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { supabaseAdmin } = await import("@/lib/db-client");
 
   const { data: apps, error: aErr } = await supabaseAdmin.from("applications").select("*");
   if (aErr || !apps) return { success: false, error: aErr?.message, count: 0, results: [] };
@@ -515,7 +515,7 @@ export async function backfillCompletedCertificatesServer() {
     const hasCert = certAppIds.has(app.id);
     const pay = payMap.get(app.id);
 
-    const isCompleted = approvedSubs.length >= requiredTasks || (pay && pay.status === "verified");
+    const isCompleted = approvedSubs.length >= requiredTasks || ((pay as any)?.status === "verified");
     if (isCompleted && !hasCert) {
       eligibleApps.push({
         app,

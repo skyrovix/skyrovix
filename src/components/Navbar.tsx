@@ -3,7 +3,7 @@ import { Logo } from "./Logo";
 import { NotificationMenu } from "./NotificationMenu";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import {
   LogOut,
   LayoutDashboard,

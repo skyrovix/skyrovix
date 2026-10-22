@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { getDomainTasks, getTasksByDuration, LINKEDIN_TASK } from "@/lib/tasks-data";

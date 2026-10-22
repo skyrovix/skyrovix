@@ -126,11 +126,13 @@ export async function handleMysqlServerApi(request: Request, url: URL): Promise<
   // 7. Generic Data Query (/api/data)
   if (pathname === "/api/data" && request.method === "POST") {
     try {
+      const authHeader = request.headers.get("authorization") || "";
+      const userRes = authHeader ? await serverGetUser(authHeader) : { user: null };
       const body = await request.json();
-      const res = await executeMysqlQuery(body);
+      const res = await executeMysqlQuery(body, userRes.user);
       return Response.json(res, { status: res.error ? 400 : 200 });
     } catch (err: any) {
-      return Response.json({ data: null, error: { message: err.message } }, { status: 500 });
+      return Response.json({ data: null, error: { message: err.message || "Query failed" } }, { status: 500 });
     }
   }
 

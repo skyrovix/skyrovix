@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
@@ -126,16 +126,16 @@ export function NotificationMenu() {
   });
 
   const { data: userSubs } = useQuery({
-    queryKey: ["notif-subs", user?.id, userApps?.map((a) => a.id)],
+    queryKey: ["notif-subs", user?.id, userApps?.map((a: any) => a.id)],
     enabled: Boolean(user?.id),
     queryFn: async () => {
-      let appIds = userApps?.map((a) => a.id) ?? [];
+      let appIds = userApps?.map((a: any) => a.id) ?? [];
       if (appIds.length === 0) {
         const { data: apps } = await supabase
           .from("applications")
           .select("id")
           .eq("user_id", user!.id);
-        appIds = apps?.map((a) => a.id) ?? [];
+        appIds = apps?.map((a: any) => a.id) ?? [];
       }
       if (appIds.length === 0) return [];
 
@@ -163,16 +163,16 @@ export function NotificationMenu() {
   });
 
   const { data: userCerts } = useQuery({
-    queryKey: ["notif-certs", user?.id, userApps?.map((a) => a.id)],
+    queryKey: ["notif-certs", user?.id, userApps?.map((a: any) => a.id)],
     enabled: Boolean(user?.id),
     queryFn: async () => {
-      let appIds = userApps?.map((a) => a.id) ?? [];
+      let appIds = userApps?.map((a: any) => a.id) ?? [];
       if (appIds.length === 0) {
         const { data: apps } = await supabase
           .from("applications")
           .select("id")
           .eq("user_id", user!.id);
-        appIds = apps?.map((a) => a.id) ?? [];
+        appIds = apps?.map((a: any) => a.id) ?? [];
       }
       if (appIds.length === 0) return [];
 
@@ -190,7 +190,7 @@ export function NotificationMenu() {
 
   // 1. Applications & Offer Letters
   if (userApps && userApps.length > 0) {
-    userApps.forEach((app) => {
+    userApps.forEach((app: any) => {
       notifications.push({
         id: `offer-${app.id}`,
         title: "Offer Letter & ID Card Issued",
@@ -307,7 +307,7 @@ export function NotificationMenu() {
 
   // 3. Certificates
   if (userCerts && userCerts.length > 0) {
-    userCerts.forEach((cert) => {
+    userCerts.forEach((cert: any) => {
       notifications.push({
         id: `cert-${cert.id}`,
         title: "Certificate Generated! 🏆",

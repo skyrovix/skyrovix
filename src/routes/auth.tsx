@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,19 +30,7 @@ function AuthPage() {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const { startTracking } = useLoginTracker();
 
-  const checkRoleAndRedirect = async (userId: string, userEmail?: string) => {
-    const email = userEmail?.toLowerCase();
-    const isAdminEmail = email && (
-      email === "hariharan@skyrovix.com" ||
-      email === "harimaheshwaran34@gmail.com" ||
-      email === "hariharan1152007@gmail.com"
-    );
-
-    if (isAdminEmail) {
-      window.location.href = "/admin";
-      return;
-    }
-
+  const checkRoleAndRedirect = async (userId: string, _userEmail?: string) => {
     try {
       const { data } = await supabase
         .from("user_roles")

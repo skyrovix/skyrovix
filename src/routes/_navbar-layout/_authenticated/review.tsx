@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { useSubmitReview, useUserReview } from "@/lib/reviews";
 import { getDomain } from "@/lib/constants";
@@ -33,7 +33,7 @@ function ReviewPage() {
     enabled: !!user,
   });
 
-  const app = appsList?.find((a) => (a.status as string) === "ongoing" || (a.status as string) === "approved") ?? appsList?.[0] ?? null;
+  const app = appsList?.find((a: any) => (a.status as string) === "ongoing" || (a.status as string) === "approved") ?? appsList?.[0] ?? null;
   const domain = app ? getDomain(app.domain) : null;
 
   if (!app) {

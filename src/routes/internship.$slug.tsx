@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Accordion, AccordionItem, AccordionTrigger, AccordionContent,
 } from "@/components/ui/accordion";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { DOMAINS, getDomain } from "@/lib/constants";
 import { useAuth } from "@/lib/auth";
 import { FadeUp, Reveal, ScaleIn } from "@/components/motion";

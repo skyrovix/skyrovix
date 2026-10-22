@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { PAYMENT } from "./constants";
 import { validateCouponServer } from "./fee-service";
 

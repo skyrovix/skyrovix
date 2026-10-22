@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DOMAINS, DURATIONS, durationConfig, getDomainTaskCount, generateInternId, getDomain, getAvailableDurations } from "@/lib/constants";
 import { validateCoupon } from "@/lib/coupons";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { getPublicFeeSettings, submitApplicationServer, type PublicFeeSettings } from "@/lib/fee-service";

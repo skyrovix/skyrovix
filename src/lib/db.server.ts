@@ -11,8 +11,14 @@ export function getDbPool(): mysql.Pool {
     const defaultPort = Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3307);
     const port = _activePort || defaultPort;
     const user = process.env.MYSQL_USER || process.env.DB_USER || "root";
-    const password = process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD || "123Sk_hari@2006";
-    const database = process.env.MYSQL_DATABASE || process.env.DB_NAME || "skyrovix";
+    const password = process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD || "";
+    const database = process.env.MYSQL_DATABASE || process.env.DB_NAME || "skyrovix_main_db";
+
+    if (database === "skyrovix") {
+      throw new Error(
+        "CRITICAL DATABASE SAFETY VIOLATION: Connecting to the 'skyrovix' internship database is strictly prohibited. The main application must use 'skyrovix_main_db'."
+      );
+    }
 
     _pool = mysql.createPool({
       host,

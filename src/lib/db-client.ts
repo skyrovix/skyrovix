@@ -1,6 +1,4 @@
-// MySQL Universal Client adapter for Skyrovix
-// Drop-in replacement for Supabase Client, routing queries through TanStack Start server functions.
-import type { Database } from './types';
+import type { Database } from './database.types';
 import { runMysqlQueryServerFn, runMysqlRpcServerFn } from '@/lib/mysql-bridge';
 
 export interface UserMetadata {
@@ -60,10 +58,11 @@ function setStoredSession(session: Session | null) {
   } catch {}
 }
 
-type AuthChangeCallback = (event: "SIGNED_IN" | "SIGNED_OUT" | "TOKEN_REFRESHED", session: Session | null) => void;
+export type AuthChangeEvent = "SIGNED_IN" | "SIGNED_OUT" | "TOKEN_REFRESHED" | "PASSWORD_RECOVERY" | "INITIAL_SESSION";
+type AuthChangeCallback = (event: AuthChangeEvent, session: Session | null) => void;
 const authListeners = new Set<AuthChangeCallback>();
 
-function emitAuthChange(event: "SIGNED_IN" | "SIGNED_OUT" | "TOKEN_REFRESHED", session: Session | null) {
+function emitAuthChange(event: AuthChangeEvent, session: Session | null) {
   authListeners.forEach((cb) => {
     try {
       cb(event, session);
@@ -251,7 +250,7 @@ class QueryBuilder {
   }
 }
 
-export const supabase = {
+export const dbClient = {
   auth: {
     async getSession(): Promise<{ data: { session: Session | null }; error: null }> {
       const session = getStoredSession();
@@ -360,6 +359,22 @@ export const supabase = {
       return { data: {}, error: null };
     },
 
+    async setSession(session: any): Promise<{ data: { session: Session | null }; error: any }> {
+      setStoredSession(session);
+      emitAuthChange("SIGNED_IN", session);
+      return { data: { session }, error: null };
+    },
+
+    async exchangeCodeForSession(_code: string): Promise<{ data: { session: Session | null; user: User | null }; error: any }> {
+      const session = getStoredSession();
+      return { data: { session, user: session?.user || null }, error: null };
+    },
+
+    async verifyOtp(_params: any): Promise<{ data: { session: Session | null; user: User | null }; error: any }> {
+      const session = getStoredSession();
+      return { data: { session, user: session?.user || null }, error: null };
+    },
+
     async updateUser(updates: { password?: string; data?: any }): Promise<{ data: { user: User | null }; error: any }> {
       if (!updates.password) return { data: { user: null }, error: null };
       const session = getStoredSession();
@@ -389,7 +404,11 @@ export const supabase = {
   storage: {
     from(bucket: string) {
       return {
-        async upload(pathStr: string, file: File | Blob | any, _options?: { upsert?: boolean; contentType?: string }) {
+        async upload(
+          pathStr: string,
+          file: File | Blob | any,
+          _options?: { upsert?: boolean; contentType?: string; cacheControl?: string }
+        ) {
           const cleanPath = pathStr.replace(/^(\.\.(\/|\\|$))+/, "").replace(/^\/+/, "");
 
           try {
@@ -480,4 +499,6 @@ export const supabase = {
   removeChannel(_channel: any) {},
 };
 
-export default supabase;
+export const supabase = dbClient;
+export const supabaseAdmin = dbClient;
+export default dbClient;

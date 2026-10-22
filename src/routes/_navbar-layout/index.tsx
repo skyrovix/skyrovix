@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FounderProfileView } from "@/components/FounderProfileView";
 import { DOMAINS, COMPANY, DURATIONS, durationConfig, generateInternId } from "@/lib/constants";
 import { ApplicationFormDialog } from "@/components/ApplicationFormDialog";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { useRecentReviews, computeStats } from "@/lib/reviews";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

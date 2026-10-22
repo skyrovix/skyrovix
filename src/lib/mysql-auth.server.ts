@@ -3,7 +3,17 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { dbQuery } from "./db.server";
 
-const JWT_SECRET = process.env.JWT_SECRET || "skyrovix_jwt_secret_production_2026_super_secure";
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing in production.");
+    }
+    return "skyrovix_jwt_secret_dev_safe_fallback_key";
+  }
+  return secret;
+}
+
 const JWT_EXPIRES_IN = "30d";
 
 export interface MysqlUser {
@@ -44,14 +54,14 @@ export function generateToken(user: MysqlUser): string {
       user_metadata: user.user_metadata,
       app_metadata: user.app_metadata,
     },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: JWT_EXPIRES_IN }
   );
 }
 
 export function verifyJwtToken(token: string): any {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, getJwtSecret());
   } catch {
     return null;
   }
@@ -113,12 +123,8 @@ export async function serverSignUp(
       [userId, cleanEmail, resolvedName]
     );
 
-    // 3. Assign Role (Admin check)
-    const isAdmin =
-      cleanEmail === "hariharan@skyrovix.com" ||
-      cleanEmail === "harimaheshwaran34@gmail.com" ||
-      cleanEmail === "hariharan1152007@gmail.com";
-    const role = isAdmin ? "admin" : "user";
+    // 3. Assign Role (All public signups strictly receive 'user' role)
+    const role = "user";
 
     await dbQuery(
       `INSERT INTO user_roles (id, user_id, role)
@@ -175,19 +181,7 @@ export async function serverSignIn(
     }
 
     const row = res.rows[0];
-    let isPasswordValid = await verifyPassword(password, row.password_hash);
-
-    // Admin fallback password check for recovery/legacy
-    if (!isPasswordValid) {
-      const isAdminEmail =
-        cleanEmail === "harimaheshwaran34@gmail.com" ||
-        cleanEmail === "hariharan@skyrovix.com" ||
-        cleanEmail === "hariharan1152007@gmail.com";
-      if (isAdminEmail && (password === "123harimahesh" || password === "Admin@123")) {
-        isPasswordValid = true;
-      }
-    }
-
+    const isPasswordValid = await verifyPassword(password, row.password_hash);
     if (!isPasswordValid) {
       return { user: null, session: null, error: "Invalid login credentials" };
     }

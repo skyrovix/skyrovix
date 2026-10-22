@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { CodeEditor } from "@/components/CodeEditor";
@@ -147,7 +147,7 @@ function CourseContentPage() {
     },
   });
 
-  const topicIds = topics.map((t) => t.id);
+  const topicIds = topics.map((t: any) => t.id);
 
   // 4. Fetch lesson progress (completed topics)
   const { data: progressList = [] } = useQuery({
@@ -159,7 +159,7 @@ function CourseContentPage() {
         .select("topic_id")
         .eq("enrollment_id", enrollment!.id);
       if (error) throw error;
-      return data.map((p) => p.topic_id);
+      return (data as any[]).map((p: any) => p.topic_id);
     },
   });
   const completedTopicIds = new Set(progressList);
@@ -258,18 +258,18 @@ function CourseContentPage() {
 
       // 1. Check if URL search param topic exists and matches a topic
       if (searchTopicId) {
-        targetIdx = topics.findIndex((t) => t.id === searchTopicId);
+        targetIdx = topics.findIndex((t: any) => t.id === searchTopicId);
       }
 
       // 2. Check if enrollment has a saved current_topic_id
       if (targetIdx === -1 && enrollment.current_topic_id) {
-        targetIdx = topics.findIndex((t) => t.id === enrollment.current_topic_id);
+        targetIdx = topics.findIndex((t: any) => t.id === enrollment.current_topic_id);
       }
 
       // 3. Find the first incomplete topic
       const completedSet = new Set(progressList);
       if (targetIdx === -1 || completedSet.has(topics[targetIdx].id)) {
-        const firstIncompleteIdx = topics.findIndex((t) => !completedSet.has(t.id));
+        const firstIncompleteIdx = topics.findIndex((t: any) => !completedSet.has(t.id));
         if (firstIncompleteIdx !== -1) {
           targetIdx = firstIncompleteIdx;
         }
@@ -295,7 +295,7 @@ function CourseContentPage() {
   // Synchronize activeTopicIdx with URL search param changes (e.g. back/forward button)
   useEffect(() => {
     if (topics.length > 0 && searchTopicId) {
-      const idx = topics.findIndex((t) => t.id === searchTopicId);
+      const idx = topics.findIndex((t: any) => t.id === searchTopicId);
       if (idx !== -1 && idx !== activeTopicIdx) {
         setActiveTopicIdx(idx);
       }
@@ -437,7 +437,7 @@ function CourseContentPage() {
       const completedSet = new Set(progressList);
       completedSet.add(topicId); // Add the just completed topic to the set
       
-      const nextIncompleteIdx = topics.findIndex((t) => !completedSet.has(t.id));
+      const nextIncompleteIdx = topics.findIndex((t: any) => !completedSet.has(t.id));
       if (nextIncompleteIdx !== -1) {
         // Automatically switch to the next incomplete lesson
         handleTopicSelect(nextIncompleteIdx);
@@ -724,7 +724,7 @@ function CourseContentPage() {
   }
 
   // Filter topics in sidebar by search query
-  const filteredTopics = topics.filter((t) =>
+  const filteredTopics = topics.filter((t: any) =>
     t.title.toLowerCase().includes(topicSearch.toLowerCase())
   );
 
@@ -773,8 +773,8 @@ function CourseContentPage() {
 
         {/* Scrollable list */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {filteredTopics.map((topic) => {
-            const idx = topics.findIndex((t) => t.id === topic.id);
+          {filteredTopics.map((topic: any) => {
+            const idx = topics.findIndex((t: any) => t.id === topic.id);
             const locked = isLocked(idx);
             const completed = completedTopicIds.has(topic.id);
             const active = idx === activeTopicIdx;

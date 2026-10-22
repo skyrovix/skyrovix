@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { getDeviceInfo } from "@/lib/device-info";
 
 let currentSessionId: string | null = null;

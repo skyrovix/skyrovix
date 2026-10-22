@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -462,7 +462,7 @@ function CourseQuizPage() {
                   <div className="space-y-2">
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Attempt History</h3>
                     <div className="space-y-2">
-                      {attempts.map((att, idx) => {
+                      {attempts.map((att: any, idx: number) => {
                         const date = new Date(att.submitted_at || "").toLocaleDateString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
                         return (
                           <div key={att.id} className="flex justify-between items-center py-2 px-3 border border-border/30 rounded-xl bg-muted/20 text-xs">

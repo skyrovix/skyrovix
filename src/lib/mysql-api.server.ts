@@ -2,6 +2,7 @@ import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
 import { dbQuery } from "./db.server";
+import type { MysqlUser } from "./mysql-auth.server";
 
 const ALLOWED_TABLES = new Set([
   "users",
@@ -48,6 +49,18 @@ const ALLOWED_TABLES = new Set([
   "guidance_schedules",
   "students",
   "registrations",
+]);
+
+const ADMIN_ONLY_MUTATION_TABLES = new Set([
+  "user_roles",
+  "fee_settings",
+  "fee_audit_logs",
+  "promotional_popups",
+  "coupons",
+  "courses",
+  "course_topics",
+  "course_tasks",
+  "course_quiz_questions",
 ]);
 
 function isSafeIdentifier(str: string): boolean {
@@ -200,10 +213,25 @@ function buildWhereParts(filters: MysqlFilter[] | undefined, tableCols: Set<stri
   return { whereParts, params };
 }
 
-export async function executeMysqlQuery(req: MysqlQueryRequest): Promise<{ data: any; count: number | null; error: any }> {
+export async function executeMysqlQuery(
+  req: MysqlQueryRequest,
+  currentUser?: MysqlUser | null
+): Promise<{ data: any; count: number | null; error: any }> {
   const table = req.table?.replace(/^public\./, "");
   if (!ALLOWED_TABLES.has(table)) {
     return { data: null, count: null, error: { message: `Table '${req.table}' not permitted or does not exist` } };
+  }
+
+  // Authorization check for sensitive admin-managed tables
+  if (req.action !== "select" && ADMIN_ONLY_MUTATION_TABLES.has(table)) {
+    const isAdmin = currentUser?.app_metadata?.role === "admin";
+    if (!isAdmin) {
+      return {
+        data: null,
+        count: null,
+        error: { message: `Forbidden: Administrator privileges required to modify '${table}'.` },
+      };
+    }
   }
 
   try {
@@ -336,7 +364,7 @@ export async function executeMysqlQuery(req: MysqlQueryRequest): Promise<{ data:
     if (req.action === "insert") {
       const items = Array.isArray(req.values) ? req.values : [req.values];
       if (items.length === 0 || !items[0]) {
-        return { data: req.single ? null : [], error: null };
+        return { data: req.single ? null : [], count: null, error: null };
       }
 
       const validCols = await getTableColumns(table);
@@ -374,7 +402,7 @@ export async function executeMysqlQuery(req: MysqlQueryRequest): Promise<{ data:
         ? (insertedRows[0] || null)
         : (Array.isArray(req.values) ? insertedRows : insertedRows[0]);
 
-      return { data: returnData, error: null };
+      return { data: returnData, count: null, error: null };
     }
 
     // 3. UPDATE
@@ -383,7 +411,7 @@ export async function executeMysqlQuery(req: MysqlQueryRequest): Promise<{ data:
       const validCols = await getTableColumns(table);
       const keys = Object.keys(updates).filter((k) => isSafeIdentifier(k) && (validCols.size === 0 || validCols.has(k.toLowerCase())));
       if (keys.length === 0) {
-        return { data: req.single ? updates : [updates], error: null };
+        return { data: req.single ? updates : [updates], count: null, error: null };
       }
 
       const setParts: string[] = [];
@@ -401,13 +429,18 @@ export async function executeMysqlQuery(req: MysqlQueryRequest): Promise<{ data:
 
       const { whereParts, params: whereParams } = buildWhereParts(req.filters, validCols);
 
-      let sql = `UPDATE \`${table}\` SET ${setParts.join(", ")}`;
-      if (whereParts.length > 0) {
-        sql += ` WHERE ${whereParts.join(" AND ")}`;
+      if (whereParts.length === 0) {
+        return {
+          data: null,
+          count: null,
+          error: { message: "Safety restriction: UPDATE operations must specify filter conditions." },
+        };
       }
 
+      let sql = `UPDATE \`${table}\` SET ${setParts.join(", ")} WHERE ${whereParts.join(" AND ")}`;
+
       await dbQuery(sql, [...setParams, ...whereParams]);
-      return { data: req.single ? updates : (Array.isArray(updates) ? updates : [updates]), error: null };
+      return { data: req.single ? updates : (Array.isArray(updates) ? updates : [updates]), count: null, error: null };
     }
 
     // 4. UPSERT
@@ -449,26 +482,32 @@ export async function executeMysqlQuery(req: MysqlQueryRequest): Promise<{ data:
         ? (results[0] || null)
         : (Array.isArray(req.values) ? results : results[0]);
 
-      return { data: returnData, error: null };
+      return { data: returnData, count: null, error: null };
     }
 
     // 5. DELETE
     if (req.action === "delete") {
+      const validCols = await getTableColumns(table);
       const { whereParts, params: whereParams } = buildWhereParts(req.filters, validCols);
 
-      let sql = `DELETE FROM \`${table}\``;
-      if (whereParts.length > 0) {
-        sql += ` WHERE ${whereParts.join(" AND ")}`;
+      if (whereParts.length === 0) {
+        return {
+          data: null,
+          count: null,
+          error: { message: "Safety restriction: DELETE operations must specify filter conditions." },
+        };
       }
 
+      let sql = `DELETE FROM \`${table}\` WHERE ${whereParts.join(" AND ")}`;
+
       await dbQuery(sql, whereParams);
-      return { data: null, error: null };
+      return { data: null, count: null, error: null };
     }
 
-    return { data: null, error: { message: `Unsupported action: ${req.action}` } };
+    return { data: null, count: null, error: { message: `Unsupported action: ${req.action}` } };
   } catch (err: any) {
     console.error(`[executeMysqlQuery error on ${table}]:`, err);
-    return { data: null, error: { message: err.message || "Database query failed" } };
+    return { data: null, count: null, error: { message: err.message || "Database query failed" } };
   }
 }
 
@@ -521,7 +560,20 @@ export async function saveUploadedFile(
 ): Promise<{ path: string; publicUrl: string }> {
   const safeBucket = bucket.replace(/[^a-zA-Z0-9_-]/g, "");
   const cleanPath = relativePath.replace(/^(\.\.(\/|\\|$))+/, "").replace(/^\/+/, "");
-  
+
+  const allowedExts = new Set([
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg",
+    ".pdf", ".zip", ".tar", ".gz", ".txt", ".csv", ".json",
+  ]);
+  const ext = path.extname(cleanPath).toLowerCase();
+  if (ext && !allowedExts.has(ext)) {
+    throw new Error(`Forbidden file upload: '${ext}' files are not permitted.`);
+  }
+
+  if (buffer.length > 25 * 1024 * 1024) {
+    throw new Error("File exceeds maximum allowed upload size (25MB).");
+  }
+
   const uploadDir = path.resolve(process.cwd(), "public", "uploads", safeBucket);
   const targetFile = path.resolve(uploadDir, cleanPath);
 

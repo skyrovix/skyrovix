@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { generateCertId, getDomain, COMPANY, DOMAINS, getPublicSiteUrl } from "@/lib/constants";
@@ -78,16 +78,6 @@ export const Route = createFileRoute("/admin")({
       user = userData?.user;
     }
     if (!user) throw redirect({ to: "/auth" });
-
-    const email = user.email?.toLowerCase();
-    const isAdminEmail = email && (
-      email === "hariharan@skyrovix.com" ||
-      email === "harimaheshwaran34@gmail.com" ||
-      email === "hariharan1152007@gmail.com"
-    );
-
-    if (isAdminEmail) return;
-
     const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (role?.role !== "admin") throw redirect({ to: "/dashboard" });
   },
@@ -612,7 +602,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
     queryFn: async () => {
       const { data } = await supabase.from("applications").select("status");
       const counts = { pending: 0, shortlisted: 0, approved: 0, ongoing: 0, completed: 0, rejected: 0 };
-      data?.forEach(x => {
+      data?.forEach((x: any) => {
         const s = (x.status || "").toLowerCase().trim();
         if (s === "pending" || s === "payment_pending") {
           counts.pending += 1;
@@ -640,7 +630,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
     queryFn: async () => {
       const { data } = await supabase.from("applications").select("domain");
       const counts: Record<string, number> = {};
-      data?.forEach(x => {
+      data?.forEach((x: any) => {
         if (x.domain) counts[x.domain] = (counts[x.domain] || 0) + 1;
       });
       return counts;
@@ -655,7 +645,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
       let totalRev = 0;
       let pendingCount = 0;
       let pendingAmount = 0;
-      allPays?.forEach(p => {
+      allPays?.forEach((p: any) => {
         if (p.status === "verified") totalRev += Number(p.amount || 0);
         if (p.status === "pending") {
           pendingCount += 1;
@@ -675,7 +665,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
     }
     const headers = ["Full Name", "Email", "Phone", "College", "Course", "Track", "Status"];
     const csvRows = [headers.join(",")];
-    data.forEach(row => {
+    data.forEach((row: any) => {
       const values = [
         `"${row.full_name || ''}"`,
         `"${row.email || ''}"`,
@@ -1543,7 +1533,7 @@ function ApplicationsSection() {
             {data?.length === 0 && (
               <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No matching applications found.</td></tr>
             )}
-            {filtered?.map((a) => {
+            {filtered?.map((a: any) => {
               const dd = getDomain(a.domain);
               return (
                 <tr key={a.id} className="border-b border-border/30 transition hover:bg-accent/20">
@@ -3952,7 +3942,7 @@ function CertificatesSection() {
         const approvedCount = subs.filter((s: any) => s.status === "approved").length;
         const requiredTasks = app.total_tasks || 5;
         const pay = payMap.get(app.id);
-        const isCompleted = approvedCount >= requiredTasks || (pay && pay.status === "verified");
+        const isCompleted = approvedCount >= requiredTasks || ((pay as any)?.status === "verified");
         if (isCompleted && !hasCert) {
           list.push({ app, approvedCount, requiredTasks, pay });
         }

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Trash2, EyeOff, Eye, Loader2, ExternalLink } from "lucide-react";

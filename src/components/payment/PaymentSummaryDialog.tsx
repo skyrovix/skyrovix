@@ -96,7 +96,6 @@ export function PaymentSummaryDialog({
           customerPhone: cleanPhone,
           couponCode: couponCode || null,
           returnUrl: dynamicReturnUrl,
-          amount,
         },
       });
 

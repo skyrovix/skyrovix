@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { INTERNSHIP_DETAILS, type InternshipDetail } from "@/lib/internship-detail-content";
@@ -620,7 +620,7 @@ function CourseDetailsPage() {
             <div className="space-y-4">
               <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Suggested Courses</h3>
               <div className="space-y-3">
-                {otherCourses.map((rc) => (
+                {otherCourses.map((rc: any) => (
                   <Card key={rc.id} className="bg-white/40 dark:bg-[#0f172a]/40 border-border/40 hover:border-blue-500/20 transition-colors">
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-center justify-between">

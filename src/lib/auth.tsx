@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { supabase, type User } from "@/integrations/supabase/client";
+import { supabase, type User } from "@/lib/db-client";
 
 export type Role = "admin" | "user" | null;
 

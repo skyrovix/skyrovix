@@ -5,7 +5,18 @@ export const runMysqlQueryServerFn = createServerFn({ method: "POST" })
   .validator((d: any) => d as MysqlQueryRequest)
   .handler(async ({ data }) => {
     const { executeMysqlQuery } = await import("./mysql-api.server");
-    return await executeMysqlQuery(data);
+    const { serverGetUser } = await import("./mysql-auth.server");
+    let user = null;
+    try {
+      const { getRequest } = await import("@tanstack/react-start/server");
+      const req = getRequest();
+      const authHeader = req?.headers?.get?.("authorization") || "";
+      if (authHeader) {
+        const userRes = await serverGetUser(authHeader);
+        user = userRes.user;
+      }
+    } catch {}
+    return await executeMysqlQuery(data, user);
   });
 
 export const runMysqlRpcServerFn = createServerFn({ method: "POST" })

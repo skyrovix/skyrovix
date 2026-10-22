@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { PaymentVerificationSection } from "@/components/admin/PaymentVerificationSection";
 import { Logo } from "@/components/Logo";
@@ -17,15 +17,6 @@ export const Route = createFileRoute("/admin/payment-verification")({
       user = userData?.user;
     }
     if (!user) throw redirect({ to: "/auth" });
-
-    const email = user.email?.toLowerCase();
-    const isAdminEmail =
-      email &&
-      (email === "hariharan@skyrovix.com" ||
-        email === "harimaheshwaran34@gmail.com" ||
-        email === "hariharan1152007@gmail.com");
-
-    if (isAdminEmail) return;
 
     const { data: role } = await supabase
       .from("user_roles")

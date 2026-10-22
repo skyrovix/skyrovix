@@ -9,29 +9,11 @@ import {
   type PaymentRecordItem,
 } from "./fee-service";
 
-// Helper: Check if user is admin
 export async function checkIsAdmin(userId?: string | null): Promise<boolean> {
   if (!userId) return false;
-  const adminEmails = [
-    "hariharan@skyrovix.com",
-    "harimaheshwaran34@gmail.com",
-    "hariharan1152007@gmail.com",
-  ];
-  const cleanId = String(userId).trim().toLowerCase();
-  if (adminEmails.includes(cleanId)) {
-    return true;
-  }
   const res = await dbQuery(
-    `SELECT (
-       EXISTS (
-         SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin'
-       ) OR EXISTS (
-         SELECT 1 FROM users WHERE (id = $1 OR LOWER(email) = LOWER($1)) AND LOWER(email) IN (
-           'hariharan@skyrovix.com',
-           'harimaheshwaran34@gmail.com',
-           'hariharan1152007@gmail.com'
-         )
-       )
+    `SELECT EXISTS (
+       SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin'
      ) as is_admin`,
     [userId]
   );

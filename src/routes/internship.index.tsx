@@ -13,7 +13,7 @@ import { validateCoupon } from "@/lib/coupons";
 import { getPublicFeeSettings, submitApplicationServer, type PublicFeeSettings } from "@/lib/fee-service";
 import { ManualUpiPaymentDialog } from "@/components/ManualUpiPaymentDialog";
 import { PaymentSummaryDialog } from "@/components/payment/PaymentSummaryDialog";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ArrowRight, ShieldCheck, Clock, Users, Eye, EyeOff, Sparkles, CheckCircle2, Loader2, Upload, Lock, ChevronRight, Crown, Check, IndianRupee } from "lucide-react";
