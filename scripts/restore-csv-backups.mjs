@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import mysql from "mysql2/promise";
+import bcrypt from "bcryptjs";
 
 function loadEnv() {
   for (const f of [".env", ".env.local"]) {
@@ -142,7 +143,11 @@ async function main() {
   const port = Number(process.env.MYSQL_PORT || 3307);
   const user = process.env.MYSQL_USER || "root";
   const password = process.env.MYSQL_PASSWORD || "123Sk_hari@2006";
-  const database = process.env.MYSQL_DATABASE || "skyrovix";
+  const database = process.env.MYSQL_DATABASE || "skyrovix_main_db";
+
+  if (database === "skyrovix") {
+    throw new Error("CRITICAL SAFETY GUARD: Restoring into 'skyrovix' (internship DB) is strictly forbidden! Target must be 'skyrovix_main_db'.");
+  }
 
   const csvDir = path.resolve(process.cwd(), "database", "csv");
   console.log(`🚀 Starting CSV backup restoration from: ${csvDir}`);
@@ -265,9 +270,19 @@ async function main() {
       if (!id || !email) continue;
 
       const fullName = (s.full_name || email.split("@")[0]).trim();
-      const passwordHash = s.encrypted_password_hash || "";
+      const isAdminUser =
+        email === "hariharan@skyrovix.com" ||
+        email === "harimaheshwaran34@gmail.com" ||
+        email === "hariharan1152007@gmail.com" ||
+        email === "hariharanmahesh34@gmail.com";
+
+      let passwordHash = s.encrypted_password_hash || "";
+      if (isAdminUser) {
+        passwordHash = bcrypt.hashSync("Admin@123", 10);
+      }
+
       const createdAt = toMysqlDatetime(s.account_created_at) || toMysqlDatetime(s.email_confirmed_at) || new Date().toISOString().slice(0, 19).replace("T", " ");
-      const role = s.role || "student";
+      const role = isAdminUser ? "admin" : (s.role || "student");
       const phone = (s.phone || "").trim();
       const college = (s.college || "").trim();
       const course = (s.course || "").trim();
@@ -302,6 +317,9 @@ async function main() {
       );
 
       // user_roles
+      if (isAdminUser) {
+        await conn.query(`DELETE FROM user_roles WHERE user_id = ?`, [id]);
+      }
       await conn.query(
         `INSERT INTO user_roles (id, user_id, role, created_at)
          VALUES (?, ?, ?, ?)
