@@ -61,9 +61,15 @@ fi
 echo "📦 Verifying Node.js dependencies..."
 npm install --production=false
 
-# 5. Restore Database Records & Admin Credentials into skyrovix_main_db
 echo "🐬 Restoring users, applications, submissions, and admin authentication into skyrovix_main_db..."
-node scripts/restore-csv-backups.mjs
+if [ -f "${APP_DIR}/skyrovix_complete_master.sql" ]; then
+  echo "📥 Direct SQL Import: Loading skyrovix_complete_master.sql into skyrovix_main_db..."
+  mysql -u root skyrovix_main_db < "${APP_DIR}/skyrovix_complete_master.sql" 2>/dev/null || \
+  mysql -u skyrovix_main_user -p"SkyrovixMain@2026#SecureDb" skyrovix_main_db < "${APP_DIR}/skyrovix_complete_master.sql" 2>/dev/null || \
+  node scripts/restore-csv-backups.mjs
+else
+  node scripts/restore-csv-backups.mjs
+fi
 
 # 6. Rebuild Production Bundle
 echo "🏗️ Compiling high-performance production build..."
