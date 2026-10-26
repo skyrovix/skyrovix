@@ -224,9 +224,181 @@ async function main() {
     out += baseSchema + "\n\n";
   }
 
-  // Ensure additional tables exist
-  out += `-- Additional Enterprise Tables\n`;
-  out += `CREATE TABLE IF NOT EXISTS \`storage_files\` (
+  // Ensure additional and restored tables exist with exact schemas (drop stale structures if any)
+  out += `-- Additional Enterprise & Restored Tables Schema Definitions\n`;
+  out += `DROP TABLE IF EXISTS \`students\`;\n`;
+  out += `CREATE TABLE \`students\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`full_name\` VARCHAR(255),
+  \`email\` VARCHAR(255),
+  \`mobile\` VARCHAR(50),
+  \`college\` VARCHAR(255),
+  \`degree\` VARCHAR(255),
+  \`department\` VARCHAR(255),
+  \`year_of_study\` VARCHAR(50),
+  \`city\` VARCHAR(100),
+  \`skill_level\` VARCHAR(50) DEFAULT 'Beginner',
+  \`password_hash\` VARCHAR(255),
+  \`student_id_formatted\` VARCHAR(100),
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_students_email\` (\`email\`),
+  INDEX \`idx_students_mobile\` (\`mobile\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`registrations\`;\n`;
+  out += `CREATE TABLE \`registrations\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`student_id\` VARCHAR(36),
+  \`domain\` VARCHAR(100),
+  \`registration_status\` VARCHAR(50) DEFAULT 'APPROVED',
+  \`internship_status\` VARCHAR(50) DEFAULT 'ACTIVE',
+  \`status\` VARCHAR(50) DEFAULT 'APPROVED',
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_reg_student\` (\`student_id\`),
+  INDEX \`idx_reg_domain\` (\`domain\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`submissions\`;\n`;
+  out += `CREATE TABLE \`submissions\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`application_id\` VARCHAR(36),
+  \`student_id\` VARCHAR(36),
+  \`intern_id\` VARCHAR(100),
+  \`domain\` VARCHAR(100),
+  \`task_id\` VARCHAR(36),
+  \`task_number\` INT,
+  \`task_title\` VARCHAR(255),
+  \`github_url\` TEXT,
+  \`deployed_url\` TEXT,
+  \`pdf_url\` TEXT,
+  \`screenshot_url\` TEXT,
+  \`status\` VARCHAR(50) NOT NULL DEFAULT 'SUBMITTED',
+  \`feedback\` TEXT,
+  \`notes\` TEXT,
+  \`student_name\` VARCHAR(255),
+  \`student_email\` VARCHAR(255),
+  \`submitted_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`reviewed_at\` DATETIME(3),
+  \`resubmission_count\` INT DEFAULT 0,
+  \`project_id\` VARCHAR(100),
+  \`project_title\` VARCHAR(255),
+  \`github_repo_url\` TEXT,
+  \`live_deployment_url\` TEXT,
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_submissions_app\` (\`application_id\`),
+  INDEX \`idx_submissions_student\` (\`student_id\`),
+  INDEX \`idx_submissions_task\` (\`task_id\`),
+  INDEX \`idx_submissions_domain\` (\`domain\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`submission_history\`;\n`;
+  out += `CREATE TABLE \`submission_history\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`submission_id\` VARCHAR(36),
+  \`application_id\` VARCHAR(36),
+  \`task_id\` VARCHAR(36),
+  \`status\` VARCHAR(50),
+  \`notes\` TEXT,
+  \`github_url\` TEXT,
+  \`deployed_url\` TEXT,
+  \`pdf_url\` TEXT,
+  \`screenshot_url\` TEXT,
+  \`feedback\` TEXT,
+  \`previous_status\` VARCHAR(50),
+  \`new_status\` VARCHAR(50),
+  \`changed_by\` VARCHAR(255),
+  \`reason\` TEXT,
+  \`table_name\` VARCHAR(100) DEFAULT 'submissions',
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  INDEX \`idx_sub_hist_app\` (\`application_id\`),
+  INDEX \`idx_sub_hist_sub\` (\`submission_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`certificates\`;\n`;
+  out += `CREATE TABLE \`certificates\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`certificate_id\` VARCHAR(100) NOT NULL UNIQUE,
+  \`student_id\` VARCHAR(36),
+  \`application_id\` VARCHAR(36),
+  \`intern_id\` VARCHAR(100),
+  \`internship_id\` VARCHAR(100),
+  \`student_name\` VARCHAR(255),
+  \`domain\` VARCHAR(100),
+  \`verification_hash\` VARCHAR(255) NOT NULL,
+  \`issued_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`issue_date\` DATETIME(3),
+  \`status\` VARCHAR(50) DEFAULT 'ISSUED',
+  \`certificate_status\` VARCHAR(50) DEFAULT 'VALID',
+  \`verification_url\` TEXT,
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_certs_cert_id\` (\`certificate_id\`),
+  INDEX \`idx_certs_app\` (\`application_id\`),
+  INDEX \`idx_certs_student\` (\`student_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`course_certificates\`;\n`;
+  out += `CREATE TABLE \`course_certificates\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`certificate_id\` VARCHAR(100) NOT NULL UNIQUE,
+  \`enrollment_id\` VARCHAR(36),
+  \`user_id\` VARCHAR(36),
+  \`course_id\` VARCHAR(36),
+  \`student_name\` VARCHAR(255),
+  \`course_title\` VARCHAR(255),
+  \`verification_hash\` VARCHAR(255) NOT NULL,
+  \`score\` INT NOT NULL DEFAULT 100,
+  \`issued_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  INDEX \`idx_course_certs_cert_id\` (\`certificate_id\`),
+  INDEX \`idx_course_certs_user\` (\`user_id\`),
+  INDEX \`idx_course_certs_enroll\` (\`enrollment_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`payments\`;\n`;
+  out += `CREATE TABLE \`payments\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`application_id\` VARCHAR(36),
+  \`registration_id\` VARCHAR(36),
+  \`utr_number\` VARCHAR(100),
+  \`screenshot_url\` TEXT,
+  \`amount\` DECIMAL(10,2) NOT NULL DEFAULT 100.00,
+  \`status\` VARCHAR(50) NOT NULL DEFAULT 'verified',
+  \`coupon_code\` VARCHAR(100),
+  \`discount_amount\` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  \`submitted_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`verified_at\` DATETIME(3),
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_payments_app\` (\`application_id\`),
+  INDEX \`idx_payments_utr\` (\`utr_number\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`email_logs\`;\n`;
+  out += `CREATE TABLE \`email_logs\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`user_id\` VARCHAR(36),
+  \`email_to\` VARCHAR(255),
+  \`recipient_email\` VARCHAR(255) NOT NULL,
+  \`student_name\` VARCHAR(255),
+  \`recipient_name\` VARCHAR(255),
+  \`document_type\` VARCHAR(100) DEFAULT 'offer_letter',
+  \`email_type\` VARCHAR(100) NOT NULL DEFAULT 'offer_letter',
+  \`status\` VARCHAR(50) NOT NULL DEFAULT 'sent',
+  \`subject\` VARCHAR(255) NOT NULL,
+  \`reference_id\` VARCHAR(100),
+  \`error_message\` TEXT,
+  \`metadata\` JSON,
+  \`sent_at\` DATETIME(3),
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  INDEX \`idx_email_logs_email\` (\`recipient_email\`),
+  INDEX \`idx_email_logs_user\` (\`user_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`storage_files\`;\n`;
+  out += `CREATE TABLE \`storage_files\` (
   \`id\` VARCHAR(64) PRIMARY KEY,
   \`bucket_id\` VARCHAR(100),
   \`file_path\` TEXT,
@@ -237,7 +409,8 @@ async function main() {
   INDEX \`idx_storage_bucket\` (\`bucket_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
-  out += `CREATE TABLE IF NOT EXISTS \`project_certificates\` (
+  out += `DROP TABLE IF EXISTS \`project_certificates\`;\n`;
+  out += `CREATE TABLE \`project_certificates\` (
   \`id\` VARCHAR(36) PRIMARY KEY,
   \`cert_id\` VARCHAR(100) NOT NULL UNIQUE,
   \`submission_id\` VARCHAR(36),
@@ -248,16 +421,27 @@ async function main() {
   \`industry\` VARCHAR(100),
   \`final_score\` DECIMAL(5,2) DEFAULT 80.00,
   \`completion_date\` DATETIME,
-  \`issued_at\` DATETIME DEFAULT CURRENT_TIMESTAMP
+  \`issued_at\` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX \`idx_proj_certs_cert_id\` (\`cert_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
-  out += `CREATE TABLE IF NOT EXISTS \`project_awards\` (
+  out += `DROP TABLE IF EXISTS \`project_awards\`;\n`;
+  out += `CREATE TABLE \`project_awards\` (
   \`id\` VARCHAR(36) PRIMARY KEY,
   \`award_id\` VARCHAR(100) NOT NULL UNIQUE,
   \`user_id\` VARCHAR(36),
+  \`submission_id\` VARCHAR(36),
+  \`participant_name\` VARCHAR(255),
+  \`project_title\` VARCHAR(255),
+  \`rank_position\` VARCHAR(50),
+  \`award_title\` VARCHAR(255) DEFAULT '',
   \`title\` VARCHAR(255),
+  \`award_category\` VARCHAR(100),
   \`award_type\` VARCHAR(100),
-  \`issued_at\` DATETIME DEFAULT CURRENT_TIMESTAMP
+  \`final_score\` DECIMAL(5,1),
+  \`issue_date\` DATE,
+  \`issued_at\` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX \`idx_proj_awards_award_id\` (\`award_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
   out += `DROP TABLE IF EXISTS \`student_kit_items\`;\n`;
@@ -304,6 +488,32 @@ async function main() {
   \`notes\` TEXT,
   \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`login_sessions\`;\n`;
+  out += `CREATE TABLE \`login_sessions\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`student_id\` VARCHAR(36) NOT NULL,
+  \`intern_id\` VARCHAR(100),
+  \`student_name\` VARCHAR(255),
+  \`email\` VARCHAR(255),
+  \`domain\` VARCHAR(100),
+  \`college\` VARCHAR(255),
+  \`login_time\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`logout_time\` DATETIME(3),
+  \`last_active\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`status\` VARCHAR(50) NOT NULL DEFAULT 'online',
+  \`ip_address\` VARCHAR(100),
+  \`device\` VARCHAR(100),
+  \`browser\` VARCHAR(100),
+  \`os\` VARCHAR(100),
+  \`country\` VARCHAR(100),
+  \`state\` VARCHAR(100),
+  \`city\` VARCHAR(100),
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_login_sessions_student\` (\`student_id\`),
+  INDEX \`idx_login_sessions_email\` (\`email\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
   // 3. SEED TASKS 1 to 12 FOR ALL 25 DOMAINS

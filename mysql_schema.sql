@@ -52,6 +52,40 @@ CREATE TABLE IF NOT EXISTS profiles (
   FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 3B. STUDENTS (Legacy / Restored Students Master)
+CREATE TABLE IF NOT EXISTS students (
+  id VARCHAR(36) PRIMARY KEY,
+  full_name VARCHAR(255),
+  email VARCHAR(255),
+  mobile VARCHAR(50),
+  college VARCHAR(255),
+  degree VARCHAR(255),
+  department VARCHAR(255),
+  year_of_study VARCHAR(50),
+  city VARCHAR(100),
+  skill_level VARCHAR(50) DEFAULT 'Beginner',
+  password_hash VARCHAR(255),
+  student_id_formatted VARCHAR(100),
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX idx_students_email (email),
+  INDEX idx_students_mobile (mobile)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3C. REGISTRATIONS (Legacy / Restored Registrations)
+CREATE TABLE IF NOT EXISTS registrations (
+  id VARCHAR(36) PRIMARY KEY,
+  student_id VARCHAR(36),
+  domain VARCHAR(100),
+  registration_status VARCHAR(50) DEFAULT 'APPROVED',
+  internship_status VARCHAR(50) DEFAULT 'ACTIVE',
+  status VARCHAR(50) DEFAULT 'APPROVED',
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX idx_reg_student (student_id),
+  INDEX idx_reg_domain (domain)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 4. APPLICATIONS (Student Internship Applications)
 CREATE TABLE IF NOT EXISTS applications (
   id VARCHAR(36) PRIMARY KEY,
@@ -126,64 +160,100 @@ CREATE TABLE IF NOT EXISTS tasks (
 -- 6. SUBMISSIONS
 CREATE TABLE IF NOT EXISTS submissions (
   id VARCHAR(36) PRIMARY KEY,
-  application_id VARCHAR(36) NOT NULL,
-  task_id VARCHAR(36) NOT NULL,
+  application_id VARCHAR(36),
+  student_id VARCHAR(36),
+  intern_id VARCHAR(100),
+  domain VARCHAR(100),
+  task_id VARCHAR(36),
+  task_number INT,
+  task_title VARCHAR(255),
   github_url TEXT,
   deployed_url TEXT,
-  notes TEXT,
   pdf_url TEXT,
   screenshot_url TEXT,
-  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  status VARCHAR(50) NOT NULL DEFAULT 'SUBMITTED',
   feedback TEXT,
+  notes TEXT,
+  student_name VARCHAR(255),
+  student_email VARCHAR(255),
   submitted_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   reviewed_at DATETIME(3),
-  UNIQUE KEY uq_app_task (application_id, task_id),
+  resubmission_count INT DEFAULT 0,
+  project_id VARCHAR(100),
+  project_title VARCHAR(255),
+  github_repo_url TEXT,
+  live_deployment_url TEXT,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   INDEX idx_submissions_app (application_id),
-  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
-  FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+  INDEX idx_submissions_student (student_id),
+  INDEX idx_submissions_task (task_id),
+  INDEX idx_submissions_domain (domain)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 7. SUBMISSION HISTORY
 CREATE TABLE IF NOT EXISTS submission_history (
   id VARCHAR(36) PRIMARY KEY,
   submission_id VARCHAR(36),
-  application_id VARCHAR(36) NOT NULL,
-  task_id VARCHAR(36) NOT NULL,
+  application_id VARCHAR(36),
+  task_id VARCHAR(36),
+  status VARCHAR(50),
+  notes TEXT,
   github_url TEXT,
   deployed_url TEXT,
-  notes TEXT,
   pdf_url TEXT,
   screenshot_url TEXT,
-  status VARCHAR(50) NOT NULL,
   feedback TEXT,
+  previous_status VARCHAR(50),
+  new_status VARCHAR(50),
+  changed_by VARCHAR(255),
+  reason TEXT,
+  table_name VARCHAR(100) DEFAULT 'submissions',
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  INDEX idx_sub_hist_app (application_id)
+  INDEX idx_sub_hist_app (application_id),
+  INDEX idx_sub_hist_sub (submission_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 8. CERTIFICATES
 CREATE TABLE IF NOT EXISTS certificates (
   id VARCHAR(36) PRIMARY KEY,
-  application_id VARCHAR(36) NOT NULL UNIQUE,
   certificate_id VARCHAR(100) NOT NULL UNIQUE,
+  student_id VARCHAR(36),
+  application_id VARCHAR(36),
+  intern_id VARCHAR(100),
+  internship_id VARCHAR(100),
+  student_name VARCHAR(255),
+  domain VARCHAR(100),
   verification_hash VARCHAR(255) NOT NULL,
   issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  issue_date DATETIME(3),
+  status VARCHAR(50) DEFAULT 'ISSUED',
+  certificate_status VARCHAR(50) DEFAULT 'VALID',
+  verification_url TEXT,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   INDEX idx_certs_cert_id (certificate_id),
-  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+  INDEX idx_certs_app (application_id),
+  INDEX idx_certs_student (student_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 9. PAYMENTS (UPI verification)
+-- 9. PAYMENTS (UPI verification & transactions)
 CREATE TABLE IF NOT EXISTS payments (
   id VARCHAR(36) PRIMARY KEY,
-  application_id VARCHAR(36) NOT NULL UNIQUE,
-  utr_number VARCHAR(100) NOT NULL,
+  application_id VARCHAR(36),
+  registration_id VARCHAR(36),
+  utr_number VARCHAR(100),
   screenshot_url TEXT,
   amount DECIMAL(10,2) NOT NULL DEFAULT 100.00,
-  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  status VARCHAR(50) NOT NULL DEFAULT 'verified',
   coupon_code VARCHAR(100),
   discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   submitted_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   verified_at DATETIME(3),
-  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX idx_payments_app (application_id),
+  INDEX idx_payments_utr (utr_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 10. PAYMENT RECORDS
@@ -311,14 +381,22 @@ CREATE TABLE IF NOT EXISTS reviews (
 -- 16. EMAIL LOGS
 CREATE TABLE IF NOT EXISTS email_logs (
   id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36),
+  email_to VARCHAR(255),
   recipient_email VARCHAR(255) NOT NULL,
-  subject VARCHAR(255) NOT NULL,
-  email_type VARCHAR(100) NOT NULL,
+  student_name VARCHAR(255),
+  recipient_name VARCHAR(255),
+  document_type VARCHAR(100) DEFAULT 'offer_letter',
+  email_type VARCHAR(100) NOT NULL DEFAULT 'offer_letter',
   status VARCHAR(50) NOT NULL DEFAULT 'sent',
+  subject VARCHAR(255) NOT NULL,
+  reference_id VARCHAR(100),
   error_message TEXT,
   metadata JSON,
+  sent_at DATETIME(3),
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  INDEX idx_email_logs_email (recipient_email)
+  INDEX idx_email_logs_email (recipient_email),
+  INDEX idx_email_logs_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 17. PROMOTIONAL POPUPS
@@ -545,12 +623,18 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
 -- 28. COURSE CERTIFICATES
 CREATE TABLE IF NOT EXISTS course_certificates (
   id VARCHAR(36) PRIMARY KEY,
-  enrollment_id VARCHAR(36) NOT NULL UNIQUE,
   certificate_id VARCHAR(100) NOT NULL UNIQUE,
-  verification_hash VARCHAR(255) NOT NULL UNIQUE,
-  score INT NOT NULL,
+  enrollment_id VARCHAR(36),
+  user_id VARCHAR(36),
+  course_id VARCHAR(36),
+  student_name VARCHAR(255),
+  course_title VARCHAR(255),
+  verification_hash VARCHAR(255) NOT NULL,
+  score INT NOT NULL DEFAULT 100,
   issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  FOREIGN KEY (enrollment_id) REFERENCES enrollments(id) ON DELETE CASCADE
+  INDEX idx_course_certs_cert_id (certificate_id),
+  INDEX idx_course_certs_user (user_id),
+  INDEX idx_course_certs_enroll (enrollment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 29. LEADERBOARD
