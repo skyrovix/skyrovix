@@ -1090,15 +1090,7 @@ async function main() {
   out += `-- 2. Revoke any accidental admin roles\n`;
   out += `UPDATE \`user_roles\` SET \`role\` = 'user' WHERE \`user_id\` != '15430c49-f28f-459e-ba3f-411b18519445' AND \`role\` = 'admin';\n\n`;
 
-  out += `-- 3. High-Performance B-Tree indexes\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_users_email_btree\` ON \`users\` (\`email\`);\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_applications_user_btree\` ON \`applications\` (\`user_id\`);\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_submissions_app_btree\` ON \`submissions\` (\`application_id\`);\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_submissions_student_btree\` ON \`submissions\` (\`student_id\`);\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_certificates_app_btree\` ON \`certificates\` (\`application_id\`);\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_payments_app_btree\` ON \`payments\` (\`application_id\`);\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_course_topics_course\` ON \`course_topics\` (\`course_id\`);\n`;
-  out += `CREATE INDEX IF NOT EXISTS \`idx_course_quiz_course\` ON \`course_quiz_questions\` (\`course_id\`);\n\n`;
+
 
   out += `SET FOREIGN_KEY_CHECKS = 1;\n\n`;
   out += `-- ==============================================================================\n`;
