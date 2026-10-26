@@ -20,6 +20,7 @@ fi
 
 # 2. Sync to latest origin/main cleanly (discards diverged local commits)
 echo "🔄 Synchronizing code from GitHub origin/main..."
+git remote set-url origin https://github.com/skyrovix/skyrovix.git
 git fetch origin main
 git reset --hard origin/main
 
@@ -28,7 +29,10 @@ echo "📂 Restoring student profile uploads..."
 mkdir -p "${APP_DIR}/public/uploads"
 cp -rn /tmp/skyrovix_uploads_backup/* "${APP_DIR}/public/uploads/" 2>/dev/null || true
 
-# 4. Execute production build
+# 4. Clean previous build artifacts and execute production build
+echo "🧹 Wiping old build artifacts (.output)..."
+rm -rf .output node_modules/.vite
+
 echo "🔨 Building production bundles with Vite & Nitro..."
 npm run build
 
