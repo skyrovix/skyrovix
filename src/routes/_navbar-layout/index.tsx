@@ -185,103 +185,68 @@ function Landing() {
           <div className="mx-auto max-w-7xl px-4 relative z-10 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
 
-              {/* Left Column: Hero Text Content with Symboolic Motion */}
-              <motion.div
-                variants={stagger}
-                initial="initial"
-                animate="animate"
-                className="lg:col-span-7 flex flex-col items-start text-left w-full px-2 sm:px-0"
-              >
+              {/* Left Column: Hero Text Content with Clean, Fast Rendering */}
+              <div className="lg:col-span-7 flex flex-col items-start text-left w-full px-2 sm:px-0">
 
                 {/* Internship Platform Badge */}
-                <motion.div
-                  variants={slideUp}
-                  className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-4 py-2 text-[10px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur-md"
-                >
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-4 py-2 text-[10px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur-md">
                   <span className="animate-pulse size-2 rounded-full bg-[#f95c4b] shrink-0" />
                   <span>🎓 INDIA'S MOST PRACTICAL VIRTUAL INTERNSHIP PLATFORM</span>
-                </motion.div>
+                </div>
 
                 {/* Primary Heading */}
-                <motion.h1
-                  variants={slideUp}
-                  className="font-display text-[2.4rem] leading-[1.12] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#181619] dark:text-white text-left"
-                >
+                <h1 className="font-display text-[2.4rem] leading-[1.12] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#181619] dark:text-white text-left">
                   Build Skills.<br />
                   Gain Experience.<br />
                   <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-[#f95c4b] bg-clip-text text-transparent">Get Certified.</span>
-                </motion.h1>
+                </h1>
 
                 {/* Sub-headline description */}
-                <motion.p
-                  variants={slideUp}
-                  className="mt-4 sm:mt-5 max-w-xl text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium"
-                >
+                <p className="mt-4 sm:mt-5 max-w-xl text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium">
                   Skyrovix Internship Program helps students and professionals work on real-world projects, gain practical skills, and receive industry-recognized certificates.
-                </motion.p>
+                </p>
 
-                {/* Checklist items — glassmorphism on dark with Stagger */}
-                <motion.div
-                  variants={stagger}
-                  className="mt-5 sm:mt-6 grid grid-cols-2 gap-2 max-w-lg w-full"
-                >
+                {/* Checklist items — glassmorphism on dark */}
+                <div className="mt-5 sm:mt-6 grid grid-cols-2 gap-2 max-w-lg w-full">
                   {[
                     { label: "Real-world Projects", icon: Code2, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
                     { label: "Mentor Guidance", icon: Users, color: "text-[#403b42] dark:text-[#ee9590]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
                     { label: "Certificate & LOR", icon: FileText, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
                     { label: "100% Remote", icon: Globe, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
                   ].map((item, idx) => (
-                    <motion.div
+                    <div
                       key={idx}
-                      variants={slideUp}
-                      whileHover={{ scale: 1.02, transition: transitions.fast }}
-                      className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm transition-all duration-200 shadow-sm`}
+                      className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm transition-all duration-200 shadow-sm hover:scale-[1.02] cursor-default`}
                     >
                       <div className={`size-7 rounded-lg bg-white/80 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0 shadow-sm`}>
                         <item.icon className="size-3.5" />
                       </div>
                       <span className="text-[11px] sm:text-sm font-semibold text-slate-800 dark:text-white/90">{item.label}</span>
-                    </motion.div>
+                    </div>
                   ))}
-                </motion.div>
+                </div>
 
-                {/* Buttons Row with Framer Motion hover & tap */}
-                <motion.div
-                  variants={slideUp}
-                  className="mt-6 sm:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto"
-                >
-                  <motion.div
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={transitions.fast}
-                    className="w-full sm:w-auto"
-                  >
+                {/* Buttons Row with smooth CSS hover & tap */}
+                <div className="mt-6 sm:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                  <div className="w-full sm:w-auto transition-transform hover:-translate-y-0.5 active:scale-95 duration-150">
                     <Link to="/auth" search={{ redirect: undefined }} className="w-full sm:w-auto block">
                       <Button size="lg" className="w-full sm:w-auto rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white border-0 px-8 py-5 sm:py-6 text-sm sm:text-base font-bold shadow-lg shadow-[#f95c4b]/25 transition-all duration-300 cursor-pointer">
                         Explore Internships <ArrowRight className="ml-2 size-4" />
                       </Button>
                     </Link>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={transitions.fast}
-                    className="w-full sm:w-auto"
-                  >
+                  </div>
+                  <div className="w-full sm:w-auto transition-transform hover:-translate-y-0.5 active:scale-95 duration-150">
                     <a href="#how-it-works" className="w-full sm:w-auto block">
                       <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl border border-[#e5e7eb] dark:border-white/15 px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold text-[#181619] dark:text-white hover:bg-white dark:hover:bg-white/10 hover:border-[#f95c4b] transition-all flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md cursor-pointer">
                         <div className="size-6 rounded-full bg-slate-100 dark:bg-white/15 flex items-center justify-center text-slate-800 dark:text-white"><Play className="size-3 fill-current ml-0.5" /></div>
                         How It Works
                       </Button>
                     </a>
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
 
                 {/* Coupon banner */}
-                <motion.div
-                  variants={slideUp}
-                  className="mt-6 sm:mt-7 p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#f95c4b]/20 max-w-xl w-full flex items-center justify-between gap-3 backdrop-blur-md shadow-sm"
-                >
+                <div className="mt-6 sm:mt-7 p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#f95c4b]/20 max-w-xl w-full flex items-center justify-between gap-3 backdrop-blur-md shadow-sm">
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                     <div className="size-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0"><Sparkles className="size-5" /></div>
                     <div className="text-left min-w-0">
@@ -289,26 +254,18 @@ function Landing() {
                       <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">First 100 students get internship for FREE!</p>
                     </div>
                   </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={transitions.fast}
+                  <button
                     onClick={() => setApplyDomain(DOMAINS[0]?.slug)}
-                    className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[11px] sm:text-xs font-bold shadow-md transition-all cursor-pointer"
+                    className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[11px] sm:text-xs font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
                   >
                     Use Code: FIRST100
-                  </motion.button>
-                </motion.div>
+                  </button>
+                </div>
 
-              </motion.div>
+              </div>
 
               {/* Right Column: Dynamic Graphic & Stats overlay */}
-              <motion.div
-                variants={scaleIn}
-                initial="initial"
-                animate="animate"
-                className="lg:col-span-5 flex flex-col items-center relative w-full lg:mt-0 mt-10"
-              >
+              <div className="lg:col-span-5 flex flex-col items-center relative w-full lg:mt-0 mt-10">
 
                 {/* SVG Curve Background & Doodles - hidden on mobile to keep it clean */}
                 <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-visible hidden sm:block">
@@ -350,66 +307,39 @@ function Landing() {
                 </div>
 
                 {/* Student team image */}
-                <motion.img
-                  variants={scaleIn}
+                <img
                   src={heroTeamImage}
                   alt="Skyrovix Interns"
                   className="relative z-10 w-full max-w-[440px] sm:max-w-[520px] lg:max-w-[550px] lg:scale-110 lg:translate-y-4 h-auto object-contain select-none pointer-events-none"
                 />
 
-                {/* Floating Badge Cards — visible on all screens with Symboolic spring pop */}
-
+                {/* Floating Badge Cards — visible on all screens with smooth hover */}
                 {/* Real-world Projects — left side */}
-                <motion.div
-                  variants={pop}
-                  whileHover={{ scale: 1.05 }}
-                  transition={transitions.fast}
-                  className="absolute top-[30%] left-1 sm:-left-10 lg:-left-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default"
-                >
+                <div className="absolute top-[30%] left-1 sm:-left-10 lg:-left-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-105 transition-transform duration-200">
                   <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><Code2 className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Real-world Projects</span>
-                </motion.div>
+                </div>
 
                 {/* Industry Recognized Certificate — top center */}
-                <motion.div
-                  variants={pop}
-                  whileHover={{ scale: 1.05 }}
-                  transition={transitions.fast}
-                  className="absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 whitespace-nowrap cursor-default"
-                >
+                <div className="absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 whitespace-nowrap cursor-default hover:scale-105 transition-transform duration-200">
                   <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><GraduationCap className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200">Industry Certificate</span>
-                </motion.div>
+                </div>
 
                 {/* Internship Offer Letter — right side top */}
-                <motion.div
-                  variants={pop}
-                  whileHover={{ scale: 1.05 }}
-                  transition={transitions.fast}
-                  className="absolute top-[22%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default"
-                >
+                <div className="absolute top-[22%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-105 transition-transform duration-200">
                   <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><FileText className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Offer Letter</span>
-                </motion.div>
+                </div>
 
                 {/* Task-based internship — right side bottom */}
-                <motion.div
-                  variants={pop}
-                  whileHover={{ scale: 1.05 }}
-                  transition={transitions.fast}
-                  className="absolute bottom-[30%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default"
-                >
+                <div className="absolute bottom-[30%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-105 transition-transform duration-200">
                   <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><Users className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Task-based</span>
-                </motion.div>
-
+                </div>
 
                 {/* Statistics Card — 2×2 on mobile, 4-col on sm+ */}
-                <motion.div
-                  variants={slideUp}
-                  className="relative z-20 w-full -mt-4 sm:-mt-6 bg-white dark:bg-[#201d22] rounded-[24px] sm:rounded-[28px] border border-[#e5e7eb] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] grid grid-cols-2 sm:grid-cols-4 max-w-2xl overflow-hidden"
-                >
-
+                <div className="relative z-20 w-full -mt-4 sm:-mt-6 bg-white dark:bg-[#201d22] rounded-[24px] sm:rounded-[28px] border border-[#e5e7eb] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] grid grid-cols-2 sm:grid-cols-4 max-w-2xl overflow-hidden">
                   {/* Students Enrolled */}
                   <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-r border-b sm:border-b-0 border-slate-100 dark:border-slate-800/80">
                     <div className="size-9 sm:size-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mb-2">
@@ -453,10 +383,9 @@ function Landing() {
                     </div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Average Rating</div>
                   </div>
+                </div>
 
-                </motion.div>
-
-              </motion.div>
+              </div>
             </div>
           </div>
         </section>
@@ -559,30 +488,22 @@ function Landing() {
                     certificate.
                   </p>
                 </div>
-                <motion.div
-                  variants={stagger}
-                  initial="initial"
-                  whileInView="animate"
-                  viewport={{ once: true, amount: 0.3 }}
-                  className="grid grid-cols-2 gap-4"
-                >
+                <div className="grid grid-cols-2 gap-4">
                   {[
                     { value: stats?.internshipDomainsDisplay || "25+", label: "Domains", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50/50 dark:bg-violet-950/20" },
                     { value: stats?.projectsAvailableDisplay || "175+", label: "Projects", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
                     { value: "100%", label: "Online", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
                     { value: `₹${certFee}`, label: "Cert fee", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
                   ].map((s) => (
-                    <motion.div
+                    <div
                       key={s.label}
-                      variants={slideUp}
-                      whileHover={{ y: -4, transition: transitions.base }}
-                      className="group rounded-2xl border border-slate-200/50 dark:border-slate-800/60 bg-white/70 dark:bg-[#201d22]/70 p-4 text-center shadow-sm hover:shadow-md transition-all duration-300 cursor-default"
+                      className="group rounded-2xl border border-slate-200/50 dark:border-slate-800/60 bg-white/70 dark:bg-[#201d22]/70 p-4 text-center shadow-sm hover:shadow-md transition-all duration-300 cursor-default hover:-translate-y-1"
                     >
                       <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
                       <div className="text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-wider">{s.label}</div>
-                    </motion.div>
+                    </div>
                   ))}
-                </motion.div>
+                </div>
               </div>
             </div>
           </Reveal>
@@ -602,19 +523,11 @@ function Landing() {
               <p className="mt-3 text-sm sm:text-base text-muted-foreground font-medium">A simple 5-step journey from application to certification.</p>
             </div>
           </Reveal>
-          <motion.div
-            variants={stagger}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.3 }}
-            className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5"
-          >
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {steps.map((s, i) => (
-              <motion.div
+              <div
                 key={i}
-                variants={slideUp}
-                whileHover={{ y: -4, transition: transitions.base }}
-                className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 backdrop-blur transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default"
+                className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 backdrop-blur transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default hover:-translate-y-1"
               >
                 <div className="absolute -top-3 left-6 grid size-7 place-items-center rounded-full bg-[#f95c4b] text-xs font-extrabold text-white shadow-md shadow-[#f95c4b]/30 ring-4 ring-[#f95c4b]/15 transition-transform duration-300 group-hover:scale-110">{i + 1}</div>
                 <div className="size-11 rounded-2xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] group-hover:bg-[#f95c4b] group-hover:text-white transition-all duration-300 mb-4 mt-1">
@@ -622,9 +535,9 @@ function Landing() {
                 </div>
                 <h3 className="font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-[#f95c4b] dark:group-hover:text-[#ee9590] text-[15px]">{s.title}</h3>
                 <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{s.desc}</p>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -671,13 +584,7 @@ function Landing() {
               <p className="mt-3 text-sm sm:text-base text-muted-foreground font-medium">Everything you need to launch your career — in one platform.</p>
             </div>
           </Reveal>
-          <motion.div
-            variants={stagger}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.3 }}
-            className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          >
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { icon: Briefcase, title: "Real Projects", desc: "Build portfolio-grade work, not toy assignments. Every task ships production-quality code.", bg: "bg-violet-50/80 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400" },
               { icon: MessageSquare, title: "Mentor Reviews", desc: "Get detailed feedback on every submission. Revise, improve, and ship better work.", bg: "bg-emerald-50/80 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400" },
@@ -686,20 +593,18 @@ function Landing() {
               { icon: ShieldCheck, title: "MSME Registered", desc: "Issued by a registered IT company. Adds real weight to your resume and LinkedIn.", bg: "bg-red-50/80 dark:bg-red-950/20 text-red-600 dark:text-red-400" },
               { icon: IndianRupee, title: "No Hidden Fees", desc: `Apply and start for free. Pay only ₹${certFee} at certification — no strings attached.`, bg: "bg-blue-50/80 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400" },
             ].map((b) => (
-              <motion.div
+              <div
                 key={b.title}
-                variants={slideUp}
-                whileHover={{ y: -4, transition: transitions.base }}
-                className="group rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default"
+                className="group rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default hover:-translate-y-1"
               >
                 <div className={`grid size-11 place-items-center rounded-2xl ${b.bg} transition-all duration-300 group-hover:scale-110 shadow-sm`}>
                   <b.icon className="size-5" />
                 </div>
                 <h3 className="mt-4 font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-[#f95c4b] dark:group-hover:text-[#ee9590] text-[15px]">{b.title}</h3>
                 <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-normal font-medium">{b.desc}</p>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -718,13 +623,7 @@ function Landing() {
             </div>
           </Reveal>
 
-          <motion.div
-            variants={stagger}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.3 }}
-            className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4"
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
             {[
               { slug: "fullstack", name: "Full Stack Development", count: "12 Projects", icon: Code2, bg: "bg-violet-50 text-violet-600 dark:bg-violet-950/30 dark:text-violet-400" },
               { slug: "datascience", name: "Data Science & Analytics", count: "12 Projects", icon: BarChart3, bg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400" },
@@ -747,11 +646,9 @@ function Landing() {
 
               if (d.isLink) {
                 return (
-                  <motion.div
+                  <div
                     key={i}
-                    variants={slideUp}
-                    whileHover={{ y: -4, transition: transitions.base }}
-                    className="h-full"
+                    className="h-full hover:-translate-y-1 transition-transform duration-200"
                   >
                     <Link
                       to="/internship"
@@ -760,16 +657,14 @@ function Landing() {
                     >
                       {cardContent}
                     </Link>
-                  </motion.div>
+                  </div>
                 );
               }
 
               return (
-                <motion.div
+                <div
                   key={i}
-                  variants={slideUp}
-                  whileHover={{ y: -4, transition: transitions.base }}
-                  className="h-full"
+                  className="h-full hover:-translate-y-1 transition-transform duration-200"
                 >
                   <button
                     onClick={() => setApplyDomain(d.slug)}
@@ -777,10 +672,10 @@ function Landing() {
                   >
                     {cardContent}
                   </button>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -901,13 +796,7 @@ function Landing() {
                 </div>
 
                 {/* Right: Visual */}
-                <motion.div
-                  variants={scaleIn}
-                  initial="initial"
-                  whileInView="animate"
-                  viewport={{ once: true, amount: 0.3 }}
-                  className="hidden sm:block shrink-0 w-56 sm:w-64 lg:w-72"
-                >
+                <div className="hidden sm:block shrink-0 w-56 sm:w-64 lg:w-72">
                   <div className="relative">
                     {/* Glow behind card */}
                     <div className="absolute inset-0 bg-gradient-to-b from-blue-400/20 to-purple-400/20 blur-3xl rounded-2xl" />
@@ -943,7 +832,7 @@ function Landing() {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
           </Reveal>

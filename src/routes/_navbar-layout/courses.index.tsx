@@ -204,13 +204,7 @@ function CoursesIndexPage() {
             <p className="text-sm font-semibold text-muted-foreground">No courses found matching "{search}"</p>
           </div>
         ) : (
-          <motion.div
-            variants={stagger}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.15 }}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-          >
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredCourses.map((c: any) => {
               const enrollment = enrollmentMap.get(c.id);
               const isEnrolled = !!enrollment;
@@ -227,11 +221,9 @@ function CoursesIndexPage() {
                   : "bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/20";
 
               return (
-                <motion.div
+                <div
                   key={c.id}
-                  variants={slideUp}
-                  whileHover={{ y: -4, transition: transitions.base }}
-                  className="h-full"
+                  className="h-full hover:-translate-y-1 transition-transform duration-200"
                 >
                   <Card
                     className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-md hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 h-full"
@@ -333,10 +325,10 @@ function CoursesIndexPage() {
                       )}
                     </div>
                   </Card>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

@@ -158,10 +158,8 @@ function ReviewCard({
   color,
 }: (typeof STATIC_TESTIMONIALS)[0]) {
   return (
-    <motion.div
-      variants={slideUp}
-      whileHover={{ y: -4, transition: transitions.base }}
-      className="flex flex-col gap-4 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-6 shadow-sm hover:shadow-lg hover:border-[#ee9590] transition-all duration-300 cursor-default"
+    <div
+      className="flex flex-col gap-4 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-6 shadow-sm hover:shadow-lg hover:border-[#ee9590] transition-all duration-300 cursor-default hover:-translate-y-1"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -189,7 +187,7 @@ function ReviewCard({
           {domain}
         </span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -262,24 +260,16 @@ function ReviewsPage() {
                 <p className="text-sm text-slate-500 mt-2">Most recent reviews from our students</p>
               </div>
             </FadeUp>
-            <motion.div
-              variants={stagger}
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.2 }}
-              className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            >
+            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {liveReviews!.map((review) => {
                 const name = review.profiles?.full_name ?? "Anonymous";
                 const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
                 const colors = ["bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-orange-500", "bg-pink-500"];
                 const color = colors[name.charCodeAt(0) % colors.length];
                 return (
-                  <motion.div
+                  <div
                     key={review.id}
-                    variants={slideUp}
-                    whileHover={{ y: -4, transition: transitions.base }}
-                    className="flex flex-col gap-4 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-6 shadow-sm hover:shadow-lg hover:border-[#ee9590] transition-all duration-300 cursor-default"
+                    className="flex flex-col gap-4 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-6 shadow-sm hover:shadow-lg hover:border-[#ee9590] transition-all duration-300 cursor-default hover:-translate-y-1"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
@@ -314,10 +304,10 @@ function ReviewsPage() {
                         {review.target_type === "internship" ? "Internship" : "Course"}
                       </span>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
-            </motion.div>
+            </div>
           </div>
         </section>
       )}
@@ -333,17 +323,11 @@ function ReviewsPage() {
               <p className="text-sm text-slate-500 mt-2">Experiences shared by students across India</p>
             </div>
           </FadeUp>
-          <motion.div
-            variants={stagger}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.2 }}
-            className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          >
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {STATIC_TESTIMONIALS.map((testimonial) => (
               <ReviewCard key={testimonial.name} {...testimonial} />
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 

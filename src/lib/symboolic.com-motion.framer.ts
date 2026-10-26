@@ -34,37 +34,37 @@ export const transitions = {
 // ─── Reusable Framer Motion Variants ───
 
 /**
- * fade: opacity 0 to 1
+ * fade: opacity 1 by default so SSR and slow hydration never hide content
  */
 export const fade: Variants = {
-  initial: { opacity: 0 },
+  initial: { opacity: 1 },
   animate: { opacity: 1, transition: transitions.base },
   exit: { opacity: 0, transition: transitions.fast },
 };
 
 /**
- * slideUp: opacity 0 and y = 16 to opacity 1 and y = 0
+ * slideUp: opacity 1 by default so SSR and slow hydration never hide content
  */
 export const slideUp: Variants = {
-  initial: { opacity: 0, y: 16 },
+  initial: { opacity: 1, y: 0 },
   animate: { opacity: 1, y: 0, transition: transitions.base },
   exit: { opacity: 0, y: 16, transition: transitions.fast },
 };
 
 /**
- * scaleIn: opacity 0 and scale 0.96 to opacity 1 and scale 1
+ * scaleIn: opacity 1 by default so SSR and slow hydration never hide content
  */
 export const scaleIn: Variants = {
-  initial: { opacity: 0, scale: 0.96 },
+  initial: { opacity: 1, scale: 1 },
   animate: { opacity: 1, scale: 1, transition: transitions.base },
   exit: { opacity: 0, scale: 0.96, transition: transitions.fast },
 };
 
 /**
- * pop: opacity 0 and scale 0.9 to opacity 1 and scale 1 using the supplied spring
+ * pop: opacity 1 by default so SSR and slow hydration never hide content
  */
 export const pop: Variants = {
-  initial: { opacity: 0, scale: 0.9 },
+  initial: { opacity: 1, scale: 1 },
   animate: { opacity: 1, scale: 1, transition: transitions.spring },
   exit: { opacity: 0, scale: 0.9, transition: transitions.fast },
 };
@@ -120,16 +120,16 @@ export const inView = {
   viewport: { once: true, amount: 0.3 } as const,
 
   fadeIn: {
-    initial: { opacity: 0 },
+    initial: { opacity: 1 },
     whileInView: { opacity: 1 },
-    viewport: { once: true, amount: 0.3 },
+    viewport: { once: true, amount: 0.1 },
     transition: transitions.base,
   },
 
   riseIn: {
-    initial: { opacity: 0, y: 16 },
+    initial: { opacity: 1, y: 0 },
     whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.3 },
+    viewport: { once: true, amount: 0.1 },
     transition: transitions.base,
   },
 } as const;

@@ -248,13 +248,7 @@ function ProjectsIndexPage() {
             <p className="text-sm font-semibold text-muted-foreground">No projects matching "{search}" were found.</p>
           </div>
         ) : (
-          <motion.div
-            variants={stagger}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.15 }}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-          >
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredProjects.map((p: any) => {
               const date = p.submission_deadline
                 ? new Date(p.submission_deadline).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
@@ -272,11 +266,9 @@ function ProjectsIndexPage() {
                   : "bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20";
 
               return (
-                <motion.div
+                <div
                   key={p.id}
-                  variants={slideUp}
-                  whileHover={{ y: -4, transition: transitions.base }}
-                  className="h-full"
+                  className="h-full hover:-translate-y-1 transition-transform duration-200"
                 >
                   <Card
                     className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-md hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 h-full"
@@ -337,10 +329,10 @@ function ProjectsIndexPage() {
                       </Button>
                     </div>
                   </Card>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
       </main>
     </div>
