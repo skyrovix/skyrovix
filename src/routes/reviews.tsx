@@ -128,7 +128,7 @@ const STATIC_TESTIMONIALS = [
 ];
 
 const STATS = [
-  { icon: Users, value: "1,074+", label: "Students Enrolled", color: "text-blue-600", bg: "bg-blue-50" },
+  { icon: Users, value: "1,077+", label: "Students Enrolled", color: "text-blue-600", bg: "bg-blue-50" },
   { icon: Star, value: "4.9/5", label: "Average Rating", color: "text-yellow-600", bg: "bg-yellow-50" },
   { icon: Award, value: "95%", label: "Completion Rate", color: "text-emerald-600", bg: "bg-emerald-50" },
   { icon: TrendingUp, value: "25+", label: "Colleges Reached", color: "text-purple-600", bg: "bg-purple-50" },
@@ -337,7 +337,7 @@ function ReviewsPage() {
           <FadeUp>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-xs font-semibold text-white/90">
               <Award className="size-3.5" />
-              Join 1,074+ Enrolled Students
+              Join 1,077+ Enrolled Students
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
               Ready to Start Your Internship?

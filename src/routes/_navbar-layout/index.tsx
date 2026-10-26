@@ -346,7 +346,7 @@ function Landing() {
                       <Users className="size-4 sm:size-5" />
                     </div>
                     <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
-                      {stats?.studentsEnrolledDisplay || "1,074+"}
+                      {stats?.studentsEnrolledDisplay || "1,077+"}
                     </div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Students Enrolled</div>
                   </div>

@@ -25,7 +25,7 @@ export async function getPublicPlatformStatsServer(): Promise<PublicPlatformStat
           (SELECT COUNT(*) FROM users) AS users_count,
           (SELECT COUNT(*) FROM applications) AS apps_count,
           (SELECT COUNT(*) FROM certificates) AS certs_count
-      `).catch(() => ({ rows: [{ students_count: 1074, users_count: 1074, apps_count: 791, certs_count: 48 }] })),
+      `).catch(() => ({ rows: [{ students_count: 1077, users_count: 1077, apps_count: 791, certs_count: 48 }] })),
       dbQuery(`
         SELECT 
           COUNT(*) AS total_reviews,
@@ -48,7 +48,7 @@ export async function getPublicPlatformStatsServer(): Promise<PublicPlatformStat
       Number(counts.students_count || 0),
       Number(counts.users_count || 0),
       Number(counts.apps_count || 0),
-      1074
+      1077
     );
 
     const internshipDomains = Math.max(DOMAINS.length, 25);
@@ -76,8 +76,8 @@ export async function getPublicPlatformStatsServer(): Promise<PublicPlatformStat
   } catch (err: any) {
     console.warn("[PlatformStats] Fallback to verified baseline stats:", err?.message);
     return {
-      studentsEnrolled: 1074,
-      studentsEnrolledDisplay: "1,074+",
+      studentsEnrolled: 1077,
+      studentsEnrolledDisplay: "1,077+",
       internshipDomains: 25,
       internshipDomainsDisplay: "25+",
       projectsAvailable: 175,

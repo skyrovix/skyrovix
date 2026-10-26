@@ -231,7 +231,7 @@ export function Footer() {
         <div className="hidden md:block mb-8 sm:mb-10 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-4 sm:p-6 shadow-sm">
           <div className="grid grid-cols-5 gap-4 items-center justify-center">
             {[
-              { title: stats?.studentsEnrolledDisplay || "1,074+", subtitle: "Students Enrolled", icon: Users, colorClass: "bg-blue-50 text-blue-500" },
+              { title: stats?.studentsEnrolledDisplay || "1,077+", subtitle: "Students Enrolled", icon: Users, colorClass: "bg-blue-50 text-blue-500" },
               { title: stats?.collegesCountDisplay || "25+", subtitle: "Colleges", icon: Building2, colorClass: "bg-purple-50 text-purple-500" },
               { title: stats?.internshipDomainsDisplay || "25+", subtitle: "Domains", icon: Database, colorClass: "bg-emerald-50 text-emerald-500" },
               { title: "95%", subtitle: "Completion", icon: Clock, colorClass: "bg-orange-50 text-orange-500" },
