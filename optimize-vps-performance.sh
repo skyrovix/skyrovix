@@ -9,7 +9,6 @@
 #  3. Direct Static Asset Serving (.output/public/assets) -> 0ms kernel sendfile
 #  4. 1-Year Immutable Browser Caching -> 0ms instant load on revisit
 #  5. Upstream Keepalive Pool -> 0ms socket reuse to Node.js
-#  6. Node Buffer & Network Tuning
 # ==============================================================================
 
 set -euo pipefail
@@ -27,55 +26,11 @@ if [ ! -d "${APP_DIR}" ]; then
   exit 1
 fi
 
-# 2. Configure Global Gzip Compression in /etc/nginx/conf.d/compression.conf
-echo "📦 Configuring high-performance Nginx Gzip compression..."
-cat > /etc/nginx/conf.d/compression.conf << 'EOF'
-# Skyrovix High-Speed Gzip Compression Engine
-gzip on;
-gzip_vary on;
-gzip_proxied any;
-gzip_comp_level 6;
-gzip_buffers 16 8k;
-gzip_http_version 1.1;
-gzip_min_length 256;
-gzip_types
-    text/plain
-    text/css
-    text/xml
-    text/javascript
-    application/json
-    application/javascript
-    application/x-javascript
-    application/xml
-    application/xml+rss
-    application/vnd.ms-fontobject
-    application/x-font-ttf
-    font/opentype
-    image/svg+xml
-    image/x-icon;
-EOF
+# 2. Clean up any conflicting drop-in conf files
+rm -f /etc/nginx/conf.d/compression.conf
+rm -f /etc/nginx/conf.d/tuning.conf
 
-# 3. Configure Nginx Tuning in /etc/nginx/conf.d/tuning.conf
-echo "⚙️ Configuring Nginx socket & file cache tuning..."
-cat > /etc/nginx/conf.d/tuning.conf << 'EOF'
-# Kernel-level zero-copy file transfer & socket tuning
-sendfile on;
-tcp_nopush on;
-tcp_nodelay on;
-keepalive_timeout 65;
-keepalive_requests 1000;
-reset_timedout_connection on;
-client_body_timeout 15;
-send_timeout 15;
-
-# In-memory open file cache for static assets
-open_file_cache max=10000 inactive=30s;
-open_file_cache_valid 60s;
-open_file_cache_min_uses 2;
-open_file_cache_errors on;
-EOF
-
-# 4. Check SSL Certificate
+# 3. Check SSL Certificate
 USE_SSL=false
 if [ -f "${SSL_DIR}/fullchain.pem" ] && [ -f "${SSL_DIR}/privkey.pem" ]; then
   USE_SSL=true
@@ -84,7 +39,7 @@ else
   echo "⚠️ SSL certificates not found at ${SSL_DIR}, falling back to port 80 proxy"
 fi
 
-# 5. Build Unified Fast Virtual Host Config
+# 4. Build Unified Fast Virtual Host Config
 NGINX_TARGET="/etc/nginx/sites-available/skyrovix.in"
 cp "${NGINX_TARGET}" "${NGINX_TARGET}.bak.$(date +%s)" 2>/dev/null || true
 
@@ -139,6 +94,35 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
     client_max_body_size 50M;
+
+    # High-Performance Gzip Compression
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_min_length 256;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/x-javascript
+        application/xml
+        application/xml+rss
+        application/vnd.ms-fontobject
+        application/x-font-ttf
+        font/opentype
+        image/svg+xml
+        image/x-icon;
+
+    # In-memory open file cache for static assets
+    open_file_cache max=10000 inactive=30s;
+    open_file_cache_valid 60s;
+    open_file_cache_min_uses 2;
+    open_file_cache_errors on;
 
     # 1. High-Performance Static Bundles (/assets/*) — 1 Year Immutable Cache
     location /assets/ {
@@ -204,23 +188,19 @@ server {
 EOF
 fi
 
-# 6. Ensure Symlink in sites-enabled
+# 5. Ensure Symlink in sites-enabled
 ln -sf "${NGINX_TARGET}" /etc/nginx/sites-enabled/skyrovix.in
 rm -f /etc/nginx/sites-enabled/default
 
-# 7. Test Nginx Configuration Syntax
+# 6. Test Nginx Configuration Syntax
 echo "🧪 Testing Nginx configuration..."
 nginx -t
 
-# 8. Reload Nginx
+# 7. Reload Nginx
 echo "🔄 Reloading Nginx with Turbo configuration..."
 systemctl reload nginx
 
-# 9. Restart PM2 Process to ensure fresh warm connections
-echo "🔄 Restarting Node.js PM2 cluster..."
-pm2 restart skyrovix-main || true
-
-# 10. Benchmark Response Times
+# 8. Benchmark Response Times
 echo "📊 Benchmarking live response times..."
 sleep 2
 
