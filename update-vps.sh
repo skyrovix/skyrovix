@@ -81,19 +81,32 @@ echo "🏗️ Compiling high-performance production build..."
 npm run build
 
 # 7. Safely Restart PM2 Process
-echo "🔄 Reloading application process in PM2..."
-if pm2 list | grep -q "skyrovix-main"; then
-  echo "Restarting PM2 process 'skyrovix-main'..."
-  pm2 restart skyrovix-main --update-env
-elif pm2 list | grep -q "skyrovix"; then
-  echo "Restarting PM2 process 'skyrovix'..."
-  pm2 restart skyrovix --update-env
-else
-  # Default to port 3005 as configured in deploy-contabo-safe.sh
-  PORT=3005 pm2 start node --name "skyrovix-main" -- .output/server/index.mjs
+echo "🔄 Reloading application process..."
+
+# Ensure PM2 is installed globally
+if ! command -v pm2 &> /dev/null; then
+  echo "⚙️ Installing PM2 globally with npm..."
+  npm install -g pm2 || true
 fi
 
-pm2 save
+# Determine PM2 command
+PM2_CMD="pm2"
+if ! command -v pm2 &> /dev/null; then
+  PM2_CMD="npx pm2"
+fi
+
+if $PM2_CMD list 2>/dev/null | grep -q "skyrovix-main"; then
+  echo "Restarting PM2 process 'skyrovix-main'..."
+  $PM2_CMD restart skyrovix-main --update-env
+elif $PM2_CMD list 2>/dev/null | grep -q "skyrovix"; then
+  echo "Restarting PM2 process 'skyrovix'..."
+  $PM2_CMD restart skyrovix --update-env
+else
+  # Default to port 3005 as configured in deploy-contabo-safe.sh
+  PORT=3005 $PM2_CMD start node --name "skyrovix-main" -- .output/server/index.mjs
+fi
+
+$PM2_CMD save 2>/dev/null || true
 
 # 8. Verification Check
 echo "🩺 Running live health check..."

@@ -260,30 +260,48 @@ async function main() {
   \`issued_at\` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
-  out += `CREATE TABLE IF NOT EXISTS \`student_kit_items\` (
+  out += `DROP TABLE IF EXISTS \`student_kit_items\`;\n`;
+  out += `CREATE TABLE \`student_kit_items\` (
   \`id\` VARCHAR(64) PRIMARY KEY,
   \`title\` VARCHAR(255) NOT NULL,
-  \`category\` VARCHAR(100) NOT NULL,
-  \`description\` TEXT NOT NULL,
+  \`category\` VARCHAR(100) NOT NULL DEFAULT 'toolkit',
+  \`description\` TEXT,
+  \`icon\` VARCHAR(50) NOT NULL DEFAULT 'Package',
+  \`file_url\` TEXT,
+  \`external_url\` TEXT,
   \`download_url\` VARCHAR(255) NOT NULL,
-  \`file_type\` VARCHAR(20) NOT NULL DEFAULT 'PDF',
-  \`file_size\` VARCHAR(50) NOT NULL DEFAULT '2 MB',
-  \`min_duration\` INT NOT NULL DEFAULT 3,
+  \`file_type\` VARCHAR(50) DEFAULT 'PDF',
+  \`resource_type\` VARCHAR(50) DEFAULT 'PDF',
+  \`file_size\` VARCHAR(50) DEFAULT '2 MB',
+  \`format\` VARCHAR(50) NOT NULL DEFAULT 'ZIP',
+  \`min_duration\` INT DEFAULT 3,
+  \`min_tier\` INT NOT NULL DEFAULT 1,
   \`is_active\` TINYINT(1) NOT NULL DEFAULT 1,
+  \`sort_order\` INT NOT NULL DEFAULT 0,
   \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
-  out += `CREATE TABLE IF NOT EXISTS \`guidance_schedules\` (
+  out += `DROP TABLE IF EXISTS \`guidance_schedules\`;\n`;
+  out += `CREATE TABLE \`guidance_schedules\` (
   \`id\` VARCHAR(64) PRIMARY KEY,
   \`title\` VARCHAR(255) NOT NULL,
-  \`topic\` VARCHAR(255) NOT NULL,
   \`mentor_name\` VARCHAR(255) NOT NULL,
-  \`schedule_time\` VARCHAR(255) NOT NULL,
-  \`support_channel\` VARCHAR(255) NOT NULL,
-  \`instructions\` TEXT NOT NULL,
+  \`mentor_role\` VARCHAR(255),
+  \`topic\` VARCHAR(255) NOT NULL,
+  \`session_type\` VARCHAR(100),
+  \`description\` TEXT,
+  \`scheduled_at\` DATETIME(3) NULL,
+  \`schedule_time\` VARCHAR(255) NULL,
+  \`duration_minutes\` INT NOT NULL DEFAULT 60,
+  \`meeting_url\` TEXT,
   \`meeting_link\` VARCHAR(255),
+  \`recording_url\` TEXT,
+  \`support_channel\` VARCHAR(255),
+  \`instructions\` TEXT,
+  \`status\` VARCHAR(50) NOT NULL DEFAULT 'scheduled',
   \`is_active\` TINYINT(1) NOT NULL DEFAULT 1,
+  \`notes\` TEXT,
   \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
