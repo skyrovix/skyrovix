@@ -1,0 +1,4 @@
+id,user_id,application_id,certificate_id,payment_type,amount,utr_number,screenshot_url,status,admin_note,reviewed_by,reviewed_at,created_at,updated_at
+7524d912-33a4-4dd4-b470-4d93b24cd8c8,a95a70ea-3ff8-4f26-9a20-8a4792f2bdd8,2aefd1f6-9e69-4566-8b45-30c3127fd9f5,,certificate,100.00,6815253812,,approved,Verified instantly via Cashfree Payment Gateway,,2026-10-23T14:54:16.411Z,2026-10-23T14:54:16.411Z,2026-10-23T14:54:16.411Z
+e8b8a932-03ef-421a-a686-bb7cd2d60c77,77090204-9dd7-4b16-8391-4f287a534be5,e22cef32-2fac-4339-9d6a-17b09d873070,,certificate,100.00,6822838458,,approved,Verified instantly via Cashfree Payment Gateway,,2026-10-24T12:11:44.694Z,2026-10-24T12:11:44.694Z,2026-10-24T12:11:44.694Z
+a3e46b10-e7ba-4a6a-a9e4-43f7828074bf,6aed8d44-8c14-433f-9d07-c1b69a44fd27,5e26f83f-a2d0-4059-82f0-3894ee857758,,certificate,100.00,6822848040,,approved,Verified instantly via Cashfree Payment Gateway,,2026-10-24T12:13:42.318Z,2026-10-24T12:13:42.318Z,2026-10-24T12:13:42.318Z

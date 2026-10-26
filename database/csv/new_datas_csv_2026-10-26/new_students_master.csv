@@ -1,0 +1,4 @@
+student_id,full_name,email,phone,college,course,year,role,intern_ids,total_applications,total_submissions,total_certificates,encrypted_password_hash,email_confirmed_at,account_created_at
+1fa0bfc8-61d4-4226-bfd7-d2c10422d467,v.sanath,sanathvinu2005@gmail.com,7012451185,amrita vishwa vidyapeetham nagarcovil,CSE,3RD YEAR,user,SKX-2026-4286,1,1,0,$2a$10$MEb8Qj.DRbTL5NjH0uexV.f7GOFKHrrrJUbZsA6BsZ3Hlfgqsj41O,2026-10-21T14:50:46.871Z,2026-10-21T14:50:46.778Z
+5ffbd264-6e74-4cf4-80cf-48950a9e2557,Thangarasu R,2025mcathangarasu@npsbcet.edu.in,,,,,user,,0,0,0,$2a$10$FvsqFvaegxa8KGJ/QKDoYuCVV8TlWN7gi2qheIxF/VvFiyhuWGXc6,2026-10-25T07:14:42.444Z,2026-10-25T07:14:42.340Z
+f81284d6-d035-49f7-ada4-be8a53196f14,Shaurya Anurag,anuragshaurya08@gmail.com,9289252794,VIT Bhopal,B.Tech CSE,2nd Year,user,SKX-2026-6471,1,0,0,$2a$10$TfUr8bmcQxqczRqop6J3xeMRNqCDhSrQBuLQy1X4fafom3oSS1S2K,2026-10-25T09:56:34.008Z,2026-10-25T09:56:33.901Z

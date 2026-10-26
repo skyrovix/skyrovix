@@ -516,6 +516,105 @@ async function main() {
   INDEX \`idx_login_sessions_email\` (\`email\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
+  out += `DROP TABLE IF EXISTS \`cashfree_orders\`;\n`;
+  out += `CREATE TABLE \`cashfree_orders\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`order_id\` VARCHAR(100) UNIQUE NOT NULL,
+  \`user_id\` VARCHAR(36),
+  \`customer_name\` VARCHAR(255) NOT NULL,
+  \`customer_email\` VARCHAR(255) NOT NULL,
+  \`customer_phone\` VARCHAR(50) NOT NULL,
+  \`product_service\` VARCHAR(255) NOT NULL,
+  \`product_type\` VARCHAR(50) NOT NULL DEFAULT 'certificate',
+  \`entity_id\` VARCHAR(100),
+  \`amount\` DECIMAL(10, 2) NOT NULL,
+  \`currency\` VARCHAR(10) NOT NULL DEFAULT 'INR',
+  \`payment_status\` VARCHAR(50) NOT NULL DEFAULT 'CREATED',
+  \`cashfree_payment_id\` VARCHAR(100),
+  \`cf_order_id\` VARCHAR(100),
+  \`payment_session_id\` TEXT,
+  \`payment_method\` VARCHAR(100),
+  \`payment_time\` DATETIME(3),
+  \`error_message\` TEXT,
+  \`coupon_code\` VARCHAR(100),
+  \`discount_amount\` DECIMAL(10, 2) DEFAULT 0.00,
+  \`raw_response\` JSON,
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_cf_order_id\` (\`order_id\`),
+  INDEX \`idx_cf_user\` (\`user_id\`),
+  INDEX \`idx_cf_status\` (\`payment_status\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`payment_records\`;\n`;
+  out += `CREATE TABLE \`payment_records\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`user_id\` VARCHAR(36) NOT NULL,
+  \`application_id\` VARCHAR(36),
+  \`certificate_id\` VARCHAR(100),
+  \`payment_type\` VARCHAR(50) NOT NULL,
+  \`amount\` DECIMAL(10,2) NOT NULL,
+  \`utr_number\` VARCHAR(100) NOT NULL,
+  \`screenshot_url\` TEXT,
+  \`status\` VARCHAR(50) NOT NULL DEFAULT 'pending',
+  \`admin_note\` TEXT,
+  \`reviewed_by\` VARCHAR(36),
+  \`reviewed_at\` DATETIME(3),
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_pay_rec_user\` (\`user_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`enrollments\`;\n`;
+  out += `CREATE TABLE \`enrollments\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`user_id\` VARCHAR(36) NOT NULL,
+  \`course_id\` VARCHAR(36) NOT NULL,
+  \`status\` VARCHAR(50) NOT NULL DEFAULT 'enrolled',
+  \`progress_percent\` INT NOT NULL DEFAULT 0,
+  \`current_topic_id\` VARCHAR(36),
+  \`started_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`completed_at\` DATETIME(3),
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_user_course\` (\`user_id\`, \`course_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`lesson_progress\`;\n`;
+  out += `CREATE TABLE \`lesson_progress\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`enrollment_id\` VARCHAR(36) NOT NULL,
+  \`topic_id\` VARCHAR(36) NOT NULL,
+  \`completed_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  INDEX \`idx_enrollment_topic\` (\`enrollment_id\`, \`topic_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`quiz_attempts\`;\n`;
+  out += `CREATE TABLE \`quiz_attempts\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`enrollment_id\` VARCHAR(36) NOT NULL,
+  \`score\` INT NOT NULL DEFAULT 0,
+  \`total\` INT NOT NULL DEFAULT 100,
+  \`passed\` TINYINT(1) NOT NULL DEFAULT 0,
+  \`answers\` JSON,
+  \`started_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  \`submitted_at\` DATETIME(3),
+  INDEX \`idx_quiz_enroll\` (\`enrollment_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
+  out += `DROP TABLE IF EXISTS \`leaderboard\`;\n`;
+  out += `CREATE TABLE \`leaderboard\` (
+  \`id\` VARCHAR(36) PRIMARY KEY,
+  \`user_id\` VARCHAR(36) NOT NULL,
+  \`course_id\` VARCHAR(36) NOT NULL,
+  \`score\` INT NOT NULL DEFAULT 0,
+  \`total\` INT NOT NULL DEFAULT 100,
+  \`quiz_attempt_id\` VARCHAR(36),
+  \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX \`idx_leaderboard_user\` (\`user_id\`),
+  INDEX \`idx_leaderboard_course\` (\`course_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
   // 3. SEED TASKS 1 to 12 FOR ALL 25 DOMAINS
   out += `-- ==============================================================================\n`;
   out += `-- SECTION 2: COMPLETE DOMAIN TASKS 1 TO 12 FOR ALL 25 DOMAINS\n`;
@@ -1076,6 +1175,127 @@ async function main() {
     "login_time", "logout_time", "last_active", "status", "ip_address", "device", "browser", "os",
     "country", "state", "city", "created_at", "updated_at"
   ], loginRows);
+
+  // 13B. RESTORE CASHFREE ORDERS, PAYMENT RECORDS, ENROLLMENTS, LESSON PROGRESS & QUIZZES
+  if (fsSync.existsSync(path.join(csvDir, "cashfree_orders.csv"))) {
+    const cfCsv = await fs.readFile(path.join(csvDir, "cashfree_orders.csv"), "utf-8");
+    const cfList = parseCsv(cfCsv);
+    const cfRows = [];
+    for (const c of cfList) {
+      if (!c.id) continue;
+      const createdAt = toMysqlDatetime(c.created_at) || "2026-01-01 00:00:00";
+      const updatedAt = toMysqlDatetime(c.updated_at) || createdAt;
+      const payTime = toMysqlDatetime(c.payment_time);
+      cfRows.push([
+        c.id, c.order_id, c.user_id || null, (c.customer_name || "").trim(), (c.customer_email || "").trim(),
+        (c.customer_phone || "").trim(), c.product_service || "Certificate", c.product_type || "certificate",
+        c.entity_id || null, c.amount ? Number(c.amount) : 100.0, c.currency || "INR", c.payment_status || "PENDING",
+        c.cashfree_payment_id || null, c.cf_order_id || null, c.payment_session_id || null, c.payment_method || null,
+        payTime, c.error_message || null, c.coupon_code || null, c.discount_amount ? Number(c.discount_amount) : 0.0,
+        c.raw_response || null, createdAt, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("cashfree_orders", [
+      "id", "order_id", "user_id", "customer_name", "customer_email", "customer_phone", "product_service", "product_type",
+      "entity_id", "amount", "currency", "payment_status", "cashfree_payment_id", "cf_order_id", "payment_session_id", "payment_method",
+      "payment_time", "error_message", "coupon_code", "discount_amount", "raw_response", "created_at", "updated_at"
+    ], cfRows);
+    console.log(`+ Seeded ${cfRows.length} Cashfree orders.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "payment_records.csv"))) {
+    const prCsv = await fs.readFile(path.join(csvDir, "payment_records.csv"), "utf-8");
+    const prList = parseCsv(prCsv);
+    const prRows = [];
+    for (const pr of prList) {
+      if (!pr.id) continue;
+      const createdAt = toMysqlDatetime(pr.created_at) || "2026-01-01 00:00:00";
+      const updatedAt = toMysqlDatetime(pr.updated_at) || createdAt;
+      const reviewedAt = toMysqlDatetime(pr.reviewed_at);
+      prRows.push([
+        pr.id, pr.user_id, pr.application_id || null, pr.certificate_id || null,
+        pr.payment_type || "certificate", pr.amount ? Number(pr.amount) : 100.0,
+        pr.utr_number || "", pr.screenshot_url || null, pr.status || "approved",
+        pr.admin_note || null, pr.reviewed_by || null, reviewedAt, createdAt, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("payment_records", [
+      "id", "user_id", "application_id", "certificate_id", "payment_type", "amount",
+      "utr_number", "screenshot_url", "status", "admin_note", "reviewed_by", "reviewed_at", "created_at", "updated_at"
+    ], prRows);
+    console.log(`+ Seeded ${prRows.length} payment audit records.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "enrollments.csv"))) {
+    const enCsv = await fs.readFile(path.join(csvDir, "enrollments.csv"), "utf-8");
+    const enList = parseCsv(enCsv);
+    const enRows = [];
+    for (const en of enList) {
+      if (!en.id) continue;
+      const createdAt = toMysqlDatetime(en.created_at) || "2026-01-01 00:00:00";
+      const updatedAt = toMysqlDatetime(en.updated_at) || createdAt;
+      const startedAt = toMysqlDatetime(en.started_at) || createdAt;
+      const completedAt = toMysqlDatetime(en.completed_at);
+      enRows.push([
+        en.id, en.user_id, en.course_id, en.status || "completed", en.progress_percent ? Number(en.progress_percent) : 100,
+        en.current_topic_id || null, startedAt, completedAt, createdAt, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("enrollments", [
+      "id", "user_id", "course_id", "status", "progress_percent", "current_topic_id", "started_at", "completed_at", "created_at", "updated_at"
+    ], enRows);
+    console.log(`+ Seeded ${enRows.length} course enrollments.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "lesson_progress.csv"))) {
+    const lpCsv = await fs.readFile(path.join(csvDir, "lesson_progress.csv"), "utf-8");
+    const lpList = parseCsv(lpCsv);
+    const lpRows = [];
+    for (const lp of lpList) {
+      if (!lp.id) continue;
+      const completedAt = toMysqlDatetime(lp.completed_at) || "2026-01-01 00:00:00";
+      lpRows.push([lp.id, lp.enrollment_id, lp.topic_id, completedAt]);
+    }
+    out += formatBatchInsert("lesson_progress", ["id", "enrollment_id", "topic_id", "completed_at"], lpRows);
+    console.log(`+ Seeded ${lpRows.length} lesson progress records.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "quiz_attempts.csv"))) {
+    const qaCsv = await fs.readFile(path.join(csvDir, "quiz_attempts.csv"), "utf-8");
+    const qaList = parseCsv(qaCsv);
+    const qaRows = [];
+    for (const qa of qaList) {
+      if (!qa.id) continue;
+      const startedAt = toMysqlDatetime(qa.started_at) || "2026-01-01 00:00:00";
+      const submittedAt = toMysqlDatetime(qa.submitted_at) || startedAt;
+      qaRows.push([
+        qa.id, qa.enrollment_id, qa.score ? Number(qa.score) : 100, qa.total ? Number(qa.total) : 100,
+        toBoolean(qa.passed), qa.answers || null, startedAt, submittedAt
+      ]);
+    }
+    out += formatBatchInsert("quiz_attempts", [
+      "id", "enrollment_id", "score", "total", "passed", "answers", "started_at", "submitted_at"
+    ], qaRows);
+    console.log(`+ Seeded ${qaRows.length} quiz attempts.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "leaderboard.csv"))) {
+    const lbCsv = await fs.readFile(path.join(csvDir, "leaderboard.csv"), "utf-8");
+    const lbList = parseCsv(lbCsv);
+    const lbRows = [];
+    for (const lb of lbList) {
+      if (!lb.id) continue;
+      const updatedAt = toMysqlDatetime(lb.updated_at) || "2026-01-01 00:00:00";
+      lbRows.push([
+        lb.id, lb.user_id, lb.course_id, lb.score ? Number(lb.score) : 100, lb.total ? Number(lb.total) : 100,
+        lb.quiz_attempt_id || null, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("leaderboard", [
+      "id", "user_id", "course_id", "score", "total", "quiz_attempt_id", "updated_at"
+    ], lbRows);
+    console.log(`+ Seeded ${lbRows.length} leaderboard records.`);
+  }
 
   // 14. ADMIN ACCOUNT ENFORCEMENT & HIGH-PERFORMANCE INDEXING
   out += `-- ==============================================================================\n`;
