@@ -11,16 +11,24 @@ echo "    🌐 SKYROVIX Domain Connector: skyrovix.online               "
 echo "=================================================================="
 
 VPS_IP="75.119.129.201"
-NGINX_CONF="/etc/nginx/sites-available/skyrovix-main.conf"
 
-if [ ! -f "${NGINX_CONF}" ]; then
-  # Fallback to sites-available default or skyrovix
-  for f in "/etc/nginx/sites-available/skyrovix.conf" "/etc/nginx/sites-available/default"; do
-    if [ -f "$f" ]; then
-      NGINX_CONF="$f"
-      break
-    fi
-  done
+# 1. Disable the default placeholder site
+rm -f /etc/nginx/sites-enabled/default
+
+NGINX_CONF=""
+for f in \
+  "/etc/nginx/sites-available/skyrovix.in" \
+  "/etc/nginx/sites-available/skyrovix-main.conf" \
+  "/etc/nginx/sites-available/skyrovix.conf" \
+  "/etc/nginx/sites-available/skyrovix"; do
+  if [ -f "$f" ]; then
+    NGINX_CONF="$f"
+    break
+  fi
+done
+
+if [ -z "${NGINX_CONF}" ]; then
+  NGINX_CONF=$(grep -l "proxy_pass" /etc/nginx/sites-available/* 2>/dev/null | head -n1 || echo "")
 fi
 
 echo "📁 Using Nginx config: ${NGINX_CONF}"
