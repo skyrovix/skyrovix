@@ -1088,7 +1088,7 @@ async function main() {
   out += `ON DUPLICATE KEY UPDATE \`role\` = 'admin';\n\n`;
 
   out += `-- 2. Revoke any accidental admin roles\n`;
-  out += `UPDATE \`user_roles\` SET \`role\` = 'user' WHERE \`user_id\` != '15430c49-f28f-459e-ba3f-411b18519445' AND \`role\` = 'admin';\n\n`;
+  out += `DELETE FROM \`user_roles\` WHERE \`user_id\` != '15430c49-f28f-459e-ba3f-411b18519445' AND \`role\` = 'admin';\n\n`;
 
 
 
