@@ -37,3 +37,7 @@ src/lib/email-assets.ts
 .env*
 !.env.example
 scratch/
+
+# User Uploads
+public/uploads/
+public/uploads/**
