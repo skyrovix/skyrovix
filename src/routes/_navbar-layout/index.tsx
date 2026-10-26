@@ -45,7 +45,7 @@ import {
 import { MobileFloatingIcons } from "@/components/MobileFloatingIcons";
 import { FAQJsonLd, BreadcrumbJsonLd } from "@/components/JsonLd";
 import { FAQ_DATA } from "@/lib/seo";
-import heroTeamImage from "@/assets/hero section team img.png";
+import heroTeamImage from "@/assets/hero section team img.webp";
 import gcetjLogo from "../../assets/college-logo/thanjavur.png";
 import srustiLogo from "../../assets/college-logo/SRUSTI-removebg-preview.png";
 import snistLogo from "../../assets/college-logo/Sreenidhi.png";
@@ -127,8 +127,8 @@ function Landing() {
   const { data: feeSettings } = useQuery<PublicFeeSettings>({
     queryKey: ["public-fee-settings"],
     queryFn: () => getPublicFeeSettings(),
-    staleTime: 5000,
-    refetchInterval: 10000,
+    staleTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
   });
 
   const certFee = feeSettings?.certificateFee?.amount ?? 100;

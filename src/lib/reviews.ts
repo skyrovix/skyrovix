@@ -44,7 +44,8 @@ export function useReviews(targetType: string, targetId: string) {
       if (error) throw error;
       return (data ?? []) as ReviewWithProfile[];
     },
-    refetchInterval: 10_000,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -56,7 +57,8 @@ export function useRecentReviews(limit = 6) {
       if (error) throw error;
       return (data ?? []) as ReviewWithProfile[];
     },
-    refetchInterval: 30_000,
+    staleTime: 1000 * 60 * 15,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -75,7 +77,8 @@ export function useUserReview(targetType: string, targetId: string, userId: stri
         .maybeSingle();
       return data as ReviewRow | null;
     },
-    refetchInterval: 10_000,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
   });
 }
 
