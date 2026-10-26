@@ -20,9 +20,9 @@ fi
 
 # 2. Sync to latest origin/main cleanly (discards diverged local commits)
 echo "🔄 Synchronizing code from GitHub origin/main..."
-git remote set-url origin https://github.com/skyrovix/skyrovix.git
-git fetch origin main
-git reset --hard origin/main
+git remote set-url origin https://github.com/skyrovix/skyrovix.git 2>/dev/null || true
+git fetch https://github.com/skyrovix/skyrovix.git main
+git reset --hard FETCH_HEAD
 
 # 3. Restore student uploads
 echo "📂 Restoring student profile uploads..."
