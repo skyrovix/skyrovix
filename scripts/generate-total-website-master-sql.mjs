@@ -931,7 +931,9 @@ async function main() {
     appsRows.push([
       a.id, userId, a.intern_id || null, (a.full_name || "").trim(), (a.email || "").trim(), (a.phone || "").trim(), (a.domain || "").trim(), a.status || "approved",
       (a.college || "").trim(), (a.course || "").trim(), (a.year || "").trim(), a.duration ? Number(a.duration) : 1, a.country || "India", (a.state || "").trim(), (a.city || "").trim(),
-      a.referral_name || null, a.hear_about || null, a.coupon_code || null, offerIssuedAt, createdAt,
+      a.referral_name || null, a.hear_about || null, a.coupon_code || null, offerIssuedAt,
+      "sent", offerIssuedAt || createdAt, null, 1,
+      createdAt,
       completedAt, a.submission_status || "in_progress", submittedAt, toBoolean(a.verified), verifiedAt,
       toBoolean(a.certificate_generated), certGenAt, a.certificate_payment_status || "locked",
       createdAt
@@ -943,7 +945,9 @@ async function main() {
   out += formatBatchInsert("applications", [
     "id", "user_id", "intern_id", "full_name", "email", "phone", "domain", "status",
     "college", "course", "year", "duration", "country", "state", "city",
-    "referral_name", "hear_about", "coupon_code", "offer_issued_at", "created_at",
+    "referral_name", "hear_about", "coupon_code", "offer_issued_at",
+    "email_status", "email_sent_at", "email_error", "email_attempts",
+    "created_at",
     "completed_at", "submission_status", "submitted_at", "verified", "verified_at",
     "certificate_generated", "certificate_generated_at", "certificate_payment_status",
     "updated_at"

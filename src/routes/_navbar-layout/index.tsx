@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { getPublicFeeSettings, type PublicFeeSettings } from "@/lib/fee-service";
+import { getPublicPlatformStats, type PublicPlatformStats } from "@/lib/platform-stats";
 import { Button } from "@/components/ui/button";
 import { FounderProfileView } from "@/components/FounderProfileView";
 import { DOMAINS, COMPANY, DURATIONS, durationConfig, generateInternId } from "@/lib/constants";
@@ -128,6 +129,13 @@ function Landing() {
     queryKey: ["public-fee-settings"],
     queryFn: () => getPublicFeeSettings(),
     staleTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: stats } = useQuery<PublicPlatformStats>({
+    queryKey: ["platform-stats"],
+    queryFn: () => getPublicPlatformStats(),
+    staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
@@ -407,7 +415,9 @@ function Landing() {
                     <div className="size-9 sm:size-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mb-2">
                       <Users className="size-4 sm:size-5" />
                     </div>
-                    <div className="text-base sm:text-lg font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">Growing Every Day</div>
+                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                      {stats?.studentsEnrolledDisplay || "1,074+"}
+                    </div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Students Enrolled</div>
                   </div>
 
@@ -416,7 +426,9 @@ function Landing() {
                     <div className="size-9 sm:size-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 mb-2">
                       <Briefcase className="size-4 sm:size-5" />
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">10+</div>
+                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                      {stats?.internshipDomainsDisplay || "25+"}
+                    </div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Internship Domains</div>
                   </div>
 
@@ -425,7 +437,9 @@ function Landing() {
                     <div className="size-9 sm:size-10 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mb-2">
                       <Code2 className="size-4 sm:size-5" />
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">120+</div>
+                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                      {stats?.projectsAvailableDisplay || "175+"}
+                    </div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Projects Available</div>
                   </div>
 
@@ -434,7 +448,9 @@ function Landing() {
                     <div className="size-9 sm:size-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 mb-2">
                       <Star className="size-4 sm:size-5 fill-amber-500" />
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">4.9/5</div>
+                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                      {stats?.averageRating || "4.9/5"}
+                    </div>
                     <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Average Rating</div>
                   </div>
 
@@ -538,8 +554,8 @@ function Landing() {
                     MSME-registered. <span className="bg-gradient-to-r from-[#f95c4b] to-[#ee9590] bg-clip-text text-transparent">Student-built.</span>
                   </h2>
                   <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed font-medium">
-                    Skyrovix runs a task-based virtual internship program across 10+ domains. Apply free, get
-                    an instant offer letter and ID card, complete 120+ real projects, earn a QR-verified
+                    Skyrovix runs a task-based virtual internship program across {stats?.internshipDomainsDisplay || "25+"} domains. Apply free, get
+                    an instant offer letter and ID card, complete {stats?.projectsAvailableDisplay || "175+"} real projects, earn a QR-verified
                     certificate.
                   </p>
                 </div>
@@ -551,8 +567,8 @@ function Landing() {
                   className="grid grid-cols-2 gap-4"
                 >
                   {[
-                    { value: "10+", label: "Domains", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50/50 dark:bg-violet-950/20" },
-                    { value: "120+", label: "Projects", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
+                    { value: stats?.internshipDomainsDisplay || "25+", label: "Domains", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50/50 dark:bg-violet-950/20" },
+                    { value: stats?.projectsAvailableDisplay || "175+", label: "Projects", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
                     { value: "100%", label: "Online", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
                     { value: `₹${certFee}`, label: "Cert fee", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
                   ].map((s) => (

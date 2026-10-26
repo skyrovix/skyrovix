@@ -218,3 +218,39 @@ export async function toggleCoursePublishServer(data: { courseId: string; isPubl
   await dbQuery("UPDATE public.courses SET is_published = $1 WHERE id = $2", [data.isPublished, data.courseId]);
   return { success: true };
 }
+
+export async function syncApplicationsEmailStatusServer(): Promise<{ success: boolean; count: number; error?: string }> {
+  try {
+    const colsRes = await dbQuery("DESCRIBE `applications`");
+    const colNames = new Set((colsRes.rows || []).map((c: any) => c.Field.toLowerCase()));
+
+    if (!colNames.has("email_status")) {
+      await dbQuery("ALTER TABLE `applications` ADD COLUMN `email_status` VARCHAR(50) DEFAULT 'sent'");
+    }
+    if (!colNames.has("email_sent_at")) {
+      await dbQuery("ALTER TABLE `applications` ADD COLUMN `email_sent_at` DATETIME(3) NULL");
+    }
+    if (!colNames.has("email_error")) {
+      await dbQuery("ALTER TABLE `applications` ADD COLUMN `email_error` TEXT NULL");
+    }
+    if (!colNames.has("email_attempts")) {
+      await dbQuery("ALTER TABLE `applications` ADD COLUMN `email_attempts` INT DEFAULT 1");
+    }
+
+    const res = await dbQuery(`
+      UPDATE \`applications\` 
+      SET 
+        \`email_status\` = 'sent',
+        \`email_sent_at\` = COALESCE(\`offer_issued_at\`, \`created_at\`, NOW()),
+        \`email_error\` = NULL
+      WHERE \`offer_issued_at\` IS NOT NULL AND (\`email_status\` != 'sent' OR \`email_status\` IS NULL)
+    `);
+
+    console.log(`[Admin] Successfully synced email_status='sent' for ${res.rowCount} application(s).`);
+    return { success: true, count: res.rowCount || 0 };
+  } catch (err: any) {
+    console.error("[Admin] Failed to sync application email status:", err);
+    return { success: false, count: 0, error: err.message || "Failed to sync application email status" };
+  }
+}
+

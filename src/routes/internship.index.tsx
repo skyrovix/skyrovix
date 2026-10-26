@@ -35,7 +35,7 @@ export const Route = createFileRoute("/internship/")({
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Skyrovix" },
       { property: "og:title", content: "Apply for Virtual Internship — Skyrovix" },
-      { property: "og:description", content: "Apply for a virtual internship in 10+ domains. Get an instant offer letter, digital ID card, complete tasks, earn a QR-verified certificate. Nominal certification fee." },
+      { property: "og:description", content: "Apply for a virtual internship in 25+ domains. Get an instant offer letter, digital ID card, complete tasks, earn a QR-verified certificate. Nominal certification fee." },
       { property: "og:url", content: "https://skyrovix.online/internship" },
       { property: "og:image", content: "https://skyrovix.online/og-default.png" },
       { property: "og:image:width", content: "1200" },

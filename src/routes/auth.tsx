@@ -171,12 +171,12 @@ function AuthPage() {
 
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
               <div className="rounded-2xl bg-white/5 border border-white/5 p-3.5 backdrop-blur-sm">
-                <p className="text-2xl font-black text-[#ee9590]">10+</p>
+                <p className="text-2xl font-black text-[#ee9590]">25+</p>
                 <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider mt-0.5">Domains</p>
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/5 p-3.5 backdrop-blur-sm">
-                <p className="text-2xl font-black text-[#ee9590]">50+</p>
-                <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider mt-0.5">Tasks</p>
+                <p className="text-2xl font-black text-[#ee9590]">175+</p>
+                <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider mt-0.5">Projects</p>
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/5 p-3.5 backdrop-blur-sm">
                 <p className="text-2xl font-black text-[#ee9590]">100%</p>

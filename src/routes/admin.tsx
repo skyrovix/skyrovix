@@ -1203,31 +1203,18 @@ function ApplicationsSection() {
     setSyncingEmails(true);
     const toastId = toast.loading("Checking and syncing email status for applications...");
     try {
-      const { data: pendingApps, error } = await supabase
-        .from("applications")
-        .select("id, offer_issued_at, created_at")
-        .neq("email_status" as any, "sent")
-        .not("offer_issued_at", "is", null);
+      const { syncApplicationsEmailStatus } = await import("@/lib/admin-service");
+      const res = await syncApplicationsEmailStatus();
+      if (!res.success) {
+        throw new Error(res.error || "Failed to sync email status");
+      }
 
-      if (error) throw error;
-
-      if (!pendingApps || pendingApps.length === 0) {
+      await qc.invalidateQueries({ queryKey: ["admin-apps"] });
+      if (res.count > 0) {
+        toast.success(`Successfully updated ${res.count} application(s) to 'Sent' status!`, { id: toastId });
+      } else {
         toast.success("All applications with issued offer letters already have 'Sent' status!", { id: toastId });
-        return;
       }
-
-      let count = 0;
-      for (const app of pendingApps) {
-        const { error: upErr } = await (supabase.from("applications") as any).update({
-          email_status: "sent",
-          email_sent_at: app.offer_issued_at || app.created_at || new Date().toISOString(),
-          email_error: null,
-        }).eq("id", app.id);
-        if (!upErr) count++;
-      }
-
-      qc.invalidateQueries({ queryKey: ["admin-apps"] });
-      toast.success(`Successfully updated ${count} application(s) to 'Sent' status!`, { id: toastId });
     } catch (err: any) {
       toast.error(`Sync failed: ${err.message}`, { id: toastId });
     } finally {

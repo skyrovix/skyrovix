@@ -1,6 +1,8 @@
 import { Logo } from "./Logo";
 import msme from "@/assets/msme.png";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getPublicPlatformStats, type PublicPlatformStats } from "@/lib/platform-stats";
 import { 
   Rocket, ShieldCheck, Linkedin, Github, Instagram, Youtube, 
   Code2, Database, Brain, Palette, Shield, Cloud, ArrowRight,
@@ -12,6 +14,13 @@ import {
 
 export function Footer() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const { data: stats } = useQuery<PublicPlatformStats>({
+    queryKey: ["platform-stats"],
+    queryFn: () => getPublicPlatformStats(),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <footer className="relative border-t border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] text-[#403b42] dark:text-[#f2f0e9]/80" role="contentinfo">
@@ -222,11 +231,11 @@ export function Footer() {
         <div className="hidden md:block mb-8 sm:mb-10 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] p-4 sm:p-6 shadow-sm">
           <div className="grid grid-cols-5 gap-4 items-center justify-center">
             {[
-              { title: "Growing Every Day", subtitle: "Students Enrolled", icon: Users, colorClass: "bg-blue-50 text-blue-500" },
-              { title: "more colleges across India", subtitle: "Colleges", icon: Building2, colorClass: "bg-purple-50 text-purple-500" },
-              { title: "10+", subtitle: "Domains", icon: Database, colorClass: "bg-emerald-50 text-emerald-500" },
+              { title: stats?.studentsEnrolledDisplay || "1,074+", subtitle: "Students Enrolled", icon: Users, colorClass: "bg-blue-50 text-blue-500" },
+              { title: stats?.collegesCountDisplay || "25+", subtitle: "Colleges", icon: Building2, colorClass: "bg-purple-50 text-purple-500" },
+              { title: stats?.internshipDomainsDisplay || "25+", subtitle: "Domains", icon: Database, colorClass: "bg-emerald-50 text-emerald-500" },
               { title: "95%", subtitle: "Completion", icon: Clock, colorClass: "bg-orange-50 text-orange-500" },
-              { title: "Verified", subtitle: "Certificates", icon: Award, colorClass: "bg-blue-50 text-blue-500" },
+              { title: stats?.certificatesIssuedDisplay ? `${stats.certificatesIssuedDisplay} Verified` : "48+ Verified", subtitle: "Certificates", icon: Award, colorClass: "bg-blue-50 text-blue-500" },
             ].map((stat, idx) => (
               <div 
                 key={idx} 

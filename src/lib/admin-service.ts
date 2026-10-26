@@ -107,4 +107,11 @@ export const toggleCoursePublish = createServerFn({ method: "POST" })
     return toggleCoursePublishServer(data);
   });
 
+export const syncApplicationsEmailStatus = createServerFn({ method: "POST" })
+  .handler(async (): Promise<{ success: boolean; count: number; error?: string }> => {
+    const { syncApplicationsEmailStatusServer } = await import("@/lib/admin-service.server");
+    return syncApplicationsEmailStatusServer();
+  });
+
+
 
