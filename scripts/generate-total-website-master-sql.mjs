@@ -615,6 +615,19 @@ async function main() {
   INDEX \`idx_leaderboard_course\` (\`course_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
 
+  out += `DROP TABLE IF EXISTS \`fee_audit_logs\`;\n`;
+  out += `CREATE TABLE \`fee_audit_logs\` (
+  \`id\` VARCHAR(36) NOT NULL PRIMARY KEY,
+  \`admin_id\` VARCHAR(36) NULL,
+  \`action\` VARCHAR(100) NOT NULL,
+  \`entity_type\` VARCHAR(50) NOT NULL,
+  \`entity_id\` VARCHAR(255) NULL,
+  \`old_value\` JSON NULL,
+  \`new_value\` JSON NULL,
+  \`ip_address\` VARCHAR(100) NULL,
+  \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+
   // 3. SEED TASKS 1 to 12 FOR ALL 25 DOMAINS
   out += `-- ==============================================================================\n`;
   out += `-- SECTION 2: COMPLETE DOMAIN TASKS 1 TO 12 FOR ALL 25 DOMAINS\n`;
@@ -1306,17 +1319,16 @@ async function main() {
     for (const f of fsList) {
       if (!f.id) continue;
       const updatedAt = toMysqlDatetime(f.updated_at) || "2026-01-01 00:00:00";
-      const createdAt = toMysqlDatetime(f.created_at) || updatedAt;
       fsRows.push([
         f.id, f.fee_type, f.amount ? Number(f.amount) : 100.0, toBoolean(f.is_enabled),
         f.upi_id || "hariharanmahesh34@oksbi", f.payee_name || "Skyrovix", f.qr_code_url || null,
         toBoolean(f.offer_enabled), f.offer_amount ? Number(f.offer_amount) : 0, f.offer_name || null,
-        toMysqlDatetime(f.offer_start_at), toMysqlDatetime(f.offer_end_at), f.updated_by || null, createdAt, updatedAt
+        toMysqlDatetime(f.offer_start_at), toMysqlDatetime(f.offer_end_at), f.updated_by || null, updatedAt
       ]);
     }
     out += formatBatchInsert("fee_settings", [
       "id", "fee_type", "amount", "is_enabled", "upi_id", "payee_name", "qr_code_url",
-      "offer_enabled", "offer_amount", "offer_name", "offer_start_at", "offer_end_at", "updated_by", "created_at", "updated_at"
+      "offer_enabled", "offer_amount", "offer_name", "offer_start_at", "offer_end_at", "updated_by", "updated_at"
     ], fsRows);
     console.log(`+ Seeded ${fsRows.length} fee setting records.`);
   }
