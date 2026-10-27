@@ -14,7 +14,7 @@ import {
   Database, HardDrive, Calendar, Clock, Shield, Download, Trash2, RefreshCw,
   Upload, AlertTriangle, CheckCircle2, XCircle, FileArchive, Search, RotateCcw,
   Settings2, Activity, Save, FolderArchive, Zap, Loader2, ArrowUpDown,
-  ListRestart, History, ChevronLeft, ChevronRight,
+  ListRestart, History, ChevronLeft, ChevronRight, FileSpreadsheet,
 } from "lucide-react";
 import {
   createBackup,
@@ -33,7 +33,7 @@ import {
   type BackupType,
 } from "@/lib/backup-service";
 
-const BACKUP_TYPES: BackupType[] = ["database", "files", "full"];
+const BACKUP_TYPES: BackupType[] = ["database", "csv", "files", "full"];
 
 function formatBytes(bytes: number) {
   if (bytes === 0) return "0 B";
@@ -66,6 +66,7 @@ function timeAgo(iso: string) {
 
 const typeConfig: Record<BackupType, { label: string; icon: any; color: string; desc: string }> = {
   database: { label: "Database", icon: Database, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/30", desc: "Export complete database as SQL" },
+  csv: { label: "All Data (CSV)", icon: FileSpreadsheet, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30", desc: "Export all 53 tables as individual CSV files (ZIP)" },
   files: { label: "Uploaded Files", icon: FolderArchive, color: "text-amber-500 bg-amber-50 dark:bg-amber-950/30", desc: "Compress and download uploaded assets" },
   full: { label: "Full Backup", icon: FileArchive, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30", desc: "Complete system backup with everything" },
 };
@@ -331,7 +332,7 @@ export function BackupSection() {
               <CardDescription>Choose the type of backup to create</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {(BACKUP_TYPES as BackupType[]).map((type) => {
                   const cfg = typeConfig[type];
                   const Icon = cfg.icon;
@@ -747,7 +748,8 @@ function RestoreUploadSection({ userEmail, userName, onDone }: { userEmail: stri
         setValidating(false);
         if (result.valid && result.info) {
           setValidInfo(result.info);
-          toast.success(`Valid backup file: ${result.info.type === "database" ? "SQL Database" : "Full Backup"} (${formatBytes(result.info.size)})`);
+          const typeLabel = result.info.type === "database" ? "SQL Database" : result.info.type === "csv" ? "CSV All Data" : result.info.type === "files" ? "Uploaded Files" : "Full Backup";
+          toast.success(`Valid backup file: ${typeLabel} (${formatBytes(result.info.size)})`);
         } else {
           setValidInfo(null);
           toast.error(`Invalid backup file: ${result.error}`);

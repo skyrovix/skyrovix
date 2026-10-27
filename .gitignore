@@ -41,3 +41,5 @@ scratch/
 # User Uploads
 public/uploads/
 public/uploads/**
+database/csv-backup-*/
+

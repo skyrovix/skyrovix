@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { dbQuery, getDbPool } from "./db.server";
 
-export type BackupType = "database" | "files" | "full";
+export type BackupType = "database" | "csv" | "files" | "full";
 export type BackupStatus = "running" | "completed" | "failed";
 
 export interface BackupRecord {
@@ -268,6 +268,164 @@ async function createFullZip(sqlContent: string, backupId: string): Promise<{ bu
   return { buffer: blob.buffer.slice(0) as ArrayBuffer, size: blob.byteLength };
 }
 
+function toCsvValue(val: any): string {
+  if (val === null || val === undefined) return "";
+  if (typeof val === "boolean") return val ? "true" : "false";
+  if (typeof val === "number") return String(val);
+  if (val instanceof Date) {
+    return val.toISOString();
+  }
+  if (typeof val === "object") {
+    const s = JSON.stringify(val);
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  const str = String(val);
+  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+async function createCsvZip(backupId: string): Promise<{ buffer: ArrayBuffer; size: number; tableStats: Record<string, number> }> {
+  const JSZip = (await import("jszip")).default;
+  const zip = new JSZip();
+  const tableStats: Record<string, number> = {};
+
+  for (const table of ALL_TABLES) {
+    try {
+      const res = await dbQuery<any>(`SELECT * FROM \`${table}\``);
+      const rows = res.rows || [];
+      tableStats[table] = rows.length;
+
+      if (rows.length === 0) {
+        zip.file(`${table}.csv`, "");
+        continue;
+      }
+
+      const headers = Object.keys(rows[0]);
+      const csvLines = [headers.join(",")];
+
+      for (const row of rows) {
+        const line = headers.map((h) => toCsvValue(row[h])).join(",");
+        csvLines.push(line);
+      }
+
+      zip.file(`${table}.csv`, csvLines.join("\r\n"));
+    } catch (e: any) {
+      console.warn(`[CSV Backup] Table ${table} skip:`, e.message);
+    }
+  }
+
+  zip.file("README_CSV_BACKUP.md", `# Skyrovix Complete Database CSV Backup
+- Backup ID: ${backupId}
+- Export Date: ${isoNow()}
+- Tables Backed Up: ${Object.keys(tableStats).length}
+- Target: Full Data Records Export for Contabo VPS
+`);
+
+  const blob = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 6 } });
+  return { buffer: blob.buffer.slice(0) as ArrayBuffer, size: blob.byteLength, tableStats };
+}
+
+function parseCsv(text: string): { headers: string[]; rows: Record<string, string>[] } {
+  const lines: string[][] = [];
+  let current: string[] = [];
+  let val = "";
+  let insideQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (insideQuotes) {
+      if (ch === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          val += '"';
+          i++;
+        } else {
+          insideQuotes = false;
+        }
+      } else {
+        val += ch;
+      }
+    } else {
+      if (ch === '"') {
+        insideQuotes = true;
+      } else if (ch === ",") {
+        current.push(val.trim());
+        val = "";
+      } else if (ch === "\r") {
+        if (i + 1 < text.length && text[i + 1] === "\n") i++;
+        current.push(val.trim());
+        lines.push(current);
+        current = [];
+        val = "";
+      } else if (ch === "\n") {
+        current.push(val.trim());
+        lines.push(current);
+        current = [];
+        val = "";
+      } else {
+        val += ch;
+      }
+    }
+  }
+  if (val || current.length > 0) {
+    current.push(val.trim());
+    lines.push(current);
+  }
+  if (lines.length === 0) return { headers: [], rows: [] };
+  const headers = lines[0].map((h) => h.replace(/^"|"$/g, "").trim());
+  const rows: Record<string, string>[] = [];
+  for (let r = 1; r < lines.length; r++) {
+    const row = lines[r];
+    if (row.length === 1 && !row[0]) continue;
+    const obj: Record<string, string> = {};
+    for (let c = 0; c < headers.length; c++) {
+      obj[headers[c]] = row[c] !== undefined ? row[c] : "";
+    }
+    rows.push(obj);
+  }
+  return { headers, rows };
+}
+
+async function executeCsvRestore(zip: any): Promise<{ executed: number; tableStats: Record<string, number> }> {
+  const pool = getDbPool();
+  const conn = await pool.getConnection();
+  let executed = 0;
+  const tableStats: Record<string, number> = {};
+
+  try {
+    await conn.query("SET FOREIGN_KEY_CHECKS = 0;");
+
+    const csvFiles = zip.file(/\.csv$/i);
+    for (const file of csvFiles) {
+      const tableName = path.basename(file.name, ".csv");
+      const csvText = await file.async("string");
+      const { headers, rows } = parseCsv(csvText);
+      if (rows.length === 0 || headers.length === 0) continue;
+
+      const cols = headers.map((h) => `\`${h}\``).join(", ");
+      for (const row of rows) {
+        const placeholders = headers.map(() => "?").join(", ");
+        const values = headers.map((h) => {
+          const v = row[h];
+          if (v === "" || v === "NULL" || v === null || v === undefined) return null;
+          return v;
+        });
+        try {
+          await conn.query(`REPLACE INTO \`${tableName}\` (${cols}) VALUES (${placeholders})`, values);
+          executed++;
+        } catch {
+          // ignore column mismatch
+        }
+      }
+      tableStats[tableName] = rows.length;
+    }
+  } finally {
+    await conn.query("SET FOREIGN_KEY_CHECKS = 1;");
+    conn.release();
+  }
+  return { executed, tableStats };
+}
+
 function splitSqlStatements(sqlContent: string): string[] {
   const statements: string[] = [];
   let current = "";
@@ -464,6 +622,17 @@ export const createBackup = createServerFn({ method: "POST" })
         const stat = await fs.stat(fullFilePath);
         size = stat.size;
         record.tables_count = ALL_TABLES.length;
+      } else if (type === "csv") {
+        name = `skyrovix-all-data-csv-${ts}.zip`;
+        record.name = name;
+        storagePath = `${id}/${name}`;
+        record.storage_path = storagePath;
+
+        const { buffer: csvBuf, size: csvSize, tableStats } = await createCsvZip(id);
+        const fullFilePath = path.join(backupFolder, name);
+        await fs.writeFile(fullFilePath, Buffer.from(csvBuf));
+        size = csvSize;
+        record.tables_count = Object.keys(tableStats).length;
       } else if (type === "files") {
         name = `uploads-${ts}.zip`;
         record.name = name;
@@ -602,6 +771,12 @@ export const restoreBackup = createServerFn({ method: "POST" })
             const sql = await sqlZipEntry.async("string");
             const { executed, tableStats } = await executeSqlRestore(sql);
             restoredRecords = Object.values(tableStats).reduce((a, b) => a + b, 0) || executed;
+          } else {
+            const csvFiles = zip.file(/\.csv$/i);
+            if (csvFiles && csvFiles.length > 0) {
+              const { executed, tableStats } = await executeCsvRestore(zip);
+              restoredRecords = Object.values(tableStats).reduce((a, b) => a + b, 0) || executed;
+            }
           }
         }
 
@@ -682,24 +857,26 @@ export const validateBackupFile = createServerFn({ method: "POST" })
 
           let hasDb = false;
           let hasFiles = false;
+          let hasCsv = false;
           let fileCount = 0;
 
           zip.forEach((relPath, entry) => {
             if (entry.dir) return;
             fileCount++;
             if (relPath.toLowerCase().endsWith(".sql")) hasDb = true;
-            if (relPath.startsWith("uploads/") || relPath.includes("/")) hasFiles = true;
+            if (relPath.toLowerCase().endsWith(".csv")) hasCsv = true;
+            if (relPath.startsWith("uploads/") || (relPath.includes("/") && !relPath.toLowerCase().endsWith(".csv"))) hasFiles = true;
           });
 
-          if (!hasDb && !hasFiles && fileCount === 0) {
+          if (!hasDb && !hasFiles && !hasCsv && fileCount === 0) {
             return { valid: false, error: "The ZIP archive is empty" };
           }
-          if (!hasDb && !hasFiles) {
-            return { valid: false, error: "Invalid backup ZIP: missing SQL dump or uploaded files" };
+          if (!hasDb && !hasFiles && !hasCsv) {
+            return { valid: false, error: "Invalid backup ZIP: missing SQL dump, CSV files, or uploaded files" };
           }
 
-          const type = hasDb && hasFiles ? "full" : hasDb ? "database" : "files";
-          return { valid: true, info: { type, hasDb, hasFiles, fileCount, size } };
+          const type = hasCsv ? "csv" : hasDb && hasFiles ? "full" : hasDb ? "database" : "files";
+          return { valid: true, info: { type, hasDb: hasDb || hasCsv, hasFiles, fileCount, size } };
         } catch (zipErr: any) {
           return { valid: false, error: `Invalid or corrupted ZIP file: ${zipErr.message}` };
         }
@@ -723,6 +900,7 @@ export const restoreFromUpload = createServerFn({ method: "POST" })
 
       let sqlContent = "";
       let restoredFilesCount = 0;
+      let restoredRecords = 0;
 
       if (isZip) {
         const JSZip = (await import("jszip")).default;
@@ -739,6 +917,13 @@ export const restoreFromUpload = createServerFn({ method: "POST" })
 
         if (sqlZipEntry) {
           sqlContent = await sqlZipEntry.async("string");
+        } else {
+          // Check for CSV files in ZIP
+          const csvFiles = zip.file(/\.csv$/i);
+          if (csvFiles && csvFiles.length > 0) {
+            const { executed, tableStats } = await executeCsvRestore(zip);
+            restoredRecords = Object.values(tableStats).reduce((a, b) => a + b, 0) || executed;
+          }
         }
 
         // 2. Extract uploads/ or files
@@ -771,7 +956,6 @@ export const restoreFromUpload = createServerFn({ method: "POST" })
         sqlContent = buffer.toString("utf-8");
       }
 
-      let restoredRecords = 0;
       if (sqlContent.trim()) {
         const { executed, tableStats } = await executeSqlRestore(sqlContent);
         restoredRecords = Object.values(tableStats).reduce((a, b) => a + b, 0) || executed;

@@ -6,7 +6,7 @@
 CREATE DATABASE IF NOT EXISTS skyrovix
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
-
+ 
 USE skyrovix;
 
 SET NAMES utf8mb4;
