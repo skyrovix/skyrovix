@@ -287,8 +287,8 @@ export async function updateAdminFeeSettings(data: {
     }
 
     await client.query(
-      `INSERT INTO public.fee_audit_logs (admin_id, action, entity_type, old_value, new_value)
-       VALUES ($1, 'UPDATE_FEE_SETTINGS', 'fee_setting', $2, $3)`,
+      `INSERT INTO public.fee_audit_logs (id, admin_id, action, entity_type, old_value, new_value)
+       VALUES (UUID(), $1, 'UPDATE_FEE_SETTINGS', 'fee_setting', $2, $3)`,
       [
         data.adminId,
         JSON.stringify(oldValues),
@@ -1172,8 +1172,8 @@ export async function reviewPayment(data: {
     }
 
     await client.query(
-      `INSERT INTO public.fee_audit_logs (admin_id, action, entity_type, entity_id, old_value, new_value)
-       VALUES ($1, $2, 'payment', $3, $4, $5)`,
+      `INSERT INTO public.fee_audit_logs (id, admin_id, action, entity_type, entity_id, old_value, new_value)
+       VALUES (UUID(), $1, $2, 'payment', $3, $4, $5)`,
       [
         adminId,
         `PAYMENT_${action.toUpperCase()}`,
@@ -1256,8 +1256,8 @@ export async function createCouponAdmin(data: {
     );
 
     await client.query(
-      `INSERT INTO public.fee_audit_logs (admin_id, action, entity_type, entity_id, new_value)
-       VALUES ($1, 'CREATE_COUPON', 'coupon', $2, $3)`,
+      `INSERT INTO public.fee_audit_logs (id, admin_id, action, entity_type, entity_id, new_value)
+       VALUES (UUID(), $1, 'CREATE_COUPON', 'coupon', $2, $3)`,
       [data.adminId, couponId, JSON.stringify(data)]
     );
 
@@ -1275,8 +1275,8 @@ export async function toggleCouponAdmin(data: { adminId: string; couponId: strin
   );
 
   await dbQuery(
-    `INSERT INTO public.fee_audit_logs (admin_id, action, entity_type, entity_id, new_value)
-     VALUES ($1, 'TOGGLE_COUPON', 'coupon', $2, $3)`,
+    `INSERT INTO public.fee_audit_logs (id, admin_id, action, entity_type, entity_id, new_value)
+     VALUES (UUID(), $1, 'TOGGLE_COUPON', 'coupon', $2, $3)`,
     [data.adminId, data.couponId, JSON.stringify({ is_active: data.isActive })]
   );
 

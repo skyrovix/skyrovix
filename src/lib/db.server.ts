@@ -168,6 +168,12 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
     await ensureCol("fee_audit_logs", "ip_address", "VARCHAR(100) NULL");
     await ensureCol("fee_audit_logs", "created_at", "TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP");
 
+    try {
+      await pool.query(`ALTER TABLE \`fee_audit_logs\` MODIFY COLUMN \`id\` VARCHAR(36) NOT NULL DEFAULT (UUID())`);
+    } catch {
+      // Safe to ignore if already default or not supported
+    }
+
     _schemaMigrated = true;
   } catch (err: any) {
     if (trySwitchLocalPort(err)) {

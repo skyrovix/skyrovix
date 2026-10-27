@@ -2763,9 +2763,8 @@ function SubmissionCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                collisionPadding={16}
-                sideOffset={6}
-                className="w-56 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xl dark:bg-[#0F172A] dark:border-slate-800 z-[99999]"
+                sideOffset={4}
+                className="w-56 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xl dark:bg-[#0F172A] dark:border-slate-800 z-50"
               >
                 <DropdownMenuItem
                   onClick={() => onViewSub(sub)}
