@@ -1306,16 +1306,17 @@ async function main() {
     for (const f of fsList) {
       if (!f.id) continue;
       const updatedAt = toMysqlDatetime(f.updated_at) || "2026-01-01 00:00:00";
+      const createdAt = toMysqlDatetime(f.created_at) || updatedAt;
       fsRows.push([
         f.id, f.fee_type, f.amount ? Number(f.amount) : 100.0, toBoolean(f.is_enabled),
         f.upi_id || "hariharanmahesh34@oksbi", f.payee_name || "Skyrovix", f.qr_code_url || null,
         toBoolean(f.offer_enabled), f.offer_amount ? Number(f.offer_amount) : 0, f.offer_name || null,
-        toMysqlDatetime(f.offer_start_at), toMysqlDatetime(f.offer_end_at), f.updated_by || null, updatedAt
+        toMysqlDatetime(f.offer_start_at), toMysqlDatetime(f.offer_end_at), f.updated_by || null, createdAt, updatedAt
       ]);
     }
     out += formatBatchInsert("fee_settings", [
       "id", "fee_type", "amount", "is_enabled", "upi_id", "payee_name", "qr_code_url",
-      "offer_enabled", "offer_amount", "offer_name", "offer_start_at", "offer_end_at", "updated_by", "updated_at"
+      "offer_enabled", "offer_amount", "offer_name", "offer_start_at", "offer_end_at", "updated_by", "created_at", "updated_at"
     ], fsRows);
     console.log(`+ Seeded ${fsRows.length} fee setting records.`);
   }

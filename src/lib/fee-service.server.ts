@@ -265,8 +265,8 @@ export async function updateAdminFeeSettings(data: {
     if (data.premiumPlan) {
       await client.query(
         `INSERT INTO public.fee_settings (
-           id, fee_type, amount, is_enabled, upi_id, payee_name, qr_code_url, updated_by, created_at, updated_at
-         ) VALUES ('fee_premium_plan', 'premium_plan', $1, $2, $3, $4, $5, $6, now(), now())
+           id, fee_type, amount, is_enabled, upi_id, payee_name, qr_code_url, updated_by, updated_at
+         ) VALUES ('fee_premium_plan', 'premium_plan', $1, $2, $3, $4, $5, $6, now())
          ON DUPLICATE KEY UPDATE
            amount = VALUES(amount),
            is_enabled = VALUES(is_enabled),

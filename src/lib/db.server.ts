@@ -118,6 +118,20 @@ let _schemaMigrated = true;
 async function ensureSchemaMigrated(pool: mysql.Pool) {
   if (_schemaMigrated) return;
   try {
+    const ensureCol = async (tbl: string, col: string, def: string) => {
+      try {
+        const [rows]: any = await pool.query(
+          `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+          [tbl, col]
+        );
+        if (!rows || rows.length === 0) {
+          await pool.query(`ALTER TABLE \`${tbl}\` ADD COLUMN \`${col}\` ${def}`);
+        }
+      } catch {
+        // Safe to ignore if table does not exist yet
+      }
+    };
+
     const tablesToCheck = [
       "payments",
       "submissions",
@@ -134,13 +148,7 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
     ];
 
     for (const tbl of tablesToCheck) {
-      try {
-        await pool.query(
-          `ALTER TABLE \`${tbl}\` ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP`
-        );
-      } catch {
-        // Safe to ignore if column already exists
-      }
+      await ensureCol(tbl, "created_at", "TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP");
     }
 
     await pool.query(`
@@ -152,9 +160,13 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
         entity_id VARCHAR(255) NULL,
         old_value JSON NULL,
         new_value JSON NULL,
+        ip_address VARCHAR(100) NULL,
         created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    await ensureCol("fee_audit_logs", "ip_address", "VARCHAR(100) NULL");
+    await ensureCol("fee_audit_logs", "created_at", "TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP");
 
     _schemaMigrated = true;
   } catch (err: any) {
