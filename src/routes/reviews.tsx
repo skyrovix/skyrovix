@@ -220,28 +220,28 @@ function ReviewsPage() {
                 <ThumbsUp className="size-3.5" />
                 Real Reviews · Verified Students
               </div>
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
+              <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5 break-words">
                 What Our{" "}
                 <span className="brand-text">Students Say</span>
               </h1>
-              <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed break-words">
                 Over 10,000 students have completed Skyrovix internships. Here's what they experienced — in their own words.
               </p>
             </FadeUp>
 
             {/* Stats Row */}
             <FadeUp delay={0.15}>
-              <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
+              <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 max-w-3xl mx-auto w-full min-w-0">
                 {STATS.map((stat) => (
                   <div
                     key={stat.label}
-                    className="flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-white/80 backdrop-blur p-4 shadow-sm"
+                    className="flex flex-col items-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-100 bg-white/80 backdrop-blur p-3 sm:p-4 shadow-sm min-w-0"
                   >
-                    <div className={`grid size-9 place-items-center rounded-xl ${stat.bg}`}>
-                      <stat.icon className={`size-4.5 ${stat.color}`} />
+                    <div className={`grid size-8 sm:size-9 place-items-center rounded-xl ${stat.bg} shrink-0`}>
+                      <stat.icon className={`size-4 sm:size-4.5 ${stat.color}`} />
                     </div>
-                    <p className="text-[17px] font-bold text-slate-900">{stat.value}</p>
-                    <p className="text-[11.5px] text-slate-500 font-medium text-center leading-tight">{stat.label}</p>
+                    <p className="text-base sm:text-[17px] font-bold text-slate-900 truncate">{stat.value}</p>
+                    <p className="text-[10px] sm:text-[11.5px] text-slate-500 font-medium text-center leading-tight">{stat.label}</p>
                   </div>
                 ))}
               </div>

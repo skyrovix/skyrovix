@@ -1,0 +1,25 @@
+metric,count,category
+Total Registered Users / Students,1074,Students
+Total Student Profiles,1074,Students
+Total Internship Applications,791,Applications
+Total Curriculum Tasks Assigned,412,Curriculum
+Total Task Submissions Made,857,Submissions
+Total Submission History Log Entries,1040,Audit & Logs
+Total Internship Certificates Issued,34,Certificates
+Total Course Certificates Issued,12,Certificates
+Total Project Certificates Issued,2,Certificates
+Total All Certificates Combined,48,Certificates
+Total Courses Published,19,Courses
+Total Course Topics & Lessons,435,Courses
+Total Course Enrollments,82,Courses
+Total Lessons Completed,549,Courses
+Total Quiz Attempts,28,Courses
+Total Project Challenges,6,Projects
+Total Project Submissions,8,Projects
+Total Platform Reviews & Feedbacks,6,Feedback
+Total Manual UTR Payments,32,Payments
+Total Cashfree Payment Gateway Orders,67,Payments
+Total Payment Ledger Records,31,Payments
+Total Student Login Sessions Tracked,727,Analytics
+Total Email Notifications Dispatched,194,Analytics
+Total Files Stored in Supabase Storage,999,Storage

@@ -1,0 +1,3 @@
+id,fee_type,amount,is_enabled,upi_id,payee_name,qr_code_url,updated_by,updated_at,offer_enabled,offer_amount,offer_name,offer_start_at,offer_end_at
+c8d95dbb-90bf-4d47-bc45-f65a535ecf31,application,0,false,hariharanmahesh34@oksbi,Hariharan Mahesh,,15430c49-f28f-459e-ba3f-411b18519445,2026-09-21T17:31:54.267Z,false,0,Certificate Free Offer,,
+53835d6a-d771-4cab-8311-f36d8e7f6084,certificate,100,true,hariharanmahesh34@oksbi,Hariharan Mahesh,,15430c49-f28f-459e-ba3f-411b18519445,2026-09-21T17:31:54.267Z,false,0,Certificate Offer,2026-09-21T10:44:00.000Z,2026-10-21T10:44:00.000Z

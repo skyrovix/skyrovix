@@ -1,0 +1,13 @@
+id,project_id,user_id,github_url,demo_url,doc_url,video_url,notes,status,final_score,evaluated_at,evaluator_id,created_at,updated_at
+d6256e70-c165-423c-9c56-10e80cd930fb,3832221d-feed-409b-833c-51bf620b63dd,78b4325a-a65a-4a92-92e4-01b87fc79d41,https://github.com/hariharan1022,,,,,approved,80.0,2026-08-13T13:44:27.695Z,15430c49-f28f-459e-ba3f-411b18519445,2026-08-13T13:04:29.532Z,2026-08-13T13:35:16.957Z
+8f81922f-84f1-4806-840d-3b0436f9d12e,bb67f686-ba14-49a8-80cd-e12da1d2dc1d,78b4325a-a65a-4a92-92e4-01b87fc79d41,https://github.com/hariharan1022,https://www.skyrovix.online/admin,,,hi i am hariharan..,approved,80.0,2026-08-13T13:44:32.717Z,15430c49-f28f-459e-ba3f-411b18519445,2026-07-01T06:19:33.838Z,2026-08-13T13:34:40.642Z
+5efca34d-54b5-498d-a855-a82e12424b41,21f90499-1e82-48f8-aa31-0fcc2eb26fe0,78b4325a-a65a-4a92-92e4-01b87fc79d41,https://github.com/hariharan1022,,,,,approved,80.0,2026-08-13T13:47:18.932Z,15430c49-f28f-459e-ba3f-411b18519445,2026-08-13T13:46:56.559Z,2026-08-13T13:46:57.072Z
+4008db24-5160-41d7-8445-abe5f06de4c0,79376478-19a0-47d5-9273-9fc2694c9a9b,78b4325a-a65a-4a92-92e4-01b87fc79d41,https://github.com/hariharan1022,,,,,approved,80.0,2026-08-13T13:51:36.703Z,15430c49-f28f-459e-ba3f-411b18519445,2026-08-13T13:51:02.948Z,2026-08-13T13:51:03.454Z
+db68f4c6-56e8-4ffa-baad-bf6e31337a7c,3832221d-feed-409b-833c-51bf620b63dd,46ce9fdf-5b50-45fc-869b-478b7e6212c7,pending_submission,,,,"[Rejection Notes] Needs Revision — Missing live demo URL or project screenshot.
+
+Original Notes: ",rejected,,2026-09-15T03:52:51.773Z,15430c49-f28f-459e-ba3f-411b18519445,2026-09-14T12:06:13.642Z,2026-09-14T12:06:13.642Z
+91dae051-6173-40cd-b0da-3f2ddea4e364,79376478-19a0-47d5-9273-9fc2694c9a9b,ca735173-1eee-4a1d-bad5-1b08d62c83a1,pending_submission,,,,"[Rejection Notes] invalid 
+
+Original Notes: ",rejected,,2026-09-18T14:17:39.850Z,15430c49-f28f-459e-ba3f-411b18519445,2026-09-18T08:45:48.354Z,2026-09-18T08:45:48.354Z
+bb279af3-ec8a-4fd9-940a-5390701a9a33,bb67f686-ba14-49a8-80cd-e12da1d2dc1d,da4016c3-553b-474c-bc2c-194387601c8d,pending_submission,,,,,pending,,,,2026-09-19T07:40:04.757Z,2026-09-19T07:40:04.757Z
+4e2f5b82-b84c-4111-a1f1-780c603e0f7f,3832221d-feed-409b-833c-51bf620b63dd,e09c2bc5-094e-4681-a62c-2086039c4d75,pending_submission,,,,,pending,,,,2026-10-07T08:51:37.177Z,2026-10-07T08:51:37.177Z

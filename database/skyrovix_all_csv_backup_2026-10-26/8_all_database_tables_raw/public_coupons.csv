@@ -1,0 +1,2 @@
+id,code,description,discount_type,discount_value,max_uses,current_uses,min_amount,max_discount_amount,expires_at,is_active,applicable_domains,created_at,updated_at,applies_to,created_by,single_use_per_user
+c613ee1e-5ebc-4e75-ba45-42bd7f9242ce,FIRST100,🚀 First 100 students can enroll in a Virtual Internship for FREE. Limited seats available—claim your spot before the offer ends!,percentage,100,100,0,0,100,2026-09-14T06:00:00.000Z,true,,2026-06-29T14:05:37.007Z,2026-06-29T14:05:37.007Z,certificate,,true

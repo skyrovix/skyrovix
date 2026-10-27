@@ -1,0 +1,773 @@
+id,domain,task_number,title,description,resources
+886aa5d6-0b5e-46ae-9a5c-4dc0226a5000,softwaretesting,5,Payment Flow Testing,"Build a payment flow testing as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+1eed50a9-b8cc-405e-9fd8-6968ec59b47c,softwaretesting,6,Form Validation Testing,"Build a form validation testing as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+b3a4c3e1-1c79-4eba-a5c5-64aa98eb88a6,softwaretesting,7,Mobile App Test Plan,"Build a mobile app test plan as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+6ec1aded-56ec-4eb0-a077-b44dbe2728a6,softwaretesting,8,Regression Testing Project,"Build a regression testing project as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+648af40c-7471-4e61-8552-606b0d59e396,softwaretesting,9,Bug Tracking System,"Build a bug tracking system as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+9b379eac-f2f9-4d3a-a037-23ce923a57ff,frontend,1,Landing Page Clone,Pixel-perfect responsive clone of any modern SaaS landing page.,
+d3ef4aee-5cdc-471d-b090-5643c2b77609,frontend,2,Component Library,"Build 8 reusable accessible components (Button, Modal, Tabs, Toast, etc.) with Tailwind.",
+0c4a14f7-9777-4d20-8073-dc8237c19f0d,frontend,3,Dashboard UI,"Build an analytics dashboard with charts (Recharts/Chart.js), filters, dark mode.",
+f80de069-2ca9-4568-854a-d5bae4fb2552,frontend,4,Animated Web App,"Use Framer Motion to build an interactive animated UI (e.g. onboarding flow, product showcase).",
+5988bd8c-a0f9-48b7-aa34-1a815167f215,frontend,5,Frontend Capstone,Ship a polished frontend product. Lighthouse score ≥ 90.,
+36985a3a-6bdd-4e4b-8d1f-ddf04a883b1b,backend,1,REST API Basics,Build a Node/Express API with CRUD + validation + error handling.,
+4f25a0e1-bbef-479a-88c4-d43ab7e345be,backend,2,Database Design,Design a normalized relational schema for an e-commerce store. Implement migrations.,
+c8474721-9526-48d1-9fde-6a1bb029587f,backend,3,Authentication & Authorization,Implement JWT auth + role-based access control.,
+72938822-5d17-4a58-9ac0-55a145674d02,backend,4,File Uploads & Email,Add S3/Cloudinary uploads + transactional email (SendGrid/Resend).,
+fdf3038c-8068-43e4-8564-998056914042,backend,5,Backend Capstone,"Ship a production-grade backend with tests, docs (Swagger/Postman) and deployment.",
+4c449c48-3a00-4a60-ab36-8c495fce370c,softwaretesting,10,Performance Testing Demo,"Build a performance testing demo as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+7294a829-2a97-4ce4-bece-188c656c867b,softwaretesting,11,Cross-Browser Testing Plan,"Build a cross-browser testing plan as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+7a54b36a-1ff6-4436-b2a9-fed58adc7450,softwaretesting,12,Test Automation Demo,"Build a test automation demo as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+49fc5888-18d8-4bdc-a7af-ff34ac277161,mobileapp,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+25ed2606-7ed9-43d2-b884-c1e30a3fa2fd,mobileapp,1,Student Management App,"Build a student management app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+506d9b5c-63fb-4399-a5d9-f9dbc67a3ce4,mobileapp,2,Expense Tracker App,"Build a expense tracker app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+9075e10b-d637-4de4-adfa-d288c51fd991,mobileapp,3,Notes App,"Build a notes app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+c7e189f9-40b8-43ad-9744-babcd0d746e3,mobileapp,4,Weather App,"Build a weather app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+2ab70572-14c4-40f3-96b4-44973d2c41b8,mobileapp,5,Food Ordering App,"Build a food ordering app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+4e5dacc3-a470-4242-95ae-86697e43c284,mobileapp,6,Event Booking App,"Build a event booking app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+a40f846a-48da-4f1b-8c33-6389c50e20a0,mobileapp,7,Library App,"Build a library app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+bb18c2cb-258c-4ce3-aced-bf19399ccfc7,mobileapp,8,Task Management App,"Build a task management app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+0b7b741e-7a76-4154-a95a-b5bd68532ad6,mobileapp,9,Car Rental App,"Build a car rental app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+3d481e7f-e60b-4c0e-9741-570ee9b4624d,mobileapp,10,News Reader App,"Build a news reader app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+74bdb699-47ad-45bc-a8ab-664510bb709e,mobileapp,11,Quiz App,"Build a quiz app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+568b6062-0c8a-4295-90c9-8c8c0f6c725e,digitalmarketing,2,Social Media Campaign,"Build a social media campaign as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+1c123348-1fa4-424a-849d-4cfa39ac4e75,digitalmarketing,3,Content Marketing Plan,"Build a content marketing plan as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+194b171d-3ada-49db-ba5f-959b6f977793,digitalmarketing,5,Email Marketing Campaign,"Build a email marketing campaign as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+d99d6c9e-45c6-492b-9001-28fbf1f0b5c7,mobileapp,12,Appointment Booking App,"Build a appointment booking app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+1f66948a-3406-458a-a510-b34a46fbd530,frontend,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+14b44ddd-0b9c-4693-81f4-8430b927c6bd,backend,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+9da75a04-5c85-4aaa-b422-fe4a02085f9e,frontend,6,State Management with Zustand,Migrate application state to Zustand for global state management with persistence.,
+87b031d1-be9a-419f-9c70-5d319af1765e,frontend,7,Advanced Animations,"Add Framer Motion animations including page transitions, gestures, and layout animations.",
+96061970-236f-4a52-a766-4dcd67fcf811,frontend,8,Progressive Web App,"Convert the app into a PWA with service workers, offline support, and install prompts.",
+c666ebf9-0bb6-4805-8a11-45940d84fe37,cprogramming,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+f6b1ad27-78da-443e-9cd3-e5eeef1dfca6,cprogramming,1,Basic Programs,"Write fundamental C programs covering variables, data types, operators, and input/output.",
+c70c6394-6c4f-4411-9bd0-687e3af482e4,cprogramming,2,Pattern Printing,"Print star, number, and character patterns using nested loops.",
+4e977b11-77b5-4c14-ab40-6d4c88dee353,cprogramming,3,Arrays & Strings,Implement array operations and string manipulation algorithms.,
+e6163ab0-1473-4ea3-b922-be3de8c3e1e4,cprogramming,4,Functions & Recursion,"Write modular programs using functions, scope, and recursive solutions.",
+7ad0a113-6942-4c81-8da8-5714d4bbd83a,cprogramming,5,File Handling,"Read, write, and process files using C file I/O operations.",
+29bfaac4-e233-47de-9dd9-59b7cb8b9a52,fullstack,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+994f3954-9904-4532-98f3-ac1048a53d20,fullstack,1,Library Management System,"Build a library management system as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+d3c14b38-3a77-4a45-b2d4-3877c31709df,fullstack,2,Student Management Portal,"Build a student management portal as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+50b6c5a9-5b92-47be-a22f-f29179233c49,fullstack,3,Online Course Platform,"Build a online course platform as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+d24f5008-2cb2-40cc-bab1-b2336ccae82f,fullstack,4,E-Commerce Website,"Build a e-commerce website as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+06ac222a-6a69-45f2-9484-378cf016f0f5,fullstack,5,Job Portal,"Build a job portal as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+9759d9ea-8c18-4311-8edf-d83998e3b25b,fullstack,6,Hospital Management System,"Build a hospital management system as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+784d75d8-c939-4d5e-b7c9-9844493dc441,fullstack,7,Event Management Platform,"Build a event management platform as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+43ead622-3fe1-4493-a561-c03082bbb056,fullstack,8,Food Delivery Website,"Build a food delivery website as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+56da9f06-a0d2-4600-a368-4976a69e0553,fullstack,9,Expense Tracker,"Build a expense tracker as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+064ee2b0-4b1a-46e0-87a2-e83963f40b68,fullstack,10,Inventory Management System,"Build a inventory management system as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+c7b98da5-3cf2-48ad-8ed9-391d006ac73f,fullstack,11,Real Estate Listing Platform,"Build a real estate listing platform as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+18ab78d1-002b-49d8-ab78-aaa7ef07e211,fullstack,12,Online Appointment System,"Build a online appointment system as a practical virtual internship project using full stack development concepts.
+Key Features: Responsive interface, database integration, CRUD operations, search and validation",
+af8e3a04-65e3-4c82-8dab-f9f47d3ee77c,python,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+7af504fc-07ce-49ae-ac82-daa41649053d,python,1,Library Automation Tool,"Build a library automation tool as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+110857f3-43eb-4e53-ae61-eddb4cd458ea,python,2,Student Result Analyzer,"Build a student result analyzer as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+76a18d38-61a0-47d9-b206-32a96a8f1b08,python,3,File Management Utility,"Build a file management utility as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+9924e7db-95aa-487e-b761-3f0a30955461,python,4,Weather Dashboard,"Build a weather dashboard as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+c2b398a1-cc3c-4f13-976e-91fb590e97c5,python,6,QR Code Generator,"Build a qr code generator as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+f96266b3-3436-41de-8a64-2ec0c62ac43e,python,8,Web Scraping Dashboard,"Build a web scraping dashboard as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+c5abf5a1-da58-492b-baac-b1088f5e9ae5,flutter,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+af15c384-40e5-40d9-ae9f-06d7409f4faf,python,10,Email Automation Tool,"Build a email automation tool as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+04ea3f86-a5d2-481f-a655-1a4ee47d0105,python,12,Python REST API,"Build a python rest api as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+87a5b349-9dbb-4dc2-b685-532d6c0d6203,java,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+ac3ebb42-384f-4de7-8d0b-43f55bf41b62,java,2,Banking Management System,"Build a banking management system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+b3e09528-a7ce-4b16-9d3d-8d7a3d0c2b22,java,3,Student Management System,"Build a student management system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+e0bd4aed-16c3-4e24-bb89-ae3a3499153f,java,5,Inventory Management System,"Build a inventory management system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+78b36810-51c5-4bc8-8054-8965f08eaf9c,java,7,Hospital Management System,"Build a hospital management system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+01afb505-c52a-4c7c-8fac-9d500bbe37a1,java,8,Hotel Booking System,"Build a hotel booking system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+540ce97a-e4db-4b7a-bd34-bd792951b5bb,java,10,Ticket Booking System,"Build a ticket booking system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+26851bc1-12fc-40d2-b252-14e4fbdb2cff,java,12,Java REST API,"Build a java rest api as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+b9107503-7001-450c-a69f-4ddfbcffd376,mernstack,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+df45e14c-a2a6-410f-9593-c9c129ef6bc1,mernstack,1,Library Management System,"Build a library management system as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+4ace7b6d-16d8-4c61-aa45-f3a1e9af0e6c,mernstack,3,Student Portal,"Build a student portal as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+b8c0c904-d051-4581-8932-4d02f532375d,mernstack,4,Job Portal,"Build a job portal as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+0183eb75-fff7-4f58-90dc-85b23148acdd,mernstack,6,Event Booking System,"Build a event booking system as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+f4272207-74ff-4641-80fa-f5cc4ccc6b2a,mernstack,8,Hospital Appointment System,"Build a hospital appointment system as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+6b705a4a-ed20-47ef-9099-a07ad854aa7c,mernstack,10,Inventory Dashboard,"Build a inventory dashboard as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+6a87d1f8-609c-4ddc-887f-bbbbfba0e626,mernstack,12,Car Rental Platform,"Build a car rental platform as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+393d6c79-cf21-446f-a00b-fc43ff01dd30,meanstack,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+6904cedc-65bf-4e25-9eb2-c757b2866dd1,meanstack,2,E-Commerce Platform,"Build a e-commerce platform as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+53a8415d-1dc7-40f9-ac37-1b9451645e5f,meanstack,3,Student Management Portal,"Build a student management portal as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+4b07e910-05b2-4282-bfc6-0a0cf7602445,meanstack,5,Online Course Platform,"Build a online course platform as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+bff896e8-3c47-4d4e-b78a-d84730508482,meanstack,7,Event Management Platform,"Build a event management platform as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+89e4f80c-1e13-4aef-a02e-2c2db837b793,meanstack,9,Job Recruitment Portal,"Build a job recruitment portal as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+11c62d99-905b-4ecb-af6b-d8f3a9702f68,meanstack,10,Hotel Booking System,"Build a hotel booking system as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+f20d7d9d-1d16-4561-8247-47c9d80138ae,meanstack,12,Service Booking Platform,"Build a service booking platform as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+d0c2cf97-a4ab-4bbe-af42-a2cc703819fb,aiml,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+b412b30e-93f3-4161-b613-588a6982133e,aiml,2,Student Performance Prediction,"Build a student performance prediction as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+2e1ecd0c-6005-460f-8dc8-469e0906ac0a,aiml,3,Spam Detection System,"Build a spam detection system as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+eb11236e-0993-4a11-9213-d8ff0b12ef69,flutter,1,Flutter Expense Tracker,"Build a flutter expense tracker as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+26016c7d-e641-4549-a4b4-e4b4e35ac8ff,aiml,6,Movie Recommendation System,"Build a movie recommendation system as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+dd1740ea-bc8c-4b18-9518-d000ea04eb87,aiml,8,Credit Risk Prediction,"Build a credit risk prediction as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+e10f38ec-9fbc-4c0f-ad69-62b49c3ad66e,aiml,10,Image Classification App,"Build a image classification app as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+034c834e-cec6-47ed-b4cc-c9d172e16f80,aiml,12,Fraud Detection Demo,"Build a fraud detection demo as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+23ef07ab-8981-4e44-ad0f-599f56f32984,datascience,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+2a7df09c-2b98-4d14-9d48-940072cfeeca,datascience,1,Sales Data Analysis,"Build a sales data analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+ccc4b003-4b13-42a5-aab5-ace50c413829,datascience,2,Customer Behavior Analysis,"Build a customer behavior analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+b4ed8a6d-fa29-4be5-a7ce-b67dcc9c9aff,datascience,4,Retail Analytics,"Build a retail analytics as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+5aa7460c-2856-4876-8a29-0b785e8a8e20,datascience,5,Movie Dataset Analysis,"Build a movie dataset analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+f2bb6456-b018-473c-b78e-efdafa096335,datascience,7,Healthcare Data Analysis,"Build a healthcare data analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+da8622b8-53e1-4882-8b0b-0fd0f19d191e,datascience,9,Social Media Analytics,"Build a social media analytics as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+85bd6b66-527e-40db-825d-191fdd0f7bd3,datascience,10,Weather Data Analysis,"Build a weather data analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+5271f187-7674-4b1d-98dd-cf56ef64e992,datascience,12,Survey Data Analysis,"Build a survey data analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+17e4fa2b-e90b-4cca-9f41-739fe6fb3e29,uiux,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+484e150f-db4e-447b-bad9-1b722dacfec3,uiux,1,Library App UI,"Build a library app ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+ac869c8d-42a2-4c95-9563-6537ab426b19,uiux,2,E-Commerce App UI,"Build a e-commerce app ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+79473bff-6741-4f7c-8e22-1a6d2e9126d9,uiux,4,Banking App UI,"Build a banking app ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+5acda4cc-5fe0-48df-85b8-cdf80f66a643,uiux,6,Education Platform UI,"Build a education platform ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+275a94e6-c48e-4269-8acd-855a13b40b7b,uiux,7,Healthcare App UI,"Build a healthcare app ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+bd992489-8d7f-4715-a7bf-8cb761554768,uiux,9,Car Rental UI,"Build a car rental ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+33ddb828-8bf2-4c82-b435-ffb81b44e92b,uiux,10,Fitness App UI,"Build a fitness app ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+3ab29b23-8665-451b-bff7-f1e47214ee38,uiux,12,Portfolio Website UI,"Build a portfolio website ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+0245f49f-0429-47e7-aa87-04a09edeeb09,cybersecurity,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+4539f9de-8d65-4742-aa05-ef06d1aa9474,cybersecurity,1,Secure Login System,"Build a secure login system as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+fc712b19-97bf-4572-a955-4bd094f0e69d,cybersecurity,3,Phishing Awareness Page,"Build a phishing awareness page as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+38961d5c-cf54-49c0-bdac-10b0e9d92c34,cybersecurity,5,Web Vulnerability Demo,"Build a web vulnerability demo as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+c78352f3-a29f-4755-b070-a44e6d790fdd,cybersecurity,6,File Integrity Checker,"Build a file integrity checker as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+0d941223-fe3f-4681-860b-dad521a97e45,cybersecurity,8,Secure API Demo,"Build a secure api demo as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+9eb2955b-79e8-4df4-8649-9d897a85ca89,cybersecurity,10,Security Log Analyzer,"Build a security log analyzer as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+ca56ac90-0d62-4965-806f-7a493fe34852,flutter,2,Flutter Notes App,"Build a flutter notes app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+f46c1d89-579a-43fe-a32f-1c5113a07e21,flutter,3,Flutter Weather App,"Build a flutter weather app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+1d73248a-92f9-4598-9231-95f410d6a621,,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+a5a3a771-f63d-495b-965c-ae17658b5627,python,5,Expense Tracker,"Build a expense tracker as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+a87345df-e65a-47e8-ad56-1d2531c7d2f1,python,7,Password Manager Demo,"Build a password manager demo as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+d5f58b02-aa2d-4f94-afd1-ed4ca74dc7bf,python,9,Invoice Generator,"Build a invoice generator as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+213ca779-a809-4157-98cc-bd161c8ad8e3,python,11,Employee Management System,"Build a employee management system as a practical virtual internship project using python development concepts.
+Key Features: Python modules, input validation, data processing, error handling",
+dd8ea315-71bf-4279-8f5e-e76c2cbd1e2e,java,1,Library Management System,"Build a library management system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+e70799a0-c106-4600-9ab5-afd601dc85a5,java,4,Employee Payroll System,"Build a employee payroll system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+f12251af-969d-48cb-a9ce-b690476ec487,java,6,Online Examination System,"Build a online examination system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+01c1ff71-edab-4a9a-aa1d-75ef256f537f,java,9,Vehicle Rental System,"Build a vehicle rental system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+ec7d4b94-c8ab-4180-bf77-2d64c8f96247,java,11,Complaint Management System,"Build a complaint management system as a practical virtual internship project using java development concepts.
+Key Features: OOP structure, database connectivity, validation, exception handling",
+388b2f83-c80a-4805-9e95-0eb38cb25ea4,mernstack,2,E-Commerce Platform,"Build a e-commerce platform as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+9ce63483-7976-4293-aaca-ea20c49ccc5e,mernstack,5,Food Ordering Platform,"Build a food ordering platform as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+db85c318-4c93-421a-b0cb-11e9513de985,mernstack,7,Expense Management App,"Build a expense management app as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+fe071bd6-1ffa-4b85-aefd-e34a9e6e8930,mernstack,9,Real Estate Portal,"Build a real estate portal as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+e469bf0b-cd18-441c-99a1-5928e0cb9af9,mernstack,11,Learning Management System,"Build a learning management system as a practical virtual internship project using mern stack development concepts.
+Key Features: React UI, Node/Express API, MongoDB, CRUD and validation",
+73981732-d375-4b2a-8755-e5ad871f498e,meanstack,1,Library Management System,"Build a library management system as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+e33859f8-5fe6-4ef6-94b9-54852e7f8401,meanstack,4,Employee Management System,"Build a employee management system as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+89619612-89d0-4a91-8818-aac7408425b6,meanstack,6,Hospital Management System,"Build a hospital management system as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+41cf0e8b-dc1a-4301-9a3b-17cdfc6c357a,meanstack,8,Inventory Management System,"Build a inventory management system as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+dfd33526-b854-4508-885e-e21ec17d3e24,meanstack,11,Vehicle Rental System,"Build a vehicle rental system as a practical virtual internship project using mean stack development concepts.
+Key Features: Angular UI, Node/Express API, MongoDB, CRUD and validation",
+0b3cabca-1df5-4a58-86c7-c7f305a24a6a,aiml,1,House Price Prediction,"Build a house price prediction as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+0b57fa84-0ae4-4908-b508-27cfafdebc5b,aiml,4,Customer Churn Prediction,"Build a customer churn prediction as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+b854a944-9916-4e08-9035-c230e80be1a3,aiml,5,Sentiment Analysis App,"Build a sentiment analysis app as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+6531e9b7-2485-4024-96c4-295712fd094e,aiml,7,Disease Risk Prediction Demo,"Build a disease risk prediction demo as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+a84685e2-c96b-4682-90b2-88440c23ac94,aiml,9,Sales Forecasting System,"Build a sales forecasting system as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+ee6e4f00-a837-46ee-a530-039965850e0c,aiml,11,Customer Segmentation,"Build a customer segmentation as a practical virtual internship project using ai & machine learning concepts.
+Key Features: Data preprocessing, model training, evaluation, prediction interface",
+053c8fea-edcd-4f00-bcdc-2fec73ba3d1a,genai,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+b3512597-f4ca-4d31-8134-58326c6fd120,genai,1,AI Chatbot,"Build a ai chatbot as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+5fd5c0e0-845a-454c-97fd-956eb11d4b60,genai,2,AI Resume Assistant,"Build a ai resume assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+c03ec30f-ba2b-4096-89f9-7115837564fa,genai,3,AI Study Assistant,"Build a ai study assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+8aab3d7b-864b-4fee-9dff-fe1641736cb9,genai,4,AI Content Generator,"Build a ai content generator as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+1887872f-cd91-425c-81ee-bcbe6ae5ee4b,genai,5,AI Email Writer,"Build a ai email writer as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+a42b3dad-a663-4a2e-a560-b2720b5b3a08,genai,6,AI Code Assistant,"Build a ai code assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+12c740b9-4d5f-494b-84cd-4130f68d1e93,genai,7,AI FAQ Generator,"Build a ai faq generator as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+c1bee184-fe70-497d-9a1a-8c19e3d7a6e3,genai,8,AI Interview Assistant,"Build a ai interview assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+7191faf5-4fec-4a1e-a015-f9dfb348e36a,genai,9,AI Summarization Tool,"Build a ai summarization tool as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+1ecb1168-962f-4c64-9df9-86d4ddd83e8f,genai,10,AI Presentation Assistant,"Build a ai presentation assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+1178ebd6-0077-4f12-b5d9-965b7eab72e8,genai,11,AI Prompt Library,"Build a ai prompt library as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+b53ed367-b623-403f-9810-99f71a59aa7f,genai,12,AI Document Q&A Assistant,"Build a ai document q&a assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+a6670dfa-17c9-4914-a2c3-e858ee8315f6,datascience,3,Student Performance Analysis,"Build a student performance analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+d9517a0c-cc73-4216-8d04-408d28fdb1e5,datascience,6,E-Commerce Data Analysis,"Build a e-commerce data analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+1a820399-d482-499a-b8de-a3914eb791c5,datascience,8,Financial Data Analysis,"Build a financial data analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+fd7141e6-b342-4bd7-9ac0-a3d1178df1b9,datascience,11,Sports Data Analysis,"Build a sports data analysis as a practical virtual internship project using data science concepts.
+Key Features: Data cleaning, analysis, charts, insights, report generation",
+aab40e43-f9bc-47d4-9972-5f6816652c76,dataanalytics,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+37e4aef3-4508-4613-a891-c9d140934ca0,dataanalytics,1,Sales Dashboard,"Build a sales dashboard as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+7a95bcd2-f222-46bb-8472-c31a586fc57f,dataanalytics,2,Customer Analytics Dashboard,"Build a customer analytics dashboard as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+a5d3c1c5-e499-4060-89c1-ae725190602d,dataanalytics,3,Inventory Analytics,"Build a inventory analytics as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+d7712cc0-b24a-489c-9c92-c5d7691f7058,dataanalytics,4,HR Analytics Dashboard,"Build a hr analytics dashboard as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+5de8a342-cb1c-4814-9c40-7a285a9cc9e5,dataanalytics,5,Marketing Campaign Analysis,"Build a marketing campaign analysis as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+8cdfcb06-7492-4f8b-813d-2f5cec165a9b,dataanalytics,6,Website Traffic Analysis,"Build a website traffic analysis as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+f6c64339-01fa-40af-9f6d-35975f2e990b,dataanalytics,7,Financial KPI Dashboard,"Build a financial kpi dashboard as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+26f57128-3ad7-4d0a-a88c-ca7754e247a9,dataanalytics,8,Student Analytics Dashboard,"Build a student analytics dashboard as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+ee1b9b81-81f7-45c8-b972-5fafeee1560a,dataanalytics,9,Retail Performance Dashboard,"Build a retail performance dashboard as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+4af6415a-2ae2-4922-962f-d7c0035eee37,dataanalytics,10,Support Ticket Analysis,"Build a support ticket analysis as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+e28f6b06-192f-4088-b019-0a4b66f709d4,dataanalytics,11,Delivery Performance Analysis,"Build a delivery performance analysis as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+e3d6cee8-b9b4-44a1-9061-f6ccd1d1fb44,dataanalytics,12,Business KPI Dashboard,"Build a business kpi dashboard as a practical virtual internship project using data analytics concepts.
+Key Features: Data preparation, KPIs, filters, charts, actionable insights",
+430ea24a-495d-44ce-8fd0-7c0c1201ed04,powerbi,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+62135600-9adc-4627-a53d-3f755970e5a1,powerbi,1,Sales Performance Dashboard,"Build a sales performance dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+1fcb2390-0b79-4c0e-a581-119d6b413fd0,powerbi,2,HR Analytics Dashboard,"Build a hr analytics dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+38a3d846-02d6-4aa5-9fe2-616ac2fe2859,powerbi,3,Finance Dashboard,"Build a finance dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+487c1e23-37c0-4247-b78c-3448b1a46e9d,powerbi,4,Inventory Dashboard,"Build a inventory dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+88ba6292-0020-4970-93b7-2dfafd3f9ab6,powerbi,5,Marketing Dashboard,"Build a marketing dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+8671321e-18d5-499e-89a4-7193c9cd45cf,powerbi,6,Customer Insights Dashboard,"Build a customer insights dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+91a979cd-2eb0-4dbf-bfc9-b9860b7c6428,powerbi,7,Hospital KPI Dashboard,"Build a hospital kpi dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+97b6a985-f58a-4d9e-a946-b9f492493e16,powerbi,8,Education Dashboard,"Build a education dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+55724788-5ce7-4809-83df-e759860bccef,powerbi,9,Retail Dashboard,"Build a retail dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+f15a0724-ac06-4999-845c-1f97a778b2ae,powerbi,10,Project Performance Dashboard,"Build a project performance dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+51241152-be17-4444-9082-3e554ebc96e7,powerbi,11,Supply Chain Dashboard,"Build a supply chain dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+09772cd3-1f67-45cf-a2be-c6b5838bf07a,powerbi,12,Executive KPI Dashboard,"Build a executive kpi dashboard as a practical virtual internship project using power bi & business intelligence concepts.
+Key Features: Interactive dashboard, KPIs, slicers, charts, business insights",
+3cb0961f-a6c7-40d1-b7ad-8737c59c90b2,uiux,3,Food Delivery UI,"Build a food delivery ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+5dd32e41-0676-461a-97dc-7f80865e0918,uiux,5,Travel Booking UI,"Build a travel booking ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+5515ffe9-46bb-4bc7-a8f9-e1a602239319,uiux,8,Job Portal UI,"Build a job portal ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+9901c935-7b71-4b4d-9253-7d80b935c7c7,uiux,11,Event Booking UI,"Build a event booking ui as a practical virtual internship project using ui/ux design concepts.
+Key Features: Wireframes, component design, responsive screens, prototype flow",
+03a141f9-d81a-4ede-9fdb-bdd6721728bb,graphicdesign,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+6d030599-8d7c-49b7-a1d8-4c8fea9da329,graphicdesign,1,Brand Identity Kit,"Build a brand identity kit as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+0eaee89e-c77c-47fd-949a-7f96a1b1b5ce,graphicdesign,2,Social Media Post Set,"Build a social media post set as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+09bc9340-d49d-426b-b7ca-33253e958a9b,graphicdesign,3,Internship Poster,"Build a internship poster as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+1a596cf3-de5f-464a-9e1b-a5ece11c37c4,graphicdesign,4,Business Flyer,"Build a business flyer as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+fa8106c8-5976-46e6-a71d-b92d9910576b,graphicdesign,5,Certificate Design,"Build a certificate design as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+8f688c81-e40d-4f20-9c6e-c1c644e834f3,graphicdesign,6,Event Poster,"Build a event poster as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+772ec40b-153b-433b-ac3e-580397970f12,graphicdesign,7,Product Advertisement,"Build a product advertisement as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+b9828992-ec7f-4bdc-9ee1-d2d5fd477145,graphicdesign,8,YouTube Thumbnail Set,"Build a youtube thumbnail set as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+3a9d0e14-24d5-4f61-a5d6-4c6a8834f53b,graphicdesign,9,Instagram Campaign Kit,"Build a instagram campaign kit as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+7920984c-8261-4408-9044-7984654e9974,graphicdesign,10,Company Brochure,"Build a company brochure as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+1f83ac8f-6bf0-463c-b74d-87144e41cf98,graphicdesign,11,Business Card Design,"Build a business card design as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+47d7b5f7-cfb2-450c-95fb-cf2acf4d0404,graphicdesign,12,Presentation Design,"Build a presentation design as a practical virtual internship project using graphic design concepts.
+Key Features: Layout, typography, branding, visual hierarchy, export-ready assets",
+17f67750-b016-4661-9f7d-a395678f504c,flutter,4,Flutter Quiz App,"Build a flutter quiz app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+813bbb19-ce65-44e4-9590-1c93ec0c13a0,cybersecurity,2,Password Strength Analyzer,"Build a password strength analyzer as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+56e4481c-1a99-46b1-948a-08904eb5b636,cybersecurity,4,Security Audit Checklist,"Build a security audit checklist as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+11d7e81b-09ab-4819-b3c7-88652f0a28c4,cybersecurity,7,Network Monitoring Dashboard,"Build a network monitoring dashboard as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+6a61af59-4f24-430f-85be-6f105c4d0b49,cybersecurity,9,Role-Based Access Control,"Build a role-based access control as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+eaef7e71-0a38-49d6-aa13-acb223af41e4,cybersecurity,11,Cyber Awareness Portal,"Build a cyber awareness portal as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+f613dc53-0373-4088-a4bc-6dcb46c522a4,cybersecurity,12,Incident Reporting System,"Build a incident reporting system as a practical virtual internship project using cyber security concepts.
+Key Features: Authentication concepts, input validation, security checks, logging, awareness",
+9c609302-7cba-45d2-a96d-a0f38dd98061,cloudcomputing,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+dfe8e1dd-ee26-4270-8768-617ad014210a,cloudcomputing,1,Cloud File Storage App,"Build a cloud file storage app as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+8a50eb03-2dc3-46ac-8003-e2ad3f9ae7e8,cloudcomputing,2,Static Website Deployment,"Build a static website deployment as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+624a9f3b-e182-4aaf-9049-fa726aa8ee0b,cloudcomputing,3,Cloud Database App,"Build a cloud database app as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+bb500cc3-a4d3-4422-ab2d-463a4e28331d,cloudcomputing,4,Serverless API,"Build a serverless api as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+56ceed50-e7ac-4dbc-9618-4f0d4d67b510,cloudcomputing,5,Cloud Monitoring Dashboard,"Build a cloud monitoring dashboard as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+7888018c-613e-438c-a0ae-970ce47b31c0,cloudcomputing,6,Cloud Backup System,"Build a cloud backup system as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+ff1ca142-7602-493d-a17a-f2a9993effc6,cloudcomputing,7,Scalable Web App,"Build a scalable web app as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+2c663fa1-d084-4496-bf86-99c7a49cf467,cloudcomputing,8,Cloud Authentication System,"Build a cloud authentication system as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+548236b3-a3eb-4b59-8050-c0068de97e5f,cloudcomputing,9,Containerized Web App,"Build a containerized web app as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+c37a8b8f-17f9-4209-8c64-c74d92e2977b,cloudcomputing,10,Cloud Image Storage,"Build a cloud image storage as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+7a4c95de-d8d2-46de-997a-65a5a8309d7a,cloudcomputing,11,Cloud Notification Service,"Build a cloud notification service as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+10365c2e-5b06-49e4-a9d6-cd811881595a,cloudcomputing,12,Cloud Cost Dashboard,"Build a cloud cost dashboard as a practical virtual internship project using cloud computing concepts.
+Key Features: Cloud deployment, storage/database integration, access control, monitoring",
+f62e2a50-3687-44bf-817c-f9e477aaa7b1,devops,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+2f125c75-ee0b-4edd-a514-c61bf3df9279,devops,1,Git Workflow Project,"Build a git workflow project as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+7698d823-c543-4713-aedc-50cb85a16055,devops,2,CI/CD Pipeline,"Build a ci/cd pipeline as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+4e7899fc-71c0-4615-9aed-1d9745948281,devops,3,Dockerized Web App,"Build a dockerized web app as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+84e9bd08-0501-4cf7-acb7-3de3843d5d5a,devops,4,Automated Testing Pipeline,"Build a automated testing pipeline as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+e0bdf779-c7af-4b23-be7f-e23d88fe975e,devops,5,Deployment Automation,"Build a deployment automation as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+aeea60db-d648-429b-a6a4-0b81fb43339d,devops,6,Infrastructure Monitoring,"Build a infrastructure monitoring as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+7d4e86e0-b1cc-46e4-8d5a-f008a7461843,devops,7,Log Management Setup,"Build a log management setup as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+76d69e57-e208-410f-b263-8f88a8ccb7e6,devops,8,Container Orchestration Demo,"Build a container orchestration demo as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+5b02b244-1203-4d45-8b95-a54eaec30721,devops,9,Release Management Pipeline,"Build a release management pipeline as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+9c0e15e3-1df6-42dd-88b0-5fdfe6b45042,devops,10,Environment Configuration System,"Build a environment configuration system as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+9d94b64b-080d-4ac3-8fc3-6e480b942990,devops,11,DevOps Dashboard,"Build a devops dashboard as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+0d83f205-cd3c-4d6c-b97d-10bc03e74fd1,devops,12,Automated Backup Pipeline,"Build a automated backup pipeline as a practical virtual internship project using devops concepts.
+Key Features: Git workflow, automation, CI/CD, deployment, monitoring",
+1b988778-dad9-483e-b0d8-1e11241042dd,softwaretesting,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+00b2677f-6cfc-44f0-ac38-5df8289fc8ec,softwaretesting,1,Test Plan for E-Commerce,"Build a test plan for e-commerce as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+f6f11521-2381-4fc9-b071-72ff11a1d7e8,softwaretesting,2,Library System Test Suite,"Build a library system test suite as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+daba50a9-e8a0-4a53-96d9-28506452eb22,softwaretesting,3,API Testing Project,"Build a api testing project as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+2eef7105-ee6a-42a2-9c53-bb0830f5f497,softwaretesting,4,Login Testing Suite,"Build a login testing suite as a practical virtual internship project using software testing & qa concepts.
+Key Features: Test cases, test execution, defect reporting, regression, test summary",
+6482a355-d11f-4a2d-9650-72a4a5c92a7f,flutter,5,Flutter E-Commerce UI,"Build a flutter e-commerce ui as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+ebce4368-9167-4fdf-a720-d6e0682c6d15,flutter,6,Flutter Food Ordering App,"Build a flutter food ordering app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+fe29239c-a1a0-4e15-9f07-1ec8cd498914,flutter,7,Flutter Library App,"Build a flutter library app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+8edbc855-525b-4fd5-b052-b9e52f3c0fa3,flutter,8,Flutter Event Booking App,"Build a flutter event booking app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+a77fd3f2-a3cb-4f9c-9548-d3cf7754655c,flutter,9,Flutter Task Manager,"Build a flutter task manager as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+d38be47c-fd30-4302-970e-b218e4fdaa6c,flutter,10,Flutter Car Rental App,"Build a flutter car rental app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+3357f564-6e96-49a8-87eb-e72e4575de27,flutter,11,Flutter Student Portal,"Build a flutter student portal as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+00580a98-d087-4a4c-bb47-908c0b145f61,flutter,12,Flutter Appointment App,"Build a flutter appointment app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+f8613a79-ec70-4626-952f-94aea6befc8f,digitalmarketing,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+fede63e8-51e2-4e66-af0a-276d6daab1fe,digitalmarketing,1,SEO Audit Project,"Build a seo audit project as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+92f21465-c5d9-4a15-9e18-ed8e3fdadc4b,digitalmarketing,4,Google Ads Campaign Plan,"Build a google ads campaign plan as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+cf765c95-4039-4a36-808f-cef0c9fcd560,digitalmarketing,6,Brand Awareness Campaign,"Build a brand awareness campaign as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+91c8addf-e3a0-47f8-b55e-8b83b5ebf637,digitalmarketing,7,Competitor Analysis,"Build a competitor analysis as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+e5fe63a2-fff7-49e2-b45b-569a22f697e9,digitalmarketing,8,Keyword Research Project,"Build a keyword research project as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+911ecd2a-7148-468e-bf9b-746fc51d22b7,digitalmarketing,9,Influencer Campaign Plan,"Build a influencer campaign plan as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+20a3cdf2-8a07-4bd9-b51f-0d6bdaaad865,digitalmarketing,10,Website Conversion Analysis,"Build a website conversion analysis as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+bffb31d1-8037-4f16-88d9-405c7b6d1199,digitalmarketing,11,Digital Marketing Report,"Build a digital marketing report as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+f90966aa-7178-425d-9c12-a99745375ce0,digitalmarketing,12,30-Day Content Calendar,"Build a 30-day content calendar as a practical virtual internship project using digital marketing concepts.
+Key Features: Research, campaign planning, SEO/social strategy, analytics report",
+6566503c-0f3e-4a23-a34a-bfae66efa591,socialmedia,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+d591f695-be3f-4ce8-9cc5-f75335edae44,socialmedia,1,Instagram Content Calendar,"Build a instagram content calendar as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+c41f60d3-6b0b-4f76-b500-67f711f868a5,socialmedia,2,LinkedIn Content Strategy,"Build a linkedin content strategy as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+bb5472f7-a6fb-4193-891f-fb2507928996,socialmedia,3,YouTube Content Plan,"Build a youtube content plan as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+2586256b-b25c-4057-974a-8df67dbba351,socialmedia,4,Facebook Campaign Plan,"Build a facebook campaign plan as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+ff4e5cf5-e426-4bdb-8148-f2b7c2978f2c,socialmedia,5,Social Media Audit,"Build a social media audit as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+530c2974-1b94-4768-ab29-86255072b837,socialmedia,6,Hashtag Strategy,"Build a hashtag strategy as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+82a70e38-173e-4a48-83bc-f7a16a59aac7,socialmedia,7,Engagement Growth Plan,"Build a engagement growth plan as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+081ae602-51ae-438f-9f71-8e90559c7430,socialmedia,8,Brand Page Setup,"Build a brand page setup as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+c3bf9193-f0f4-4e48-9e63-7d62f48e6104,socialmedia,9,Social Media Analytics Report,"Build a social media analytics report as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+36e9b262-5952-4b79-9909-3c9589f6f0dc,socialmedia,10,Reels Content Plan,"Build a reels content plan as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+da76a199-e91c-4e2d-b2cd-b3477f402b79,socialmedia,11,Community Management Plan,"Build a community management plan as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+86e925ee-5e6b-4bac-92a3-459abdb1a7c4,socialmedia,12,Monthly Social Media Report,"Build a monthly social media report as a practical virtual internship project using social media management concepts.
+Key Features: Content planning, publishing strategy, engagement tracking, analytics",
+198cd8da-a461-4a51-ba1d-e490f3312506,contentwriting,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+ebef5f28-0611-4a82-841f-3ac2a466014c,contentwriting,1,Company Website Content,"Build a company website content as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+74968774-e6da-4d76-9b4f-9bbb534d1590,contentwriting,2,Technology Blog Series,"Build a technology blog series as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+d01b3378-cba6-4b23-a131-d43299ae71f8,contentwriting,3,Product Descriptions,"Build a product descriptions as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+d20c10a9-f5cb-4ae9-a639-1b319ed909fb,contentwriting,4,SEO Blog Article,"Build a seo blog article as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+7289bb4b-5236-435c-ab11-2e5390edd713,contentwriting,5,Internship Landing Page Copy,"Build a internship landing page copy as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+dd7e3e52-48bb-442e-b8c4-d3224e2d0e0d,contentwriting,6,Social Media Content Pack,"Build a social media content pack as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+498bb9e7-a930-4125-a5a0-0314cdfc0e2c,contentwriting,7,Email Newsletter,"Build a email newsletter as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+0778b213-e87e-4638-97ad-92554590e9d0,contentwriting,8,Press Release Draft,"Build a press release draft as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+9268651b-1f24-4280-b8f2-6622292efdc1,contentwriting,9,Technical Documentation,"Build a technical documentation as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+729bf951-b542-407a-acf6-62104d619d8c,contentwriting,10,FAQ Content,"Build a faq content as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+1abd84af-0c87-40b5-be12-10d584ac4303,contentwriting,11,Case Study Article,"Build a case study article as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+eee69fc4-9167-41ec-bf70-7d8fdf01c666,contentwriting,12,Portfolio Content,"Build a portfolio content as a practical virtual internship project using content writing concepts.
+Key Features: Research, structured writing, SEO basics, editing, publishing",
+c2f3cb44-7264-4ccf-ae68-2bc7d9f8f449,videoediting,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+7a53b6fc-5dbe-4b7e-a504-6515666113e7,videoediting,1,Short-Form Reel,"Build a short-form reel as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+846f3f2a-ec4c-422d-910c-1d568717651f,videoediting,2,YouTube Intro Video,"Build a youtube intro video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+eb814b48-36b7-493b-81aa-abb0d93abcb0,videoediting,3,Product Promo Video,"Build a product promo video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+6e936bee-710b-4f36-a34a-136dbd28920c,videoediting,4,Company Introduction Video,"Build a company introduction video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+327a9e32-6821-49c8-9f93-a750938bb183,videoediting,5,Internship Promo Video,"Build a internship promo video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+235a97a7-f7e3-450a-ab76-f95c1272bdaf,videoediting,6,Educational Video,"Build a educational video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+84ca77df-6511-473e-8bf5-7b7f007d9575,videoediting,7,Social Media Ad Video,"Build a social media ad video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+0c3a70ba-a007-4e03-9666-2d27a168fb38,videoediting,8,Event Highlight Video,"Build a event highlight video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+457e4dfa-d984-4942-bc4b-55d5cad771be,videoediting,9,Tutorial Video,"Build a tutorial video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+a3ab9037-8401-4a72-b482-62226a3e6aa1,videoediting,10,YouTube Thumbnail + Video Package,"Build a youtube thumbnail + video package as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+719074b1-383c-4bdb-adcc-c8e456656435,videoediting,11,Brand Motion Video,"Build a brand motion video as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+c163c194-9de0-4554-abab-4b78f5b5b93b,videoediting,12,Short Documentary Edit,"Build a short documentary edit as a practical virtual internship project using video editing concepts.
+Key Features: Editing timeline, transitions, captions, audio cleanup, export",
+0a33c834-6209-4257-9e35-2b552bb7cadf,wordpress,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+1dce278d-1f43-44dd-bb59-33fb0aabd4eb,wordpress,1,Business Website,"Build a business website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+550cdf8b-0889-4a50-b08e-1cc363ce5ebc,wordpress,2,Portfolio Website,"Build a portfolio website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+08f685ac-4ac7-4c6b-b9b5-5b203220a05a,wordpress,3,Blog Website,"Build a blog website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+45a696f9-3938-4667-ba8b-2e45bb597bdf,wordpress,4,Restaurant Website,"Build a restaurant website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+0462fc81-4c5c-4d87-987f-b928f511877b,wordpress,5,College Website,"Build a college website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+9b5ec4fb-32c0-44d8-988f-ab9793200662,wordpress,6,E-Commerce Website,"Build a e-commerce website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+c6faf87b-b585-430b-9444-9a1a313bdbfd,wordpress,7,Agency Website,"Build a agency website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+adfcbba1-e588-488f-bd86-b05eee8e8e79,wordpress,8,News Website,"Build a news website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+d1acde58-d7de-4048-9a10-3d532e4980cf,wordpress,9,Internship Portal,"Build a internship portal as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+a3a2989e-5656-4ece-b654-a0bced0c7035,wordpress,10,Real Estate Website,"Build a real estate website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+6c25d34a-5e27-4843-93e5-10a1ee0f5637,wordpress,11,Event Website,"Build a event website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+0bd82a8e-f549-49ea-9bf4-a705188bc92d,wordpress,12,Service Booking Website,"Build a service booking website as a practical virtual internship project using wordpress development concepts.
+Key Features: Theme customization, pages, forms, responsive layout, SEO basics",
+867b5f11-f184-4571-b95f-86e73221d594,databasemanagement,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+27b6c662-c320-4125-9669-857e6aaf019e,databasemanagement,1,Library Database,"Build a library database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+baa8f3a0-43ae-4825-91bf-3c904b4a35f5,databasemanagement,2,Student Database,"Build a student database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+eed5a789-f62d-465f-b5f4-7f654e36ce3b,databasemanagement,3,Employee Database,"Build a employee database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+094e921a-f83d-4b32-a315-628ed9a4a73a,databasemanagement,4,Inventory Database,"Build a inventory database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+f7f457ef-3099-4c85-ace4-acd7e6fa6236,databasemanagement,5,Hospital Database,"Build a hospital database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+63541ee2-bb72-4e61-bba3-a3a14e69e5e8,databasemanagement,6,E-Commerce Database,"Build a e-commerce database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+d7475810-1754-45a3-9c16-7da5048410a5,databasemanagement,7,Hotel Booking Database,"Build a hotel booking database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+1886566a-b626-4f48-a54e-0ac0327b55c3,databasemanagement,8,Vehicle Rental Database,"Build a vehicle rental database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+bf9954a7-dd49-4a55-a6f9-0041995e2084,databasemanagement,9,Course Management Database,"Build a course management database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+7cb3aa5b-87f3-4887-b0cf-d197b2557144,databasemanagement,10,Customer Database,"Build a customer database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+b34dcc88-a39f-4400-831b-656962387af1,databasemanagement,11,Sales Database,"Build a sales database as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+5a9ceaed-e4ab-4f2f-b10b-a15cd8212ec0,databasemanagement,12,Database Backup & Reporting System,"Build a database backup & reporting system as a practical virtual internship project using database management concepts.
+Key Features: Schema design, relationships, queries, CRUD operations, backup/reporting",
+69350a16-22de-462b-8de3-50f6a86bb34f,gamedevelopment,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+968cfb5a-a2b4-4a19-8d88-d2aa6f5ee234,gamedevelopment,1,2D Platform Game,"Build a 2d platform game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+01fd0b9b-2a0c-413b-82a2-112403cfe64c,gamedevelopment,2,Quiz Game,"Build a quiz game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+477bca69-1905-4436-a780-4d4abe2489fb,gamedevelopment,3,Memory Game,"Build a memory game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+ef8be604-00ae-4ec9-b901-42a2739d259a,gamedevelopment,4,Tic-Tac-Toe Game,"Build a tic-tac-toe game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+d9b9ba5f-9b82-4c1a-9044-b27e20caa338,gamedevelopment,5,Snake Game,"Build a snake game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+b09a4ed1-87b7-47aa-884b-213eed173511,gamedevelopment,6,Puzzle Game,"Build a puzzle game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+4afcf48b-b73f-49a6-8869-4ccdef48adc5,gamedevelopment,7,Space Shooter Demo,"Build a space shooter demo as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+9c862e27-6f10-43bc-9145-9a7d70a7ae24,gamedevelopment,8,Car Racing Game,"Build a car racing game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+607bbe3d-86e9-4254-a341-815eddde558e,gamedevelopment,9,Endless Runner,"Build a endless runner as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+92f78d4c-ed37-432b-a94f-affb47f0feaf,gamedevelopment,10,Maze Game,"Build a maze game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+5ca800f3-54e8-4b43-8b00-9032da430cd9,gamedevelopment,11,Chess Game,"Build a chess game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+4242fde2-3053-4ba4-98c5-df190cc62158,gamedevelopment,12,Educational Game,"Build a educational game as a practical virtual internship project using game development concepts.
+Key Features: Game mechanics, UI, scoring, controls, testing",
+1f7956b2-65e2-440a-85ce-fe6a5d801f01,generativeai,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+8f4a3b2d-fea8-4831-a5f0-142226772fb1,generativeai,1,AI Chatbot,"Build a ai chatbot as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+8f9d00f5-ed6f-4226-b45b-a2d3002106f0,generativeai,2,AI Resume Assistant,"Build a ai resume assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+30c298cb-1b3a-4309-888d-975fecf172a5,generativeai,3,AI Study Assistant,"Build a ai study assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+cd75df0f-4b7e-4a98-a49a-9bc65a3a5064,generativeai,4,AI Content Generator,"Build a ai content generator as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+04c08e1a-3e1a-42a8-a9a7-0e88fc17c513,generativeai,5,AI Email Writer,"Build a ai email writer as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+378f11c8-1ff9-4729-886b-911bf3a24eaa,generativeai,6,AI Code Assistant,"Build a ai code assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+61e84933-4d63-4904-aa3a-a4d79142cf06,generativeai,7,AI FAQ Generator,"Build a ai faq generator as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+2441b917-61e7-4556-974c-289b56b2c7a8,generativeai,8,AI Interview Assistant,"Build a ai interview assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+99cc7370-f647-43de-aec3-621ee15d4e92,generativeai,9,AI Summarization Tool,"Build a ai summarization tool as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+9ad92502-511b-4b59-90b2-bd7514b485d5,generativeai,10,AI Presentation Assistant,"Build a ai presentation assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+3c91164e-acb9-4858-b3ea-2de805c25016,generativeai,11,AI Prompt Library,"Build a ai prompt library as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+04b7ba0b-a7c0-4e3e-93a2-dbebfdc04074,generativeai,12,AI Document Q&A Assistant,"Build a ai document q&a assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+7d719eba-9e2c-49af-876c-820896d4617c,promptengineering,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+3f93ad36-33b3-48fa-951c-ae6ef52fac9d,promptengineering,1,AI Chatbot,"Build a ai chatbot as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+40b8fd68-df4e-4f09-a8c9-193a883b0924,promptengineering,2,AI Resume Assistant,"Build a ai resume assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+3ac81011-0b7e-4438-83d2-e219f4c51b8f,promptengineering,3,AI Study Assistant,"Build a ai study assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+c2ce43b4-00b1-4009-bb61-c7a3241f0c9c,promptengineering,4,AI Content Generator,"Build a ai content generator as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+b776bfbb-3882-4a70-a361-e40247d0b979,promptengineering,5,AI Email Writer,"Build a ai email writer as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+3d54327e-cc23-4e75-a09d-6cf3d7406253,promptengineering,6,AI Code Assistant,"Build a ai code assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+4236beb2-620c-4e75-9650-e3260a997544,promptengineering,7,AI FAQ Generator,"Build a ai faq generator as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+af21e518-cae0-4174-8909-1e173a1b63a3,promptengineering,8,AI Interview Assistant,"Build a ai interview assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+5f11a43d-88dc-4d27-8e28-37cc1dfdaf82,promptengineering,9,AI Summarization Tool,"Build a ai summarization tool as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+7385ee3c-1497-40f4-a029-3278ab8f6076,promptengineering,10,AI Presentation Assistant,"Build a ai presentation assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+55bf6b45-ddcb-4e61-b1e1-41066d0e446c,promptengineering,11,AI Prompt Library,"Build a ai prompt library as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+6236f770-37c1-456f-9ea0-903b4d59a3d7,promptengineering,12,AI Document Q&A Assistant,"Build a ai document q&a assistant as a practical virtual internship project using generative ai & prompt engineering concepts.
+Key Features: Prompt design, AI API integration, context handling, response generation",
+993498a9-fb5f-43b1-b1e1-80f417e7e7d6,flutterdevelopment,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+d540b915-8350-42d0-aa09-4a0a1412f8ab,flutterdevelopment,1,Flutter Expense Tracker,"Build a flutter expense tracker as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+c8ef8390-5453-4e24-8749-5e0230ed7b87,flutterdevelopment,2,Flutter Notes App,"Build a flutter notes app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+52216f58-f98b-47e9-910e-66bfc8022fb8,flutterdevelopment,3,Flutter Weather App,"Build a flutter weather app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+1d327fa7-6126-45ff-b1ee-a817f5b20b4c,flutterdevelopment,4,Flutter Quiz App,"Build a flutter quiz app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+c803b981-a94b-4798-9a77-51158a4e1733,flutterdevelopment,5,Flutter E-Commerce UI,"Build a flutter e-commerce ui as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+2493d930-e50f-41b8-a78c-0c419808d9f9,flutterdevelopment,6,Flutter Food Ordering App,"Build a flutter food ordering app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+da837e67-037d-43c3-8534-a599139f80fc,flutterdevelopment,7,Flutter Library App,"Build a flutter library app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+99fd2344-9d75-4d2a-8524-e8367ae1773e,flutterdevelopment,8,Flutter Event Booking App,"Build a flutter event booking app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+9ae81768-68a1-4408-a569-49ebcb69119f,flutterdevelopment,9,Flutter Task Manager,"Build a flutter task manager as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+10e51355-40bc-4a12-92be-291a11b1e12c,flutterdevelopment,10,Flutter Car Rental App,"Build a flutter car rental app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+ca04fc1a-a41f-4520-b8ac-a69bec3dddfb,flutterdevelopment,11,Flutter Student Portal,"Build a flutter student portal as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+7285184a-385a-4d70-b19d-1ca888816a47,flutterdevelopment,12,Flutter Appointment App,"Build a flutter appointment app as a practical virtual internship project using flutter development concepts.
+Key Features: Flutter widgets, navigation, state handling, responsive UI",
+27f96f37-0586-4b48-b8a0-ad6ea057f3d9,androiddevelopment,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+efe80524-8c61-426c-b131-9d600a648c73,androiddevelopment,1,Student Management App,"Build a student management app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+f396a6f4-9375-435a-8524-6478db5afd15,androiddevelopment,2,Expense Tracker App,"Build a expense tracker app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+56575012-acf8-420a-ba05-7b595effe213,androiddevelopment,3,Notes App,"Build a notes app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+3aa4fe2e-300b-47b4-a9c8-0c090ad7852c,androiddevelopment,4,Weather App,"Build a weather app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+2fa9122f-33b3-4505-bc44-64d7d21ffc60,androiddevelopment,5,Food Ordering App,"Build a food ordering app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+dca44f65-6c1b-4db0-9427-b301dbe830b9,androiddevelopment,6,Event Booking App,"Build a event booking app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+4e6d4d09-86a8-4a67-bb3c-46b66e483c58,androiddevelopment,7,Library App,"Build a library app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+d1c6d7e1-0c61-4e04-ac72-2475a6e520e0,androiddevelopment,8,Task Management App,"Build a task management app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+57cb15cc-70f3-4a67-bcf8-76e5992b5df5,androiddevelopment,9,Car Rental App,"Build a car rental app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+a6322302-eb93-4b24-ba46-603c598f46ba,androiddevelopment,10,News Reader App,"Build a news reader app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+70c3f3c8-89b9-400f-870d-d411e38f95e9,androiddevelopment,11,Quiz App,"Build a quiz app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+7ddb313f-6f0a-4c7a-83e7-406ea02be8cc,androiddevelopment,12,Appointment Booking App,"Build a appointment booking app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+ba9dca23-0dd6-409e-bd92-7813ccb04bca,reactnative,0,Share Your Offer Letter on LinkedIn,Post your Skyrovix offer letter on LinkedIn to celebrate your internship and inspire others.,
+75585555-644b-42f3-89ff-ef59d3037481,reactnative,1,Student Management App,"Build a student management app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+58cc0fc8-8309-4bcc-8475-3ac379e56b3b,reactnative,2,Expense Tracker App,"Build a expense tracker app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+0152a70c-7435-465b-b229-3c5a194fe248,reactnative,3,Notes App,"Build a notes app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+98857ec5-03a9-4556-8168-7437f3d0b9d4,reactnative,4,Weather App,"Build a weather app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+b180ae73-78dd-4f77-94f0-120edfd5b82c,reactnative,5,Food Ordering App,"Build a food ordering app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+64ab4309-c025-439d-a64e-2261664dbc03,reactnative,6,Event Booking App,"Build a event booking app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+d1985a10-0284-4803-8666-a2fb1b017847,reactnative,7,Library App,"Build a library app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+c07f3c07-971e-448d-9136-0cadc4d9f370,reactnative,8,Task Management App,"Build a task management app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+202cd2eb-cd5f-44b5-a607-db233824170b,reactnative,9,Car Rental App,"Build a car rental app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+56bdc339-a970-4c43-9c1b-4dc5806c9dfd,reactnative,10,News Reader App,"Build a news reader app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+5df209c1-50d1-4d36-81c8-e0a92701ae84,reactnative,11,Quiz App,"Build a quiz app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",
+cf5a302b-703c-4396-89ed-b69b305f8631,reactnative,12,Appointment Booking App,"Build a appointment booking app as a practical virtual internship project using mobile app development concepts.
+Key Features: Responsive mobile screens, navigation, local/API data, validation",

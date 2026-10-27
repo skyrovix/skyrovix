@@ -1,2 +1,0 @@
-id,user_id,course_id,status,progress_percent,current_topic_id,started_at,completed_at,created_at,updated_at
-4c9765bb-a452-404c-9b64-4e55106282b1,1fa0bfc8-61d4-4226-bfd7-d2c10422d467,f5e5840f-61fa-4a38-ae99-0b5b31d45395,completed,100,e59adadb-cacc-4126-8aee-545da764f7f1,2026-10-21T15:42:18.926Z,2026-10-21T15:52:06.659Z,2026-10-21T15:42:18.926Z,2026-10-21T15:42:18.926Z

@@ -191,7 +191,7 @@ export function SlideLeft({
   delay?: number;
   className?: string;
 }) {
-  return <div className={`transition-all duration-300 ${className}`}>{children}</div>;
+  return <div className={`transition-all duration-300 w-full min-w-0 ${className}`}>{children}</div>;
 }
 
 export function SlideRight({
@@ -202,5 +202,5 @@ export function SlideRight({
   delay?: number;
   className?: string;
 }) {
-  return <div className={`transition-all duration-300 ${className}`}>{children}</div>;
+  return <div className={`transition-all duration-300 w-full min-w-0 ${className}`}>{children}</div>;
 }

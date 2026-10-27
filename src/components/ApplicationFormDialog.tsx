@@ -789,45 +789,45 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
           </div>
 
           {/* ─── Dynamic Live Fee & Coupon Summary ─── */}
-          <div className="col-span-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-3 space-y-1.5 text-xs">
-            <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border/40">
-              <span className="font-medium">Selected Duration:</span>
-              <span className="font-semibold text-foreground">
+          <div className="col-span-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-3 space-y-2 text-xs w-full min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-muted-foreground pb-1 border-b border-border/40 min-w-0">
+              <span className="font-medium shrink-0">Selected Duration:</span>
+              <span className="font-semibold text-foreground sm:text-right break-words min-w-0">
                 {applyDuration} Month{applyDuration > 1 ? "s" : ""} • {isPremiumTrack ? `Intensive Track (₹${premiumFee})` : `Standard Track (₹${standardFee})`} ({dur?.tasks ?? 5} Tasks)
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border/40">
+            <div className="flex flex-row items-center justify-between gap-2 text-muted-foreground pb-1 border-b border-border/40">
               <span className="font-medium">Upfront Registration:</span>
               <span className="font-bold text-emerald-600 dark:text-emerald-400">₹0 (Free to Start)</span>
             </div>
 
-            <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border/40">
-              <span className="font-medium">Completion &amp; Certificate Fee:</span>
-              <span className="font-semibold text-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-muted-foreground pb-1 border-b border-border/40 min-w-0">
+              <span className="font-medium shrink-0">Completion &amp; Certificate Fee:</span>
+              <span className="font-semibold text-foreground sm:text-right break-words min-w-0">
                 {finalPayable === 0 ? "₹0 (Free Waiver)" : `₹${finalPayable} (Payable after task completion)`}
               </span>
             </div>
 
             {couponApplied && couponDiscount > 0 && (
-              <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 pb-1 border-b border-border/40">
+              <div className="flex flex-row items-center justify-between gap-2 text-emerald-600 dark:text-emerald-400 pb-1 border-b border-border/40">
                 <span className="font-medium">Coupon Discount ({couponApplied.code}):</span>
                 <span className="font-bold">-₹{couponDiscount}</span>
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-1 text-sm font-extrabold text-foreground">
+            <div className="flex flex-row items-center justify-between gap-2 pt-1 text-sm font-extrabold text-foreground">
               <span>Pay Today:</span>
-              <span className="text-base text-emerald-600 dark:text-emerald-400 flex items-center font-black">
+              <span className="text-sm sm:text-base text-emerald-600 dark:text-emerald-400 flex items-center font-black text-right">
                 ₹0 (Instant Offer Letter)
               </span>
             </div>
           </div>
 
-          <Button type="submit" className="w-full col-span-2 rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white font-bold shadow-md shadow-[#f95c4b]/25 hover:-translate-y-0.5 active:translate-y-0 transition-all border-0 h-10 sm:h-11 text-sm cursor-pointer" disabled={applying}>
+          <Button type="submit" className="w-full col-span-2 rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white font-bold shadow-md shadow-[#f95c4b]/25 hover:-translate-y-0.5 active:translate-y-0 transition-all border-0 min-h-11 py-2.5 px-4 text-xs sm:text-sm cursor-pointer whitespace-normal text-center leading-snug" disabled={applying}>
             {applying ? "Submitting & Sending Offer Letter..." : "Submit Application & Get Instant Offer Letter"}
           </Button>
-          <p className="col-span-2 text-[11px] text-center text-muted-foreground mt-0.5">
+          <p className="col-span-2 text-[11px] text-center text-muted-foreground mt-0.5 leading-relaxed">
             Your official Offer Letter will be emailed automatically. Post-completion fee of ₹{finalPayable} unlocks only after admin approves all tasks.
           </p>
         </form>

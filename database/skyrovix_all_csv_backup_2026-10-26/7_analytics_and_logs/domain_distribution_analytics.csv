@@ -1,0 +1,28 @@
+domain,total_applications,approved_applications,total_submissions,approved_submissions,rejected_submissions,submission_approval_rate_percent,certificates_issued
+python,123,13,195,186,9,95.4%,13
+uiux,29,1,18,17,1,94.4%,1
+aiml,129,5,139,134,4,96.4%,4
+datascience,66,1,61,54,7,88.5%,1
+java,32,0,20,19,1,95.0%,0
+fullstack,209,10,212,191,21,90.1%,10
+mernstack,42,1,29,27,2,93.1%,1
+meanstack,3,0,1,1,0,100.0%,0
+cybersecurity,74,3,72,70,2,97.2%,2
+cloudcomputing,7,1,23,23,0,100.0%,1
+Data Science,2,0,1,1,0,100.0%,0
+dataanalytics,33,0,56,53,0,94.6%,0
+genai,15,1,18,18,0,100.0%,1
+powerbi,4,0,4,4,0,100.0%,0
+databasemanagement,2,0,0,0,0,0%,0
+digitalmarketing,7,0,2,2,0,100.0%,0
+mobileapp,2,0,2,1,1,50.0%,0
+graphicdesign,1,0,0,0,0,0%,0
+Python Development,2,0,0,0,0,0%,0
+Full Stack Development,2,0,0,0,0,0%,0
+UI/UX Design,1,0,2,2,0,100.0%,0
+frontend,1,0,0,0,0,0%,0
+AI & Machine Learning,1,0,0,0,0,0%,0
+devops,1,0,1,1,0,100.0%,0
+promptengineering,1,0,1,1,0,100.0%,0
+softwaretesting,1,0,0,0,0,0%,0
+socialmedia,1,0,0,0,0,0%,0

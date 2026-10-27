@@ -403,81 +403,81 @@ function DomainsPage() {
       />
       <Navbar />
       <AuroraBackground>
-        <div className="mx-auto max-w-7xl px-4 pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20">
-          <div className="grid lg:grid-cols-12 gap-8 items-start">
+        <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8 pt-20 sm:pt-28 lg:pt-32 pb-14 sm:pb-20 w-full max-w-full min-w-0">
+          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start w-full max-w-full min-w-0">
             
             {/* Left Column: Platform info & Live preview */}
-            <SlideLeft delay={0.05} className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
-              <div>
-                <Badge variant="outline" className="mb-3 border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] dark:text-[#ee9590] px-3 py-1 font-semibold shadow-sm backdrop-blur">
-                  <ShieldCheck className="mr-1.5 size-3.5" /> MSME Registered Platform
+            <SlideLeft delay={0.05} className="lg:col-span-5 space-y-6 lg:sticky lg:top-28 w-full max-w-full min-w-0">
+              <div className="w-full min-w-0">
+                <Badge variant="outline" className="mb-3 border-[#f95c4b]/20 bg-[#f95c4b]/10 text-[#f95c4b] dark:text-[#ee9590] px-3 py-1 font-semibold shadow-sm backdrop-blur text-xs">
+                  <ShieldCheck className="mr-1.5 size-3.5 shrink-0" /> MSME Registered Platform
                 </Badge>
-                <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#181619] dark:text-white leading-[1.15]">
+                <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#181619] dark:text-white leading-[1.18] break-words">
                   Start Your <span className="brand-text">Virtual Internship</span>
                 </h1>
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                <p className="mt-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium break-words">
                   Join task-based remote internships designed to build real portfolio skills. Earn offer letters, digital ID cards, and QR-verified certificates.
                 </p>
               </div>
 
               {/* Dynamic preview card */}
               {selectedDomainObj ? (
-                <div className={`rounded-3xl bg-gradient-to-br ${selectedDomainObj.color ?? "from-[#07284a] to-blue-600"} p-6 text-white shadow-xl space-y-4`}>
-                  <div className="flex items-center gap-3">
-                    <div className="grid size-14 place-items-center rounded-2xl bg-white/20 text-white text-3xl shadow-inner font-black">
+                <div className={`rounded-3xl bg-gradient-to-br ${selectedDomainObj.color ?? "from-[#07284a] to-blue-600"} p-4.5 sm:p-6 text-white shadow-xl space-y-4 w-full max-w-full min-w-0 overflow-hidden`}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="grid size-12 sm:size-14 place-items-center rounded-2xl bg-white/20 text-white text-2xl sm:text-3xl shadow-inner font-black shrink-0">
                       {selectedDomainObj.icon ?? "🎓"}
                     </div>
-                    <div>
-                      <h4 className="font-bold text-lg leading-snug">{selectedDomainObj.name}</h4>
-                      <p className="text-[10px] text-blue-200 uppercase font-bold tracking-widest">Selected Internship Stream</p>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-base sm:text-lg leading-snug break-words">{selectedDomainObj.name}</h4>
+                      <p className="text-[10px] text-blue-200 uppercase font-bold tracking-widest truncate">Selected Internship Stream</p>
                     </div>
                   </div>
-                  <p className="text-xs text-blue-100/90 leading-relaxed">
+                  <p className="text-xs text-blue-100/90 leading-relaxed break-words">
                     {selectedDomainObj.description || "Learn industry-grade tools and complete real-world tasks in this internship domain."}
                   </p>
-                  <div className="pt-3 border-t border-white/10 grid grid-cols-2 gap-3 text-center text-xs">
-                    <div className="bg-white/10 rounded-2xl p-2.5">
-                      <span className="text-[9px] text-blue-200 block uppercase font-bold tracking-widest">Syllabus</span>
-                      <span className="font-extrabold text-sm mt-0.5 block">{DURATIONS.find(d => d.value === applyDuration)?.tasks ?? 5} Projects</span>
+                  <div className="pt-3 border-t border-white/10 grid grid-cols-2 gap-2 sm:gap-3 text-center text-xs">
+                    <div className="bg-white/10 rounded-2xl p-2 sm:p-2.5 min-w-0">
+                      <span className="text-[9px] text-blue-200 block uppercase font-bold tracking-widest truncate">Syllabus</span>
+                      <span className="font-extrabold text-xs sm:text-sm mt-0.5 block truncate">{DURATIONS.find(d => d.value === applyDuration)?.tasks ?? 5} Projects</span>
                     </div>
-                    <div className="bg-white/10 rounded-2xl p-2.5">
-                      <span className="text-[9px] text-blue-200 block uppercase font-bold tracking-widest">Credential Status</span>
-                      <span className="font-extrabold text-sm mt-0.5 block">QR Verified</span>
+                    <div className="bg-white/10 rounded-2xl p-2 sm:p-2.5 min-w-0">
+                      <span className="text-[9px] text-blue-200 block uppercase font-bold tracking-widest truncate">Credential Status</span>
+                      <span className="font-extrabold text-xs sm:text-sm mt-0.5 block truncate">QR Verified</span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="rounded-3xl border border-slate-200 dark:border-border/40 p-8 flex flex-col items-center justify-center text-center bg-white/60 dark:bg-slate-900/10 shadow-sm backdrop-blur-sm min-h-[200px]">
-                  <Sparkles className="size-10 text-amber-500 mb-3 animate-bounce" />
+                <div className="rounded-3xl border border-slate-200 dark:border-border/40 p-5 sm:p-8 flex flex-col items-center justify-center text-center bg-white/60 dark:bg-slate-900/10 shadow-sm backdrop-blur-sm min-h-[160px] sm:min-h-[200px] w-full max-w-full min-w-0">
+                  <Sparkles className="size-8 sm:size-10 text-amber-500 mb-3 animate-bounce shrink-0" />
                   <h4 className="font-bold text-sm text-[#07284a] dark:text-white">Select an Internship Domain</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 max-w-xs leading-relaxed font-medium">Choose your preferred stream on the right to preview task scope, curriculum workloads, and verified certificates.</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 max-w-xs leading-relaxed font-medium break-words">Choose your preferred stream on the right to preview task scope, curriculum workloads, and verified certificates.</p>
                 </div>
               )}
 
               {/* Core Features */}
-              <div className="space-y-3.5 pt-2">
+              <div className="space-y-3 pt-1 w-full max-w-full min-w-0">
                 <h4 className="font-bold text-xs uppercase text-[#07284a] dark:text-slate-400 tracking-widest">Internship Inclusions</h4>
-                <div className="grid gap-3 text-xs">
-                  <div className="flex items-start gap-2.5">
+                <div className="grid gap-2.5 text-xs w-full max-w-full min-w-0">
+                  <div className="flex items-start gap-2.5 min-w-0">
                     <CheckCircle2 className="size-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                    <span className="text-slate-600 dark:text-slate-300 font-medium"><strong className="text-slate-800 dark:text-white font-bold">Offer Letter:</strong> Dispatched to email instantly upon registration.</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-medium break-words leading-relaxed min-w-0"><strong className="text-slate-800 dark:text-white font-bold">Offer Letter:</strong> Dispatched to email instantly upon registration.</span>
                   </div>
-                  <div className="flex items-start gap-2.5">
+                  <div className="flex items-start gap-2.5 min-w-0">
                     <CheckCircle2 className="size-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                    <span className="text-slate-600 dark:text-slate-300 font-medium"><strong className="text-slate-800 dark:text-white font-bold">Student ID Card:</strong> Issued digitally in your dashboard immediately.</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-medium break-words leading-relaxed min-w-0"><strong className="text-slate-800 dark:text-white font-bold">Student ID Card:</strong> Issued digitally in your dashboard immediately.</span>
                   </div>
-                  <div className="flex items-start gap-2.5">
+                  <div className="flex items-start gap-2.5 min-w-0">
                     <CheckCircle2 className="size-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                    <span className="text-slate-600 dark:text-slate-300 font-medium"><strong className="text-slate-800 dark:text-white font-bold">Verified Certificates:</strong> QR-linked and searchable credentials portal.</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-medium break-words leading-relaxed min-w-0"><strong className="text-slate-800 dark:text-white font-bold">Verified Certificates:</strong> QR-linked and searchable credentials portal.</span>
                   </div>
                 </div>
               </div>
             </SlideLeft>
 
             {/* Right Column: Premium Form */}
-            <SlideRight delay={0.1} className="lg:col-span-7">
-              <div className="rounded-3xl border border-[#e5e7eb] dark:border-white/10 bg-white/95 dark:bg-[#201d22]/95 pt-9 pb-6 px-6 sm:pt-12 sm:pb-8 sm:px-8 backdrop-blur-xl shadow-xl">
-                <form onSubmit={submitApplication} className="space-y-6">
+            <SlideRight delay={0.1} className="lg:col-span-7 w-full max-w-full min-w-0">
+              <div className="rounded-3xl border border-[#e5e7eb] dark:border-white/10 bg-white/95 dark:bg-[#201d22]/95 pt-7 pb-6 px-3.5 sm:pt-12 sm:pb-8 sm:px-8 backdrop-blur-xl shadow-xl w-full max-w-full min-w-0 overflow-hidden">
+                <form onSubmit={submitApplication} className="space-y-6 w-full max-w-full min-w-0">
                   
                   {/* Select Domain Dropdown */}
                   <div className="space-y-2">
@@ -704,20 +704,20 @@ function DomainsPage() {
                     <Label className="text-xs sm:text-sm font-bold text-foreground">
                       Internship Duration *
                     </Label>
-                    <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+                    <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-4 w-full min-w-0">
                       {availableDurations.map((d) => (
                         <button
                           key={d.value}
                           type="button"
                           onClick={() => handleDurationChange(d.value)}
-                          className={`rounded-2xl border p-3.5 text-left transition-all ${
+                          className={`rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all min-w-0 cursor-pointer ${
                             applyDuration === d.value
                               ? "border-[#f95c4b] bg-[#f95c4b]/5 dark:border-[#f95c4b] dark:bg-[#f95c4b]/10 ring-1 ring-[#f95c4b]/20"
                               : "border-[#e5e7eb] dark:border-white/10 bg-white dark:bg-[#201d22] hover:border-[#ee9590]"
                           }`}
                         >
-                          <p className="text-xs sm:text-sm font-extrabold text-foreground">{d.label}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1 leading-snug">{d.desc}</p>
+                          <p className="text-xs sm:text-sm font-extrabold text-foreground truncate">{d.label}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5 sm:mt-1 leading-snug line-clamp-2">{d.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -922,25 +922,25 @@ function DomainsPage() {
                   </div>
 
                   {/* Coupon Code section */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full min-w-0">
                     <Label className="text-xs sm:text-sm font-bold text-foreground">Promo / Coupon Code (Optional)</Label>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full min-w-0">
                       <Input
                         placeholder="Enter coupon code"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
                         disabled={!!couponApplied}
-                        className="rounded-xl h-11 bg-background/50 border-border/60"
+                        className="rounded-xl h-11 bg-background/50 border-border/60 min-w-0 flex-1"
                       />
                       {couponApplied ? (
-                        <Button type="button" variant="outline" className="rounded-xl h-11 px-4 text-red-500" onClick={handleRemoveCoupon}>
+                        <Button type="button" variant="outline" className="rounded-xl h-11 px-3 sm:px-4 text-red-500 shrink-0 text-xs sm:text-sm" onClick={handleRemoveCoupon}>
                           Remove
                         </Button>
                       ) : (
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-xl h-11 px-5"
+                          className="rounded-xl h-11 px-4 sm:px-5 shrink-0 text-xs sm:text-sm"
                           onClick={handleApplyCoupon}
                           disabled={validatingCoupon || !couponCode.trim()}
                         >
@@ -949,37 +949,37 @@ function DomainsPage() {
                       )}
                     </div>
                     {couponApplied && (
-                      <p className="text-xs text-emerald-600 font-bold mt-1">Coupon applied successfully: {couponApplied.discount}</p>
+                      <p className="text-xs text-emerald-600 font-bold mt-1 break-words">Coupon applied successfully: {couponApplied.discount}</p>
                     )}
                   </div>
 
                   {/* Dynamic Fee Summary Card */}
-                  <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Selected Internship</span>
-                      <span className="font-semibold text-foreground">
+                  <div className="rounded-2xl border border-border/60 bg-muted/20 p-3.5 sm:p-4 space-y-2.5 w-full min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-muted-foreground min-w-0">
+                      <span className="shrink-0 font-medium">Selected Internship</span>
+                      <span className="font-semibold text-foreground sm:text-right break-words min-w-0">
                         {applyDuration} {applyDuration === 1 ? "Month" : "Months"} • {isPremiumTrack ? `Intensive Track (₹${premiumFee})` : `Standard Track (₹${standardFee})`} ({dur.tasks} Tasks)
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Upfront Registration</span>
+                    <div className="flex flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium">Upfront Registration</span>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">₹0 (Free to Start)</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Completion &amp; Certificate Fee</span>
-                      <span className="font-semibold text-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-muted-foreground min-w-0">
+                      <span className="shrink-0 font-medium">Completion &amp; Certificate Fee</span>
+                      <span className="font-semibold text-foreground sm:text-right break-words min-w-0">
                         {finalPayable === 0 ? "₹0 (Free Waiver)" : `₹${finalPayable} (Payable after task completion)`}
                       </span>
                     </div>
                     {couponDiscount > 0 && (
-                      <div className="flex items-center justify-between text-xs text-emerald-600 font-semibold">
+                      <div className="flex flex-row items-center justify-between gap-2 text-xs text-emerald-600 font-semibold">
                         <span>Coupon Discount</span>
                         <span>-₹{couponDiscount}</span>
                       </div>
                     )}
-                    <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+                    <div className="pt-2 border-t border-border/50 flex flex-row items-center justify-between gap-2">
                       <span className="text-xs sm:text-sm font-extrabold text-foreground">Pay Today</span>
-                      <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">
+                      <span className="text-sm sm:text-lg font-black text-emerald-600 dark:text-emerald-400 text-right">
                         ₹0 (Instant Offer Letter)
                       </span>
                     </div>
@@ -994,20 +994,22 @@ function DomainsPage() {
                   >
                     <Button
                       type="submit"
-                      className="w-full brand-gradient text-white border-0 rounded-2xl h-12 text-sm font-extrabold shadow-lg shadow-[#f95c4b]/25 hover:shadow-xl hover:shadow-[#f95c4b]/35 transition-all cursor-pointer"
+                      className="w-full brand-gradient text-white border-0 rounded-2xl min-h-12 py-3 px-4 text-xs sm:text-sm font-extrabold shadow-lg shadow-[#f95c4b]/25 hover:shadow-xl hover:shadow-[#f95c4b]/35 transition-all cursor-pointer whitespace-normal leading-snug"
                       disabled={applying}
                     >
                       {applying ? (
-                        <span className="flex items-center gap-2 justify-center">
-                          <Loader2 className="size-4 animate-spin" /> Submitting &amp; Sending Offer Letter...
+                        <span className="flex items-center gap-2 justify-center flex-wrap">
+                          <Loader2 className="size-4 animate-spin shrink-0" />
+                          <span>Submitting &amp; Sending Offer Letter...</span>
                         </span>
                       ) : (
-                        <span className="flex items-center gap-2 justify-center">
-                          Submit Application &amp; Get Instant Offer Letter <ArrowRight className="size-4" />
+                        <span className="flex items-center gap-2 justify-center flex-wrap text-center">
+                          <span>Submit Application &amp; Get Instant Offer Letter</span>
+                          <ArrowRight className="size-4 shrink-0" />
                         </span>
                       )}
                     </Button>
-                    <p className="text-[11px] text-center text-muted-foreground mt-2">
+                    <p className="text-[11px] text-center text-muted-foreground mt-2 leading-relaxed px-1">
                       Your official Offer Letter will be emailed automatically. Post-completion fee of ₹{finalPayable} unlocks only after admin approves all tasks.
                     </p>
                   </motion.div>

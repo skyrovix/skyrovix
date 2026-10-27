@@ -124,7 +124,10 @@ export function PaymentSummaryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[460px] p-0 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-2xl">
+      <DialogContent
+        className="w-[92vw] max-w-[480px] sm:max-w-[480px] p-0 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-2xl"
+        style={{ maxWidth: "480px", width: "95vw" }}
+      >
         {/* Top Accent Brand Gradient Bar */}
         <div className="h-1.5 w-full brand-gradient-horizontal" />
 

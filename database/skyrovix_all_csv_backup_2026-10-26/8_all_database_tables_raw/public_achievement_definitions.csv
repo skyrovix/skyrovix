@@ -1,0 +1,9 @@
+id,key,title,description,icon,created_at
+11d71d1f-1f33-40a9-a02d-0ca218a1ebc5,first_topic,First Steps,Complete your first topic,BookOpen,2026-06-23T05:41:34.056Z
+76222aa3-662b-4a6b-89f9-30fb5a5ee396,halfway,Halfway There,Complete 50% of a course,TrendingUp,2026-06-23T05:41:34.056Z
+959c851a-49f3-44c9-b011-7313ffb36bce,course_complete,Course Champion,Complete an entire course,Trophy,2026-06-23T05:41:34.056Z
+b7655528-1623-4b0a-8e4b-fdefba978677,quiz_perfect,Perfect Score,Get 100% on the final quiz,Award,2026-06-23T05:41:34.056Z
+63bbaa51-03f0-453e-b538-f85fc00f1b03,quiz_first_try,First Try,Pass the final quiz on your first attempt,Zap,2026-06-23T05:41:34.056Z
+eb03955e-4833-4d4b-a94a-6aaff282e3a6,speed_demon,Speed Demon,Finish a quiz in under 15 minutes,Clock,2026-06-23T05:41:34.056Z
+915bf2ed-9534-49df-bfdc-5ffcf094ca95,bookmarker,Bookmarker,Bookmark 5 topics,Star,2026-06-23T05:41:34.056Z
+365d4640-55bf-428a-a9a0-dda51be5d16c,note_taker,Note Taker,Write notes on 3 topics,FileText,2026-06-23T05:41:34.056Z

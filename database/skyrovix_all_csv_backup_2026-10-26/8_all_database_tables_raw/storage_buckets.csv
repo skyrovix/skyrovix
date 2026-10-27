@@ -1,0 +1,6 @@
+id,name,owner,created_at,updated_at,public,avif_autodetection,file_size_limit,allowed_mime_types,owner_id,type,versioning_status,lifecycle_configuration,lifecycle_configuration_generation
+task-submissions,task-submissions,,2026-06-23T05:41:34.056Z,2026-06-23T05:41:34.056Z,true,false,,,,STANDARD,DISABLED,,
+payment-screenshots,payment-screenshots,,2026-06-23T05:41:34.056Z,2026-06-23T05:41:34.056Z,true,false,,,,STANDARD,DISABLED,,
+profile-photos,profile-photos,,2026-06-23T05:41:34.056Z,2026-06-23T05:41:34.056Z,true,false,,,,STANDARD,DISABLED,,
+project-submissions,project-submissions,,2026-06-30T15:12:51.423Z,2026-06-30T15:12:51.423Z,true,false,,,,STANDARD,DISABLED,,
+backups,backups,,2026-09-15T15:32:21.087Z,2026-09-15T15:32:21.087Z,false,false,,,,STANDARD,DISABLED,,

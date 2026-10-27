@@ -224,7 +224,7 @@ function ExternalScripts() {
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr" className="bg-[#faf8f2]" suppressHydrationWarning>
+    <html lang="en" dir="ltr" className="bg-[#faf8f2] overflow-x-hidden w-full max-w-full" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <HeadContent />
         {/* Google AdSense official script tag - placed in global <head> for ownership verification */}
@@ -234,10 +234,10 @@ function RootShell({ children }: { children: ReactNode }) {
           crossOrigin="anonymous"
         />
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className="min-h-screen bg-background font-sans antialiased overflow-x-hidden w-full max-w-full">
         <OrganizationJsonLd />
         <WebsiteJsonLd />
-        <div className="w-full overflow-x-clip">
+        <div className="w-full max-w-full overflow-x-hidden">
           {children}
         </div>
         <Scripts />

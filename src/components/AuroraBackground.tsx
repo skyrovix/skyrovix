@@ -21,7 +21,7 @@ export function AuroraBackground({
 }) {
   return (
     <div
-      className={`relative overflow-hidden w-full ${className}`}
+      className={`relative overflow-hidden w-full max-w-full ${className}`}
       style={{
         backgroundColor: "transparent",
       }}
@@ -76,7 +76,7 @@ export function AuroraBackground({
       </div>
 
       {/* ── Page content cleanly above decorative layers ── */}
-      <div className="relative z-[1] w-full">{children}</div>
+      <div className="relative z-[1] w-full max-w-full min-w-0">{children}</div>
     </div>
   );
 }

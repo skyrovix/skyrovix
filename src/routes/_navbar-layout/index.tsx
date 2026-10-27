@@ -47,17 +47,12 @@ import { MobileFloatingIcons } from "@/components/MobileFloatingIcons";
 import { FAQJsonLd, BreadcrumbJsonLd } from "@/components/JsonLd";
 import { FAQ_DATA } from "@/lib/seo";
 import heroTeamImage from "@/assets/hero section team img.webp";
-import gcetjLogo from "../../assets/college-logo/thanjavur.png";
-import srustiLogo from "../../assets/college-logo/SRUSTI-removebg-preview.png";
-import snistLogo from "../../assets/college-logo/Sreenidhi.png";
-import mzcetLogo from "../../assets/college-logo/mzcet-logo__1_-removebg-preview.png";
-import annaLogo from "../../assets/college-logo/anna.png";
-import srrcLogo from "../../assets/college-logo/sri raja.png";
+
 import yrTechLogo from "@/assets/yr-tech logo.png";
 import vinixLogo from "@/assets/vinix.png";
 import msmeLogo from "@/assets/msme.png";
 import skyrovixLogo from "@/assets/logo.png";
-import { CollegeLogoMarquee } from "@/components/CollegeLogoMarquee";
+import { FlyingRocketAnimation } from "@/components/FlyingRocketAnimation";
 
 const COURSE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   BookOpen, Layers, Monitor, Server, BarChart3, Brain, Palette, Code2, Shield, TrendingUp,
@@ -195,19 +190,19 @@ function Landing() {
                 </div>
 
                 {/* Primary Heading */}
-                <h1 className="font-display text-[2.4rem] leading-[1.12] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#181619] dark:text-white text-left">
+                <h1 className="font-display text-[2.1rem] leading-[1.14] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#181619] dark:text-white text-left break-words">
                   Build Skills.<br />
                   Gain Experience.<br />
                   <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-[#f95c4b] bg-clip-text text-transparent">Get Certified.</span>
                 </h1>
 
                 {/* Sub-headline description */}
-                <p className="mt-4 sm:mt-5 max-w-xl text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium">
+                <p className="mt-4 sm:mt-5 max-w-xl text-xs sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium break-words">
                   Skyrovix Internship Program helps students and professionals work on real-world projects, gain practical skills, and receive industry-recognized certificates.
                 </p>
 
                 {/* Checklist items — glassmorphism on dark */}
-                <div className="mt-5 sm:mt-6 grid grid-cols-2 gap-2 max-w-lg w-full">
+                <div className="mt-5 sm:mt-6 grid grid-cols-2 gap-1.5 sm:gap-2 max-w-lg w-full min-w-0">
                   {[
                     { label: "Real-world Projects", icon: Code2, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
                     { label: "Mentor Guidance", icon: Users, color: "text-[#403b42] dark:text-[#ee9590]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
@@ -216,12 +211,12 @@ function Landing() {
                   ].map((item, idx) => (
                     <div
                       key={idx}
-                      className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm transition-all duration-200 shadow-sm hover:scale-[1.02] cursor-default`}
+                      className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm transition-all duration-200 shadow-sm hover:scale-[1.02] cursor-default min-w-0`}
                     >
-                      <div className={`size-7 rounded-lg bg-white/80 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0 shadow-sm`}>
-                        <item.icon className="size-3.5" />
+                      <div className={`size-6 sm:size-7 rounded-lg bg-white/80 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0 shadow-sm`}>
+                        <item.icon className="size-3 sm:size-3.5" />
                       </div>
-                      <span className="text-[11px] sm:text-sm font-semibold text-slate-800 dark:text-white/90">{item.label}</span>
+                      <span className="text-[10px] sm:text-sm font-semibold text-slate-800 dark:text-white/90 truncate">{item.label}</span>
                     </div>
                   ))}
                 </div>
@@ -230,14 +225,14 @@ function Landing() {
                 <div className="mt-6 sm:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
                   <div className="w-full sm:w-auto transition-transform hover:-translate-y-0.5 active:scale-95 duration-150">
                     <Link to="/auth" search={{ redirect: undefined }} className="w-full sm:w-auto block">
-                      <Button size="lg" className="w-full sm:w-auto rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white border-0 px-8 py-5 sm:py-6 text-sm sm:text-base font-bold shadow-lg shadow-[#f95c4b]/25 transition-all duration-300 cursor-pointer">
+                      <Button size="lg" className="w-full sm:w-auto rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white border-0 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base font-bold shadow-lg shadow-[#f95c4b]/25 transition-all duration-300 cursor-pointer">
                         Explore Internships <ArrowRight className="ml-2 size-4" />
                       </Button>
                     </Link>
                   </div>
                   <div className="w-full sm:w-auto transition-transform hover:-translate-y-0.5 active:scale-95 duration-150">
                     <a href="#how-it-works" className="w-full sm:w-auto block">
-                      <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl border border-[#e5e7eb] dark:border-white/15 px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold text-[#181619] dark:text-white hover:bg-white dark:hover:bg-white/10 hover:border-[#f95c4b] transition-all flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md cursor-pointer">
+                      <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl border border-[#e5e7eb] dark:border-white/15 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base font-semibold text-[#181619] dark:text-white hover:bg-white dark:hover:bg-white/10 hover:border-[#f95c4b] transition-all flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md cursor-pointer">
                         <div className="size-6 rounded-full bg-slate-100 dark:bg-white/15 flex items-center justify-center text-slate-800 dark:text-white"><Play className="size-3 fill-current ml-0.5" /></div>
                         How It Works
                       </Button>
@@ -246,17 +241,17 @@ function Landing() {
                 </div>
 
                 {/* Coupon banner */}
-                <div className="mt-6 sm:mt-7 p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#f95c4b]/20 max-w-xl w-full flex items-center justify-between gap-3 backdrop-blur-md shadow-sm">
+                <div className="mt-6 sm:mt-7 p-3 sm:p-4 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#f95c4b]/20 max-w-xl w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 backdrop-blur-md shadow-sm min-w-0">
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    <div className="size-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0"><Sparkles className="size-5" /></div>
+                    <div className="size-8 sm:size-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0"><Sparkles className="size-4 sm:size-5" /></div>
                     <div className="text-left min-w-0">
                       <p className="text-xs font-bold text-amber-700 dark:text-amber-300">FIRST100 COUPON</p>
-                      <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">First 100 students get internship for FREE!</p>
+                      <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400">First 100 students get internship for FREE!</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setApplyDomain(DOMAINS[0]?.slug)}
-                    className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[11px] sm:text-xs font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
+                    className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[10px] sm:text-xs font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
                   >
                     Use Code: FIRST100
                   </button>
@@ -391,79 +386,107 @@ function Landing() {
         </section>
       </AuroraBackground>
 
-      {/* ─── TRUSTED BY COLLEGES ─── */}
+      {/* ─── OUR IMPACT (TRUSTED BY STUDENTS, BUILT FOR A BETTER FUTURE) ─── */}
       <Reveal delay={0.1}>
-        <section className="border-b border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-8 sm:py-10 relative z-10">
-          <div className="mx-auto max-w-7xl px-4 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
-            {/* Left Title */}
-            <div className="text-center lg:text-left shrink-0 max-w-[260px]">
-              <p className="text-[11px] sm:text-[12px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 leading-tight">
-                Trusted by students from leading colleges across India
-              </p>
-            </div>
+        <section className="relative border-b border-[#e5e7eb] dark:border-white/10 bg-gradient-to-b from-[#faf8f2] via-white to-white dark:from-[#181619] dark:via-[#161418] dark:to-[#181619] py-14 sm:py-18 lg:py-20 overflow-hidden z-10">
+          {/* Soft ambient decorative shapes in Skyrovix signature coral brand colors */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-24 size-80 sm:size-96 rounded-full bg-gradient-to-tr from-[#f95c4b]/15 via-[#ee9590]/10 to-transparent dark:from-[#f95c4b]/10 blur-2xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-20 -right-20 size-72 sm:size-80 rounded-full bg-[#f95c4b]/10 dark:bg-[#ee9590]/10 blur-3xl"
+          />
 
-            {/* Right Logos Container */}
-            <div className="flex flex-col gap-5 w-full lg:max-w-4xl">
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-6">
-                {[
-                  {
-                    name: "Anna University",
-                    shortName: "Anna University",
-                    location: "Chennai",
-                    image: annaLogo,
-                  },
-                  {
-                    name: "Government College, Thanjavur",
-                    shortName: "Government College of Engineering",
-                    location: "Thanjavur",
-                    image: gcetjLogo,
-                  },
-                  {
-                    name: "Sreenidhi Institute, Telangana",
-                    shortName: "Sreenidhi Institute of Science & Technology",
-                    location: "Telangana",
-                    image: snistLogo,
-                  },
-                  {
-                    name: "Sri Raaja Raajan College, Tamil Nadu",
-                    shortName: "Sri Raaja Raajan College of Engineering & Technology",
-                    location: "Tamil Nadu",
-                    image: srrcLogo,
-                  },
-                  {
-                    name: "Mount Zion College, Pudukkottai",
-                    shortName: "Mount Zion College of Engineering & Technology",
-                    location: "Pudukkottai",
-                    image: mzcetLogo,
-                  },
-                  {
-                    name: "Srusti Academy, Odisha",
-                    shortName: "Srusti Academy of Management and Technology",
-                    location: "Odisha",
-                    image: srustiLogo,
-                  }
-                ].map((uni) => (
-                  <div key={uni.name} className="flex items-start gap-2 sm:gap-3 transition-all duration-350 hover:scale-[1.02] cursor-default opacity-95 hover:opacity-100">
-                    {uni.image ? (
-                      <img src={uni.image} alt={uni.name} className="h-8 sm:h-10 w-8 sm:w-10 object-contain shrink-0 mt-0.5 dark:brightness-110" />
-                    ) : (
-                      <div className="size-8 sm:size-10 rounded-lg flex items-center justify-center border shadow-sm shrink-0" />
-                    )}
-                    <div className="flex flex-col text-left justify-start min-w-0">
-                      <span className="text-[11px] sm:text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-200 leading-tight block break-words">
-                        {uni.shortName}
-                      </span>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5 sm:mt-1 block">
-                        {uni.location}
-                      </span>
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+              {/* Left Column: Styled in Skyrovix signature website colors */}
+              <div className="lg:col-span-7 flex flex-col items-start text-left">
+                {/* Badge + Horizontal Line */}
+                <div className="flex items-center gap-3.5">
+                  <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider bg-[#f95c4b]/10 text-[#f95c4b] dark:text-[#ee9590] border border-[#f95c4b]/20 shadow-2xs">
+                    OUR IMPACT
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="w-10 sm:w-12 h-[2.5px] rounded-full bg-[#f95c4b] dark:bg-[#ee9590]"
+                  />
+                </div>
+
+                {/* Main Heading */}
+                <h2 className="mt-6 text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-black tracking-tight text-slate-900 dark:text-white leading-[1.16]">
+                  Trusted by Students,
+                  <br />
+                  Built for a{" "}
+                  <span className="relative inline-block bg-gradient-to-r from-[#f95c4b] via-[#f95c4b] to-[#ee9590] bg-clip-text text-transparent">
+                    Better Future
+                    {/* Decorative hand-drawn curved scribble underline SVG matching the image */}
+                    <svg
+                      className="absolute -bottom-2.5 sm:-bottom-3 left-0 w-[104%] h-3 sm:h-3.5 text-[#f95c4b] dark:text-[#ee9590] pointer-events-none overflow-visible"
+                      viewBox="0 0 250 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M3 11C55 4.5 175 4 247 9.5"
+                        stroke="currentColor"
+                        strokeWidth="3.6"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                </h2>
+
+                {/* Description */}
+                <p className="mt-6 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-xl">
+                  SKYROVIX has already empowered thousands of students with industry-relevant skills, hands-on projects and internship opportunities. Our growing community is a testament to the trust and support we receive from learners across India.
+                </p>
+
+                {/* Learn | Build | Grow Badges */}
+                <div className="mt-9 sm:mt-11 flex flex-wrap items-center gap-3 sm:gap-5">
+                  {/* Learn */}
+                  <div className="flex items-center gap-2.5 sm:gap-3 group cursor-default">
+                    <div className="size-11 sm:size-12 rounded-full bg-[#f95c4b]/10 dark:bg-[#f95c4b]/15 border border-[#f95c4b]/20 flex items-center justify-center text-[#f95c4b] dark:text-[#ee9590] shadow-2xs shrink-0 transition-transform duration-300 group-hover:scale-105">
+                      <GraduationCap className="size-5 sm:size-5.5 stroke-[2.2]" />
                     </div>
+                    <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
+                      Learn
+                    </span>
                   </div>
-                ))}
+
+                  {/* Divider */}
+                  <span className="text-slate-300 dark:text-slate-700 font-light select-none text-base sm:text-lg">|</span>
+
+                  {/* Build */}
+                  <div className="flex items-center gap-2.5 sm:gap-3 group cursor-default">
+                    <div className="size-11 sm:size-12 rounded-full bg-[#f95c4b]/10 dark:bg-[#f95c4b]/15 border border-[#f95c4b]/20 flex items-center justify-center text-[#f95c4b] dark:text-[#ee9590] shadow-2xs shrink-0 transition-transform duration-300 group-hover:scale-105">
+                      <Code2 className="size-5 sm:size-5.5 stroke-[2.2]" />
+                    </div>
+                    <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
+                      Build
+                    </span>
+                  </div>
+
+                  {/* Divider */}
+                  <span className="text-slate-300 dark:text-slate-700 font-light select-none text-base sm:text-lg">|</span>
+
+                  {/* Grow */}
+                  <div className="flex items-center gap-2.5 sm:gap-3 group cursor-default">
+                    <div className="size-11 sm:size-12 rounded-full bg-[#f95c4b]/10 dark:bg-[#f95c4b]/15 border border-[#f95c4b]/20 flex items-center justify-center text-[#f95c4b] dark:text-[#ee9590] shadow-2xs shrink-0 transition-transform duration-300 group-hover:scale-105">
+                      <Rocket className="size-5 sm:size-5.5 stroke-[2.2]" />
+                    </div>
+                    <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
+                      Grow
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-center lg:justify-end text-xs sm:text-[13px] font-extrabold text-[#f95c4b] dark:text-[#ee9590]">
-                <span className="whitespace-nowrap">
-                  ... and more colleges across India
-                </span>
+
+              {/* Right Column: Animated Flying Rocket */}
+              <div className="lg:col-span-5 w-full flex items-center justify-center">
+                <FlyingRocketAnimation />
               </div>
             </div>
           </div>
@@ -510,8 +533,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* ─── STUDENTS FROM LEADING COLLEGES (RIGHT TO LEFT MARQUEE) ─── */}
-      <CollegeLogoMarquee />
 
       {/* ─── HOW IT WORKS ─── */}
       <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24 relative z-10">

@@ -158,7 +158,10 @@ export function ManualUpiPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden bg-card border-border/60 shadow-2xl">
+      <DialogContent
+        className="w-[92vw] max-w-xl sm:max-w-xl rounded-3xl p-0 overflow-hidden bg-card border-border/60 shadow-2xl"
+        style={{ maxWidth: "560px", width: "95vw" }}
+      >
         <DialogHeader className="p-6 pb-4 border-b border-border/30 bg-muted/20">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-2xl brand-gradient text-white grid place-items-center shadow-lg shadow-[#f95c4b]/20">

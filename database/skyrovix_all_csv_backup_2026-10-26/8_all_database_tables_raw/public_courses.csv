@@ -1,0 +1,20 @@
+id,slug,name,short_description,icon,domain,total_topics,total_tasks,quiz_marks,pass_marks,quiz_duration_min,duration_weeks,difficulty,is_published,created_at,updated_at
+f5e5840f-61fa-4a38-ae99-0b5b31d45395,python,Python,"Versatile Python for web, automation, and data.",BookOpen,python,60,0,100,60,60,4,Intermediate,true,2026-06-23T05:41:34.056Z,2026-06-23T05:41:34.056Z
+ef2c4dfd-eaec-431b-957c-64e063fd86a0,java,Java,Enterprise-grade backends with Spring Boot.,BookOpen,java,60,0,100,60,60,4,Intermediate,true,2026-06-23T05:41:34.056Z,2026-06-23T05:41:34.056Z
+ebadccec-b9d7-40ac-afea-f3628c8909fb,html,HTML,Build web pages with HTML5 from scratch,Code2,html,60,5,100,60,60,6,Beginner,true,2026-08-12T05:46:06.817Z,2026-08-12T05:46:06.817Z
+7d081e72-1968-4b56-9d66-ddbbe6dd8ed0,css,CSS,Style beautiful responsive websites with CSS,Palette,css,90,5,100,60,60,8,Intermediate,true,2026-08-12T05:46:21.169Z,2026-08-12T05:46:21.169Z
+847ee3e3-1f4a-43c3-bb5c-01f7c3ed57d8,fullstack,Full Stack Development,"End-to-end web apps with React, Node.js, and databases.",BookOpen,fullstack,0,0,100,60,60,4,Intermediate,true,2026-07-22T15:08:45.010Z,2026-07-22T15:08:45.010Z
+47dffade-63a7-499b-b1aa-51388ab0a3c4,javascript,JavaScript,Learn JavaScript for dynamic web applications,Brain,javascript,30,5,100,60,60,10,Intermediate,true,2026-08-12T05:46:34.111Z,2026-08-12T05:46:34.111Z
+b175e459-05ea-4daf-9d2e-56207dd204ad,php,PHP,Build dynamic web applications with PHP,Server,php,55,5,100,60,60,8,Intermediate,true,2026-08-12T05:46:39.930Z,2026-08-12T05:46:39.930Z
+bf285d20-54cc-4988-9337-fe88c42d6789,mernstack,MERN Stack Development,"MongoDB, Express, React, Node.js full-stack apps.",BookOpen,mernstack,0,0,100,60,60,4,Intermediate,true,2026-07-22T15:08:45.265Z,2026-07-22T15:08:45.265Z
+a2dd377f-7c6f-4154-9d06-09d0f3ffa2a0,meanstack,MEAN Stack Development,"MongoDB, Express, Angular, Node.js web apps.",BookOpen,meanstack,0,0,100,60,60,4,Intermediate,true,2026-07-22T15:08:45.384Z,2026-07-22T15:08:45.384Z
+7ec0aa89-1a66-4ddd-9a22-f3ce5f7b96bf,aiml,AI & Machine Learning,Build intelligent systems with ML and LLMs.,BookOpen,aiml,0,0,100,60,60,4,Intermediate,true,2026-07-22T15:08:45.474Z,2026-07-22T15:08:45.474Z
+d7584a3b-11ef-40ac-a07b-f58c82ba8348,datascience,Data Science,Turn raw data into actionable insights.,BookOpen,datascience,0,0,100,60,60,4,Intermediate,true,2026-07-22T15:08:45.557Z,2026-07-22T15:08:45.557Z
+69eaa3c5-707f-46bc-aa6c-fa8831a78cbc,uiux,UI UX Designer,Human-centered design that delights users.,BookOpen,uiux,0,0,100,60,60,4,Intermediate,true,2026-07-22T15:08:45.638Z,2026-07-22T15:08:45.638Z
+7458845c-e9b0-43de-9144-a887a2486a00,cybersecurity,Cyber Security,"Defend systems, hunt vulnerabilities.",BookOpen,cybersecurity,0,0,100,60,60,4,Intermediate,true,2026-07-22T15:08:46.224Z,2026-07-22T15:08:46.224Z
+13d56346-003d-4c44-b2fd-543fdbe68b1c,mysql,MySQL,Master database queries with MySQL,Database,mysql,15,5,100,60,60,6,Intermediate,true,2026-08-12T05:46:47.694Z,2026-08-12T05:46:47.694Z
+560b9efa-8939-4383-b9dd-b078baaee14a,django,Django,Build robust web apps with Django framework,Server,django,15,5,100,60,60,8,Intermediate,true,2026-08-12T05:46:50.127Z,2026-08-12T05:46:50.127Z
+99baef17-af55-4142-8f63-dc0f1a71ef09,numpy,NumPy,Scientific computing with NumPy arrays,BarChart3,numpy,12,5,100,60,60,4,Intermediate,true,2026-08-12T05:46:51.721Z,2026-08-12T05:46:51.721Z
+1d9f697a-ea56-43a0-b4cc-39ed67b64e5e,pandas,Pandas,Data analysis with Pandas DataFrames,BarChart3,pandas,15,5,100,60,60,6,Intermediate,true,2026-08-12T05:46:52.961Z,2026-08-12T05:46:52.961Z
+c9a2a912-9523-43a7-a7fe-738af011c4d6,scipy,SciPy,Advanced scientific computing with SciPy,BarChart3,scipy,10,5,100,60,60,4,Advanced,true,2026-08-12T05:46:54.634Z,2026-08-12T05:46:54.634Z
+fd56703d-d0e9-460d-8f2a-7bb2c821b5db,matplotlib,Matplotlib,Data visualization with Matplotlib,BarChart3,matplotlib,13,5,100,60,60,4,Intermediate,true,2026-08-12T05:46:55.560Z,2026-08-12T05:46:55.560Z

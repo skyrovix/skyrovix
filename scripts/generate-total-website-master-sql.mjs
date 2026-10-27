@@ -620,34 +620,31 @@ async function main() {
   out += `-- SECTION 2: COMPLETE DOMAIN TASKS 1 TO 12 FOR ALL 25 DOMAINS\n`;
   out += `-- ==============================================================================\n\n`;
 
-  const tasksMap = new Map(); // key: domain:task_number
+  const tasksMap = new Map(); // key: id
 
-  // Read Tasks 1 to 5 from mysql_schema.sql
-  const task1to5Regex = /INSERT INTO tasks \(id, domain, task_number, title, description\)\s+VALUES\s*\(([^;]+)\)\s*ON DUPLICATE KEY UPDATE/g;
-  let m1;
-  while ((m1 = task1to5Regex.exec(baseSchema)) !== null) {
-    const lines = m1[1].split("\n");
-    for (const l of lines) {
-      const rowMatch = l.match(/\('([^']+)',\s*'([^']+)',\s*(\d+),\s*'([^']+)',\s*'([^']+)'\)/);
-      if (rowMatch) {
-        const [, id, domain, task_num, title, desc] = rowMatch;
-        tasksMap.set(`${domain}:${task_num}`, [id, domain, Number(task_num), title, desc, null]);
-      }
+  // 1. Read directly from tasks.csv if available
+  const tasksCsvPath = path.join(csvDir, "tasks.csv");
+  if (fsSync.existsSync(tasksCsvPath)) {
+    const tasksCsv = await fs.readFile(tasksCsvPath, "utf-8");
+    const tasksData = parseCsv(tasksCsv);
+    for (const t of tasksData) {
+      if (!t.id) continue;
+      tasksMap.set(t.id, [t.id, t.domain || "", Number(t.task_number) || 1, t.title || "Task", t.description || "", t.resources || null]);
     }
   }
 
-  // Read Tasks 6 to 12 from migrations-tasks-6-12.sql
-  const tasks6to12File = path.join(rootDir, "database", "legacy-migrations", "migrations-tasks-6-12.sql");
-  if (fsSync.existsSync(tasks6to12File)) {
-    const buf = await fs.readFile(tasks6to12File);
-    const text = (buf[0] === 0xff && buf[1] === 0xfe) ? buf.toString("utf16le") : buf.toString("utf8");
-    const taskInsertRegex = /INSERT INTO public\.tasks\s*\((domain,\s*task_number,\s*title,\s*description)\)\s*VALUES\s*\('([^']+)',\s*(\d+),\s*'([^']+)',\s*'([^']+)'\)/g;
-    let tm;
-    while ((tm = taskInsertRegex.exec(text)) !== null) {
-      const [, , domain, task_num, title, desc] = tm;
-      const key = `${domain}:${task_num}`;
-      if (!tasksMap.has(key)) {
-        tasksMap.set(key, [crypto.randomUUID(), domain, Number(task_num), title, desc, null]);
+  // 2. Read Tasks 1 to 5 from mysql_schema.sql if not in map
+  if (tasksMap.size === 0) {
+    const task1to5Regex = /INSERT INTO tasks \(id, domain, task_number, title, description\)\s+VALUES\s*\(([^;]+)\)\s*ON DUPLICATE KEY UPDATE/g;
+    let m1;
+    while ((m1 = task1to5Regex.exec(baseSchema)) !== null) {
+      const lines = m1[1].split("\n");
+      for (const l of lines) {
+        const rowMatch = l.match(/\('([^']+)',\s*'([^']+)',\s*(\d+),\s*'([^']+)',\s*'([^']+)'\)/);
+        if (rowMatch) {
+          const [, id, domain, task_num, title, desc] = rowMatch;
+          tasksMap.set(id, [id, domain, Number(task_num), title, desc, null]);
+        }
       }
     }
   }
@@ -1299,6 +1296,178 @@ async function main() {
       "id", "user_id", "course_id", "score", "total", "quiz_attempt_id", "updated_at"
     ], lbRows);
     console.log(`+ Seeded ${lbRows.length} leaderboard records.`);
+  }
+
+  // 13C. RESTORE FEE SETTINGS, AUDIT LOGS, COUPONS, REVIEWS & POPUPS
+  if (fsSync.existsSync(path.join(csvDir, "fee_settings.csv"))) {
+    const fsCsv = await fs.readFile(path.join(csvDir, "fee_settings.csv"), "utf-8");
+    const fsList = parseCsv(fsCsv);
+    const fsRows = [];
+    for (const f of fsList) {
+      if (!f.id) continue;
+      const updatedAt = toMysqlDatetime(f.updated_at) || "2026-01-01 00:00:00";
+      fsRows.push([
+        f.id, f.fee_type, f.amount ? Number(f.amount) : 100.0, toBoolean(f.is_enabled),
+        f.upi_id || "hariharanmahesh34@oksbi", f.payee_name || "Skyrovix", f.qr_code_url || null,
+        toBoolean(f.offer_enabled), f.offer_amount ? Number(f.offer_amount) : 0, f.offer_name || null,
+        toMysqlDatetime(f.offer_start_at), toMysqlDatetime(f.offer_end_at), f.updated_by || null, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("fee_settings", [
+      "id", "fee_type", "amount", "is_enabled", "upi_id", "payee_name", "qr_code_url",
+      "offer_enabled", "offer_amount", "offer_name", "offer_start_at", "offer_end_at", "updated_by", "updated_at"
+    ], fsRows);
+    console.log(`+ Seeded ${fsRows.length} fee setting records.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "fee_audit_logs.csv"))) {
+    const falCsv = await fs.readFile(path.join(csvDir, "fee_audit_logs.csv"), "utf-8");
+    const falList = parseCsv(falCsv);
+    const falRows = [];
+    for (const fa of falList) {
+      if (!fa.id) continue;
+      falRows.push([
+        fa.id, fa.admin_id || null, fa.action || "", fa.entity_type || "", fa.entity_id || "",
+        fa.old_value || null, fa.new_value || null, fa.ip_address || null,
+        toMysqlDatetime(fa.created_at) || "2026-01-01 00:00:00"
+      ]);
+    }
+    out += formatBatchInsert("fee_audit_logs", [
+      "id", "admin_id", "action", "entity_type", "entity_id", "old_value", "new_value", "ip_address", "created_at"
+    ], falRows);
+    console.log(`+ Seeded ${falRows.length} fee audit logs.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "coupons.csv"))) {
+    const cpCsv = await fs.readFile(path.join(csvDir, "coupons.csv"), "utf-8");
+    const cpList = parseCsv(cpCsv);
+    const cpRows = [];
+    for (const cp of cpList) {
+      if (!cp.id) continue;
+      const createdAt = toMysqlDatetime(cp.created_at) || "2026-01-01 00:00:00";
+      const updatedAt = toMysqlDatetime(cp.updated_at) || createdAt;
+      cpRows.push([
+        cp.id, cp.code, cp.description || "Promo Code", cp.discount_type || "percentage",
+        cp.discount_value ? Number(cp.discount_value) : 100, cp.max_uses ? Number(cp.max_uses) : 1000,
+        cp.current_uses ? Number(cp.current_uses) : 0, cp.min_amount ? Number(cp.min_amount) : 0,
+        cp.max_discount_amount ? Number(cp.max_discount_amount) : 100, toMysqlDatetime(cp.expires_at),
+        toBoolean(cp.is_active), cp.applicable_domains || null, createdAt, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("coupons", [
+      "id", "code", "description", "discount_type", "discount_value", "max_uses", "current_uses",
+      "min_amount", "max_discount_amount", "expires_at", "is_active", "applicable_domains", "created_at", "updated_at"
+    ], cpRows);
+    console.log(`+ Seeded ${cpRows.length} coupon records.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "reviews.csv"))) {
+    const rvCsv = await fs.readFile(path.join(csvDir, "reviews.csv"), "utf-8");
+    const rvList = parseCsv(rvCsv);
+    const rvRows = [];
+    for (const rv of rvList) {
+      if (!rv.id) continue;
+      const createdAt = toMysqlDatetime(rv.created_at) || "2026-01-01 00:00:00";
+      const updatedAt = toMysqlDatetime(rv.updated_at) || createdAt;
+      rvRows.push([
+        rv.id, rv.user_id, rv.target_type || "platform", rv.target_id || "skyrovix",
+        rv.rating ? Number(rv.rating) : 5, rv.title || "", rv.content || "",
+        rv.status || "approved", createdAt, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("reviews", [
+      "id", "user_id", "target_type", "target_id", "rating", "title", "content", "status", "created_at", "updated_at"
+    ], rvRows);
+    console.log(`+ Seeded ${rvRows.length} reviews.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "promotional_popups.csv"))) {
+    const ppCsv = await fs.readFile(path.join(csvDir, "promotional_popups.csv"), "utf-8");
+    const ppList = parseCsv(ppCsv);
+    const ppRows = [];
+    for (const pp of ppList) {
+      if (!pp.id) continue;
+      const createdAt = toMysqlDatetime(pp.created_at) || "2026-01-01 00:00:00";
+      const updatedAt = toMysqlDatetime(pp.updated_at) || createdAt;
+      ppRows.push([
+        pp.id, pp.title || "", pp.description || null, pp.image_url || "",
+        pp.link_url || null, pp.link_label || "Learn More", toBoolean(pp.is_active),
+        createdAt, updatedAt
+      ]);
+    }
+    out += formatBatchInsert("promotional_popups", [
+      "id", "title", "description", "image_url", "link_url", "link_label", "is_active", "created_at", "updated_at"
+    ], ppRows);
+    console.log(`+ Seeded ${ppRows.length} promotional popups.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "project_challenges.csv"))) {
+    const pcCsv = await fs.readFile(path.join(csvDir, "project_challenges.csv"), "utf-8");
+    const pcList = parseCsv(pcCsv);
+    const pcRows = [];
+    for (const pc of pcList) {
+      if (!pc.id) continue;
+      pcRows.push([
+        pc.id, pc.project_id || pc.id, pc.title || "Project Challenge", pc.industry || "Technology",
+        pc.difficulty || "Intermediate", pc.business_background || "", pc.problem_statement || "",
+        pc.business_requirements || null, pc.functional_requirements || null, pc.technical_requirements || null,
+        pc.expected_deliverables || null, pc.evaluation_criteria || null, pc.technologies || null,
+        pc.resources || null, toMysqlDatetime(pc.submission_deadline), toBoolean(pc.is_published),
+        toMysqlDatetime(pc.created_at) || "2026-01-01 00:00:00",
+        toMysqlDatetime(pc.updated_at) || "2026-01-01 00:00:00"
+      ]);
+    }
+    out += formatBatchInsert("project_challenges", [
+      "id", "project_id", "title", "industry", "difficulty", "business_background",
+      "problem_statement", "business_requirements", "functional_requirements", "technical_requirements",
+      "expected_deliverables", "evaluation_criteria", "technologies", "resources",
+      "submission_deadline", "is_published", "created_at", "updated_at"
+    ], pcRows);
+    console.log(`+ Seeded ${pcRows.length} project challenges.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "project_submissions.csv"))) {
+    const psCsv = await fs.readFile(path.join(csvDir, "project_submissions.csv"), "utf-8");
+    const psList = parseCsv(psCsv);
+    const psRows = [];
+    for (const ps of psList) {
+      if (!ps.id) continue;
+      psRows.push([
+        ps.id, ps.project_id, ps.user_id, ps.github_url || "", ps.demo_url || null,
+        ps.doc_url || null, ps.video_url || null, ps.notes || null, ps.status || "submitted",
+        ps.final_score ? Number(ps.final_score) : null, toMysqlDatetime(ps.evaluated_at),
+        ps.evaluator_id || null, toMysqlDatetime(ps.created_at) || "2026-01-01 00:00:00",
+        toMysqlDatetime(ps.updated_at) || "2026-01-01 00:00:00"
+      ]);
+    }
+    out += formatBatchInsert("project_submissions", [
+      "id", "project_id", "user_id", "github_url", "demo_url", "doc_url", "video_url", "notes",
+      "status", "final_score", "evaluated_at", "evaluator_id", "created_at", "updated_at"
+    ], psRows);
+    console.log(`+ Seeded ${psRows.length} project submissions.`);
+  }
+
+  if (fsSync.existsSync(path.join(csvDir, "project_evaluations.csv"))) {
+    const peCsv = await fs.readFile(path.join(csvDir, "project_evaluations.csv"), "utf-8");
+    const peList = parseCsv(peCsv);
+    const peRows = [];
+    for (const pe of peList) {
+      if (!pe.id) continue;
+      peRows.push([
+        pe.id, pe.submission_id, Number(pe.problem_solving) || 0, Number(pe.ui_ux_design) || 0,
+        Number(pe.functionality) || 0, Number(pe.code_quality) || 0, Number(pe.architecture) || 0,
+        Number(pe.database_design) || 0, Number(pe.performance) || 0, Number(pe.security) || 0,
+        Number(pe.scalability) || 0, Number(pe.documentation) || 0,
+        Number(pe.total_score) || 0, pe.feedback || null,
+        toMysqlDatetime(pe.created_at) || "2026-01-01 00:00:00"
+      ]);
+    }
+    out += formatBatchInsert("project_evaluations", [
+      "id", "submission_id", "problem_solving", "ui_ux_design", "functionality", "code_quality",
+      "architecture", "database_design", "performance", "security", "scalability", "documentation",
+      "total_score", "feedback", "created_at"
+    ], peRows);
+    console.log(`+ Seeded ${peRows.length} project evaluations.`);
   }
 
   // 14. ADMIN ACCOUNT ENFORCEMENT & HIGH-PERFORMANCE INDEXING
