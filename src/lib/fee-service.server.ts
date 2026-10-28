@@ -1671,3 +1671,183 @@ export async function submitApplicationServer(data: {
     };
   });
 }
+
+export interface SendVerificationQueueOffersInput {
+  adminId: string;
+  applicationIds: string[];
+  couponCode: string;
+  createCouponIfNeeded?: boolean;
+  couponDetails?: {
+    discountType: "percentage" | "fixed" | "free";
+    discountValue: number;
+    usageLimit?: number;
+    expiresAt?: string | null;
+    description?: string;
+  };
+  customSubject?: string;
+  customMessage?: string;
+  autoApplyToApplication?: boolean;
+  dashboardUrl?: string;
+}
+
+export async function sendVerificationQueueOffersServer(data: SendVerificationQueueOffersInput) {
+  const isAdmin = await checkIsAdmin(data.adminId);
+  if (!isAdmin) throw new Error("Unauthorized: Admin privileges required");
+
+  if (!data.applicationIds || data.applicationIds.length === 0) {
+    throw new Error("No student applications selected");
+  }
+
+  const cleanCode = data.couponCode.trim().toUpperCase();
+  if (!cleanCode) throw new Error("Coupon code is required");
+
+  // 1. Resolve or create coupon
+  const couponRes = await dbQuery("SELECT * FROM public.coupons WHERE LOWER(code) = LOWER($1)", [cleanCode]);
+  let coupon = couponRes.rows[0];
+
+  if (!coupon) {
+    if (data.createCouponIfNeeded) {
+      const couponId = crypto.randomUUID();
+      const discType = data.couponDetails?.discountType || "percentage";
+      const discVal = data.couponDetails?.discountValue ?? 50;
+      const usageLimit = data.couponDetails?.usageLimit ?? 0;
+      const desc = data.couponDetails?.description || `Verification Queue Special Offer (${discVal}% OFF)`;
+      const expires = data.couponDetails?.expiresAt ? new Date(data.couponDetails.expiresAt).toISOString() : null;
+
+      await dbQuery(
+        `INSERT INTO public.coupons (
+           id, code, description, discount_type, discount_value, applies_to, max_uses, single_use_per_user, expires_at, is_active, created_by
+         ) VALUES ($1, $2, $3, $4, $5, 'certificate', $6, 1, $7, 1, $8)`,
+        [couponId, cleanCode, desc, discType, discVal, usageLimit, expires, data.adminId]
+      );
+
+      coupon = {
+        id: couponId,
+        code: cleanCode,
+        description: desc,
+        discount_type: discType,
+        discount_value: discVal,
+        expires_at: expires,
+        is_active: 1,
+      };
+    } else {
+      throw new Error(`Coupon with code "${cleanCode}" does not exist. Please enable 'Create coupon' or select an existing active coupon.`);
+    }
+  }
+
+  // Ensure coupon is active
+  if (!coupon.is_active) {
+    await dbQuery("UPDATE public.coupons SET is_active = 1 WHERE id = $1", [coupon.id]);
+    coupon.is_active = 1;
+  }
+
+  // 2. Fetch applications & send emails
+  const { sendOfferCouponEmail } = await import("./email-helpers");
+  const results: Array<{
+    applicationId: string;
+    studentName: string;
+    email: string;
+    success: boolean;
+    error?: string;
+  }> = [];
+
+  let successfulCount = 0;
+  let failedCount = 0;
+
+  for (const appId of data.applicationIds) {
+    try {
+      const appRes = await dbQuery(
+        "SELECT id, user_id, full_name, email, domain, intern_id, coupon_code FROM public.applications WHERE id = $1",
+        [appId]
+      );
+
+      if (!appRes.rows || appRes.rows.length === 0) {
+        results.push({ applicationId: appId, studentName: "Unknown", email: "", success: false, error: "Application not found" });
+        failedCount++;
+        continue;
+      }
+
+      const app = appRes.rows[0];
+      const targetEmail = (app.email || "").trim();
+      if (!targetEmail) {
+        results.push({ applicationId: appId, studentName: app.full_name, email: "", success: false, error: "No email address found" });
+        failedCount++;
+        continue;
+      }
+
+      // If auto-apply: update coupon_code on application
+      if (data.autoApplyToApplication !== false) {
+        await dbQuery(
+          "UPDATE public.applications SET coupon_code = $1, verification_offer_sent_at = NOW(), verification_offer_coupon = $1 WHERE id = $2",
+          [cleanCode, app.id]
+        );
+      } else {
+        await dbQuery(
+          "UPDATE public.applications SET verification_offer_sent_at = NOW(), verification_offer_coupon = $1 WHERE id = $2",
+          [cleanCode, app.id]
+        );
+      }
+
+      const domainObj = getDomain(app.domain);
+      const domainName = domainObj?.name || app.domain;
+
+      const emailRes = await sendOfferCouponEmail({
+        to: targetEmail,
+        studentName: app.full_name,
+        studentId: app.user_id,
+        internId: app.intern_id,
+        domainName,
+        couponCode: cleanCode,
+        discountType: (coupon.discount_type as any) || "percentage",
+        discountValue: Number(coupon.discount_value ?? 50),
+        expiresAt: coupon.expires_at,
+        customSubject: data.customSubject,
+        customMessage: data.customMessage,
+        dashboardUrl: data.dashboardUrl,
+      });
+
+      if (emailRes.success) {
+        successfulCount++;
+        results.push({ applicationId: appId, studentName: app.full_name, email: targetEmail, success: true });
+      } else {
+        failedCount++;
+        results.push({ applicationId: appId, studentName: app.full_name, email: targetEmail, success: false, error: emailRes.error });
+      }
+    } catch (sendErr: any) {
+      failedCount++;
+      results.push({ applicationId: appId, studentName: "Error", email: "", success: false, error: sendErr?.message || "Failed to send" });
+    }
+  }
+
+  // Audit log
+  try {
+    await dbQuery(
+      `INSERT INTO public.fee_audit_logs (id, admin_id, action, entity_type, entity_id, new_value)
+       VALUES (UUID(), $1, 'SEND_VERIFICATION_OFFERS', 'coupon', $2, $3)`,
+      [
+        data.adminId,
+        coupon.id,
+        JSON.stringify({
+          couponCode: cleanCode,
+          totalRequested: data.applicationIds.length,
+          successfulCount,
+          failedCount,
+        }),
+      ]
+    );
+  } catch (auditErr: any) {
+    console.warn("[sendVerificationQueueOffersServer] Audit log warning:", auditErr?.message);
+  }
+
+  return {
+    success: successfulCount > 0 || failedCount === 0,
+    total: data.applicationIds.length,
+    successfulCount,
+    failedCount,
+    couponCode: cleanCode,
+    discountValue: Number(coupon.discount_value ?? 50),
+    discountType: coupon.discount_type,
+    results,
+  };
+}
+

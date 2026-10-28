@@ -1,15 +1,18 @@
 import mysql from "mysql2/promise";
 import { loadEnv } from "./env.server";
 
-let _pool: mysql.Pool | null = null;
-let _activePort: number | null = null;
+declare global {
+  var __skyrovix_mysql_pool: mysql.Pool | undefined;
+  var __skyrovix_active_port: number | undefined;
+  var __skyrovix_schema_migrated: boolean | undefined;
+}
 
 export function getDbPool(): mysql.Pool {
-  if (!_pool) {
+  if (!globalThis.__skyrovix_mysql_pool) {
     loadEnv();
     const host = process.env.MYSQL_HOST || process.env.DB_HOST || "127.0.0.1";
     const defaultPort = Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3307);
-    const port = _activePort || defaultPort;
+    const port = globalThis.__skyrovix_active_port || defaultPort;
     const user = process.env.MYSQL_USER || process.env.DB_USER || "root";
     const password = process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD || "";
     const database = process.env.MYSQL_DATABASE || process.env.DB_NAME || "skyrovix_main_db";
@@ -20,14 +23,16 @@ export function getDbPool(): mysql.Pool {
       );
     }
 
-    _pool = mysql.createPool({
+    globalThis.__skyrovix_mysql_pool = mysql.createPool({
       host,
       port,
       user,
       password,
       database,
       waitForConnections: true,
-      connectionLimit: 25,
+      connectionLimit: 10,
+      maxIdle: 5,
+      idleTimeout: 15000,
       queueLimit: 0,
       enableKeepAlive: true,
       keepAliveInitialDelay: 10000,
@@ -36,10 +41,10 @@ export function getDbPool(): mysql.Pool {
       multipleStatements: true,
     });
 
-    console.log(`[Database Pool] Initialized MySQL pool for ${user}@${host}:${port}/${database}`);
+    console.log(`[Database Pool] Initialized MySQL pool for ${user}@${host}:${port}/${database} (connectionLimit: 10)`);
   }
 
-  return _pool;
+  return globalThis.__skyrovix_mysql_pool;
 }
 
 function trySwitchLocalPort(err: any): boolean {
@@ -47,19 +52,19 @@ function trySwitchLocalPort(err: any): boolean {
   const isLocal = host === "127.0.0.1" || host === "localhost";
   if (err && err.code === "ECONNREFUSED" && isLocal) {
     const configuredPort = Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3307);
-    const currentPort = _activePort || configuredPort;
+    const currentPort = globalThis.__skyrovix_active_port || configuredPort;
     const altPort = currentPort === 3306 ? 3307 : 3306;
-    if (_activePort !== altPort) {
+    if (globalThis.__skyrovix_active_port !== altPort) {
       console.warn(`[db.server] Port ${currentPort} refused. Trying alternate local MySQL port ${altPort}...`);
-      _activePort = altPort;
-      if (_pool) {
+      globalThis.__skyrovix_active_port = altPort;
+      if (globalThis.__skyrovix_mysql_pool) {
         try {
-          _pool.end();
+          globalThis.__skyrovix_mysql_pool.end().catch(() => {});
         } catch {
           // ignore
         }
       }
-      _pool = null;
+      globalThis.__skyrovix_mysql_pool = undefined;
       return true;
     }
   }
@@ -113,10 +118,8 @@ export function adaptSqlForMysql(sql: string): string {
   return prepareMysqlQueryAndParams(sql).sql;
 }
 
-let _schemaMigrated = false;
-
 async function ensureSchemaMigrated(pool: mysql.Pool) {
-  if (_schemaMigrated) return;
+  if (globalThis.__skyrovix_schema_migrated) return;
   try {
     const ensureCol = async (tbl: string, col: string, def: string) => {
       try {
@@ -145,6 +148,8 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
     await ensureCol("applications", "all_tasks_verified", "TINYINT(1) DEFAULT 0");
     await ensureCol("applications", "certificate_payment_unlocked", "TINYINT(1) DEFAULT 0");
     await ensureCol("applications", "certificate_payment_status", "VARCHAR(50) DEFAULT 'pending'");
+    await ensureCol("applications", "verification_offer_sent_at", "DATETIME NULL");
+    await ensureCol("applications", "verification_offer_coupon", "VARCHAR(100) NULL");
 
     const tablesToCheck = [
       "payments",
@@ -188,15 +193,15 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
       // Safe to ignore if already default or not supported
     }
 
-    _schemaMigrated = true;
+    globalThis.__skyrovix_schema_migrated = true;
   } catch (err: any) {
     if (trySwitchLocalPort(err)) {
-      _schemaMigrated = false;
+      globalThis.__skyrovix_schema_migrated = false;
       const retryPool = getDbPool();
       return ensureSchemaMigrated(retryPool);
     }
-    _pool = null;
-    console.warn("[db.server] MySQL connection verification failed, reset pool:", err.message);
+    console.warn("[db.server] MySQL connection verification non-fatal:", err.message);
+    globalThis.__skyrovix_schema_migrated = true;
   }
 }
 
@@ -215,7 +220,7 @@ export async function dbQuery<T = any>(
   params?: any[]
 ): Promise<QueryResult<T>> {
   let pool = getDbPool();
-  if (!_schemaMigrated) {
+  if (!globalThis.__skyrovix_schema_migrated) {
     await ensureSchemaMigrated(pool);
     pool = getDbPool();
   }
@@ -262,7 +267,7 @@ export async function withTransaction<T>(
   callback: (client: DbTransactionClient) => Promise<T>
 ): Promise<T> {
   let pool = getDbPool();
-  if (!_schemaMigrated) {
+  if (!globalThis.__skyrovix_schema_migrated) {
     await ensureSchemaMigrated(pool);
     pool = getDbPool();
   }

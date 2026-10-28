@@ -40,7 +40,11 @@ import {
   Calendar,
   AlertCircle,
   HelpCircle,
+  Gift,
+  Send,
 } from "lucide-react";
+import { supabase } from "@/lib/db-client";
+import { VerificationOfferDialog } from "@/components/admin/VerificationOfferDialog";
 
 interface CouponManagementSectionProps {
   adminId: string;
@@ -63,6 +67,49 @@ export function CouponManagementSection({ adminId }: CouponManagementSectionProp
 
   // Redemptions Drawer state
   const [selectedCouponForRedemptions, setSelectedCouponForRedemptions] = useState<{ id: string; code: string } | null>(null);
+
+  // Verification Queue Offer Campaign state
+  const [offerDialogOpen, setOfferDialogOpen] = useState(false);
+  const [targetOfferCoupon, setTargetOfferCoupon] = useState<string | null>(null);
+
+  const { data: queueData } = useQuery({
+    queryKey: ["admin-verification-pending-coupons"],
+    queryFn: async () => {
+      const [appsRes, subsRes, certsRes, paysRes] = await Promise.all([
+        supabase.from("applications").select("*").order("created_at", { ascending: false }),
+        supabase.from("submissions").select("application_id, status"),
+        supabase.from("certificates").select("application_id"),
+        supabase.from("payments").select("application_id, utr_number, amount, status"),
+      ]);
+      const certSet = new Set(certsRes.data?.map((c: any) => c.application_id) || []);
+      const appSubs = new Map<string, any[]>();
+      subsRes.data?.forEach((s: any) => {
+        if (!appSubs.has(s.application_id)) appSubs.set(s.application_id, []);
+        appSubs.get(s.application_id)!.push(s);
+      });
+      const payMap: Record<string, any> = {};
+      paysRes.data?.forEach((p: any) => { payMap[p.application_id] = p; });
+
+      const pending = (appsRes.data || []).filter((app: any) => {
+        if (app.submission_status === "rejected") return false;
+        if (certSet.has(app.id) && (app.submission_status === "approved" || app.status === "completed")) return false;
+        const subs = appSubs.get(app.id) || [];
+        const approvedCount = subs.filter((s: any) => s.status === "approved").length;
+        const taskLimits: Record<number, number> = app.domain === "fullstack"
+          ? { 1: 5, 2: 8, 3: 25, 6: 50 }
+          : { 1: 5, 2: 8, 3: 10, 6: 12 };
+        const requiredDomainTasks = (app.total_tasks && app.total_tasks > 0)
+          ? app.total_tasks
+          : (taskLimits[app.duration ?? 1] ?? 5);
+        const requiredTotalTasks = requiredDomainTasks + 1;
+        const isTasksDone = app.all_tasks_verified === true || (approvedCount >= requiredTotalTasks);
+        return isTasksDone && !certSet.has(app.id);
+      });
+
+      return { pending, payMap };
+    },
+    refetchInterval: 30_000,
+  });
 
   const { data: coupons = [], isLoading, refetch } = useQuery({
     queryKey: ["admin-coupons-list", adminId],
@@ -187,6 +234,18 @@ export function CouponManagementSection({ adminId }: CouponManagementSectionProp
         </div>
 
         <div className="flex items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setTargetOfferCoupon(null);
+              setOfferDialogOpen(true);
+            }}
+            className="rounded-xl h-10 gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 font-bold"
+          >
+            <Gift className="size-4 text-purple-600 dark:text-purple-400" /> Offer to Queue ({queueData?.pending?.length || 0})
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -375,6 +434,18 @@ export function CouponManagementSection({ adminId }: CouponManagementSectionProp
                         {/* Actions */}
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-xl text-xs gap-1 border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 font-medium"
+                              onClick={() => {
+                                setTargetOfferCoupon(c.code);
+                                setOfferDialogOpen(true);
+                              }}
+                            >
+                              <Send className="size-3 text-purple-600 dark:text-purple-400" /> Offer to Queue
+                            </Button>
+
                             <Button
                               size="sm"
                               variant="outline"
@@ -642,6 +713,22 @@ export function CouponManagementSection({ adminId }: CouponManagementSectionProp
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Verification Queue Offer Dialog */}
+      {offerDialogOpen && (
+        <VerificationOfferDialog
+          open={offerDialogOpen}
+          onOpenChange={setOfferDialogOpen}
+          adminId={adminId}
+          pendingApps={queueData?.pending || []}
+          paymentMap={queueData?.payMap || {}}
+          initialCouponCode={targetOfferCoupon}
+          onSuccess={() => {
+            refetch();
+            qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
+          }}
+        />
+      )}
     </div>
   );
 }

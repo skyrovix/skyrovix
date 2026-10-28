@@ -4,12 +4,12 @@ export type SendEmailInput = {
   to: string;
   studentName: string;
   studentId: string;
-  documentType: "offer_letter" | "certificate";
+  documentType: "offer_letter" | "certificate" | "offer_coupon" | "promotional";
   subject: string;
   body: string;
   html?: string;
   referenceId?: string;
-  pdfData: {
+  pdfData?: {
     fullName: string;
     internId: string;
     domain: string;
@@ -240,21 +240,23 @@ export async function sendEmailDirect(data: SendEmailInput): Promise<EmailResult
     return { success: false, logId, error: errorMessage };
   }
 
-  // 1. Generate PDF Attachment
+  // 1. Generate PDF Attachment if applicable
   let pdfBuffer: Buffer | null = null;
   let attachmentFilename = `${documentType === "offer_letter" ? "Offer_Letter" : "Certificate"}_Skyrovix.pdf`;
 
-  try {
-    const { jsPDF } = await import("jspdf");
-    if (documentType === "offer_letter") {
-      pdfBuffer = await buildOfferLetterPdf(jsPDF, pdfData);
-      attachmentFilename = `Skyrovix_Offer_Letter_${(pdfData.fullName || "Student").replace(/\s+/g, "_")}.pdf`;
-    } else {
-      pdfBuffer = await buildCertificatePdf(jsPDF, pdfData);
-      attachmentFilename = `Skyrovix_Certificate_${(pdfData.fullName || "Student").replace(/\s+/g, "_")}.pdf`;
+  if (pdfData && (documentType === "offer_letter" || documentType === "certificate")) {
+    try {
+      const { jsPDF } = await import("jspdf");
+      if (documentType === "offer_letter") {
+        pdfBuffer = await buildOfferLetterPdf(jsPDF, pdfData);
+        attachmentFilename = `Skyrovix_Offer_Letter_${(pdfData.fullName || "Student").replace(/\s+/g, "_")}.pdf`;
+      } else {
+        pdfBuffer = await buildCertificatePdf(jsPDF, pdfData);
+        attachmentFilename = `Skyrovix_Certificate_${(pdfData.fullName || "Student").replace(/\s+/g, "_")}.pdf`;
+      }
+    } catch (pdfErr: any) {
+      console.error("[Email] PDF Generation warning:", pdfErr?.message);
     }
-  } catch (pdfErr: any) {
-    console.error("[Email] PDF Generation warning:", pdfErr?.message);
   }
 
   // 2. Setup Nodemailer Transporter
@@ -398,7 +400,7 @@ async function updateApplicationEmailStatus(
   referenceId: string | undefined,
   status: "sent" | "failed",
   errorMessage?: string,
-  documentType?: "offer_letter" | "certificate"
+  documentType?: "offer_letter" | "certificate" | "offer_coupon" | "promotional" | string
 ) {
   try {
     const { dbQuery } = await import("./db.server");
@@ -414,8 +416,11 @@ async function updateApplicationEmailStatus(
       if (documentType === "offer_letter") {
         extraSql = ", offer_issued_at = COALESCE(offer_issued_at, ?)";
         extraParams.push(now);
-      } else {
+      } else if (documentType === "certificate") {
         extraSql = ", certificate_generated = 1, certificate_generated_at = COALESCE(certificate_generated_at, ?)";
+        extraParams.push(now);
+      } else if (documentType === "offer_coupon") {
+        extraSql = ", verification_offer_sent_at = COALESCE(verification_offer_sent_at, ?)";
         extraParams.push(now);
       }
     }
@@ -454,7 +459,7 @@ async function logToDb(
   userId: string,
   recipientEmail: string,
   recipientName: string,
-  documentType: "offer_letter" | "certificate",
+  documentType: "offer_letter" | "certificate" | "offer_coupon" | "promotional" | string,
   status: "sent" | "failed",
   subject: string,
   referenceId?: string,

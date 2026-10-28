@@ -13,8 +13,10 @@ import { supabase } from "@/lib/db-client";
 import { toast } from "sonner";
 import { DOMAINS, getDomain } from "@/lib/constants";
 import type { CouponRow } from "@/lib/coupons";
+import { useAuth } from "@/lib/auth";
+import { VerificationOfferDialog } from "@/components/admin/VerificationOfferDialog";
 import {
-  Percent, Plus, Search, Edit, Trash2, CheckCircle2, XCircle, Clock, Copy, Users, Mail, X, ExternalLink,
+  Percent, Plus, Search, Edit, Trash2, CheckCircle2, XCircle, Clock, Copy, Users, Mail, X, ExternalLink, Gift, Send,
 } from "lucide-react";
 
 function Portal({ children }: { children: React.ReactNode }) {
@@ -35,12 +37,55 @@ const defaultForm = {
 
 export function PromotionsSection() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewStudentsCoupon, setViewStudentsCoupon] = useState<CouponRow | null>(null);
+  const [offerDialogOpen, setOfferDialogOpen] = useState(false);
+  const [targetOfferCoupon, setTargetOfferCoupon] = useState<string | null>(null);
+
+  // Query verification queue pending apps
+  const { data: queueData } = useQuery({
+    queryKey: ["admin-verification-pending-promo"],
+    queryFn: async () => {
+      const [appsRes, subsRes, certsRes, paysRes] = await Promise.all([
+        supabase.from("applications").select("*").order("created_at", { ascending: false }),
+        supabase.from("submissions").select("application_id, status"),
+        supabase.from("certificates").select("application_id"),
+        supabase.from("payments").select("application_id, utr_number, amount, status"),
+      ]);
+      const certSet = new Set(certsRes.data?.map((c: any) => c.application_id) || []);
+      const appSubs = new Map<string, any[]>();
+      subsRes.data?.forEach((s: any) => {
+        if (!appSubs.has(s.application_id)) appSubs.set(s.application_id, []);
+        appSubs.get(s.application_id)!.push(s);
+      });
+      const payMap: Record<string, any> = {};
+      paysRes.data?.forEach((p: any) => { payMap[p.application_id] = p; });
+
+      const pending = (appsRes.data || []).filter((app: any) => {
+        if (app.submission_status === "rejected") return false;
+        if (certSet.has(app.id) && (app.submission_status === "approved" || app.status === "completed")) return false;
+        const subs = appSubs.get(app.id) || [];
+        const approvedCount = subs.filter((s: any) => s.status === "approved").length;
+        const taskLimits: Record<number, number> = app.domain === "fullstack"
+          ? { 1: 5, 2: 8, 3: 25, 6: 50 }
+          : { 1: 5, 2: 8, 3: 10, 6: 12 };
+        const requiredDomainTasks = (app.total_tasks && app.total_tasks > 0)
+          ? app.total_tasks
+          : (taskLimits[app.duration ?? 1] ?? 5);
+        const requiredTotalTasks = requiredDomainTasks + 1;
+        const isTasksDone = app.all_tasks_verified === true || (approvedCount >= requiredTotalTasks);
+        return isTasksDone && !certSet.has(app.id);
+      });
+
+      return { pending, payMap };
+    },
+    refetchInterval: 30_000,
+  });
 
   const { data: coupons, isLoading } = useQuery({
     queryKey: ["admin-coupons"],
@@ -217,9 +262,22 @@ export function PromotionsSection() {
           <h2 className="text-xl font-bold flex items-center gap-2"><Percent className="size-5" /> Promotions & Coupons</h2>
           <p className="text-sm text-muted-foreground mt-1">Create and manage promotional coupon codes for discounts.</p>
         </div>
-        <Button onClick={openNew} className="brand-gradient text-white border-0 rounded-xl gap-1.5 h-10">
-          <Plus className="size-4" /> New Coupon
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setTargetOfferCoupon(null);
+              setOfferDialogOpen(true);
+            }}
+            className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 gap-1.5 h-10 font-bold"
+          >
+            <Gift className="size-4 text-purple-600 dark:text-purple-400" /> Offer to Verification Queue ({queueData?.pending?.length || 0})
+          </Button>
+
+          <Button onClick={openNew} className="brand-gradient text-white border-0 rounded-xl gap-1.5 h-10 font-semibold shadow-md">
+            <Plus className="size-4" /> New Coupon
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -299,6 +357,18 @@ export function PromotionsSection() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 px-2 rounded-lg border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 text-xs gap-1 font-medium"
+                      onClick={() => {
+                        setTargetOfferCoupon(c.code);
+                        setOfferDialogOpen(true);
+                      }}
+                      title="Send Offer with this coupon to Verification Queue"
+                    >
+                      <Gift className="size-3 text-purple-600 dark:text-purple-400" /> Offer to Queue
+                    </Button>
                     <Button size="icon" variant="ghost" className="size-8 rounded-lg" onClick={() => copyCode(c.code)} title="Copy code"><Copy className="size-3.5" /></Button>
                     <Button size="icon" variant="ghost" className="size-8 rounded-lg text-blue-600 dark:text-blue-400" onClick={() => setViewStudentsCoupon(c)} title="View Students"><Users className="size-3.5" /></Button>
                     <Button size="icon" variant="ghost" className="size-8 rounded-lg" onClick={() => openEdit(c)} title="Edit"><Edit className="size-3.5" /></Button>
@@ -424,6 +494,22 @@ export function PromotionsSection() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Verification Queue Offer Dialog */}
+      {offerDialogOpen && (
+        <VerificationOfferDialog
+          open={offerDialogOpen}
+          onOpenChange={setOfferDialogOpen}
+          adminId={user?.id || ""}
+          pendingApps={queueData?.pending || []}
+          paymentMap={queueData?.payMap || {}}
+          initialCouponCode={targetOfferCoupon}
+          onSuccess={() => {
+            qc.invalidateQueries({ queryKey: ["admin-coupons"] });
+            qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
+          }}
+        />
+      )}
     </div>
   );
 }

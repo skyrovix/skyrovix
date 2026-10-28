@@ -26,6 +26,7 @@ import { BackupSection } from "@/components/admin/BackupSection";
 import { ProjectSubmissionsSection } from "@/components/admin/ProjectSubmissionsSection";
 import { PaymentVerificationSection } from "@/components/admin/PaymentVerificationSection";
 import { CouponManagementSection } from "@/components/admin/CouponManagementSection";
+import { VerificationOfferDialog } from "@/components/admin/VerificationOfferDialog";
 import { FeeSettingsSection } from "@/components/admin/FeeSettingsSection";
 import { ProjectCatalogueAdminSection } from "@/components/admin/ProjectCatalogueAdminSection";
 import { GuidanceAdminSection } from "@/components/admin/GuidanceAdminSection";
@@ -50,7 +51,7 @@ import {
   PanelRightOpen, FolderTree,   FileQuestion, PieChart, Percent, Briefcase,
   Loader2, Activity, Wifi, WifiOff, LogIn, Monitor, Smartphone, Tablet,
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
-  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck, Github, Crown, Package, Code2,
+  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck, Github, Crown, Package, Code2, Gift,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -3293,6 +3294,9 @@ function VerificationSection() {
   const [freeApproveDialog, setFreeApproveDialog] = useState<any | null>(null);
   const [meritReason, setMeritReason] = useState<string>("⭐ Top Performer / High Quality Work");
   const [customMeritNote, setCustomMeritNote] = useState<string>("");
+  const [offerDialogOpen, setOfferDialogOpen] = useState(false);
+  const [offerTargetAppId, setOfferTargetAppId] = useState<string | null>(null);
+  const [offerInitialCoupon, setOfferInitialCoupon] = useState<string | null>(null);
 
   // Fetch payments separately to avoid schema cache issues with reverse join
   useEffect(() => {
@@ -3348,6 +3352,22 @@ function VerificationSection() {
     },
     refetchInterval: 10_000,
   });
+
+  const unpaidWaitingCount = useMemo(() => {
+    return (pendingApps || []).filter((a: any) => {
+      const pay = paymentMap[a.id];
+      const hasCoupon = Boolean(
+        (a.coupon_code && a.coupon_code.trim() !== "") ||
+        (pay && (pay.coupon_code || pay.utr_number === "FREE_COUPON" || pay.amount === 0))
+      );
+      const isPayDone = Boolean(
+        (pay && (pay.status === "verified" || pay.status === "approved")) ||
+        a.certificate_payment_status === "approved" ||
+        a.certificate_payment_status === "waived"
+      );
+      return !isPayDone && !hasCoupon;
+    }).length;
+  }, [pendingApps, paymentMap]);
 
   const { data: reviewedApps } = useQuery({
     queryKey: ["admin-verification-reviewed"],
@@ -3527,10 +3547,27 @@ function VerificationSection() {
 
   return (
     <div className="animate-fade-in-up space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">Internship Verification Queue</h2>
           <p className="text-sm text-muted-foreground">{pendingApps?.length ?? 0} pending, {reviewedApps?.length ?? 0} reviewed</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              setOfferTargetAppId(null);
+              setOfferInitialCoupon(null);
+              setOfferDialogOpen(true);
+            }}
+            className="rounded-xl h-10 px-4 font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-700 hover:to-indigo-800 text-white shadow-md shadow-purple-500/20 gap-2 border-0"
+          >
+            <Gift className="size-4" /> Send Offer (50% Off / Coupon)
+            {unpaidWaitingCount > 0 && (
+              <Badge className="bg-white/25 hover:bg-white/30 text-white font-black text-[11px] px-1.5 py-0">
+                {unpaidWaitingCount} Waiting
+              </Badge>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -3551,6 +3588,10 @@ function VerificationSection() {
                 a.certificate_payment_status === "waived"
               );
               const issuesCert = hasCoupon || isPayDone;
+              const submittedDate = a.submitted_at || a.created_at;
+              const waitingDays = submittedDate
+                ? Math.max(0, Math.floor((Date.now() - new Date(submittedDate).getTime()) / (1000 * 60 * 60 * 24)))
+                : 0;
 
               return (
               <div key={a.id} className="rounded-2xl border border-border/50 bg-white/70 p-5 backdrop-blur dark:bg-[#1E293B]/70">
@@ -3562,7 +3603,22 @@ function VerificationSection() {
                       <p className="text-xs text-muted-foreground">{a.intern_id} · {getDomain(a.domain)?.name ?? a.domain} · {a.duration ?? 1} Month(s)</p>
                     </div>
                   </div>
-                  <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs">Submitted</Badge>
+                  <div className="flex items-center gap-1.5">
+                    {waitingDays >= 5 ? (
+                      <Badge className="bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400 text-xs font-bold border border-red-200">
+                        ⏳ {waitingDays} Days Waiting
+                      </Badge>
+                    ) : waitingDays >= 2 ? (
+                      <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 text-xs font-bold border border-amber-200">
+                        ⏳ {waitingDays} Days Waiting
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 text-xs font-medium">
+                        ⏳ {waitingDays === 0 ? "Today" : `${waitingDays} Day`}
+                      </Badge>
+                    )}
+                    <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs">Submitted</Badge>
+                  </div>
                 </div>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div><span className="text-muted-foreground">Applied</span><p className="font-semibold">{new Date(a.created_at).toLocaleDateString("en-IN")}</p></div>
@@ -3594,7 +3650,19 @@ function VerificationSection() {
                     </p>
                   </div>
                 </div>
-                {a.coupon_code && <p className="mt-2 text-xs text-muted-foreground">Coupon: <span className="font-mono font-bold text-emerald-600">{a.coupon_code}</span></p>}
+                {a.coupon_code && (
+                  <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1.5">
+                    <span>Coupon:</span>
+                    <span className="font-mono font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200">
+                      {a.coupon_code}
+                    </span>
+                    {a.verification_offer_sent_at && (
+                      <span className="text-[11px] text-muted-foreground">
+                        · Offer sent {new Date(a.verification_offer_sent_at).toLocaleDateString("en-IN")}
+                      </span>
+                    )}
+                  </p>
+                )}
                 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {issuesCert ? (
@@ -3622,6 +3690,19 @@ function VerificationSection() {
                       Approve Free (Merit / No Payment)
                     </Button>
                   )}
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 rounded-xl font-semibold"
+                    onClick={() => {
+                      setOfferTargetAppId(a.id);
+                      setOfferInitialCoupon(a.coupon_code || null);
+                      setOfferDialogOpen(true);
+                    }}
+                  >
+                    <Gift className="size-3.5 mr-1.5 text-purple-600 dark:text-purple-400" /> Send Offer / Coupon
+                  </Button>
 
                   <Button
                     size="sm"
@@ -3879,6 +3960,23 @@ function VerificationSection() {
             </div>
           </div>
         </Portal>
+      )}
+
+      {/* Verification Offer & Promo Campaign Dialog */}
+      {offerDialogOpen && (
+        <VerificationOfferDialog
+          open={offerDialogOpen}
+          onOpenChange={setOfferDialogOpen}
+          adminId={user?.id || ""}
+          pendingApps={pendingApps || []}
+          paymentMap={paymentMap}
+          preselectedAppId={offerTargetAppId}
+          initialCouponCode={offerInitialCoupon}
+          onSuccess={() => {
+            qc.invalidateQueries({ queryKey: ["admin-verification-pending"] });
+            qc.invalidateQueries({ queryKey: ["admin-coupons-list"] });
+          }}
+        />
       )}
     </div>
   );

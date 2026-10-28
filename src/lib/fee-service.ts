@@ -341,3 +341,29 @@ export const submitApplicationServer = createServerFn({ method: "POST" })
     const { submitApplicationServer } = await import("@/lib/fee-service.server");
     return submitApplicationServer(data);
   });
+
+export interface SendVerificationQueueOffersData {
+  adminId: string;
+  applicationIds: string[];
+  couponCode: string;
+  createCouponIfNeeded?: boolean;
+  couponDetails?: {
+    discountType: "percentage" | "fixed" | "free";
+    discountValue: number;
+    usageLimit?: number;
+    expiresAt?: string | null;
+    description?: string;
+  };
+  customSubject?: string;
+  customMessage?: string;
+  autoApplyToApplication?: boolean;
+  dashboardUrl?: string;
+}
+
+export const sendVerificationQueueOffers = createServerFn({ method: "POST" })
+  .validator((d: any) => d as SendVerificationQueueOffersData)
+  .handler(async ({ data }) => {
+    const { sendVerificationQueueOffersServer } = await import("@/lib/fee-service.server");
+    return sendVerificationQueueOffersServer(data);
+  });
+
