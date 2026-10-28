@@ -582,8 +582,6 @@ function Dashboard() {
       Boolean(app.all_tasks_verified) ||
       Boolean(app.certificate_payment_unlocked) ||
       app.status === "completed" ||
-      user?.email?.toLowerCase() === "hariharanmahesh34@gmail.com" ||
-      user?.email?.toLowerCase() === "skyrovix@gmail.com" ||
       (internTotal > 0 && internApproved >= internTotal)
     )
   );

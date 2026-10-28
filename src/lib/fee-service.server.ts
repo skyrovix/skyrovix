@@ -347,16 +347,7 @@ export async function checkAllTasksVerified(
     app.status === "completed"
   );
 
-  // 2. Check if user is admin or founder (testing payment / certificate)
-  const isAdminUser = Boolean(
-    (app.email && (
-      app.email.toLowerCase() === "hariharanmahesh34@gmail.com" ||
-      app.email.toLowerCase() === "skyrovix@gmail.com" ||
-      app.email.toLowerCase() === "hariharan@skyrovix.com"
-    )) || (app.user_id ? await checkIsAdmin(app.user_id) : false)
-  );
-
-  if (isMarkedVerified || isAdminUser) {
+  if (isMarkedVerified) {
     const total = Number(app.total_tasks) > 0 ? Number(app.total_tasks) : 6;
     return {
       isCompleted: true,

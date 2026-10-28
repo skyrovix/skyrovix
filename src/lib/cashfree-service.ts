@@ -125,23 +125,12 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
       serviceTitle = "Skyrovix Verified Internship Certificate Fee";
 
       if (applicationId) {
-        // Strict check: Task verification check
-        const isFounder = Boolean(
-          customerEmail && (
-            customerEmail.toLowerCase() === "hariharanmahesh34@gmail.com" ||
-            customerEmail.toLowerCase() === "skyrovix@gmail.com" ||
-            customerEmail.toLowerCase() === "hariharan@skyrovix.com"
-          )
-        );
-        const isAdmin = isFounder || (userId ? await checkIsAdmin(userId) : false);
-
-        if (!isAdmin) {
-          const taskCheck = await checkAllTasksVerified(null, applicationId);
-          if (!taskCheck.isCompleted) {
-            throw new Error(
-              `Certificate payment is LOCKED: You have ${taskCheck.approvedCount} of ${taskCheck.requiredCount} tasks approved (missing tasks: ${taskCheck.missingTaskNumbers.join(", ")}). Admin must approve all required tasks first.`
-            );
-          }
+        // Strict check: All tasks must be completed and approved before certificate payment unlocks
+        const taskCheck = await checkAllTasksVerified(null, applicationId);
+        if (!taskCheck.isCompleted) {
+          throw new Error(
+            `Certificate payment is LOCKED: You have ${taskCheck.approvedCount} of ${taskCheck.requiredCount} tasks approved (missing tasks: ${taskCheck.missingTaskNumbers.join(", ")}). Admin must approve all required tasks first.`
+          );
         }
 
         // Get application domain & plan for title and price
