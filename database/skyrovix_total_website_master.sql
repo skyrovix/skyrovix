@@ -182,6 +182,8 @@ CREATE TABLE IF NOT EXISTS applications (
   email_status VARCHAR(50) DEFAULT 'sent',
   email_sent_at DATETIME(3),
   email_error TEXT,
+  application_fee_required TINYINT(1) DEFAULT 0,
+  application_fee_status VARCHAR(50) DEFAULT 'not_required',
   email_attempts INT DEFAULT 1,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),

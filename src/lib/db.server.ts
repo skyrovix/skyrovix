@@ -134,6 +134,8 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
 
     // Ensure applications schema contains all critical columns
     await ensureCol("applications", "total_tasks", "INT DEFAULT 5");
+    await ensureCol("applications", "application_fee_required", "TINYINT(1) DEFAULT 0");
+    await ensureCol("applications", "application_fee_status", "VARCHAR(50) DEFAULT 'not_required'");
     await ensureCol("applications", "plan_type", "VARCHAR(50) NOT NULL DEFAULT 'standard'");
     await ensureCol("applications", "plan_fee", "DECIMAL(10,2) NOT NULL DEFAULT 0.00");
     await ensureCol("applications", "plan_payment_status", "VARCHAR(50) NOT NULL DEFAULT 'pending'");

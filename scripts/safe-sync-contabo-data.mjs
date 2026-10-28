@@ -82,13 +82,44 @@ async function run() {
   console.log(`- Submissions: ${subCount}`);
   console.log(`- Certificates: ${certCount}\n`);
 
-  // Step 0: Ensure applications schema has total_tasks column
+  // Step 0: Ensure applications schema has all required columns
   const [appColsCheck] = await conn.query("SHOW COLUMNS FROM `applications`");
-  if (!appColsCheck.some((c) => c.Field === "total_tasks")) {
-    console.log("Step 0: Adding missing total_tasks column to applications table...");
-    await conn.query("ALTER TABLE `applications` ADD COLUMN `total_tasks` INT DEFAULT 5;");
-    console.log("  ✓ Added total_tasks column to applications table.\n");
+  const existingAppCols = new Set(appColsCheck.map((c) => c.Field));
+  
+  const requiredCols = [
+    { name: "total_tasks", def: "INT DEFAULT 5" },
+    { name: "application_fee_required", def: "TINYINT(1) DEFAULT 0" },
+    { name: "application_fee_status", def: "VARCHAR(50) DEFAULT 'not_required'" },
+    { name: "plan_type", def: "VARCHAR(50) NOT NULL DEFAULT 'standard'" },
+    { name: "plan_fee", def: "DECIMAL(10,2) NOT NULL DEFAULT 0.00" },
+    { name: "plan_payment_status", def: "VARCHAR(50) NOT NULL DEFAULT 'pending'" },
+    { name: "plan_payment_id", def: "VARCHAR(100) NULL" },
+    { name: "plan_payment_method", def: "VARCHAR(50) NULL" },
+    { name: "plan_paid_at", def: "DATETIME NULL" },
+    { name: "agreed_fee", def: "DECIMAL(10,2) NOT NULL DEFAULT 0.00" },
+    { name: "discount_amount", def: "DECIMAL(10,2) NOT NULL DEFAULT 0.00" },
+    { name: "all_tasks_verified", def: "TINYINT(1) DEFAULT 0" },
+    { name: "certificate_payment_unlocked", def: "TINYINT(1) DEFAULT 0" },
+    { name: "certificate_payment_status", def: "VARCHAR(50) DEFAULT 'pending'" },
+    { name: "certificate_offer_eligible", def: "TINYINT(1) DEFAULT 0" },
+    { name: "certificate_offer_id", def: "VARCHAR(100) NULL" },
+    { name: "certificate_offer_amount", def: "DECIMAL(10,2) NULL" },
+    { name: "certificate_offer_snapshot", def: "JSON NULL" },
+    { name: "certificate_offer_granted_at", def: "DATETIME NULL" },
+    { name: "certificate_offer_expires_at", def: "DATETIME NULL" },
+    { name: "email_status", def: "VARCHAR(50) DEFAULT 'sent'" },
+    { name: "email_sent_at", def: "DATETIME NULL" },
+    { name: "email_error", def: "TEXT NULL" },
+  ];
+
+  for (const col of requiredCols) {
+    if (!existingAppCols.has(col.name)) {
+      console.log(`Step 0: Adding missing ${col.name} column to applications table...`);
+      await conn.query(`ALTER TABLE \`applications\` ADD COLUMN \`${col.name}\` ${col.def};`);
+      console.log(`  ✓ Added ${col.name} column.`);
+    }
   }
+  console.log();
 
   // 2. Fix Name, Photo, and Identity for Hariharan S
   console.log("Step 1: Correcting student profile and user details for Hariharan S...");
