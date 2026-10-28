@@ -142,6 +142,7 @@ CREATE TABLE IF NOT EXISTS applications (
   year VARCHAR(50),
   photo_url TEXT,
   duration INT DEFAULT 1,
+  total_tasks INT DEFAULT 5,
   country VARCHAR(100),
   state VARCHAR(100),
   district VARCHAR(100),

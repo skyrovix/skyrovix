@@ -113,7 +113,7 @@ export function adaptSqlForMysql(sql: string): string {
   return prepareMysqlQueryAndParams(sql).sql;
 }
 
-let _schemaMigrated = true;
+let _schemaMigrated = false;
 
 async function ensureSchemaMigrated(pool: mysql.Pool) {
   if (_schemaMigrated) return;
@@ -131,6 +131,18 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
         // Safe to ignore if table does not exist yet
       }
     };
+
+    // Ensure applications schema contains all critical columns
+    await ensureCol("applications", "total_tasks", "INT DEFAULT 5");
+    await ensureCol("applications", "plan_type", "VARCHAR(50) NOT NULL DEFAULT 'standard'");
+    await ensureCol("applications", "plan_fee", "DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+    await ensureCol("applications", "plan_payment_status", "VARCHAR(50) NOT NULL DEFAULT 'pending'");
+    await ensureCol("applications", "plan_paid_at", "DATETIME NULL");
+    await ensureCol("applications", "agreed_fee", "DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+    await ensureCol("applications", "discount_amount", "DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+    await ensureCol("applications", "all_tasks_verified", "TINYINT(1) DEFAULT 0");
+    await ensureCol("applications", "certificate_payment_unlocked", "TINYINT(1) DEFAULT 0");
+    await ensureCol("applications", "certificate_payment_status", "VARCHAR(50) DEFAULT 'pending'");
 
     const tablesToCheck = [
       "payments",

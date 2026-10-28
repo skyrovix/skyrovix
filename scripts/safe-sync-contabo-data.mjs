@@ -82,6 +82,14 @@ async function run() {
   console.log(`- Submissions: ${subCount}`);
   console.log(`- Certificates: ${certCount}\n`);
 
+  // Step 0: Ensure applications schema has total_tasks column
+  const [appColsCheck] = await conn.query("SHOW COLUMNS FROM `applications`");
+  if (!appColsCheck.some((c) => c.Field === "total_tasks")) {
+    console.log("Step 0: Adding missing total_tasks column to applications table...");
+    await conn.query("ALTER TABLE `applications` ADD COLUMN `total_tasks` INT DEFAULT 5;");
+    console.log("  ✓ Added total_tasks column to applications table.\n");
+  }
+
   // 2. Fix Name, Photo, and Identity for Hariharan S
   console.log("Step 1: Correcting student profile and user details for Hariharan S...");
   await conn.query(`
