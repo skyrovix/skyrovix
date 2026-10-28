@@ -608,13 +608,19 @@ function Dashboard() {
     if (!isTasksCompleted) return "LOCKED";
     if (isOfferActive && app?.certificate_offer_eligible === true) return "FREE_OFFER";
     if (!certFeeConfig.enabled || certFeeAmount === 0) return "NOT_REQUIRED";
-    if (certPaymentRecord?.status === "approved" || app?.certificate_payment_status === "approved") return "APPROVED";
+    if (
+      certPaymentRecord?.status === "approved" ||
+      app?.certificate_payment_status === "approved" ||
+      app?.status === "completed" ||
+      Boolean(certificate) ||
+      Boolean(app?.certificate_generated)
+    ) return "APPROVED";
     if (certPaymentRecord?.status === "waived" || (isOfferActive && app?.certificate_payment_status === "waived")) return "WAIVED";
     if (certPaymentRecord?.status === "resubmission_required") return "RESUBMISSION_REQUIRED";
     if (certPaymentRecord?.status === "rejected") return "REJECTED";
     if (certPaymentRecord?.status === "pending" || certPaymentRecord?.status === "under_review") return "PENDING";
     return "PAYMENT_REQUIRED";
-  }, [isTasksCompleted, isOfferActive, app?.certificate_offer_eligible, app?.certificate_payment_status, certFeeConfig.enabled, certFeeAmount, certPaymentRecord]);
+  }, [isTasksCompleted, isOfferActive, app?.certificate_offer_eligible, app?.certificate_payment_status, app?.status, app?.certificate_generated, certificate, certFeeConfig.enabled, certFeeAmount, certPaymentRecord]);
 
   const isCertPaymentVerified = Boolean(
     certPaymentState === "FREE_OFFER" ||
@@ -3566,9 +3572,15 @@ function LockedCertificateCard({
   );
   const isOfferActive = Boolean(certFeeConfig?.offer_enabled ?? false);
   const isOfferEligible = Boolean(isOfferActive && app?.certificate_offer_eligible);
-  const paymentStatus = (certPaymentRecord?.status || app?.certificate_payment_status || "").toLowerCase();
-  const isFeeEnabled = certFeeConfig ? (certFeeConfig.enabled !== false && certFeeConfig.is_enabled !== false) : certFeeAmount > 0;
-  const effectiveCertFee = isOfferEligible ? 0 : (!isFeeEnabled ? 0 : certFeeAmount);
+  const isFeeEnabled = certFeeConfig ? (certFeeConfig.enabled !== false && certFeeConfig.is_enabled !== false) : (certFeeAmount ?? 100) > 0;
+  const paymentStatus = (
+    certPaymentRecord?.status ||
+    app?.certificate_payment_status ||
+    (app?.status === "completed" ? "approved" : "") ||
+    (app?.certificate_generated ? "approved" : "") ||
+    ""
+  ).toLowerCase();
+  const effectiveCertFee = isOfferEligible ? 0 : (!isFeeEnabled ? 0 : (certFeeAmount ?? 100));
 
   // Dynamic disclaimer per Section 33
   const certDisclaimer = getCertificateDisclaimer({

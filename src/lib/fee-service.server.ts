@@ -11,14 +11,19 @@ import {
 
 export async function checkIsAdmin(userId?: string | null): Promise<boolean> {
   if (!userId) return false;
-  const res = await dbQuery(
-    `SELECT (
-       EXISTS (SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin')
-       OR EXISTS (SELECT 1 FROM users WHERE id = $1 AND (role = 'admin' OR LOWER(email) IN ('hariharanmahesh34@gmail.com', 'skyrovix@gmail.com')))
-     ) as is_admin`,
-    [userId]
-  );
-  return Boolean(res.rows[0]?.is_admin);
+  try {
+    const res = await dbQuery(
+      `SELECT (
+         EXISTS (SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin')
+         OR EXISTS (SELECT 1 FROM users WHERE id = $1 AND LOWER(email) IN ('hariharanmahesh34@gmail.com', 'skyrovix@gmail.com', 'hariharan@skyrovix.com'))
+       ) as is_admin`,
+      [userId]
+    );
+    return Boolean(res.rows[0]?.is_admin);
+  } catch (err) {
+    console.error("[checkIsAdmin error]:", err);
+    return false;
+  }
 }
 
 export async function fetchPublicFeeSettings(): Promise<PublicFeeSettings> {
@@ -346,7 +351,8 @@ export async function checkAllTasksVerified(
   const isAdminUser = Boolean(
     (app.email && (
       app.email.toLowerCase() === "hariharanmahesh34@gmail.com" ||
-      app.email.toLowerCase() === "skyrovix@gmail.com"
+      app.email.toLowerCase() === "skyrovix@gmail.com" ||
+      app.email.toLowerCase() === "hariharan@skyrovix.com"
     )) || (app.user_id ? await checkIsAdmin(app.user_id) : false)
   );
 

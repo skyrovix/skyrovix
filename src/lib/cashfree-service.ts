@@ -126,11 +126,14 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
 
       if (applicationId) {
         // Strict check: Task verification check
-        const isAdmin = Boolean(
-          (await checkIsAdmin(userId)) ||
-          customerEmail.toLowerCase() === "hariharanmahesh34@gmail.com" ||
-          customerEmail.toLowerCase() === "skyrovix@gmail.com"
+        const isFounder = Boolean(
+          customerEmail && (
+            customerEmail.toLowerCase() === "hariharanmahesh34@gmail.com" ||
+            customerEmail.toLowerCase() === "skyrovix@gmail.com" ||
+            customerEmail.toLowerCase() === "hariharan@skyrovix.com"
+          )
         );
+        const isAdmin = isFounder || (userId ? await checkIsAdmin(userId) : false);
 
         if (!isAdmin) {
           const taskCheck = await checkAllTasksVerified(null, applicationId);
