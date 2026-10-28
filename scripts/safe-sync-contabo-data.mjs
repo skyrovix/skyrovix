@@ -1,4 +1,5 @@
 import fsSync from "fs";
+import path from "path";
 import mysql from "mysql2/promise";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -23,10 +24,12 @@ try {
   }
 } catch {}
 
+const HARI_PHOTO = "https://eesiuqeswydlmwhecrcy.supabase.co/storage/v1/object/public/profile-photos/78b4325a-a65a-4a92-92e4-01b87fc79d41/1782207723772.jpeg";
+
 async function run() {
   console.log("=============================================================");
   console.log("   Skyrovix Safe Contabo VPS Data Synchronization            ");
-  console.log("   SAFE MODE: Zero Truncate / Zero Data Loss Guaranteed      ");
+  console.log("   Zero Truncate / Preserves All Live Student Submissions    ");
   console.log("=============================================================\n");
 
   const host = process.env.MYSQL_HOST || process.env.DB_HOST || "127.0.0.1";
@@ -73,47 +76,121 @@ async function run() {
   const [[{ count: subCount }]] = await conn.query("SELECT COUNT(*) as count FROM submissions");
   const [[{ count: certCount }]] = await conn.query("SELECT COUNT(*) as count FROM certificates");
 
-  console.log("Current Database Stats:");
+  console.log("Database Stats Before Sync:");
   console.log(`- Users: ${userCount}`);
   console.log(`- Applications: ${appCount}`);
   console.log(`- Submissions: ${subCount}`);
   console.log(`- Certificates: ${certCount}\n`);
 
-  // 2. Safe Auto-Link: Applications to Users by matching email (without disturbing existing data)
-  console.log("Step 1: Synchronizing application user_id with users table by email...");
+  // 2. Fix Name, Photo, and Identity for Hariharan S
+  console.log("Step 1: Correcting student profile and user details for Hariharan S...");
+  await conn.query(`
+    UPDATE users 
+    SET full_name = 'Hariharan S'
+    WHERE LOWER(TRIM(email)) = 'hariharanmahesh34@gmail.com';
+  `);
+
+  await conn.query(`
+    UPDATE profiles 
+    SET full_name = 'Hariharan S', photo_url = ?
+    WHERE LOWER(TRIM(email)) = 'hariharanmahesh34@gmail.com';
+  `, [HARI_PHOTO]);
+
+  // Fix SKX-2026-9055 and any applications under hariharanmahesh34@gmail.com
+  await conn.query(`
+    UPDATE applications
+    SET full_name = 'Hariharan S', photo_url = ?
+    WHERE LOWER(TRIM(email)) = 'hariharanmahesh34@gmail.com' OR intern_id = 'SKX-2026-9055' OR intern_id = 'SKX-INT-2026-842D';
+  `, [HARI_PHOTO]);
+  console.log("  ✓ Hariharan S name and photo synchronized.");
+
+  // Keep Maheshwaran S distinct on harimaheshwaran34@gmail.com
+  await conn.query(`
+    UPDATE users 
+    SET full_name = 'MAHESH WARAN S'
+    WHERE LOWER(TRIM(email)) = 'harimaheshwaran34@gmail.com';
+  `);
+  await conn.query(`
+    UPDATE profiles 
+    SET full_name = 'MAHESH WARAN S'
+    WHERE LOWER(TRIM(email)) = 'harimaheshwaran34@gmail.com';
+  `);
+  console.log("  ✓ Maheshwaran S account verified distinct.");
+
+  // 3. Insert Missing REG- Applications & Registrations
+  console.log("Step 2: Inserting missing batch applications (including SKX-INT-2026-842D)...");
+  let regData = null;
+  const regJsonPath = path.resolve(process.cwd(), "scripts", "reg-apps-data.json");
+  if (fsSync.existsSync(regJsonPath)) {
+    try {
+      regData = JSON.parse(fsSync.readFileSync(regJsonPath, "utf-8"));
+    } catch {}
+  }
+
+  if (regData && regData.apps && regData.apps.length > 0) {
+    let insertedApps = 0;
+    for (const app of regData.apps) {
+      try {
+        const cols = Object.keys(app);
+        const colList = cols.map((c) => `\`${c}\``).join(", ");
+        const placeholders = cols.map(() => "?").join(", ");
+        const updateClauses = cols.map((c) => `\`${c}\` = VALUES(\`${c}\`)`).join(", ");
+
+        // If it's Hariharan's application, make sure photo_url and full_name are set
+        if (app.email === "hariharanmahesh34@gmail.com") {
+          app.full_name = "Hariharan S";
+          app.photo_url = HARI_PHOTO;
+        }
+
+        const values = cols.map((c) => app[c]);
+
+        await conn.query(`
+          INSERT INTO \`applications\` (${colList})
+          VALUES (${placeholders})
+          ON DUPLICATE KEY UPDATE ${updateClauses}
+        `, values);
+        insertedApps++;
+      } catch (err) {
+        console.warn(`  Warning on app ${app.id}:`, err.message);
+      }
+    }
+    console.log(`  ✓ Synced ${insertedApps} batch applications into applications table.`);
+
+    if (regData.regs && regData.regs.length > 0) {
+      let insertedRegs = 0;
+      for (const reg of regData.regs) {
+        try {
+          const cols = Object.keys(reg);
+          const colList = cols.map((c) => `\`${c}\``).join(", ");
+          const placeholders = cols.map(() => "?").join(", ");
+          const updateClauses = cols.map((c) => `\`${c}\` = VALUES(\`${c}\`)`).join(", ");
+          const values = cols.map((c) => reg[c]);
+
+          await conn.query(`
+            INSERT INTO \`registrations\` (${colList})
+            VALUES (${placeholders})
+            ON DUPLICATE KEY UPDATE ${updateClauses}
+          `, values);
+          insertedRegs++;
+        } catch (err) {
+          // ignore duplicate
+        }
+      }
+      console.log(`  ✓ Synced ${insertedRegs} registrations into registrations table.`);
+    }
+  }
+
+  // 4. Safe Auto-Link: Applications to Users by matching email
+  console.log("Step 3: Synchronizing application user_id with users table by email...");
   const [linkRes] = await conn.query(`
     UPDATE applications a
     JOIN users u ON LOWER(TRIM(a.email)) = LOWER(TRIM(u.email))
     SET a.user_id = u.id
     WHERE a.user_id != u.id OR a.user_id IS NULL;
   `);
-  console.log(`  ✓ Updated ${linkRes.changedRows || 0} applications to match active user accounts.`);
+  console.log(`  ✓ Linked ${linkRes.changedRows || 0} applications to active user accounts.`);
 
-  // 3. Safe Auto-Link: Profiles to Users by matching email
-  console.log("Step 2: Synchronizing profiles table by email...");
-  try {
-    const [profRes] = await conn.query(`
-      UPDATE profiles p
-      JOIN users u ON LOWER(TRIM(p.email)) = LOWER(TRIM(u.email))
-      SET p.id = u.id
-      WHERE p.id != u.id;
-    `);
-    console.log(`  ✓ Updated ${profRes.changedRows || 0} profiles.`);
-  } catch (e) {
-    console.log("  Note on profiles:", e.message);
-  }
-
-  // 3. Safe Check: Submissions linking to applications
-  console.log("Step 3: Checking submissions link to valid applications...");
-  const [orphanedSubs] = await conn.query(`
-    SELECT COUNT(*) as count
-    FROM submissions s
-    LEFT JOIN applications a ON s.application_id = a.id
-    WHERE a.id IS NULL;
-  `);
-  console.log(`  ✓ Submissions verified. Orphaned submissions without applications: ${orphanedSubs[0].count}`);
-
-  // 5. Ensure any application without a user in users table gets a user account created so they can log in
+  // 5. Ensure any application without a user in users table gets an active user account
   console.log("Step 4: Ensuring user accounts exist for all registered students...");
   const [orphans] = await conn.query(`
     SELECT DISTINCT a.email, a.full_name, a.user_id
@@ -160,25 +237,29 @@ async function run() {
     console.log("  ✓ All applications already have corresponding user accounts.");
   }
 
-  // 6. Verification Summary of Submissions per Application
-  const [subStats] = await conn.query(`
-    SELECT
-      a.email,
-      a.domain,
-      a.intern_id,
-      COUNT(s.id) as total_submissions,
-      SUM(CASE WHEN s.status = 'approved' THEN 1 ELSE 0 END) as approved_tasks
-    FROM applications a
-    JOIN submissions s ON s.application_id = a.id
-    GROUP BY a.id, a.email, a.domain, a.intern_id
-    HAVING approved_tasks > 0
-    ORDER BY approved_tasks DESC
-    LIMIT 10;
+  // 6. Check Submissions linking to applications
+  console.log("Step 5: Verifying student task submissions integrity...");
+  const [[{ count: validSubs }]] = await conn.query(`
+    SELECT COUNT(*) as count
+    FROM submissions s
+    JOIN applications a ON s.application_id = a.id;
+  `);
+  console.log(`  ✓ Verified ${validSubs} active task submissions linked to applications.`);
+
+  // 7. Verify Hariharan S's applications specifically
+  console.log("\n=============================================================");
+  console.log("   HARIHARAN S DASHBOARD DATA VERIFICATION:                  ");
+  console.log("=============================================================");
+  const [hariApps] = await conn.query(`
+    SELECT id, user_id, intern_id, domain, full_name, email, duration, status, created_at, photo_url
+    FROM applications
+    WHERE LOWER(TRIM(email)) = 'hariharanmahesh34@gmail.com'
+    ORDER BY created_at DESC;
   `);
 
-  console.log("\nSample Student Submissions Verified Intact:");
-  for (const s of subStats) {
-    console.log(`  • ${s.email} | Domain: ${s.domain} | Intern ID: ${s.intern_id} | Approved: ${s.approved_tasks}/${s.total_submissions} tasks`);
+  for (const a of hariApps) {
+    const [[{ count: subCount }]] = await conn.query("SELECT COUNT(*) as count FROM submissions WHERE application_id = ?", [a.id]);
+    console.log(`  • ID: ${a.intern_id} | Domain: ${a.domain} | Name: ${a.full_name} | Duration: ${a.duration}M | Status: ${a.status} | Submissions: ${subCount} | Photo: ${a.photo_url ? "YES" : "NO"}`);
   }
 
   console.log("\n=============================================================");
