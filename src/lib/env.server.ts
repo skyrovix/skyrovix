@@ -8,23 +8,31 @@ export function loadEnv(force = false) {
   isLoaded = true;
 
   try {
-    const envPath = path.resolve(process.cwd(), ".env");
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, "utf-8");
-      for (const line of content.split(/\r?\n/)) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith("#")) continue;
-        const parts = trimmed.split("=");
-        const key = parts[0].trim().replace(/^export\s+/, "");
-        let val = parts.slice(1).join("=").trim();
-        if (
-          (val.startsWith('"') && val.endsWith('"')) ||
-          (val.startsWith("'") && val.endsWith("'"))
-        ) {
-          val = val.slice(1, -1);
-        }
-        if (key) {
-          if (force || !process.env[key] || !process.env[key].trim()) {
+    const candidates = [
+      path.resolve(process.cwd(), ".env"),
+      path.resolve(process.cwd(), ".env.production"),
+      path.resolve(process.cwd(), "..", ".env"),
+      path.resolve(process.cwd(), "..", ".env.production"),
+      "/opt/skyrovix-sites/skyrovix-main/.env",
+      "/opt/skyrovix-sites/skyrovix-main/.env.production",
+    ];
+
+    for (const envPath of candidates) {
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, "utf-8");
+        for (const line of content.split(/\r?\n/)) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const parts = trimmed.split("=");
+          const key = parts[0].trim().replace(/^export\s+/, "");
+          let val = parts.slice(1).join("=").trim();
+          if (
+            (val.startsWith('"') && val.endsWith('"')) ||
+            (val.startsWith("'") && val.endsWith("'"))
+          ) {
+            val = val.slice(1, -1);
+          }
+          if (key && (force || !process.env[key] || !process.env[key]!.trim())) {
             process.env[key] = val;
           }
         }
@@ -35,7 +43,7 @@ export function loadEnv(force = false) {
     if (!process.env.SMTP_PORT) process.env.SMTP_PORT = "465";
     if (!process.env.SMTP_FROM) process.env.SMTP_FROM = "Skyrovix <skyrovix@gmail.com>";
 
-    if (!process.env.CASHFREE_ENVIRONMENT) process.env.CASHFREE_ENVIRONMENT = "SANDBOX";
+    if (!process.env.CASHFREE_ENVIRONMENT) process.env.CASHFREE_ENVIRONMENT = "PRODUCTION";
     if (!process.env.CASHFREE_API_VERSION) process.env.CASHFREE_API_VERSION = "2023-08-01";
 
     if (!process.env.MYSQL_HOST) process.env.MYSQL_HOST = "127.0.0.1";

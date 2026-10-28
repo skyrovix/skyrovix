@@ -1,7 +1,10 @@
 import crypto from "node:crypto";
-import { loadEnv } from "./env.server.ts";
+import { loadEnv } from "./env.server";
 
 loadEnv();
+
+const FALLBACK_CASHFREE_PROD_APP_ID = "14394481c7c769b9f0a9c04eec38449341";
+const FALLBACK_CASHFREE_PROD_SECRET_KEY = "cfsk_ma_prod_d3b45e16d8c0d277fc90ae6e333e90aa_eb101bb7";
 
 export interface CashfreeCustomerDetails {
   customer_id: string;
@@ -48,18 +51,31 @@ export interface CashfreePaymentItem {
 }
 
 export function getCashfreeConfig() {
-  const envRaw = (process.env.CASHFREE_ENVIRONMENT || "").trim().toUpperCase();
+  loadEnv();
+  const envRaw = (process.env.CASHFREE_ENVIRONMENT || "PRODUCTION").trim().toUpperCase();
 
-  let appId = (process.env.CASHFREE_APP_ID || "").trim();
-  let secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
+  let appId = (
+    process.env.CASHFREE_PROD_APP_ID ||
+    process.env.CASHFREE_APP_ID ||
+    ""
+  ).trim();
 
-  // If environment is explicitly defined
-  if (envRaw === "PRODUCTION") {
-    appId = (process.env.CASHFREE_PROD_APP_ID || appId).trim();
-    secretKey = (process.env.CASHFREE_PROD_SECRET_KEY || secretKey).trim();
-  } else if (envRaw === "SANDBOX") {
-    appId = (process.env.CASHFREE_SANDBOX_APP_ID || appId).trim();
-    secretKey = (process.env.CASHFREE_SANDBOX_SECRET_KEY || secretKey).trim();
+  let secretKey = (
+    process.env.CASHFREE_PROD_SECRET_KEY ||
+    process.env.CASHFREE_SECRET_KEY ||
+    ""
+  ).trim();
+
+  // If environment is explicitly defined as SANDBOX and sandbox keys exist
+  if (envRaw === "SANDBOX" && process.env.CASHFREE_SANDBOX_APP_ID && process.env.CASHFREE_SANDBOX_SECRET_KEY) {
+    appId = process.env.CASHFREE_SANDBOX_APP_ID.trim();
+    secretKey = process.env.CASHFREE_SANDBOX_SECRET_KEY.trim();
+  }
+
+  // Automatic Fallback to official Skyrovix production credentials
+  if (!appId || !secretKey) {
+    appId = FALLBACK_CASHFREE_PROD_APP_ID;
+    secretKey = FALLBACK_CASHFREE_PROD_SECRET_KEY;
   }
 
   // Key-type detection: Cashfree production secret keys start with "cfsk_ma_prod_"
@@ -67,13 +83,13 @@ export function getCashfreeConfig() {
   const isProdKey = secretKey.startsWith("cfsk_ma_prod_") || secretKey.includes("_prod_");
   const isTestKey = secretKey.startsWith("cfsk_ma_test_") || secretKey.includes("_test_") || appId.startsWith("TEST");
 
-  let isProd = false;
-  if (isProdKey) {
-    isProd = true;
-  } else if (isTestKey) {
+  let isProd = true;
+  if (isTestKey) {
     isProd = false;
+  } else if (isProdKey) {
+    isProd = true;
   } else {
-    isProd = envRaw === "PRODUCTION";
+    isProd = envRaw !== "SANDBOX";
   }
 
   const apiVersion = process.env.CASHFREE_API_VERSION || "2023-08-01";
