@@ -242,24 +242,45 @@ function Dashboard() {
   }, [user, qc]);
 
   const { data: profile } = useQuery({
-    queryKey: ["my-profile-details", user?.id],
+    queryKey: ["my-profile-details", user?.id, user?.email],
     enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
-      return data ?? null;
+      if (data) return data;
+      if (user?.email) {
+        const { data: byEmail } = await supabase.from("profiles").select("*").eq("email", user.email).maybeSingle();
+        if (byEmail) return byEmail;
+      }
+      return null;
     }
   });
 
   const { data: appsList, isLoading } = useQuery({
-    queryKey: ["my-applications", user?.id],
+    queryKey: ["my-applications", user?.id, user?.email],
     queryFn: async (): Promise<Application[]> => {
       if (!user) return [];
-      const { data } = await supabase
+      const { data: byId } = await supabase
         .from("applications")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      return data ?? [];
+
+      let byEmail: any[] = [];
+      if (user.email) {
+        const { data: byEm } = await supabase
+          .from("applications")
+          .select("*")
+          .eq("email", user.email)
+          .order("created_at", { ascending: false });
+        byEmail = byEm ?? [];
+      }
+
+      const map = new Map<string, any>();
+      for (const a of byId ?? []) map.set(a.id, a);
+      for (const a of byEmail) {
+        if (!map.has(a.id)) map.set(a.id, a);
+      }
+      return Array.from(map.values());
     },
     enabled: !!user,
     refetchInterval: 3_000,

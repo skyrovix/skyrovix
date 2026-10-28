@@ -275,9 +275,18 @@ export async function serverSignIn(
     }
 
     // Ensure role is strictly 'admin' for hariharan@skyrovix.com and non-admin for everyone else
-    row.role = isSoleAdmin ? "admin" : (row.role === "admin" ? "user" : (row.role || "user"));
-
     const user = rowToUser(row);
+
+    // Auto-link any applications or profiles matching this email to this user.id
+    try {
+      await dbQuery(
+        "UPDATE applications SET user_id = ? WHERE LOWER(TRIM(email)) = ? AND (user_id != ? OR user_id IS NULL)",
+        [user.id, cleanEmail, user.id]
+      );
+    } catch (linkErr) {
+      console.warn("[serverSignIn] Auto-link error:", linkErr);
+    }
+
     const token = generateToken(user);
     const session: MysqlSession = {
       access_token: token,
