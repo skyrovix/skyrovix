@@ -796,10 +796,11 @@ export async function claimFreeCouponCertificate(data: {
       const rand = Math.floor(100000 + Math.random() * 900000);
       certId = `SKX-${year}-${rand}`;
       const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+      const certRecordId = crypto.randomUUID();
       await client.query(
-        `INSERT INTO public.certificates (application_id, certificate_id, verification_hash)
-         VALUES ($1, $2, $3)`,
-        [applicationId, certId, hash]
+        `INSERT INTO public.certificates (id, application_id, certificate_id, verification_hash)
+         VALUES ($1, $2, $3, $4)`,
+        [certRecordId, applicationId, certId, hash]
       );
     }
 
@@ -922,11 +923,12 @@ export async function claimFreeCertificate(data: {
       const rand = Math.floor(100000 + Math.random() * 900000);
       certId = `SKX-${year}-${rand}`;
       const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+      const certRecordId = crypto.randomUUID();
 
       await client.query(
-        `INSERT INTO public.certificates (application_id, certificate_id, verification_hash)
-         VALUES ($1, $2, $3)`,
-        [applicationId, certId, hash]
+        `INSERT INTO public.certificates (id, application_id, certificate_id, verification_hash)
+         VALUES ($1, $2, $3, $4)`,
+        [certRecordId, applicationId, certId, hash]
       );
     }
 
@@ -1141,10 +1143,11 @@ export async function reviewPayment(data: {
         if (!certId) {
           certId = generateCertId();
           const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          const certRecordId = crypto.randomUUID();
           await client.query(
-            `INSERT INTO public.certificates (application_id, certificate_id, verification_hash, issued_at)
-             VALUES ($1, $2, $3, now())`,
-            [payment.application_id, certId, hash]
+            `INSERT INTO public.certificates (id, application_id, certificate_id, verification_hash, issued_at)
+             VALUES ($1, $2, $3, $4, now())`,
+            [certRecordId, payment.application_id, certId, hash]
           );
         }
 
@@ -1398,9 +1401,10 @@ export async function syncApplicationTaskStatus(applicationId: string) {
           const rand = Math.floor(100000 + Math.random() * 900000);
           certId = `SKX-${year}-${rand}`;
           const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          const certRecordId = crypto.randomUUID();
           await client.query(
-            "INSERT INTO public.certificates (application_id, certificate_id, verification_hash) VALUES ($1, $2, $3)",
-            [applicationId, certId, hash]
+            "INSERT INTO public.certificates (id, application_id, certificate_id, verification_hash) VALUES ($1, $2, $3, $4)",
+            [certRecordId, applicationId, certId, hash]
           );
         }
 

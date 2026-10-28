@@ -299,14 +299,16 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
     }
 
     // 5. Store record in database
+    const orderRecordId = crypto.randomUUID();
     await dbQuery(
       `INSERT INTO public.cashfree_orders (
-        order_id, user_id, customer_name, customer_email, customer_phone,
+        id, order_id, user_id, customer_name, customer_email, customer_phone,
         product_service, product_type, entity_id, amount, currency,
         payment_status, cf_order_id, payment_session_id, coupon_code,
         discount_amount, raw_response, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'INR', 'CREATED', $10, $11, $12, $13, $14, now(), now())`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'INR', 'CREATED', $11, $12, $13, $14, $15, now(), now())`,
       [
+        orderRecordId,
         orderId,
         userId || null,
         customerName.trim(),
@@ -373,10 +375,11 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
         if (certCheck.rows.length === 0) {
           const certId = generateCertId();
           const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          const certRecordId = crypto.randomUUID();
           await dbQuery(
-            `INSERT INTO public.certificates (application_id, certificate_id, verification_hash, issued_at)
-             VALUES ($1, $2, $3, now())`,
-            [existingOrder.entity_id, certId, hash]
+            `INSERT INTO public.certificates (id, application_id, certificate_id, verification_hash, issued_at)
+             VALUES ($1, $2, $3, $4, now())`,
+            [certRecordId, existingOrder.entity_id, certId, hash]
           );
           await dbQuery(
             `UPDATE public.applications
@@ -492,11 +495,12 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
           if (!generatedCertId) {
             generatedCertId = generateCertId();
             const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+            const certRecordId = crypto.randomUUID();
 
             await client.query(
-              `INSERT INTO public.certificates (application_id, certificate_id, verification_hash, issued_at)
-               VALUES ($1, $2, $3, now())`,
-              [applicationId, generatedCertId, hash]
+              `INSERT INTO public.certificates (id, application_id, certificate_id, verification_hash, issued_at)
+               VALUES ($1, $2, $3, $4, now())`,
+              [certRecordId, applicationId, generatedCertId, hash]
             );
           }
 
