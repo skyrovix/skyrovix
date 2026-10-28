@@ -141,8 +141,30 @@ server {
         access_log off;
     }
 
-    # 3. Static Images, Favicons, Manifest, Robots, Sitemap — Direct Disk Serving
-    location ~* \.(ico|png|jpg|jpeg|webp|gif|svg|woff2?|ttf|eot|webmanifest|txt|xml)$ {
+    # 3. Dedicated Google AdSense Ads.txt Handler (Zero-cache, CORS enabled)
+    location = /ads.txt {
+        root ${APP_DIR}/public;
+        try_files /ads.txt @node_proxy;
+        default_type "text/plain; charset=utf-8";
+        add_header Content-Type "text/plain; charset=utf-8" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "no-cache, no-store, must-revalidate, max-age=0" always;
+        add_header Pragma "no-cache" always;
+        expires -1;
+    }
+
+    # 4. Search Engine Robots Handler
+    location = /robots.txt {
+        root ${APP_DIR}/public;
+        try_files /robots.txt @node_proxy;
+        default_type "text/plain; charset=utf-8";
+        add_header Content-Type "text/plain; charset=utf-8" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "public, max-age=3600, must-revalidate" always;
+    }
+
+    # 5. Static Images, Favicons, Manifest, Sitemap — Direct Disk Serving
+    location ~* \.(ico|png|jpg|jpeg|webp|gif|svg|woff2?|ttf|eot|webmanifest|xml)$ {
         root ${APP_DIR}/.output/public;
         try_files \$uri @node_proxy;
         expires 30d;

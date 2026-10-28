@@ -68,7 +68,9 @@ export default {
           headers: {
             "Content-Type": "text/plain; charset=utf-8",
             "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "public, max-age=0, must-revalidate",
+            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
           },
         });
       }
@@ -86,7 +88,27 @@ export default {
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+
+      // Multi-domain dynamic canonical rewrite for skyrovix.in
+      if (
+        url.hostname.includes("skyrovix.in") &&
+        normalized.status === 200 &&
+        (normalized.headers.get("content-type") || "").includes("text/html")
+      ) {
+        const html = await normalized.text();
+        const updatedHtml = html
+          .replaceAll('href="https://skyrovix.online"', 'href="https://skyrovix.in"')
+          .replaceAll('content="https://skyrovix.online"', 'content="https://skyrovix.in"')
+          .replaceAll('href="https://skyrovix.online/', 'href="https://skyrovix.in/')
+          .replaceAll('content="https://skyrovix.online/', 'content="https://skyrovix.in/');
+        return new Response(updatedHtml, {
+          status: normalized.status,
+          headers: normalized.headers,
+        });
+      }
+
+      return normalized;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

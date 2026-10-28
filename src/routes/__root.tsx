@@ -98,6 +98,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // Google AdSense Account Ownership Verification
+      { name: "google-adsense-account", content: "ca-pub-5755024838228586" },
       // Default title & description — overridden by each per-route head()
       { title: "Skyrovix Internship | Virtual Internship with Certificate & Real Projects" },
       { name: "description", content: "Join Skyrovix Virtual Internship Program and gain hands-on experience through real-world projects. Get an Offer Letter, Internship Certificate, mentor support, and industry-ready skills in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX, and more." },
@@ -138,7 +140,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image:alt", content: "Skyrovix Virtual Internship with Certificate & Real Projects" },
       { name: "twitter:site", content: "@skyrovix" },
       { name: "twitter:creator", content: "@skyrovix" },
-      { name: "google-adsense-account", content: "ca-pub-5755024838228586" },
       { httpEquiv: "X-Content-Type-Options", content: "nosniff" },
       { name: "referrer", content: "strict-origin-when-cross-origin" },
       { rel: "canonical", href: SITE_URL },
@@ -164,6 +165,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "alternate", hrefLang: "en-IN", href: SITE_URL },
       { rel: "alternate", hrefLang: "en", href: SITE_URL },
       { rel: "alternate", hrefLang: "x-default", href: SITE_URL },
+    ],
+    scripts: [
+      {
+        async: true,
+        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755024838228586",
+        crossOrigin: "anonymous",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -226,13 +234,15 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en" dir="ltr" className="bg-[#faf8f2]" suppressHydrationWarning>
       <head suppressHydrationWarning>
-        <HeadContent />
-        {/* Google AdSense official script tag - placed in global <head> for ownership verification */}
+        {/* Google AdSense official ownership verification meta tag - placed at top of <head> */}
+        <meta name="google-adsense-account" content="ca-pub-5755024838228586" />
+        {/* Google AdSense official script tag - placed at top of <head> for ownership verification */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755024838228586"
           crossOrigin="anonymous"
         />
+        <HeadContent />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <OrganizationJsonLd />
