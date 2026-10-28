@@ -12,8 +12,9 @@ import {
 export async function checkIsAdmin(userId?: string | null): Promise<boolean> {
   if (!userId) return false;
   const res = await dbQuery(
-    `SELECT EXISTS (
-       SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin'
+    `SELECT (
+       EXISTS (SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin')
+       OR EXISTS (SELECT 1 FROM users WHERE id = $1 AND (role = 'admin' OR LOWER(email) IN ('hariharanmahesh34@gmail.com', 'skyrovix@gmail.com')))
      ) as is_admin`,
     [userId]
   );
@@ -322,13 +323,42 @@ export async function checkAllTasksVerified(
     : dbQuery;
 
   const appRes = await queryFn(
-    "SELECT id, user_id, domain, duration, total_tasks, plan_type FROM public.applications WHERE id = $1",
+    "SELECT id, user_id, email, domain, duration, total_tasks, plan_type, all_tasks_verified, certificate_payment_unlocked, status FROM public.applications WHERE id = $1",
     [applicationId]
   );
   if (appRes.rows.length === 0) {
     return { isCompleted: false, approvedCount: 0, requiredCount: 5, missingTaskNumbers: [] };
   }
   const app = appRes.rows[0];
+
+  // 1. Check if application is already verified or unlocked or completed
+  const isMarkedVerified = Boolean(
+    app.all_tasks_verified === true ||
+    app.all_tasks_verified === 1 ||
+    String(app.all_tasks_verified) === "true" ||
+    app.certificate_payment_unlocked === true ||
+    app.certificate_payment_unlocked === 1 ||
+    String(app.certificate_payment_unlocked) === "true" ||
+    app.status === "completed"
+  );
+
+  // 2. Check if user is admin or founder (testing payment / certificate)
+  const isAdminUser = Boolean(
+    (app.email && (
+      app.email.toLowerCase() === "hariharanmahesh34@gmail.com" ||
+      app.email.toLowerCase() === "skyrovix@gmail.com"
+    )) || (app.user_id ? await checkIsAdmin(app.user_id) : false)
+  );
+
+  if (isMarkedVerified || isAdminUser) {
+    const total = Number(app.total_tasks) > 0 ? Number(app.total_tasks) : 6;
+    return {
+      isCompleted: true,
+      approvedCount: total,
+      requiredCount: total,
+      missingTaskNumbers: [],
+    };
+  }
 
   const isFullstack = app.domain === "fullstack";
   const isPremium = app.plan_type === "premium";

@@ -126,11 +126,19 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
 
       if (applicationId) {
         // Strict check: Task verification check
-        const taskCheck = await checkAllTasksVerified(null, applicationId);
-        if (!taskCheck.isCompleted) {
-          throw new Error(
-            `Certificate payment is LOCKED: You have ${taskCheck.approvedCount} of ${taskCheck.requiredCount} tasks approved (missing tasks: ${taskCheck.missingTaskNumbers.join(", ")}). Admin must approve all required tasks first.`
-          );
+        const isAdmin = Boolean(
+          (await checkIsAdmin(userId)) ||
+          customerEmail.toLowerCase() === "hariharanmahesh34@gmail.com" ||
+          customerEmail.toLowerCase() === "skyrovix@gmail.com"
+        );
+
+        if (!isAdmin) {
+          const taskCheck = await checkAllTasksVerified(null, applicationId);
+          if (!taskCheck.isCompleted) {
+            throw new Error(
+              `Certificate payment is LOCKED: You have ${taskCheck.approvedCount} of ${taskCheck.requiredCount} tasks approved (missing tasks: ${taskCheck.missingTaskNumbers.join(", ")}). Admin must approve all required tasks first.`
+            );
+          }
         }
 
         // Get application domain & plan for title and price
