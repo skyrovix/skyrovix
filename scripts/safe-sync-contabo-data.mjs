@@ -127,22 +127,76 @@ async function run() {
     } catch {}
   }
 
+  // Disable foreign key checks temporarily for safe batch insertion
+  await conn.query("SET FOREIGN_KEY_CHECKS = 0;");
+
   if (regData && regData.apps && regData.apps.length > 0) {
+    // Get existing columns in applications table to avoid any schema mismatch
+    const [appCols] = await conn.query("SHOW COLUMNS FROM `applications`");
+    const existingAppCols = new Set(appCols.map((c) => c.Field));
+
     let insertedApps = 0;
     for (const app of regData.apps) {
       try {
-        const cols = Object.keys(app);
-        const colList = cols.map((c) => `\`${c}\``).join(", ");
-        const placeholders = cols.map(() => "?").join(", ");
-        const updateClauses = cols.map((c) => `\`${c}\` = VALUES(\`${c}\`)`).join(", ");
+        // Resolve or create user_id dynamically from users table by matching email
+        if (app.email) {
+          const cleanEmail = app.email.trim().toLowerCase();
+          const [uRows] = await conn.query(
+            "SELECT id FROM users WHERE LOWER(TRIM(email)) = ? LIMIT 1",
+            [cleanEmail]
+          );
+          if (uRows && uRows.length > 0) {
+            app.user_id = uRows[0].id;
+          } else {
+            // Auto-create user account so foreign key and login are 100% valid
+            const newUserId = app.user_id && !app.user_id.startsWith("std_") ? app.user_id : crypto.randomUUID();
+            const fullName = app.full_name || cleanEmail.split("@")[0];
+            const defaultHash = await bcrypt.hash("Student@123", 10);
+            try {
+              await conn.query(`
+                INSERT INTO users (id, email, password_hash, full_name, raw_user_meta_data, is_verified)
+                VALUES (?, ?, ?, ?, ?, 1)
+                ON DUPLICATE KEY UPDATE full_name = VALUES(full_name);
+              `, [newUserId, cleanEmail, defaultHash, fullName, JSON.stringify({ full_name: fullName })]);
+
+              await conn.query(`
+                INSERT INTO profiles (id, email, full_name)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE full_name = VALUES(full_name);
+              `, [newUserId, cleanEmail, fullName]);
+
+              await conn.query(`
+                INSERT INTO user_roles (id, user_id, role)
+                VALUES (UUID(), ?, 'user')
+                ON DUPLICATE KEY UPDATE role = 'user';
+              `, [newUserId]);
+
+              app.user_id = newUserId;
+            } catch (uErr) {
+              // fallback if exists
+            }
+          }
+        }
 
         // If it's Hariharan's application, make sure photo_url and full_name are set
-        if (app.email === "hariharanmahesh34@gmail.com") {
+        if (app.email && app.email.trim().toLowerCase() === "hariharanmahesh34@gmail.com") {
           app.full_name = "Hariharan S";
           app.photo_url = HARI_PHOTO;
         }
 
-        const values = cols.map((c) => app[c]);
+        // Filter keys strictly to columns that exist in the target database table
+        const filteredApp = {};
+        for (const k of Object.keys(app)) {
+          if (existingAppCols.has(k)) {
+            filteredApp[k] = app[k];
+          }
+        }
+
+        const cols = Object.keys(filteredApp);
+        const colList = cols.map((c) => `\`${c}\``).join(", ");
+        const placeholders = cols.map(() => "?").join(", ");
+        const updateClauses = cols.map((c) => `\`${c}\` = VALUES(\`${c}\`)`).join(", ");
+        const values = cols.map((c) => filteredApp[c]);
 
         await conn.query(`
           INSERT INTO \`applications\` (${colList})
@@ -157,14 +211,26 @@ async function run() {
     console.log(`  ✓ Synced ${insertedApps} batch applications into applications table.`);
 
     if (regData.regs && regData.regs.length > 0) {
+      // Get existing columns in registrations table to avoid any schema mismatch
+      const [regCols] = await conn.query("SHOW COLUMNS FROM `registrations`");
+      const existingRegCols = new Set(regCols.map((c) => c.Field));
+
       let insertedRegs = 0;
       for (const reg of regData.regs) {
         try {
-          const cols = Object.keys(reg);
+          // Filter keys strictly to columns that exist in the target database table
+          const filteredReg = {};
+          for (const k of Object.keys(reg)) {
+            if (existingRegCols.has(k)) {
+              filteredReg[k] = reg[k];
+            }
+          }
+
+          const cols = Object.keys(filteredReg);
           const colList = cols.map((c) => `\`${c}\``).join(", ");
           const placeholders = cols.map(() => "?").join(", ");
           const updateClauses = cols.map((c) => `\`${c}\` = VALUES(\`${c}\`)`).join(", ");
-          const values = cols.map((c) => reg[c]);
+          const values = cols.map((c) => filteredReg[c]);
 
           await conn.query(`
             INSERT INTO \`registrations\` (${colList})
@@ -173,12 +239,15 @@ async function run() {
           `, values);
           insertedRegs++;
         } catch (err) {
-          // ignore duplicate
+          console.warn(`  Warning on reg ${reg.id}:`, err.message);
         }
       }
       console.log(`  ✓ Synced ${insertedRegs} registrations into registrations table.`);
     }
   }
+
+  // Re-enable foreign key checks
+  await conn.query("SET FOREIGN_KEY_CHECKS = 1;");
 
   // 4. Safe Auto-Link: Applications to Users by matching email
   console.log("Step 3: Synchronizing application user_id with users table by email...");
