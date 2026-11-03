@@ -8,6 +8,7 @@ import {
   Code2, Database, Lock, Server, Cpu
 } from "lucide-react";
 import { BreadcrumbJsonLd, WebPageJsonLd } from "@/components/JsonLd";
+import { FounderStorySection } from "@/components/FounderStorySection";
 import msme from "@/assets/msme.png";
 
 export const Route = createFileRoute("/_navbar-layout/about")({
@@ -148,6 +149,9 @@ function AboutPage() {
           </Reveal>
         </div>
       </section>
+
+      {/* ─── FOUNDER STORY ─── */}
+      <FounderStorySection />
 
       {/* ─── VALUES ─── */}
       <section className="py-20 sm:py-24">

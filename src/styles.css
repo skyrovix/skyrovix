@@ -973,3 +973,44 @@
   border-color: rgba(249, 92, 75, 0.4);
   box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.4);
 }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@utility animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes orbital-glow {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.04);
+  }
+}
+
+@utility animate-orbital-glow {
+  animation: orbital-glow 3.5s ease-in-out infinite;
+}
+
+@keyframes rocket-ascend {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) translateX(4px) rotate(1.5deg);
+  }
+}
+
+@utility animate-rocket {
+  animation: rocket-ascend 3.5s ease-in-out infinite;
+}
