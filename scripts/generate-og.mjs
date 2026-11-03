@@ -1,6 +1,11 @@
 import { createCanvas, loadImage } from "canvas";
+import sharp from "sharp";
 import fs from "node:fs";
 import path from "node:path";
+
+const customOgJpg = path.resolve("src/assets/og-default.jpeg");
+const outPng = path.resolve("public/og-default.png");
+const outJpg = path.resolve("public/og-default.jpeg");
 
 const W = 1200;
 const H = 630;
@@ -71,6 +76,18 @@ const tags = [
 ];
 
 async function main() {
+  if (fs.existsSync(customOgJpg)) {
+    if (!fs.existsSync(outJpg) || fs.statSync(customOgJpg).size !== fs.statSync(outJpg).size) {
+      fs.copyFileSync(customOgJpg, outJpg);
+    }
+    await sharp(customOgJpg)
+      .resize(W, H, { fit: "cover", position: "center" })
+      .png({ quality: 100, compressionLevel: 9 })
+      .toFile(outPng);
+    console.log(`[og] Converted custom ${customOgJpg} -> ${outPng} (${W}x${H}) and synced ${outJpg}`);
+    return;
+  }
+
   drawGradient(ctx, W, H);
   drawDecorations(ctx, W, H);
 
