@@ -52,6 +52,7 @@ import yrTechLogo from "@/assets/yr-tech logo.png";
 import vinixLogo from "@/assets/vinix.png";
 import msmeLogo from "@/assets/msme.png";
 import skyrovixLogo from "@/assets/logo.png";
+import skyrovixLogoWhite from "@/assets/sk-logo-white.png";
 import { FlyingRocketAnimation } from "@/components/FlyingRocketAnimation";
 
 const COURSE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -578,7 +579,12 @@ function Landing() {
               <img
                 src={skyrovixLogo}
                 alt="Skyrovix IT Solutions"
-                className="h-9 sm:h-12 w-auto object-contain transition-all duration-300 hover:scale-105 opacity-90 hover:opacity-100 dark:brightness-110"
+                className="h-9 sm:h-12 w-auto object-contain transition-all duration-300 hover:scale-105 opacity-90 hover:opacity-100 dark:hidden"
+              />
+              <img
+                src={skyrovixLogoWhite}
+                alt="Skyrovix IT Solutions"
+                className="h-9 sm:h-12 w-auto object-contain transition-all duration-300 hover:scale-105 opacity-90 hover:opacity-100 hidden dark:block"
               />
               <img
                 src={vinixLogo}
