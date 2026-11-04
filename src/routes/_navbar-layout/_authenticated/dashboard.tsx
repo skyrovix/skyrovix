@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { IDCard } from "@/components/IDCard";
 import { TasksSection } from "@/components/TasksSection";
-import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadIDCard, downloadOfferLetter, downloadPdf } from "@/components/pdf-docs";
+import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadCertificate, downloadIDCard, downloadOfferLetter, downloadPdf } from "@/components/pdf-docs";
 import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -3149,10 +3149,14 @@ function HeroSection({
               ) : (
                 <button
                   type="button"
-                  onClick={cert ? () => downloadPdf(
-                    <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
-                    `Certificate_${cert.certificate_id}.pdf`
-                  ) : undefined}
+                  onClick={cert ? () => downloadCertificate({
+                    fullName: app.full_name,
+                    internId: app.intern_id,
+                    domain: domain?.name ?? app.domain,
+                    certId: cert.certificate_id,
+                    issuedAt: cert.issued_at,
+                    verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+                  }) : undefined}
                   disabled={!cert}
                   className={`flex flex-col items-center justify-center p-2 rounded-2xl ${cert ? "bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-90 border-emerald-400/30 cursor-pointer shadow-sm hover:shadow-emerald-500/20" : "bg-white/[0.03] border-white/5 opacity-40 cursor-not-allowed"} border transition-all text-center group`}
                 >
@@ -3201,10 +3205,14 @@ function HeroSection({
 
               {cert && (
                 <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 hover:shadow-emerald-500/30"
-                  onClick={() => downloadPdf(
-                    <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain} certId={cert.certificate_id} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
-                    `Certificate_${cert.certificate_id}.pdf`
-                  )}>
+                  onClick={() => downloadCertificate({
+                    fullName: app.full_name,
+                    internId: app.intern_id,
+                    domain: domain?.name ?? app.domain,
+                    certId: cert.certificate_id,
+                    issuedAt: cert.issued_at,
+                    verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+                  })}>
                   <Award className="size-4 text-emerald-100" /> Download Certificate
                 </Button>
               )}
@@ -3703,7 +3711,14 @@ function UnlockedCertificateCard({ app, cert, domain }: any) {
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full md:w-auto">
             <Button size="sm" className="brand-gradient text-white border-0 rounded-2xl h-10 px-6 font-semibold shadow-md gap-1.5"
-              onClick={() => downloadPdf(<CertificateDoc fullName={app?.full_name} internId={app?.intern_id} domain={domain?.name ?? app?.domain} certId={certId} issuedAt={cert.issued_at} verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />, `Certificate_${certId}.pdf`)}>
+              onClick={() => downloadCertificate({
+                fullName: app?.full_name ?? "Student",
+                internId: app?.intern_id ?? "",
+                domain: domain?.name ?? app?.domain ?? "",
+                certId: certId,
+                issuedAt: cert.issued_at,
+                verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+              })}>
               <Download className="size-4" /> Download PDF
             </Button>
             <Button asChild size="sm" variant="outline" className="rounded-2xl border-border/60 h-10 px-6 font-semibold gap-1.5 bg-white/40">

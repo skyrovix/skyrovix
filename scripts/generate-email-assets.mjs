@@ -7,10 +7,10 @@ const outPath = path.resolve("src/lib/email-assets.ts");
 const images = [
   { key: "logo", file: "sk-logo-transparent.png", mime: "image/png" },
   { key: "topNavLogo", file: "top nav bar logo.png", mime: "image/png" },
-  { key: "seal", file: "seal.jpg", mime: "image/jpeg" },
-  { key: "msme", file: "msme.png", mime: "image/png" },
-  { key: "sigFounder", file: "hari sig.jpeg", mime: "image/jpeg" },
-  { key: "sigCofounder", file: "mahesh sig.jpeg", mime: "image/jpeg" },
+  { key: "seal", file: "seal-transparent.png", mime: "image/png" },
+  { key: "msme", file: "msme-transparent.png", mime: "image/png" },
+  { key: "sigFounder", file: "sig-hari-transparent.png", mime: "image/png" },
+  { key: "sigCofounder", file: "sig-mahesh-transparent.png", mime: "image/png" },
   { key: "yrTech", file: "yr-tech logo.png", mime: "image/png" },
   { key: "vinix", file: "vinix.png", mime: "image/png" },
 ];

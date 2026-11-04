@@ -1,4 +1,6 @@
 import { loadEnv } from "./env.server";
+import { EMAIL_ASSETS } from "./email-assets";
+import QRCode from "qrcode";
 
 export type SendEmailInput = {
   to: string;
@@ -351,45 +353,251 @@ async function buildOfferLetterPdf(jsPDF: any, data: any): Promise<Buffer> {
 
 async function buildCertificatePdf(jsPDF: any, data: any): Promise<Buffer> {
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-  doc.setFillColor(15, 23, 42);
-  doc.rect(0, 0, 842, 595, "F");
+  const pageWidth = 841.89;
+  const pageHeight = 595.28;
 
-  doc.setDrawColor(245, 158, 11);
-  doc.setLineWidth(4);
-  doc.rect(20, 20, 802, 555);
+  const date = new Date(data.issuedAt || Date.now());
+  const formattedDate = !isNaN(date.getTime())
+    ? date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })
+    : new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
 
-  doc.setTextColor(245, 158, 11);
-  doc.setFontSize(26);
-  doc.setFont("helvetica", "bold");
-  doc.text("SKYROVIX", 421, 90, { align: "center" });
+  // 1. Imperial Ivory & Gold Parchment Canvas
+  doc.setFillColor(250, 248, 242); // #FAF8F2 Imperial Ivory
+  doc.rect(0, 0, pageWidth, pageHeight, "F");
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
-  doc.text("CERTIFICATE OF COMPLETION", 421, 130, { align: "center" });
+  // 2. Double Ornamental Gold Borders & Corner Accents
+  doc.setDrawColor(180, 83, 9); // #B45309 deep gold
+  doc.setLineWidth(3);
+  doc.rect(18, 18, pageWidth - 36, pageHeight - 36);
 
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(148, 163, 184);
-  doc.text("This is proudly presented to", 421, 175, { align: "center" });
+  doc.setDrawColor(217, 119, 6); // #D97706 primary gold
+  doc.setLineWidth(1);
+  doc.rect(24, 24, pageWidth - 48, pageHeight - 48);
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(28);
-  doc.setFont("helvetica", "bold");
-  doc.text(data.fullName || "Intern", 421, 225, { align: "center" });
+  // Four-corner regal filigree brackets
+  const corners = [
+    [24, 24],
+    [pageWidth - 24, 24],
+    [24, pageHeight - 24],
+    [pageWidth - 24, pageHeight - 24],
+  ];
+  doc.setLineWidth(2);
+  corners.forEach(([cx, cy]) => {
+    const dx = cx < 100 ? 1 : -1;
+    const dy = cy < 100 ? 1 : -1;
+    doc.line(cx, cy, cx + dx * 24, cy);
+    doc.line(cx, cy, cx, cy + dy * 24);
+  });
 
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(203, 213, 225);
-  const certText = `For successfully completing the intensive virtual internship program in ${data.domain || "Technology"} demonstrating exceptional engineering diligence and task delivery.`;
-  const split = doc.splitTextToSize(certText, 620);
-  doc.text(split, 421, 275, { align: "center" });
-
-  doc.setFontSize(10);
-  doc.setTextColor(148, 163, 184);
-  doc.text(`Certificate ID: ${data.certId || "SKX-CERT"}   |   Intern ID: ${data.internId || "SKX-INT"}`, 421, 380, { align: "center" });
-  if (data.verifyUrl) {
-    doc.text(`Verify Online: ${data.verifyUrl}`, 421, 400, { align: "center" });
+  // 3. Official Corporate & Government Recognition Logos
+  try {
+    if (EMAIL_ASSETS?.logo) {
+      doc.addImage(EMAIL_ASSETS.logo, "PNG", 40, 36, 44, 44);
+    }
+    if (EMAIL_ASSETS?.vinix) {
+      doc.addImage(EMAIL_ASSETS.vinix, "PNG", 92, 42, 60, 28);
+    }
+    if (EMAIL_ASSETS?.yrTech) {
+      doc.addImage(EMAIL_ASSETS.yrTech, "PNG", pageWidth - 165, 42, 46, 28);
+    }
+    if (EMAIL_ASSETS?.msme) {
+      doc.addImage(EMAIL_ASSETS.msme, "PNG", pageWidth - 105, 36, 65, 34);
+    }
+  } catch (err: any) {
+    console.warn("[Email] Logo render note:", err?.message);
   }
+
+  // 4. Header Titles
+  doc.setTextColor(180, 83, 9);
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.text("SKYROVIX", pageWidth / 2, 54, { align: "center" });
+
+  doc.setTextColor(51, 65, 85);
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "bold");
+  doc.text(
+    "Skill Development & Future Tech Innovations • MSME Certified",
+    pageWidth / 2,
+    68,
+    { align: "center" }
+  );
+  doc.setTextColor(180, 83, 9);
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    "Registered under MSME, Ministry of MSME, Govt. of India (UDYAM-TN-17-0076606)",
+    pageWidth / 2,
+    79,
+    { align: "center" }
+  );
+
+  // Ornamental separator bar
+  doc.setDrawColor(217, 119, 6);
+  doc.setLineWidth(0.8);
+  doc.line(160, 88, pageWidth - 160, 88);
+
+  // 5. Main Certificate Title
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.text("CERTIFICATE OF EXCELLENCE", pageWidth / 2, 118, { align: "center" });
+
+  doc.setTextColor(180, 83, 9);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("VIRTUAL INTERNSHIP & SKILL DEVELOPMENT", pageWidth / 2, 134, { align: "center" });
+
+  // 6. Presentation Citation
+  doc.setTextColor(71, 85, 105);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text("This certificate is proudly awarded to", pageWidth / 2, 165, { align: "center" });
+
+  // Recipient Full Name
+  const recipientName = (data.fullName || "Intern").toUpperCase();
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(30);
+  doc.setFont("helvetica", "bold");
+  doc.text(recipientName, pageWidth / 2, 205, { align: "center" });
+
+  // Decorative name underline
+  doc.setDrawColor(217, 119, 6);
+  doc.setLineWidth(1.5);
+  const nameWidth = doc.getTextWidth(recipientName);
+  const underLineWidth = Math.max(160, Math.min(nameWidth + 40, 480));
+  doc.line(pageWidth / 2 - underLineWidth / 2, 214, pageWidth / 2 + underLineWidth / 2, 214);
+
+  // Citation text
+  doc.setTextColor(51, 65, 85);
+  doc.setFontSize(10.5);
+  doc.setFont("helvetica", "normal");
+  const domainTitle = data.domain || "Technology & Software Engineering";
+  const certText = `In recognition of outstanding performance and successful completion of the industry-oriented virtual internship program in ${domainTitle}, demonstrating technical proficiency, professional dedication, and successful completion of the assigned capstone project.`;
+  const splitText = doc.splitTextToSize(certText, 580);
+  doc.text(splitText, pageWidth / 2, 238, { align: "center" });
+
+  // 7. Metadata Pill Box
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(pageWidth / 2 - 280, 288, 560, 34, 6, 6, "F");
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(pageWidth / 2 - 280, 288, 560, 34, 6, 6, "S");
+
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(180, 83, 9);
+  doc.text("CERT ID:", pageWidth / 2 - 262, 309);
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.certId || "SKX-CERT", pageWidth / 2 - 210, 309);
+
+  doc.setDrawColor(226, 232, 240);
+  doc.line(pageWidth / 2 - 118, 296, pageWidth / 2 - 118, 314);
+
+  doc.setTextColor(180, 83, 9);
+  doc.text("INTERN ID:", pageWidth / 2 - 105, 309);
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.internId || "SKX-INT", pageWidth / 2 - 45, 309);
+
+  doc.setDrawColor(226, 232, 240);
+  doc.line(pageWidth / 2 + 35, 296, pageWidth / 2 + 35, 314);
+
+  doc.setTextColor(180, 83, 9);
+  doc.text("GRADE:", pageWidth / 2 + 48, 309);
+  doc.setTextColor(5, 150, 105);
+  doc.text(data.grade || "A+ (OUTSTANDING)", pageWidth / 2 + 92, 309);
+
+  doc.setDrawColor(226, 232, 240);
+  doc.line(pageWidth / 2 + 180, 296, pageWidth / 2 + 180, 314);
+
+  doc.setTextColor(100, 116, 139);
+  doc.text("ISSUED:", pageWidth / 2 + 192, 309);
+  doc.setTextColor(15, 23, 42);
+  doc.text(formattedDate, pageWidth / 2 + 236, 309);
+
+  // 8. Signatures, Official Embossed Seal & QR Code: Balanced Symmetrical 4-Column Row
+  try {
+    // Col 1 (Left): Founder Signature
+    if (EMAIL_ASSETS?.sigFounder) {
+      doc.addImage(EMAIL_ASSETS.sigFounder, "PNG", 92, 376, 105, 48);
+    }
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.8);
+    doc.line(85, 430, 205, 430);
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Hariharan S", 145, 444, { align: "center" });
+    doc.setTextColor(180, 83, 9);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("Founder & CEO, Skyrovix", 145, 456, { align: "center" });
+
+    // Col 2 (Center-Left): Official Seal
+    if (EMAIL_ASSETS?.seal) {
+      doc.addImage(EMAIL_ASSETS.seal, "PNG", 310, 366, 66, 66);
+    }
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("Official Verified Seal", 343, 444, { align: "center" });
+    doc.setTextColor(180, 83, 9);
+    doc.setFontSize(6.8);
+    doc.setFont("helvetica", "normal");
+    doc.text("SKYROVIX • MSME", 343, 456, { align: "center" });
+
+    // Col 3 (Center-Right): QR Code
+    const verifyLink = data.verifyUrl || `https://skyrovix.in/verify-certificate`;
+    try {
+      const qrDataUri = await QRCode.toDataURL(verifyLink, {
+        width: 200,
+        margin: 1,
+        color: { dark: "#0f172a", light: "#ffffff" },
+      });
+      doc.addImage(qrDataUri, "PNG", 468, 374, 54, 54);
+    } catch (qrErr: any) {
+      console.warn("[Email] QR render note:", qrErr?.message);
+    }
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("Digitally Verified Certificate", 495, 444, { align: "center" });
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(6.8);
+    doc.setFont("helvetica", "normal");
+    doc.text("Scan to verify online", 495, 456, { align: "center" });
+
+    // Col 4 (Right): Co-Founder Signature
+    if (EMAIL_ASSETS?.sigCofounder) {
+      doc.addImage(EMAIL_ASSETS.sigCofounder, "PNG", pageWidth - 198, 376, 105, 48);
+    }
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.8);
+    doc.line(pageWidth - 205, 430, pageWidth - 85, 430);
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Maheshwaran S", pageWidth - 145, 444, { align: "center" });
+    doc.setTextColor(180, 83, 9);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("Co-Founder, Skyrovix", pageWidth - 145, 456, { align: "center" });
+  } catch (sigErr: any) {
+    console.warn("[Email] Signature render note:", sigErr?.message);
+  }
+
+  // 9. Bottom Security Strip
+  doc.setFillColor(241, 245, 249);
+  doc.rect(24, pageHeight - 48, pageWidth - 48, 24, "F");
+  doc.setTextColor(100, 116, 139);
+  doc.setFontSize(7.2);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    "A digitally verifiable credential issued by SKYROVIX IT Solutions (Udyam Registered – Ministry of MSME, Government of India). Official verification portal: https://skyrovix.in/verify-certificate",
+    pageWidth / 2,
+    pageHeight - 33,
+    { align: "center" }
+  );
 
   const arrayBuffer = doc.output("arraybuffer");
   return Buffer.from(arrayBuffer);

@@ -30,7 +30,8 @@ import { VerificationOfferDialog } from "@/components/admin/VerificationOfferDia
 import { FeeSettingsSection } from "@/components/admin/FeeSettingsSection";
 import { ProjectCatalogueAdminSection } from "@/components/admin/ProjectCatalogueAdminSection";
 import { GuidanceAdminSection } from "@/components/admin/GuidanceAdminSection";
-import { OfferLetterDoc, CertificateDoc, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
+import { CredentialDemoSection } from "@/components/admin/CredentialDemoSection";
+import { OfferLetterDoc, CertificateDoc, downloadCertificate, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
 import {
   getAdminStudents,
   getAdminCourses,
@@ -110,6 +111,7 @@ const SIDEBAR_GROUPS = [
       { id: "students", label: "Students", icon: GraduationCap },
       { id: "courses", label: "Courses", icon: BookOpen },
       { id: "certificates", label: "Certificates", icon: Award },
+      { id: "credential-demo", label: "ID & Certificate Demo", icon: Eye },
       { id: "payments", label: "Payment Verification", icon: ShieldCheck },
       { id: "coupons", label: "Coupons & Discounts", icon: Tag },
       { id: "fee-settings", label: "Fee Management", icon: IndianRupee },
@@ -144,7 +146,7 @@ const SIDEBAR_GROUPS = [
   }
 ] as const;
 
-type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "project-catalogue" | "guidance" | "promotions" | "popup" | "certificates" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
+type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "project-catalogue" | "guidance" | "promotions" | "popup" | "certificates" | "credential-demo" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
 
 interface AdminNotification {
   id: string;
@@ -471,7 +473,8 @@ function AdminPanel() {
             {active === "guidance" && <GuidanceAdminSection />}
             {active === "promotions" && <PromotionsSection />}
             {active === "popup" && <PromoPopupSection />}
-            {active === "certificates" && <CertificatesSection />}
+            {active === "certificates" && <CertificatesSection onOpenDemo={() => setActive("credential-demo")} />}
+            {active === "credential-demo" && <CredentialDemoSection />}
             {active === "students" && <StudentsSection />}
             {active === "courses" && <CoursesSection />}
             {active === "login-history" && <LoginHistorySection />}
@@ -3985,7 +3988,7 @@ function VerificationSection() {
 // ══════════════════════════════════════════════
 // CERTIFICATES
 // ══════════════════════════════════════════════
-function CertificatesSection() {
+function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
   const qc = useQueryClient();
   const [downloading, setDownloading] = useState(false);
   const [sendingCertId, setSendingCertId] = useState<string | null>(null);
@@ -4142,6 +4145,17 @@ function CertificatesSection() {
           <p className="text-sm text-muted-foreground">{data?.length ?? 0} certificates</p>
         </div>
         <div className="flex items-center gap-2">
+          {onOpenDemo && (
+            <Button
+              variant="outline"
+              onClick={onOpenDemo}
+              className="rounded-xl text-xs gap-1.5 border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300"
+              title="Preview Certificate & ID Card Demo Studio"
+            >
+              <Eye className="size-3.5 text-amber-500" />
+              Live Preview & Demo
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={handleBackfill}
@@ -4215,14 +4229,14 @@ function CertificatesSection() {
                       {sendingCertId === c.id ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
                     </button>
                     <button className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="Download PDF" onClick={() => {
-                      downloadPdf(CertificateDoc({
+                      downloadCertificate({
                         fullName: c.applications?.full_name ?? "Student",
                         internId: c.applications?.intern_id ?? "",
-                        domain: getDomain(c.applications?.domain)?.name ?? c.applications?.domain,
+                        domain: getDomain(c.applications?.domain)?.name ?? c.applications?.domain ?? "",
                         certId: c.certificate_id,
                         issuedAt: c.issued_at,
                         verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
-                      }), `certificate-${c.certificate_id}.pdf`);
+                      });
                     }}><Download className="size-4" /></button>
                     <Link to="/verify-certificate" className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="View Verification Page"><ExternalLink className="size-4" /></Link>
                   </div>

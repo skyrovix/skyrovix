@@ -694,93 +694,152 @@ export async function downloadOfferLetter(params: {
 
 
 
-export function CertificateDoc({ fullName, internId, domain, certId, issuedAt, verifyUrl, qrCodeDataUri, imageAssets }: {
+export function CertificateDoc({ fullName, internId, domain, certId, issuedAt, verifyUrl, qrCodeDataUri, imageAssets, grade = "A+ (Outstanding)" }: {
   fullName: string; internId: string; domain: string; certId: string; issuedAt: string; verifyUrl: string;
-  qrCodeDataUri?: string; imageAssets?: ImageAssets;
+  qrCodeDataUri?: string; imageAssets?: ImageAssets; grade?: string;
 }) {
-  const date = new Date(issuedAt);
-  const formattedDate = date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+  const date = new Date(issuedAt || Date.now());
+  const formattedDate = !isNaN(date.getTime())
+    ? date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })
+    : new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 26, backgroundColor: "#ffffff" }}>
-        {/* Skyrovix Regal Double Frame */}
-        <View style={{ borderWidth: 4, borderColor: "#181619", padding: 8, height: "100%", borderRadius: 4 }}>
-          <View style={{ borderWidth: 1.5, borderColor: "#f95c4b", padding: 20, height: "100%", borderRadius: 2 }}>
+      <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 22, backgroundColor: "#faf8f2" }}>
+        {/* Regal Double Gold Framing */}
+        <View style={{ borderWidth: 3, borderColor: "#b45309", padding: 6, height: "100%", borderRadius: 6 }}>
+          <View style={{ borderWidth: 1, borderColor: "#d97706", padding: 16, height: "100%", borderRadius: 4, position: "relative", justifyContent: "space-between" }}>
             
-            {/* Header: Logos & Brand */}
+            {/* Header: Corporate & Govt Recognition Logos */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <Image src={imageAssets?.logo ?? logoImg} style={{ width: 48, height: 48 }} />
-                <Image src={imageAssets?.vinix ?? vinixImg} style={{ height: 32, width: 78 }} />
+              <View style={{ width: 140, flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 10 }}>
+                <Image src={imageAssets?.logo ?? logoImg} style={{ width: 44, height: 44, objectFit: "contain" }} />
+                <Image src={imageAssets?.vinix ?? vinixImg} style={{ height: 26, width: 66, objectFit: "contain" }} />
               </View>
-              <View style={{ alignItems: "center" }}>
-                <Text style={{ fontSize: 17, color: "#181619", fontWeight: 700, letterSpacing: 4 }}>SKYROVIX</Text>
-                <Text style={{ fontSize: 8.5, color: "#f95c4b", fontWeight: 700, letterSpacing: 1.5, marginTop: 1 }}>{COMPANY.tagline}</Text>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text style={{ fontSize: 19, color: "#b45309", fontWeight: 700, letterSpacing: 4 }}>SKYROVIX</Text>
+                <Text style={{ fontSize: 7.5, color: "#334155", fontWeight: 700, letterSpacing: 1.2, marginTop: 2 }}>
+                  Skill Development & Future Tech Innovations • MSME Certified
+                </Text>
+                <Text style={{ fontSize: 7, color: "#b45309", letterSpacing: 0.8, marginTop: 1 }}>
+                  Registered under MSME, Ministry of MSME, Govt. of India (UDYAM-TN-17-0076606)
+                </Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <Image src={imageAssets?.yrTech ?? yrTechImg} style={{ height: 32, width: 48 }} />
-                <Image src={imageAssets?.msme ?? msmeImg} style={{ height: 32, width: 64 }} />
+              <View style={{ width: 140, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 10 }}>
+                <Image src={imageAssets?.yrTech ?? yrTechImg} style={{ height: 26, width: 44, objectFit: "contain" }} />
+                <Image src={imageAssets?.msme ?? msmeImg} style={{ height: 32, width: 62, objectFit: "contain" }} />
               </View>
             </View>
 
             {/* Title Block */}
-            <View style={{ alignItems: "center", marginTop: 16 }}>
-              <Text style={{ fontSize: 34, fontWeight: 700, color: "#181619", letterSpacing: 5 }}>CERTIFICATE</Text>
-              <Text style={{ fontSize: 11, color: "#f95c4b", fontWeight: 700, letterSpacing: 7, marginTop: 3 }}>OF INTERNSHIP COMPLETION</Text>
-              <View style={{ width: 56, height: 2.5, backgroundColor: "#f95c4b", marginTop: 7, borderRadius: 2 }} />
+            <View style={{ alignItems: "center", marginTop: 8 }}>
+              <Text style={{ fontSize: 23, fontWeight: 700, color: "#0f172a", letterSpacing: 4 }}>CERTIFICATE OF EXCELLENCE</Text>
+              <Text style={{ fontSize: 9.5, color: "#b45309", fontWeight: 700, letterSpacing: 4, marginTop: 2 }}>
+                VIRTUAL INTERNSHIP & SKILL DEVELOPMENT
+              </Text>
+              <View style={{ width: 80, height: 1.5, backgroundColor: "#d97706", marginTop: 5, borderRadius: 2 }} />
             </View>
 
             {/* Presentation Citation */}
-            <View style={{ alignItems: "center", marginTop: 22 }}>
-              <Text style={{ fontSize: 10.5, color: "#64748b", letterSpacing: 0.5 }}>This certificate is proudly presented to</Text>
-              <Text style={{ fontSize: 29, fontWeight: 700, marginTop: 10, marginBottom: 10, color: "#181619", letterSpacing: 0.5 }}>{fullName}</Text>
-              <Text style={{ fontSize: 10.5, color: "#334155", textAlign: "center", maxWidth: 620, lineHeight: 1.6 }}>
-                for successfully completing the task-based virtual internship program in
-                {" "}<Text style={{ fontWeight: 700, color: "#f95c4b" }}>{domain}</Text>{" "}
-                at Skyrovix, demonstrating dedication, technical skill, and professional excellence throughout the program.
+            <View style={{ alignItems: "center", marginTop: 10 }}>
+              <Text style={{ fontSize: 9.5, color: "#475569", letterSpacing: 0.5 }}>This certificate is proudly awarded to</Text>
+              <Text style={{ fontSize: 26, fontWeight: 700, marginTop: 6, marginBottom: 4, color: "#0f172a", letterSpacing: 1 }}>
+                {(fullName || "Intern").toUpperCase()}
+              </Text>
+              <View style={{ width: 140, height: 1.5, backgroundColor: "#d97706", marginBottom: 8, borderRadius: 1 }} />
+              <Text style={{ fontSize: 9.5, color: "#334155", textAlign: "center", maxWidth: 660, lineHeight: 1.5 }}>
+                In recognition of outstanding performance and successful completion of the industry-oriented virtual internship program in
+                {" "}<Text style={{ fontWeight: 700, color: "#b45309" }}>{domain}</Text>{" "}
+                , demonstrating technical proficiency, professional dedication, and successful completion of the assigned capstone project.
               </Text>
             </View>
 
-            {/* QR Code Verification Badge */}
-            {qrCodeDataUri && (
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
-                <Image src={qrCodeDataUri} style={{ width: 44, height: 44 }} />
-                <View>
-                  <Text style={{ fontSize: 8, fontWeight: 700, color: "#f95c4b" }}>Digitally Verified Credential</Text>
-                  <Text style={{ fontSize: 6.8, color: "#64748b" }}>Scan QR or verify at skyrovix.in/verify-certificate</Text>
-                </View>
-              </View>
-            )}
+            {/* Metadata Pill Box */}
+            <View style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              alignSelf: "center",
+              marginTop: 8,
+              paddingVertical: 4,
+              paddingHorizontal: 16,
+              backgroundColor: "#ffffff",
+              borderRadius: 20,
+              borderWidth: 0.75,
+              borderColor: "#cbd5e1",
+            }}>
+              <Text style={{ fontSize: 7.8, color: "#64748b" }}>
+                Certificate ID: <Text style={{ color: "#0f172a", fontWeight: 700 }}>{certId}</Text>
+              </Text>
+              <View style={{ width: 1, height: 8, backgroundColor: "#cbd5e1", marginHorizontal: 10 }} />
+              <Text style={{ fontSize: 7.8, color: "#64748b" }}>
+                Intern ID: <Text style={{ color: "#b45309", fontWeight: 700 }}>{internId}</Text>
+              </Text>
+              <View style={{ width: 1, height: 8, backgroundColor: "#cbd5e1", marginHorizontal: 10 }} />
+              <Text style={{ fontSize: 7.8, color: "#64748b" }}>
+                Grade: <Text style={{ color: "#059669", fontWeight: 700 }}>{grade}</Text>
+              </Text>
+              <View style={{ width: 1, height: 8, backgroundColor: "#cbd5e1", marginHorizontal: 10 }} />
+              <Text style={{ fontSize: 7.8, color: "#64748b" }}>
+                Issued: <Text style={{ color: "#0f172a", fontWeight: 700 }}>{formattedDate}</Text>
+              </Text>
+            </View>
 
-            {/* Signatures & Seal Section */}
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 28 }}>
-              <View style={s.sigBlock}>
-                <Image src={imageAssets?.sigFounder ?? sigFounderImg} style={s.sigImg} />
-                <View style={{ borderTopWidth: 1, borderTopColor: "#181619", width: "100%", marginBottom: 2 }} />
-                <Text style={{ ...s.bold, color: "#181619" }}>{COMPANY.founder.name}</Text>
-                <Text style={{ ...s.small, color: "#f95c4b", fontWeight: 700 }}>{COMPANY.founder.title}</Text>
+            {/* Signatures & Seal Section: Symmetrical 4-Column Balanced Grid */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 12, paddingHorizontal: 14 }}>
+              {/* Col 1: Founder */}
+              <View style={{ alignItems: "center", width: 140 }}>
+                <View style={{ height: 48, justifyContent: "flex-end", alignItems: "center" }}>
+                  <Image src={imageAssets?.sigFounder ?? sigFounderImg} style={{ height: 42, width: 95, objectFit: "contain" }} />
+                </View>
+                <View style={{ width: 120, height: 1, backgroundColor: "#94a3b8", marginTop: 4, marginBottom: 4 }} />
+                <Text style={{ fontSize: 9.5, fontWeight: 700, color: "#0f172a", textAlign: "center" }}>{COMPANY.founder.name}</Text>
+                <Text style={{ fontSize: 7.2, color: "#b45309", fontWeight: 700, textAlign: "center", marginTop: 1 }}>{COMPANY.founder.title}</Text>
               </View>
-              <View style={{ alignItems: "center" }}>
-                <Image src={imageAssets?.seal ?? sealImg} style={{ width: 84, height: 84, opacity: 0.95 }} />
+
+              {/* Col 2: Official Seal */}
+              <View style={{ alignItems: "center", width: 110 }}>
+                <View style={{ height: 48, justifyContent: "center", alignItems: "center" }}>
+                  <Image src={imageAssets?.seal ?? sealImg} style={{ width: 56, height: 56, objectFit: "contain" }} />
+                </View>
+                <View style={{ width: 70, height: 1, backgroundColor: "transparent", marginTop: 4, marginBottom: 4 }} />
+                <Text style={{ fontSize: 7.2, color: "#64748b", fontWeight: 700, textAlign: "center" }}>Official Verified Seal</Text>
+                <Text style={{ fontSize: 6.5, color: "#b45309", textAlign: "center", marginTop: 1 }}>SKYROVIX • MSME</Text>
               </View>
-              <View style={s.sigBlock}>
-                <Image src={imageAssets?.sigCofounder ?? sigCofounderImg} style={s.sigImg} />
-                <View style={{ borderTopWidth: 1, borderTopColor: "#181619", width: "100%", marginBottom: 2 }} />
-                <Text style={{ ...s.bold, color: "#181619" }}>{COMPANY.cofounder.name}</Text>
-                <Text style={{ ...s.small, color: "#f95c4b", fontWeight: 700 }}>{COMPANY.cofounder.title}</Text>
+
+              {/* Col 3: QR Code Verification Badge */}
+              <View style={{ alignItems: "center", width: 120 }}>
+                <View style={{ height: 48, justifyContent: "center", alignItems: "center" }}>
+                  {qrCodeDataUri ? (
+                    <Image src={qrCodeDataUri} style={{ width: 44, height: 44, objectFit: "contain", borderRadius: 2 }} />
+                  ) : (
+                    <View style={{ width: 44, height: 44, backgroundColor: "#ffffff", borderWidth: 0.5, borderColor: "#cbd5e1" }} />
+                  )}
+                </View>
+                <View style={{ width: 70, height: 1, backgroundColor: "transparent", marginTop: 4, marginBottom: 4 }} />
+                <Text style={{ fontSize: 7.2, color: "#64748b", fontWeight: 700, textAlign: "center" }}>Digitally Verified Certificate</Text>
+                <Text style={{ fontSize: 6.5, color: "#64748b", textAlign: "center", marginTop: 1 }}>Scan to verify online</Text>
+              </View>
+
+              {/* Col 4: Co-Founder */}
+              <View style={{ alignItems: "center", width: 140 }}>
+                <View style={{ height: 48, justifyContent: "flex-end", alignItems: "center" }}>
+                  <Image src={imageAssets?.sigCofounder ?? sigCofounderImg} style={{ height: 42, width: 95, objectFit: "contain" }} />
+                </View>
+                <View style={{ width: 120, height: 1, backgroundColor: "#94a3b8", marginTop: 4, marginBottom: 4 }} />
+                <Text style={{ fontSize: 9.5, fontWeight: 700, color: "#0f172a", textAlign: "center" }}>{COMPANY.cofounder.name}</Text>
+                <Text style={{ fontSize: 7.2, color: "#b45309", fontWeight: 700, textAlign: "center", marginTop: 1 }}>{COMPANY.cofounder.title}</Text>
               </View>
             </View>
 
-            {/* Footer Metadata */}
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14, fontSize: 8, color: "#64748b" }}>
-              <View style={{ flexDirection: "column", gap: 2 }}>
-                <Text>Certificate ID: <Text style={{ color: "#181619", fontWeight: 700 }}>{certId}</Text></Text>
-                <Text>Intern ID: <Text style={{ color: "#f95c4b", fontWeight: 700 }}>{internId}</Text></Text>
-              </View>
-              <View style={{ flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                <Text>Issued: <Text style={{ color: "#181619", fontWeight: 700 }}>{formattedDate}</Text></Text>
-                <Text>Verify at: <Text style={{ color: "#f95c4b", fontWeight: 700 }}>www.skyrovix.in/verify-certificate</Text></Text>
-              </View>
+            {/* Bottom Security Footer */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8, paddingTop: 4, borderTopWidth: 0.5, borderTopColor: "#cbd5e1" }}>
+              <Text style={{ fontSize: 6.8, color: "#64748b" }}>
+                A digitally verifiable credential issued by SKYROVIX IT Solutions (Udyam Registered – Ministry of MSME, Government of India).
+              </Text>
+              <Text style={{ fontSize: 6.8, color: "#64748b" }}>
+                Official verification portal: <Text style={{ color: "#b45309", fontWeight: 700 }}>https://skyrovix.in/verify-certificate</Text>
+              </Text>
             </View>
 
           </View>
@@ -789,6 +848,29 @@ export function CertificateDoc({ fullName, internId, domain, certId, issuedAt, v
     </Document>
   );
 }
+
+export async function downloadCertificate(params: {
+  fullName: string;
+  internId: string;
+  domain: string;
+  certId: string;
+  issuedAt: string;
+  verifyUrl?: string;
+  grade?: string;
+}) {
+  const verifyUrl = params.verifyUrl || `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(params.certId.trim())}`;
+  let qrDataUri: string | undefined;
+  try {
+    qrDataUri = await QRCode.toDataURL(verifyUrl, { width: 180, margin: 1 });
+  } catch {
+    /* proceed without qr */
+  }
+  await downloadPdf(
+    <CertificateDoc {...params} verifyUrl={verifyUrl} qrCodeDataUri={qrDataUri} />,
+    `Certificate_${params.certId}.pdf`
+  );
+}
+
 
 export function CourseCertificateDoc({ fullName, courseName, score, total, certId, issuedAt, verifyUrl, qrCodeDataUri, imageAssets }: {
   fullName: string; courseName: string; score: number; total: number;
