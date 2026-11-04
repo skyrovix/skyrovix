@@ -65,21 +65,29 @@ if [ -n "$NGINX_CONF" ]; then
   echo "⚙️ Configuring Nginx at ${NGINX_CONF} for Ads.txt zero-cache & CORS..."
   cp "$NGINX_CONF" "${NGINX_CONF}.adsense.bak.$(date +%s)"
 
+  # Remove any duplicate Content-Type headers from previous runs
+  sed -i '/add_header Content-Type "text\/plain; charset=utf-8" always;/d' "$NGINX_CONF"
+
   # Check if location = /ads.txt already exists
   if ! grep -q "location = /ads.txt" "$NGINX_CONF"; then
     # Insert dedicated /ads.txt block before location /
     sed -i '/location \/ {/i \
-    # Dedicated Google AdSense Ads.txt Handler (Zero-cache, CORS enabled)\
+    # Dedicated Google AdSense Ads.txt Handler (RFC-compliant text/plain, CORS enabled)\
     location = /ads.txt {\
         alias '"${APP_DIR}"'/public/ads.txt;\
-        default_type "text/plain; charset=utf-8";\
-        add_header Content-Type "text/plain; charset=utf-8" always;\
+        default_type text/plain;\
+        charset utf-8;\
         add_header Access-Control-Allow-Origin "*" always;\
         add_header Cache-Control "no-cache, no-store, must-revalidate, max-age=0" always;\
         add_header Pragma "no-cache" always;\
         expires -1;\
     }\
 ' "$NGINX_CONF"
+  else
+    # Ensure charset utf-8 is present
+    if ! grep -q "charset utf-8;" "$NGINX_CONF"; then
+      sed -i '/location = \/ads\.txt {/a \        charset utf-8;' "$NGINX_CONF"
+    fi
   fi
 
   echo "🧪 Testing Nginx syntax..."
