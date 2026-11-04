@@ -15,7 +15,8 @@ export async function checkIsAdmin(userId?: string | null): Promise<boolean> {
     const res = await dbQuery(
       `SELECT (
          EXISTS (SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin')
-         OR EXISTS (SELECT 1 FROM users WHERE id = $1 AND LOWER(email) IN ('hariharanmahesh34@gmail.com', 'skyrovix@gmail.com', 'hariharan@skyrovix.com'))
+         OR EXISTS (SELECT 1 FROM users WHERE (id = $1 OR LOWER(email) = LOWER($1)) AND LOWER(email) IN ('hariharanmahesh34@gmail.com', 'skyrovix@gmail.com', 'hariharan@skyrovix.com'))
+         OR EXISTS (SELECT 1 FROM profiles WHERE id = $1 AND LOWER(email) IN ('hariharanmahesh34@gmail.com', 'skyrovix@gmail.com', 'hariharan@skyrovix.com'))
        ) as is_admin`,
       [userId]
     );

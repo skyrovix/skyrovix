@@ -48,6 +48,7 @@ import {
   Download,
   Zap,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 import { CashfreeOrdersAdminSection } from "./CashfreeOrdersAdminSection";
 
 interface PaymentVerificationSectionProps {
@@ -55,6 +56,8 @@ interface PaymentVerificationSectionProps {
 }
 
 export function PaymentVerificationSection({ adminId }: PaymentVerificationSectionProps) {
+  const { user } = useAuth();
+  const effectiveAdminId = adminId || user?.id || "";
   const qc = useQueryClient();
 
   const [paymentView, setPaymentView] = useState<"cashfree" | "manual">("cashfree");
@@ -69,18 +72,18 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
   const [adminNote, setAdminNote] = useState<string>("");
 
   const { data: payments = [], isLoading, refetch } = useQuery<PaymentRecordItem[]>({
-    queryKey: ["admin-payments-list", adminId, statusFilter, typeFilter, searchQuery],
+    queryKey: ["admin-payments-list", effectiveAdminId, statusFilter, typeFilter, searchQuery],
     queryFn: async () => {
       return getAdminPayments({
         data: {
-          adminId,
+          adminId: effectiveAdminId,
           statusFilter,
           typeFilter,
           searchQuery,
         },
       });
     },
-    enabled: Boolean(adminId),
+    enabled: Boolean(effectiveAdminId),
   });
 
   const reviewMutation = useMutation({
@@ -230,7 +233,7 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
       </div>
 
       {paymentView === "cashfree" ? (
-        <CashfreeOrdersAdminSection adminId={adminId} />
+        <CashfreeOrdersAdminSection adminId={effectiveAdminId} />
       ) : (
         <>
           {/* Stats Cards */}

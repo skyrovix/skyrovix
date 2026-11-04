@@ -35,11 +35,15 @@ import {
   Zap,
 } from "lucide-react";
 
+import { useAuth } from "@/lib/auth";
+
 interface CashfreeOrdersAdminSectionProps {
   adminId: string;
 }
 
 export function CashfreeOrdersAdminSection({ adminId }: CashfreeOrdersAdminSectionProps) {
+  const { user } = useAuth();
+  const effectiveAdminId = adminId || user?.id || "";
   const qc = useQueryClient();
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -48,11 +52,11 @@ export function CashfreeOrdersAdminSection({ adminId }: CashfreeOrdersAdminSecti
   const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["admin-cashfree-orders", adminId, statusFilter, searchQuery],
+    queryKey: ["admin-cashfree-orders", effectiveAdminId, statusFilter, searchQuery],
     queryFn: async () => {
       return getAdminCashfreeOrdersServer({
         data: {
-          adminId,
+          adminId: effectiveAdminId,
           statusFilter,
           searchQuery,
           limit: 100,
@@ -60,7 +64,7 @@ export function CashfreeOrdersAdminSection({ adminId }: CashfreeOrdersAdminSecti
         },
       });
     },
-    enabled: Boolean(adminId),
+    enabled: Boolean(effectiveAdminId),
   });
 
   const orders = data?.orders || [];
@@ -76,7 +80,7 @@ export function CashfreeOrdersAdminSection({ adminId }: CashfreeOrdersAdminSecti
     mutationFn: async (orderId: string) => {
       setSyncingOrderId(orderId);
       return syncCashfreeOrderAdminServer({
-        data: { adminId, orderId },
+        data: { adminId: effectiveAdminId, orderId },
       });
     },
     onSuccess: (res) => {

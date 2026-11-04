@@ -452,7 +452,7 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
          SET payment_status = $1,
              cashfree_payment_id = COALESCE($2, cashfree_payment_id),
              payment_method = COALESCE($3, payment_method),
-             payment_time = COALESCE($4::timestamptz, payment_time),
+             payment_time = COALESCE($4, payment_time),
              raw_response = $5,
              updated_at = now()
          WHERE order_id = $6`,
@@ -742,34 +742,43 @@ export const getAdminCashfreeOrdersServer = createServerFn({ method: "POST" })
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
 
     const countRes = await dbQuery(
-      `SELECT count(*)::int as total FROM public.cashfree_orders ${whereClause}`,
+      `SELECT count(*) as total FROM public.cashfree_orders ${whereClause}`,
       params
     );
-    const total = countRes.rows[0]?.total ?? 0;
+    const total = Number(countRes.rows[0]?.total ?? 0);
 
-    // Fetch stats
+    // Fetch stats (MySQL compatible syntax)
     const statsRes = await dbQuery(`
       SELECT 
-        count(*) filter (where payment_status IN ('PAID', 'SUCCESS'))::int as paid_count,
-        coalesce(sum(amount) filter (where payment_status IN ('PAID', 'SUCCESS')), 0)::numeric as total_paid_amount,
-        count(*) filter (where payment_status IN ('PENDING', 'CREATED'))::int as pending_count,
-        count(*) filter (where payment_status IN ('FAILED', 'CANCELLED', 'EXPIRED'))::int as failed_count,
-        count(*)::int as total_orders
+        COALESCE(SUM(CASE WHEN payment_status IN ('PAID', 'SUCCESS') THEN 1 ELSE 0 END), 0) as paid_count,
+        COALESCE(SUM(CASE WHEN payment_status IN ('PAID', 'SUCCESS') THEN amount ELSE 0 END), 0) as total_paid_amount,
+        COALESCE(SUM(CASE WHEN payment_status IN ('PENDING', 'CREATED') THEN 1 ELSE 0 END), 0) as pending_count,
+        COALESCE(SUM(CASE WHEN payment_status IN ('FAILED', 'CANCELLED', 'EXPIRED') THEN 1 ELSE 0 END), 0) as failed_count,
+        COUNT(*) as total_orders
       FROM public.cashfree_orders
     `);
+
+    const rawStats = statsRes.rows[0] || {};
+    const stats = {
+      paid_count: Number(rawStats.paid_count || 0),
+      total_paid_amount: Number(rawStats.total_paid_amount || 0),
+      pending_count: Number(rawStats.pending_count || 0),
+      failed_count: Number(rawStats.failed_count || 0),
+      total_orders: Number(rawStats.total_orders || 0),
+    };
 
     const listRes = await dbQuery(
       `SELECT * FROM public.cashfree_orders
        ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${pIdx++} OFFSET $${pIdx++}`,
-      [...params, limit, offset]
+      [...params, Number(limit), Number(offset)]
     );
 
     return {
       orders: listRes.rows as CashfreeOrderRecord[],
       total,
-      stats: statsRes.rows[0],
+      stats,
     };
   });
 

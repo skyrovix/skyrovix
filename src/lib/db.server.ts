@@ -89,6 +89,7 @@ export function prepareMysqlQueryAndParams(
   let adaptedSql = sql
     .replace(/\b(?:public|auth)\./gi, "")
     .replace(/\bILIKE\b/gi, "LIKE")
+    .replace(/::[a-zA-Z0-9_]+(?:\([^)]*\))?/g, "")
     .replace(/\bON\s+CONFLICT\s*(?:\([^)]*\))?\s*DO\s+NOTHING\b/gi, "ON DUPLICATE KEY UPDATE id=id")
     .replace(/\bON\s+CONFLICT\s*\([^)]*\)\s*DO\s+UPDATE\s+SET\b/gi, "ON DUPLICATE KEY UPDATE")
     .replace(/\bEXCLUDED\.(\w+)/gi, "VALUES($1)")
