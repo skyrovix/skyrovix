@@ -125,12 +125,14 @@ async function main() {
   const icoStat = fs.statSync(icoPath);
   console.log(`[favicon] favicon.ico — ${icoStat.size} bytes`);
 
-  // 3. Apple Touch Icon (180x180) & Android Chrome Icons (192x192, 512x512)
-  // Clean white background with crisp logo in center safe zone (no dark-on-dark clipping!)
+  // 3. Apple Touch Icon (180x180) & Android Chrome Icons (192x192, 512x512, maskable)
+  // Clean, 100% solid white background with crisp logo in center safe zone (no dark-on-dark clipping!)
   const appIconSizes = [
     { name: "apple-touch-icon.png", size: 180, padPct: 0.16 },
     { name: "android-chrome-192x192.png", size: 192, padPct: 0.20 },
     { name: "android-chrome-512x512.png", size: 512, padPct: 0.20 },
+    { name: "android-chrome-maskable-512x512.png", size: 512, padPct: 0.28 },
+    { name: "logo.png", size: 512, padPct: 0.12 },
   ];
 
   for (const { name, size, padPct } of appIconSizes) {
@@ -143,13 +145,14 @@ async function main() {
       })
       .toBuffer();
 
-    const bgSvg = Buffer.from(`
-      <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${size}" height="${size}" fill="#ffffff" />
-      </svg>
-    `);
-
-    await sharp(bgSvg)
+    await sharp({
+      create: {
+        width: size,
+        height: size,
+        channels: 4,
+        background: { r: 255, g: 255, b: 255, alpha: 1 },
+      },
+    })
       .composite([{ input: emblemResized, gravity: "center" }])
       .png({ quality: 100 })
       .toFile(out);
