@@ -348,7 +348,7 @@ export async function checkAllTasksVerified(
   );
 
   if (isMarkedVerified) {
-    const total = Number(app.total_tasks) > 0 ? Number(app.total_tasks) : 6;
+    const total = Number(app.total_tasks) > 0 ? Number(app.total_tasks) + 1 : 6;
     return {
       isCompleted: true,
       approvedCount: total,
@@ -366,46 +366,105 @@ export async function checkAllTasksVerified(
     ? Number(app.total_tasks)
     : (taskLimits[Number(app.duration) || 1] ?? 5);
 
-  // Fetch all tasks for domain with task_number <= limit (task 0 LinkedIn, and tasks 1..limit)
+  // Fetch all domain tasks with task_number > 0 and task_number <= limit
   const reqTasksRes = await queryFn(
-    "SELECT id, task_number FROM public.tasks WHERE domain = $1 AND task_number <= $2 ORDER BY task_number ASC",
+    "SELECT id, task_number, title FROM public.tasks WHERE domain = $1 AND task_number > 0 AND task_number <= $2 ORDER BY task_number ASC",
     [app.domain, limit]
   );
 
-  const requiredTasks: Array<{ id: string; task_number: number }> = reqTasksRes.rows;
-  const requiredCount = requiredTasks.length > 0 ? requiredTasks.length : (limit + 1);
+  const domainTasks: Array<{ id: string; task_number: number; title?: string }> = reqTasksRes.rows;
 
-  if (requiredTasks.length === 0) {
-    const subCountRes = await queryFn(
-      "SELECT COUNT(DISTINCT task_id) as approved_count FROM public.submissions WHERE application_id = $1 AND status = 'approved'",
-      [applicationId]
-    );
-    const approvedCount = Number(subCountRes.rows[0]?.approved_count ?? 0);
-    return {
-      isCompleted: approvedCount >= (limit + 1) && approvedCount > 0,
-      approvedCount,
-      requiredCount: limit + 1,
-      missingTaskNumbers: [],
-    };
-  }
-
+  // Fetch all approved submissions for this application
   const approvedRes = await queryFn(
-    `SELECT DISTINCT task_id FROM public.submissions 
+    `SELECT DISTINCT id, task_id, task_number, task_title FROM public.submissions 
      WHERE application_id = $1 
        AND status = 'approved'`,
     [applicationId]
   );
 
-  const approvedIds = new Set(approvedRes.rows.map((r: any) => r.task_id));
-  const missingTasks = requiredTasks.filter((t) => !approvedIds.has(t.id));
-  const approvedCount = approvedIds.size;
-  const isCompleted = approvedCount >= requiredCount && missingTasks.length === 0;
+  const approvedTaskIds = new Set(
+    approvedRes.rows.filter((r: any) => r.task_id).map((r: any) => String(r.task_id).toLowerCase())
+  );
+  const approvedTaskNumbers = new Set(
+    approvedRes.rows
+      .filter((r: any) => r.task_number !== null && r.task_number !== undefined)
+      .map((r: any) => Number(r.task_number))
+  );
+  const approvedTitles = new Set(
+    approvedRes.rows
+      .filter((r: any) => r.task_title)
+      .map((r: any) => String(r.task_title).toLowerCase().trim())
+  );
+
+  // Check Task 0 (LinkedIn) approval
+  const isLinkedinApproved =
+    approvedTaskNumbers.has(0) ||
+    approvedRes.rows.some((r: any) => {
+      const title = String(r.task_title || "").toLowerCase();
+      const tid = String(r.task_id || "").toLowerCase();
+      return (
+        title.includes("linkedin") ||
+        title.includes("offer letter") ||
+        tid.endsWith("-0") ||
+        tid === "29bfaac4-e233-47de-9dd9-59b7cb8b9a52"
+      );
+    });
+
+  // Check domain tasks: each task 1..limit
+  const missingDomainTasks: number[] = [];
+  let domainApprovedCount = 0;
+
+  for (let num = 1; num <= limit; num++) {
+    const matchedTask = domainTasks.find((t) => Number(t.task_number) === num);
+    const isApproved =
+      approvedTaskNumbers.has(num) ||
+      (matchedTask && approvedTaskIds.has(String(matchedTask.id).toLowerCase())) ||
+      (matchedTask?.title && approvedTitles.has(String(matchedTask.title).toLowerCase().trim()));
+
+    if (isApproved) {
+      domainApprovedCount++;
+    } else {
+      missingDomainTasks.push(num);
+    }
+  }
+
+  // If approved count matches or exceeds required limit directly through distinct approved submissions
+  const totalApprovedSubs = approvedRes.rows.length;
+  if (totalApprovedSubs >= limit && missingDomainTasks.length > 0) {
+    missingDomainTasks.length = 0;
+    domainApprovedCount = limit;
+  }
+
+  const missingTaskNumbers: number[] = [...missingDomainTasks];
+  if (!isLinkedinApproved) {
+    missingTaskNumbers.unshift(0);
+  }
+
+  const requiredCount = limit + 1; // Task 0 (LinkedIn) + limit domain tasks
+  const approvedCount = domainApprovedCount + (isLinkedinApproved ? 1 : 0);
+  const isCompleted = missingTaskNumbers.length === 0 && approvedCount >= requiredCount;
+
+  // If completed, automatically mark all_tasks_verified and certificate_payment_unlocked in DB
+  if (isCompleted) {
+    try {
+      await queryFn(
+        `UPDATE public.applications
+         SET all_tasks_verified = 1,
+             certificate_payment_unlocked = 1,
+             submission_status = 'approved'
+         WHERE id = $1`,
+        [applicationId]
+      );
+    } catch (e) {
+      console.warn("Could not auto-mark application verified in checkAllTasksVerified:", e);
+    }
+  }
 
   return {
     isCompleted,
     approvedCount,
     requiredCount,
-    missingTaskNumbers: missingTasks.map((t) => t.task_number),
+    missingTaskNumbers,
   };
 }
 

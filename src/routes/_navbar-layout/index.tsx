@@ -185,78 +185,90 @@ function Landing() {
               <div className="lg:col-span-7 flex flex-col items-start text-left w-full px-2 sm:px-0">
 
                 {/* Internship Platform Badge */}
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-4 py-2 text-[10px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur-md">
-                  <span className="animate-pulse size-2 rounded-full bg-[#f95c4b] shrink-0" />
-                  <span>🎓 INDIA'S MOST PRACTICAL VIRTUAL INTERNSHIP PLATFORM</span>
-                </div>
+                <FadeUp delay={0.02} duration={0.5}>
+                  <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-4 py-2 text-[10px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur-md">
+                    <span className="animate-pulse size-2 rounded-full bg-[#f95c4b] shrink-0" />
+                    <span>🎓 INDIA'S MOST PRACTICAL VIRTUAL INTERNSHIP PLATFORM</span>
+                  </div>
+                </FadeUp>
 
                 {/* Primary Heading */}
-                <h1 className="font-display text-[2.1rem] leading-[1.14] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#181619] dark:text-white text-left break-words">
-                  Build Skills.<br />
-                  Gain Experience.<br />
-                  <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-[#f95c4b] bg-clip-text text-transparent">Get Certified.</span>
-                </h1>
+                <FadeUp delay={0.08} duration={0.65}>
+                  <h1 className="font-display text-[2.1rem] leading-[1.14] sm:text-5xl lg:text-[62px] font-extrabold tracking-tight text-[#181619] dark:text-white text-left break-words">
+                    Build Skills.<br />
+                    Gain Experience.<br />
+                    <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-[#f95c4b] bg-clip-text text-transparent">Get Certified.</span>
+                  </h1>
+                </FadeUp>
 
                 {/* Sub-headline description */}
-                <p className="mt-4 sm:mt-5 max-w-xl text-xs sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium break-words">
-                  Skyrovix Internship Program helps students and professionals work on real-world projects, gain practical skills, and receive industry-recognized certificates.
-                </p>
+                <FadeUp delay={0.14} duration={0.65}>
+                  <p className="mt-4 sm:mt-5 max-w-xl text-xs sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium break-words">
+                    Skyrovix Internship Program helps students and professionals work on real-world projects, gain practical skills, and receive industry-recognized certificates.
+                  </p>
+                </FadeUp>
 
                 {/* Checklist items — glassmorphism on dark */}
-                <div className="mt-5 sm:mt-6 grid grid-cols-2 gap-1.5 sm:gap-2 max-w-lg w-full min-w-0">
-                  {[
-                    { label: "Real-world Projects", icon: Code2, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
-                    { label: "Mentor Guidance", icon: Users, color: "text-[#403b42] dark:text-[#ee9590]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
-                    { label: "Certificate & LOR", icon: FileText, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
-                    { label: "100% Remote", icon: Globe, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
-                  ].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm transition-all duration-200 shadow-sm hover:scale-[1.02] cursor-default min-w-0`}
-                    >
-                      <div className={`size-6 sm:size-7 rounded-lg bg-white/80 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0 shadow-sm`}>
-                        <item.icon className="size-3 sm:size-3.5" />
+                <FadeUp delay={0.20} duration={0.65} className="w-full max-w-lg">
+                  <div className="mt-5 sm:mt-6 grid grid-cols-2 gap-1.5 sm:gap-2 max-w-lg w-full min-w-0">
+                    {[
+                      { label: "Real-world Projects", icon: Code2, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
+                      { label: "Mentor Guidance", icon: Users, color: "text-[#403b42] dark:text-[#ee9590]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
+                      { label: "Certificate & LOR", icon: FileText, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
+                      { label: "100% Remote", icon: Globe, color: "text-[#f95c4b]", bg: "bg-white dark:bg-[#201d22] border-[#e5e7eb] dark:border-white/10" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl border ${item.bg} backdrop-blur-sm transition-all duration-300 shadow-sm hover:scale-[1.03] hover:shadow-md cursor-default min-w-0`}
+                      >
+                        <div className={`size-6 sm:size-7 rounded-lg bg-white/80 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0 shadow-sm`}>
+                          <item.icon className="size-3 sm:size-3.5" />
+                        </div>
+                        <span className="text-[10px] sm:text-sm font-semibold text-slate-800 dark:text-white/90 truncate">{item.label}</span>
                       </div>
-                      <span className="text-[10px] sm:text-sm font-semibold text-slate-800 dark:text-white/90 truncate">{item.label}</span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </FadeUp>
 
                 {/* Buttons Row with smooth CSS hover & tap */}
-                <div className="mt-6 sm:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                  <div className="w-full sm:w-auto transition-transform hover:-translate-y-0.5 active:scale-95 duration-150">
-                    <Link to="/auth" search={{ redirect: undefined }} className="w-full sm:w-auto block">
-                      <Button size="lg" className="w-full sm:w-auto rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white border-0 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base font-bold shadow-lg shadow-[#f95c4b]/25 transition-all duration-300 cursor-pointer">
-                        Explore Internships <ArrowRight className="ml-2 size-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="w-full sm:w-auto transition-transform hover:-translate-y-0.5 active:scale-95 duration-150">
-                    <a href="#how-it-works" className="w-full sm:w-auto block">
-                      <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl border border-[#e5e7eb] dark:border-white/15 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base font-semibold text-[#181619] dark:text-white hover:bg-white dark:hover:bg-white/10 hover:border-[#f95c4b] transition-all flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md cursor-pointer">
-                        <div className="size-6 rounded-full bg-slate-100 dark:bg-white/15 flex items-center justify-center text-slate-800 dark:text-white"><Play className="size-3 fill-current ml-0.5" /></div>
-                        How It Works
-                      </Button>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Coupon banner */}
-                <div className="mt-6 sm:mt-7 p-3 sm:p-4 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#f95c4b]/20 max-w-xl w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 backdrop-blur-md shadow-sm min-w-0">
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    <div className="size-8 sm:size-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0"><Sparkles className="size-4 sm:size-5" /></div>
-                    <div className="text-left min-w-0">
-                      <p className="text-xs font-bold text-amber-700 dark:text-amber-300">FIRST100 COUPON</p>
-                      <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400">First 100 students get internship for FREE!</p>
+                <FadeUp delay={0.26} duration={0.65} className="w-full sm:w-auto">
+                  <div className="mt-6 sm:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="w-full sm:w-auto">
+                      <Link to="/auth" search={{ redirect: undefined }} className="w-full sm:w-auto block">
+                        <Button size="lg" className="motion-btn-hover w-full sm:w-auto rounded-xl bg-[#f95c4b] hover:bg-[#e04b3a] text-white border-0 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base font-bold shadow-lg shadow-[#f95c4b]/25 cursor-pointer">
+                          Explore Internships <ArrowRight className="ml-2 size-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                    <div className="w-full sm:w-auto">
+                      <a href="#how-it-works" className="w-full sm:w-auto block">
+                        <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl border border-[#e5e7eb] dark:border-white/15 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base font-semibold text-[#181619] dark:text-white hover:bg-white dark:hover:bg-white/10 hover:border-[#f95c4b] transition-all flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md cursor-pointer hover:-translate-y-0.5 active:scale-95 duration-200">
+                          <div className="size-6 rounded-full bg-slate-100 dark:bg-white/15 flex items-center justify-center text-slate-800 dark:text-white"><Play className="size-3 fill-current ml-0.5" /></div>
+                          How It Works
+                        </Button>
+                      </a>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setApplyDomain(DOMAINS[0]?.slug)}
-                    className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[10px] sm:text-xs font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
-                  >
-                    Use Code: FIRST100
-                  </button>
-                </div>
+                </FadeUp>
+
+                {/* Coupon banner */}
+                <FadeUp delay={0.32} duration={0.65} className="w-full max-w-xl">
+                  <div className="mt-6 sm:mt-7 p-3 sm:p-4 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#f95c4b]/20 max-w-xl w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 backdrop-blur-md shadow-sm min-w-0 transition-transform duration-300 hover:shadow-md">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <div className="size-8 sm:size-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0"><Sparkles className="size-4 sm:size-5" /></div>
+                      <div className="text-left min-w-0">
+                        <p className="text-xs font-bold text-amber-700 dark:text-amber-300">FIRST100 COUPON</p>
+                        <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400">First 100 students get internship for FREE!</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setApplyDomain(DOMAINS[0]?.slug)}
+                      className="whitespace-nowrap shrink-0 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[10px] sm:text-xs font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
+                    >
+                      Use Code: FIRST100
+                    </button>
+                  </div>
+                </FadeUp>
 
               </div>
 
@@ -306,80 +318,82 @@ function Landing() {
                 <img
                   src={heroTeamImage}
                   alt="Skyrovix Interns"
-                  className="relative z-10 w-full max-w-[440px] sm:max-w-[520px] lg:max-w-[550px] lg:scale-110 lg:translate-y-4 h-auto object-contain select-none pointer-events-none"
+                  className="relative z-10 w-full max-w-[440px] sm:max-w-[520px] lg:max-w-[550px] lg:scale-105 h-auto object-contain select-none pointer-events-none"
                 />
 
-                {/* Floating Badge Cards — visible on all screens with smooth hover */}
+                {/* Floating Badge Cards — visible on all screens with smooth organic floating & hover */}
                 {/* Real-world Projects — left side */}
-                <div className="absolute top-[30%] left-1 sm:-left-10 lg:-left-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-105 transition-transform duration-200">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><Code2 className="size-3.5 sm:size-4.5" /></div>
+                <div className="animate-float-badge-1 absolute top-[30%] left-1 sm:-left-10 lg:-left-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-110 transition-transform duration-200">
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0 shadow-sm"><Code2 className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Real-world Projects</span>
                 </div>
 
                 {/* Industry Recognized Certificate — top center */}
-                <div className="absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 whitespace-nowrap cursor-default hover:scale-105 transition-transform duration-200">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><GraduationCap className="size-3.5 sm:size-4.5" /></div>
+                <div className="animate-float-badge-2 absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 whitespace-nowrap cursor-default hover:scale-110 transition-transform duration-200">
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0 shadow-sm"><GraduationCap className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200">Industry Certificate</span>
                 </div>
 
                 {/* Internship Offer Letter — right side top */}
-                <div className="absolute top-[22%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-105 transition-transform duration-200">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><FileText className="size-3.5 sm:size-4.5" /></div>
+                <div className="animate-float-badge-3 absolute top-[22%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-110 transition-transform duration-200">
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0 shadow-sm"><FileText className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Offer Letter</span>
                 </div>
 
                 {/* Task-based internship — right side bottom */}
-                <div className="absolute bottom-[30%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-105 transition-transform duration-200">
-                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0"><Users className="size-3.5 sm:size-4.5" /></div>
+                <div className="animate-float-badge-4 absolute bottom-[30%] right-1 sm:-right-10 lg:-right-28 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md flex items-center gap-2 sm:gap-3 z-20 cursor-default hover:scale-110 transition-transform duration-200">
+                  <div className="size-7 sm:size-9 rounded-lg sm:rounded-xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] font-bold shrink-0 shadow-sm"><Users className="size-3.5 sm:size-4.5" /></div>
                   <span className="text-[10px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Task-based</span>
                 </div>
 
-                {/* Statistics Card — 2×2 on mobile, 4-col on sm+ */}
-                <div className="relative z-20 w-full -mt-4 sm:-mt-6 bg-white dark:bg-[#201d22] rounded-[24px] sm:rounded-[28px] border border-[#e5e7eb] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] grid grid-cols-2 sm:grid-cols-4 max-w-2xl overflow-hidden">
-                  {/* Students Enrolled */}
-                  <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-r border-b sm:border-b-0 border-slate-100 dark:border-slate-800/80">
-                    <div className="size-9 sm:size-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mb-2">
-                      <Users className="size-4 sm:size-5" />
+                {/* Statistics Card — 2×2 on mobile, 4-col on sm+ with smooth entrance */}
+                <FadeUp delay={0.25} duration={0.65} className="relative z-30 w-full mt-3 sm:mt-4">
+                  <div className="relative z-30 w-full bg-white dark:bg-[#201d22] rounded-[24px] sm:rounded-[28px] border border-[#e5e7eb] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] grid grid-cols-2 sm:grid-cols-4 max-w-2xl overflow-hidden backdrop-blur-md">
+                    {/* Students Enrolled */}
+                    <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-r border-b sm:border-b-0 border-slate-100 dark:border-slate-800/80 transition-colors duration-200 hover:bg-slate-50/50 dark:hover:bg-white/5">
+                      <div className="size-9 sm:size-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mb-2 transition-transform duration-300 hover:scale-110">
+                        <Users className="size-4 sm:size-5" />
+                      </div>
+                      <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                        {stats?.studentsEnrolledDisplay || "1,077+"}
+                      </div>
+                      <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Students Enrolled</div>
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
-                      {stats?.studentsEnrolledDisplay || "1,077+"}
-                    </div>
-                    <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Students Enrolled</div>
-                  </div>
 
-                  {/* Internship Domains */}
-                  <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800/80">
-                    <div className="size-9 sm:size-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 mb-2">
-                      <Briefcase className="size-4 sm:size-5" />
+                    {/* Internship Domains */}
+                    <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800/80 transition-colors duration-200 hover:bg-slate-50/50 dark:hover:bg-white/5">
+                      <div className="size-9 sm:size-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 mb-2 transition-transform duration-300 hover:scale-110">
+                        <Briefcase className="size-4 sm:size-5" />
+                      </div>
+                      <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                        {stats?.internshipDomainsDisplay || "25+"}
+                      </div>
+                      <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Internship Domains</div>
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
-                      {stats?.internshipDomainsDisplay || "25+"}
-                    </div>
-                    <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Internship Domains</div>
-                  </div>
 
-                  {/* Projects Available */}
-                  <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-r border-slate-100 dark:border-slate-800/80">
-                    <div className="size-9 sm:size-10 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mb-2">
-                      <Code2 className="size-4 sm:size-5" />
+                    {/* Projects Available */}
+                    <div className="text-center flex flex-col items-center justify-center py-4 px-2 border-r border-slate-100 dark:border-slate-800/80 transition-colors duration-200 hover:bg-slate-50/50 dark:hover:bg-white/5">
+                      <div className="size-9 sm:size-10 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mb-2 transition-transform duration-300 hover:scale-110">
+                        <Code2 className="size-4 sm:size-5" />
+                      </div>
+                      <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                        {stats?.projectsAvailableDisplay || "175+"}
+                      </div>
+                      <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Projects Available</div>
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
-                      {stats?.projectsAvailableDisplay || "175+"}
-                    </div>
-                    <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Projects Available</div>
-                  </div>
 
-                  {/* Average Rating */}
-                  <div className="text-center flex flex-col items-center justify-center py-4 px-2">
-                    <div className="size-9 sm:size-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 mb-2">
-                      <Star className="size-4 sm:size-5 fill-amber-500" />
+                    {/* Average Rating */}
+                    <div className="text-center flex flex-col items-center justify-center py-4 px-2 transition-colors duration-200 hover:bg-slate-50/50 dark:hover:bg-white/5">
+                      <div className="size-9 sm:size-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 mb-2 transition-transform duration-300 hover:scale-110">
+                        <Star className="size-4 sm:size-5 fill-amber-500" />
+                      </div>
+                      <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
+                        {stats?.averageRating || "4.9/5"}
+                      </div>
+                      <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Average Rating</div>
                     </div>
-                    <div className="text-base sm:text-xl font-extrabold text-[#181619] dark:text-white leading-tight tracking-tight">
-                      {stats?.averageRating || "4.9/5"}
-                    </div>
-                    <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-bold leading-tight">Average Rating</div>
                   </div>
-                </div>
+                </FadeUp>
 
               </div>
             </div>
@@ -549,10 +563,10 @@ function Landing() {
             {steps.map((s, i) => (
               <div
                 key={i}
-                className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 backdrop-blur transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default hover:-translate-y-1"
+                className="group relative rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 backdrop-blur motion-card-hover cursor-default"
               >
                 <div className="absolute -top-3 left-6 grid size-7 place-items-center rounded-full bg-[#f95c4b] text-xs font-extrabold text-white shadow-md shadow-[#f95c4b]/30 ring-4 ring-[#f95c4b]/15 transition-transform duration-300 group-hover:scale-110">{i + 1}</div>
-                <div className="size-11 rounded-2xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] group-hover:bg-[#f95c4b] group-hover:text-white transition-all duration-300 mb-4 mt-1">
+                <div className="size-11 rounded-2xl bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b] group-hover:bg-[#f95c4b] group-hover:text-white transition-all duration-300 mb-4 mt-1 shadow-sm">
                   <s.icon className="size-5 transition-transform duration-500 group-hover:rotate-12" />
                 </div>
                 <h3 className="font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-[#f95c4b] dark:group-hover:text-[#ee9590] text-[15px]">{s.title}</h3>
@@ -622,7 +636,7 @@ function Landing() {
             ].map((b) => (
               <div
                 key={b.title}
-                className="group rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 transition-all duration-300 hover:shadow-[0_15px_30px_rgba(0,0,0,0.05)] hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-default hover:-translate-y-1"
+                className="group rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 p-6 motion-card-hover cursor-default"
               >
                 <div className={`grid size-11 place-items-center rounded-2xl ${b.bg} transition-all duration-300 group-hover:scale-110 shadow-sm`}>
                   <b.icon className="size-5" />
@@ -675,12 +689,12 @@ function Landing() {
                 return (
                   <div
                     key={i}
-                    className="h-full hover:-translate-y-1 transition-transform duration-200"
+                    className="h-full"
                   >
                     <Link
                       to="/internship"
                       search={{ apply: undefined }}
-                      className="group block h-full rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 transition-all duration-300 hover:shadow-lg hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a]"
+                      className="group block h-full rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 motion-card-hover"
                     >
                       {cardContent}
                     </Link>
@@ -691,11 +705,11 @@ function Landing() {
               return (
                 <div
                   key={i}
-                  className="h-full hover:-translate-y-1 transition-transform duration-200"
+                  className="h-full"
                 >
                   <button
                     onClick={() => setApplyDomain(d.slug)}
-                    className="group w-full h-full text-left rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 transition-all duration-300 hover:shadow-lg hover:border-[#ee9590] hover:bg-white dark:hover:bg-[#0f172a] cursor-pointer"
+                    className="group w-full h-full text-left rounded-2xl border border-border/50 bg-white/70 dark:bg-[#201d22]/70 motion-card-hover cursor-pointer"
                   >
                     {cardContent}
                   </button>

@@ -69,24 +69,137 @@ function AboutPage() {
       />
 
       {/* ─────────────────────────────────────────────────────────────
-          HEADER / HERO: SKYROVIX - ABOUT US
+          HEADER / HERO: SKYROVIX - ABOUT US (IMPROVED BACKGROUND & MOTION)
       ───────────────────────────────────────────────────────────── */}
-      <AuroraBackground>
-        <section className="mx-auto max-w-5xl px-4 pt-4 sm:pt-8 pb-10 sm:pb-16 text-center">
-          <FadeUp>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3.5 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-xs backdrop-blur mb-5 tracking-widest uppercase">
-              <Sparkles className="size-3 sm:size-3.5" /> SKYROVIX · ABOUT US
+      <section className="relative overflow-hidden pt-24 sm:pt-32 pb-16 sm:pb-24 border-b border-[#e5e7eb] dark:border-white/10 bg-gradient-to-b from-[#faf8f2] via-white to-[#faf8f2] dark:from-[#141215] dark:via-[#181619] dark:to-[#141215]">
+        {/* ── Multi-Layer Atmospheric Aurora Lighting ── */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[650px] sm:w-[950px] h-[400px] bg-gradient-to-b from-[#f95c4b]/22 via-[#ee9590]/12 to-transparent rounded-full blur-[110px]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/4 -left-20 w-[360px] sm:w-[520px] h-[360px] bg-amber-400/12 dark:bg-amber-500/10 rounded-full blur-[130px] animate-aurora"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/3 -right-20 w-[380px] sm:w-[540px] h-[380px] bg-violet-500/12 dark:bg-violet-600/10 rounded-full blur-[130px] animate-aurora-2"
+        />
+
+        {/* ── High-Tech Radial Dot Matrix Grid ── */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none opacity-[0.45] dark:opacity-[0.25]"
+          style={{
+            backgroundImage: "radial-gradient(rgba(249, 92, 75, 0.32) 1.5px, transparent 1.5px)",
+            backgroundSize: "28px 28px",
+            maskImage: "radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 80%)",
+            WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 80%)",
+          }}
+        />
+
+        {/* ── Concentric Cosmic Orbit Rings ── */}
+        <div
+          aria-hidden="true"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0"
+        >
+          <div className="size-[580px] sm:size-[820px] rounded-full border border-[#f95c4b]/12 dark:border-white/5 animate-spin [animation-duration:90s]" />
+          <div className="absolute inset-[60px] sm:inset-[90px] rounded-full border border-dashed border-[#f95c4b]/15 dark:border-white/5 animate-spin [animation-duration:60s] [animation-direction:reverse]" />
+          <div className="absolute inset-[130px] sm:inset-[180px] rounded-full border border-[#ee9590]/10 dark:border-white/5" />
+        </div>
+
+        {/* ── Floating Tech & Mission Badges (Out-of-phase floating animations) ── */}
+        <div className="hidden md:flex animate-float-badge-1 absolute top-20 left-[5%] xl:left-[8%] items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 dark:bg-[#201d22]/85 border border-[#e5e7eb] dark:border-white/10 shadow-lg backdrop-blur-md text-xs font-bold text-slate-800 dark:text-slate-200 z-10 cursor-default hover:scale-105 transition-transform">
+          <div className="size-6 rounded-full bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
+            <ShieldCheck className="size-3.5" />
+          </div>
+          <span>MSME Registered Entity</span>
+        </div>
+
+        <div className="hidden md:flex animate-float-badge-2 absolute top-24 right-[5%] xl:right-[8%] items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 dark:bg-[#201d22]/85 border border-[#e5e7eb] dark:border-white/10 shadow-lg backdrop-blur-md text-xs font-bold text-slate-800 dark:text-slate-200 z-10 cursor-default hover:scale-105 transition-transform">
+          <div className="size-6 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <Laptop className="size-3.5" />
+          </div>
+          <span>100% Practical &amp; Remote</span>
+        </div>
+
+        <div className="hidden lg:flex animate-float-badge-3 absolute bottom-24 left-[4%] xl:left-[7%] items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 dark:bg-[#201d22]/85 border border-[#e5e7eb] dark:border-white/10 shadow-lg backdrop-blur-md text-xs font-bold text-slate-800 dark:text-slate-200 z-10 cursor-default hover:scale-105 transition-transform">
+          <div className="size-6 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+            <Layers className="size-3.5" />
+          </div>
+          <span>25+ Internship Domains</span>
+        </div>
+
+        <div className="hidden lg:flex animate-float-badge-4 absolute bottom-20 right-[4%] xl:right-[7%] items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 dark:bg-[#201d22]/85 border border-[#e5e7eb] dark:border-white/10 shadow-lg backdrop-blur-md text-xs font-bold text-slate-800 dark:text-slate-200 z-10 cursor-default hover:scale-105 transition-transform">
+          <div className="size-6 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <GraduationCap className="size-3.5" />
+          </div>
+          <span>QR-Verified Certificates</span>
+        </div>
+
+        {/* ── Hero Foreground Content ── */}
+        <div className="relative z-10 mx-auto max-w-5xl px-4 text-center">
+          <FadeUp delay={0.05} duration={0.6}>
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-[#f95c4b]/30 bg-white/90 dark:bg-[#201d22]/90 px-4 py-2 text-xs font-extrabold text-[#f95c4b] dark:text-[#ee9590] shadow-md backdrop-blur-md mb-6 tracking-widest uppercase">
+              <span className="relative flex size-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f95c4b] opacity-75" />
+                <span className="relative inline-flex rounded-full size-2 bg-[#f95c4b]" />
+              </span>
+              <span>SKYROVIX · ABOUT US</span>
             </div>
-            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.15]">
+          </FadeUp>
+
+          <FadeUp delay={0.12} duration={0.65}>
+            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.14] text-slate-900 dark:text-white max-w-4xl mx-auto">
               Transforming Students Through{" "}
-              <span className="brand-text">Real-World Learning</span> and Internships.
+              <span className="bg-gradient-to-r from-[#f95c4b] via-[#ff7e67] to-[#ee9590] bg-clip-text text-transparent">
+                Real-World Learning
+              </span>{" "}
+              and Internships.
             </h1>
-            <p className="mt-4 mx-auto max-w-2xl text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed font-medium">
-              Learn. Build. Experience. Grow.
+          </FadeUp>
+
+          <FadeUp delay={0.18} duration={0.65}>
+            <p className="mt-5 mx-auto max-w-2xl text-base sm:text-lg md:text-xl font-bold tracking-wide text-slate-700 dark:text-slate-300">
+              <span className="text-[#f95c4b]">Learn.</span>{" "}
+              <span className="text-slate-400">·</span>{" "}
+              <span className="text-[#ee9590]">Build.</span>{" "}
+              <span className="text-slate-400">·</span>{" "}
+              <span className="text-slate-900 dark:text-white">Experience.</span>{" "}
+              <span className="text-slate-400">·</span>{" "}
+              <span className="text-emerald-600 dark:text-emerald-400">Grow.</span>
+            </p>
+            <p className="mt-3 mx-auto max-w-xl text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              Connecting academic concepts with hands-on project implementation, mentor-guided milestone reviews, and verifiable career credentials.
             </p>
           </FadeUp>
-        </section>
-      </AuroraBackground>
+
+          {/* ── 4 Pillars Quick Overview Cards ── */}
+          <FadeUp delay={0.24} duration={0.7} className="mt-10 sm:mt-12">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
+              {[
+                { title: "Practical Skills", desc: "Hands-on projects with modern tech stacks", icon: Code, color: "text-[#f95c4b]", bg: "bg-[#f95c4b]/10" },
+                { title: "Mentor Reviews", desc: "Constructive feedback on every milestone", icon: UserCheck, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10" },
+                { title: "Portfolio Ready", desc: "Production code shipped to your GitHub", icon: Briefcase, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-500/10" },
+                { title: "MSME Certified", desc: "Tamper-proof verifiable QR credentials", icon: ShieldCheck, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10" },
+              ].map((p, i) => (
+                <div
+                  key={i}
+                  className="motion-card-hover p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#201d22]/80 border border-[#e5e7eb] dark:border-white/10 backdrop-blur-md text-left shadow-sm flex flex-col justify-between"
+                >
+                  <div className={`size-9 sm:size-10 rounded-xl ${p.bg} flex items-center justify-center ${p.color} mb-3 shadow-xs`}>
+                    <p.icon className="size-4 sm:size-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight">{p.title}</h3>
+                    <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground leading-snug">{p.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </FadeUp>
+        </div>
+      </section>
 
       {/* ─────────────────────────────────────────────────────────────
           01. ABOUT SKYROVIX

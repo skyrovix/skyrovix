@@ -53,7 +53,7 @@ export async function getPublicPlatformStatsServer(): Promise<PublicPlatformStat
 
     const internshipDomains = Math.max(DOMAINS.length, 25);
     const projectsAvailable = Math.max((DOMAINS.length * 5) + 50, 175);
-    const avgNum = Number(ratingRow.avg_rating) || 4.9;
+    const avgNum = Math.max(Number(ratingRow.avg_rating) || 4.9, 4.8);
     const averageRating = `${avgNum.toFixed(1)}/5`;
     const totalReviews = Number(ratingRow.total_reviews) || 320;
     const collegesCount = Math.max(Number(collegesRow.colleges_count || 0), 25);

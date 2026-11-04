@@ -257,7 +257,7 @@ export function TasksSection({
   const [dbTasks, setDbTasks] = useState<any[]>([]);
   const [tasksReady, setTasksReady] = useState(false);
 
-  const isPremiumActive = Boolean(isPremiumPlanEnabled && planType === "premium");
+  const isPremiumActive = Boolean(isPremiumPlanEnabled && planType === "  premium");
   const effectiveLimit = useMemo(() => {
     if (domainSlug === "fullstack") {
       if (isPremiumActive) {

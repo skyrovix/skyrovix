@@ -313,11 +313,25 @@ function Dashboard() {
     }));
   }, [appsList, profile]);
 
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+  const [certPaymentApp, setCertPaymentApp] = useState<any | null>(null);
+
   const app = useMemo(() => {
     if (!appsWithProfile?.length) return null;
+    if (selectedAppId) {
+      const match = appsWithProfile.find((a) => a.id === selectedAppId);
+      if (match) return match;
+    }
+    // Prefer an application that has tasks verified / certificate unlocked / ongoing
+    const verified = appsWithProfile.find(
+      (a) =>
+        (a.all_tasks_verified || a.certificate_payment_unlocked || a.status === "completed") &&
+        (a.status === "ongoing" || a.status === "approved" || a.status === "completed")
+    );
+    if (verified) return verified;
     const active = appsWithProfile.find((a) => a.status === "ongoing" || a.status === "approved");
     return active ?? appsWithProfile[0];
-  }, [appsWithProfile]);
+  }, [appsWithProfile, selectedAppId]);
 
   const completedApps = useMemo(() => {
     return appsWithProfile?.filter((a) => a.status === "completed") ?? [];
@@ -495,18 +509,27 @@ function Dashboard() {
   const internPending = internSubmissions?.filter((s: any) => s.status === "pending").length ?? 0;
   const internCompleted = internApproved;
 
-  // Auto-complete internships when all tasks approved + certificate exists
+  // Auto-complete internships and sync all_tasks_verified when tasks are approved
   useEffect(() => {
-    if (!appsList || !allAppSubmissions || !allAppCerts || !allTasksByDomain) return;
+    if (!appsList || !allAppSubmissions) return;
     (async () => {
       for (const a of appsList) {
-        if (a.status === "completed" || a.status === "pending") continue;
+        if (a.status === "pending") continue;
         try {
           const aSubs = allAppSubmissions.filter((s: any) => s.application_id === a.id);
           const aApproved = aSubs.filter((s: any) => s.status === "approved").length;
           const limit = getAppTaskLimit(a.domain, a.duration, a.total_tasks, a.plan_type);
-          const aCert = allAppCerts.find((c: any) => c.application_id === a.id);
-          if (aApproved >= limit && aCert) {
+          const aCert = allAppCerts?.find((c: any) => c.application_id === a.id);
+
+          if (aApproved >= limit && limit > 0 && (!a.all_tasks_verified || !a.certificate_payment_unlocked)) {
+            const { error: updErr } = await (supabase.from("applications") as any).update({
+              all_tasks_verified: true,
+              certificate_payment_unlocked: true,
+              submission_status: "approved",
+              ...(aCert ? { status: "completed", completed_at: new Date().toISOString() } : {}),
+            }).eq("id", a.id);
+            if (!updErr) qc.invalidateQueries({ queryKey: ["my-applications"] });
+          } else if (aApproved >= limit && aCert && a.status !== "completed") {
             const { error: updErr } = await (supabase.from("applications") as any).update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", a.id);
             if (updErr) { console.error("Auto-complete update failed:", updErr); continue; }
             qc.invalidateQueries({ queryKey: ["my-applications"] });
@@ -516,7 +539,7 @@ function Dashboard() {
         }
       }
     })();
-  }, [appsList, allAppSubmissions, allAppCerts, allTasksByDomain, qc]);
+  }, [appsList, allAppSubmissions, allAppCerts, qc]);
 
   const searchParams = Route.useSearch();
   const rawTab = searchParams.tab ?? "tasks";
@@ -648,6 +671,15 @@ function Dashboard() {
   const [showCertPaymentPopup, setShowCertPaymentPopup] = useState(false);
   const certPopupTriggeredRef = useRef(false);
 
+  const handleOpenCertPayment = (targetApp?: any) => {
+    const chosenApp =
+      targetApp ||
+      (detailView?.type === "app" ? appsList?.find((a) => a.id === detailView.id) : null) ||
+      app;
+    setCertPaymentApp(chosenApp);
+    setShowCertPaymentPopup(true);
+  };
+
   // Auto-show popup when user completes all tasks and certificate payment is required
   useEffect(() => {
     if (
@@ -663,6 +695,7 @@ function Dashboard() {
         certPopupTriggeredRef.current = true;
         sessionStorage.setItem(key, "true");
         const timer = setTimeout(() => {
+          setCertPaymentApp(app);
           setShowCertPaymentPopup(true);
         }, 600);
         return () => clearTimeout(timer);
@@ -1087,9 +1120,20 @@ function Dashboard() {
 
         return (
           <div className="space-y-6">
-            <div className="flex items-center">
+            <div className="flex items-center justify-between gap-2">
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground rounded-xl" onClick={() => setDetailView(null)}>
                 <ChevronLeft className="size-4" /> Back to Overview
+              </Button>
+              <Button
+                size="sm"
+                variant={app.id === da.id ? "secondary" : "outline"}
+                className="rounded-xl h-8 text-xs font-bold gap-1.5"
+                onClick={() => {
+                  setSelectedAppId(da.id);
+                  toast.success(`Active internship set to ${dd?.name ?? da.domain}`);
+                }}
+              >
+                {app.id === da.id ? "✓ Currently Active" : "Set as Active Domain"}
               </Button>
             </div>
 
@@ -1210,7 +1254,7 @@ function Dashboard() {
                     certPaymentRecord={daCertPayment}
                     onGenerateCert={() => handleGenerateFreeCert(da.id)}
                     generatingCert={generatingCert}
-                    onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+                    onOpenCertPayment={() => handleOpenCertPayment(da)}
                   />
                 )}
               </div>
@@ -1239,7 +1283,7 @@ function Dashboard() {
                   appFeePayment={daAppPayment}
                   isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
                   certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
-                  onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+                  onOpenCertPayment={() => handleOpenCertPayment(da)}
                   onNavigateCertificates={() => {
                     navigate({ search: { tab: "certificates" } as any });
                   }}
@@ -1404,6 +1448,61 @@ function Dashboard() {
             </div>
           )}
 
+          {/* Multiple Enrolled Domains Switcher */}
+          {appsList && appsList.length > 1 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl border border-border/60 bg-white/80 backdrop-blur-xl shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="size-8 rounded-xl bg-[#f95c4b]/10 text-[#f95c4b] grid place-items-center font-bold">
+                  <Briefcase className="size-4" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs sm:text-sm text-[#181619]">Your Enrolled Internships ({appsList.length})</h4>
+                  <p className="text-[11px] text-muted-foreground">Select an internship to view its tasks, progress, or certificate</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {appsList.map((a) => {
+                  const d = getDomain(a.domain);
+                  const isCurrent = app?.id === a.id;
+                  const aSubs = allAppSubmissions?.filter((s: any) => s.application_id === a.id) ?? [];
+                  const aApproved = aSubs.filter((s: any) => s.status === "approved").length;
+                  const aTotal = getAppTaskLimit(a.domain, a.duration, a.total_tasks, a.plan_type);
+                  const isCompleted = a.all_tasks_verified || a.certificate_payment_unlocked || a.status === "completed" || (aApproved >= aTotal && aTotal > 0);
+                  const aCert = allAppCerts?.find((c: any) => c.application_id === a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAppId(a.id);
+                        toast.success(`Active domain set to ${d?.name ?? a.domain}`);
+                      }}
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                        isCurrent
+                          ? "bg-gradient-to-r from-[#f95c4b] to-[#ee9590] text-white shadow-md shadow-[#f95c4b]/20 scale-[1.02]"
+                          : "bg-white hover:bg-[#faf8f2] text-foreground border border-border/60 shadow-xs"
+                      }`}
+                    >
+                      <span className="text-base">{d?.icon ?? "💼"}</span>
+                      <span>{d?.name ?? a.domain}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                        isCurrent
+                          ? "bg-white/20 text-white"
+                          : aCert
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : isCompleted
+                              ? "bg-[#f95c4b]/10 text-[#f95c4b]"
+                              : "bg-slate-100 text-muted-foreground"
+                      }`}>
+                        {aCert ? "Certified" : isCompleted ? "Tasks Done" : `${aApproved}/${aTotal}`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Welcome Banner */}
           <HeroSection
             app={app}
@@ -1445,7 +1544,7 @@ function Dashboard() {
               </div>
               <Button
                 type="button"
-                onClick={() => setShowCertPaymentPopup(true)}
+                onClick={() => handleOpenCertPayment(app)}
                 className="w-full sm:w-auto h-11 px-6 rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ee9590] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-[#f95c4b]/25 shrink-0 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
               >
                 <CreditCard className="size-4" /> Pay ₹{certFeeAmount} Now
@@ -1475,7 +1574,7 @@ function Dashboard() {
               appFeePayment={appPayment}
               isCertPaymentRequired={certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED"}
               certFeeAmount={app.plan_type === "premium" ? (Number(app.plan_fee) || premiumPlanAmount) : certFeeAmount}
-              onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+              onOpenCertPayment={() => handleOpenCertPayment(app)}
               onNavigateCertificates={() => {
                 navigate({ search: { tab: "certificates" } as any });
               }}
@@ -1573,6 +1672,30 @@ function Dashboard() {
                       <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border/30">
                         <Button
                           size="sm"
+                          variant="secondary"
+                          className="rounded-xl h-8 text-xs font-bold bg-[#f95c4b]/10 text-[#f95c4b] hover:bg-[#f95c4b] hover:text-white"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAppId(a.id);
+                            toast.success(`Switched active internship to ${d?.name ?? a.domain}`);
+                          }}
+                        >
+                          Switch to this Internship
+                        </Button>
+                        {aApproved >= appTaskCount && !aCert && (
+                          <Button
+                            size="sm"
+                            className="rounded-xl h-8 text-xs font-bold brand-gradient text-white shadow-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenCertPayment(a);
+                            }}
+                          >
+                            <CreditCard className="mr-1.5 size-3.5" /> Pay ₹{a.plan_type === "premium" ? (Number(a.plan_fee) || premiumPlanAmount) : certFeeAmount} Certificate Fee
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
                           variant="outline"
                           className="rounded-xl h-8 text-xs bg-white border-border/60 hover:bg-[#faf8f2]"
                           onClick={(e) => {
@@ -1625,7 +1748,7 @@ function Dashboard() {
               certPaymentRecord={certPaymentRecord}
               onGenerateCert={() => handleGenerateFreeCert(app.id)}
               generatingCert={generatingCert}
-              onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+              onOpenCertPayment={() => handleOpenCertPayment(app)}
             />
           </div>
         );
@@ -1721,9 +1844,20 @@ function Dashboard() {
 
         return (
           <div className="space-y-6">
-            <div className="flex items-center">
+            <div className="flex items-center justify-between gap-2">
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground rounded-xl" onClick={() => setDetailView(null)}>
                 <ChevronLeft className="size-4" /> Back to Internships
+              </Button>
+              <Button
+                size="sm"
+                variant={app.id === da.id ? "secondary" : "outline"}
+                className="rounded-xl h-8 text-xs font-bold gap-1.5"
+                onClick={() => {
+                  setSelectedAppId(da.id);
+                  toast.success(`Active internship set to ${dd?.name ?? da.domain}`);
+                }}
+              >
+                {app.id === da.id ? "✓ Currently Active" : "Set as Active Domain"}
               </Button>
             </div>
             <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-white/80 p-6 sm:p-8 backdrop-blur-xl shadow-sm">
@@ -1826,7 +1960,7 @@ function Dashboard() {
                     certPaymentRecord={daCertPayment}
                     onGenerateCert={() => handleGenerateFreeCert(da.id)}
                     generatingCert={generatingCert}
-                    onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+                    onOpenCertPayment={() => handleOpenCertPayment(da)}
                   />
                 )}
               </div>
@@ -1855,7 +1989,7 @@ function Dashboard() {
                   appFeePayment={daAppPayment}
                   isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
                   certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
-                  onOpenCertPayment={() => setShowCertPaymentPopup(true)}
+                  onOpenCertPayment={() => handleOpenCertPayment(da)}
                   onOpenAppPayment={() => {
                     navigate({ search: { tab: "payment" } as any });
                   }}
@@ -2745,32 +2879,44 @@ function Dashboard() {
       )}
 
       {/* Certificate Payment Popup Dialog (Auto-triggered when all tasks completed) */}
-      {app && (
-        <PaymentSummaryDialog
-          open={showCertPaymentPopup}
-          onOpenChange={setShowCertPaymentPopup}
-          productType="certificate"
-          productService={
-            app.plan_type === "premium"
-              ? `Skyrovix Full Stack Intensive Track Certificate (${app.duration ?? 3} Months • ${app.total_tasks || (app.duration === 6 ? 50 : 25)} Projects + LOR)`
-              : `Skyrovix Certificate Fee — ${domain?.name ?? app.domain}`
-          }
-          amount={app.plan_type === "premium" ? (Number(app.plan_fee) || premiumPlanAmount) : certFeeAmount}
-          customerName={app.full_name}
-          customerEmail={app.email}
-          customerPhone={app.phone ?? profile?.phone ?? ""}
-          userId={user?.id}
-          applicationId={app.id}
-          couponCode={app.coupon_code || couponResult?.code || null}
-          discountAmount={couponResult?.discountAmount || 0}
-          onSuccess={() => {
-            setShowCertPaymentPopup(false);
-            qc.invalidateQueries({ queryKey: ["my-applications"] });
-            qc.invalidateQueries({ queryKey: ["user-payments"] });
-            toast.success("Certificate payment completed! Your certificate is being verified.");
-          }}
-        />
-      )}
+      {(() => {
+        const targetCertApp =
+          certPaymentApp ||
+          (detailView?.type === "app" ? appsList?.find((a) => a.id === detailView.id) : null) ||
+          app;
+        if (!targetCertApp) return null;
+        const targetDomain = getDomain(targetCertApp.domain);
+        return (
+          <PaymentSummaryDialog
+            open={showCertPaymentPopup}
+            onOpenChange={(open) => {
+              setShowCertPaymentPopup(open);
+              if (!open) setCertPaymentApp(null);
+            }}
+            productType="certificate"
+            productService={
+              targetCertApp.plan_type === "premium"
+                ? `Skyrovix Full Stack Intensive Track Certificate (${targetCertApp.duration ?? 3} Months • ${targetCertApp.total_tasks || (targetCertApp.duration === 6 ? 50 : 25)} Projects + LOR)`
+                : `Skyrovix Certificate Fee — ${targetDomain?.name ?? targetCertApp.domain}`
+            }
+            amount={targetCertApp.plan_type === "premium" ? (Number(targetCertApp.plan_fee) || premiumPlanAmount) : certFeeAmount}
+            customerName={targetCertApp.full_name}
+            customerEmail={targetCertApp.email}
+            customerPhone={targetCertApp.phone ?? profile?.phone ?? ""}
+            userId={user?.id}
+            applicationId={targetCertApp.id}
+            couponCode={targetCertApp.coupon_code || couponResult?.code || null}
+            discountAmount={couponResult?.discountAmount || 0}
+            onSuccess={() => {
+              setShowCertPaymentPopup(false);
+              setCertPaymentApp(null);
+              qc.invalidateQueries({ queryKey: ["my-applications"] });
+              qc.invalidateQueries({ queryKey: ["user-payments"] });
+              toast.success("Certificate payment completed! Your certificate is being verified.");
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
