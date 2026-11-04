@@ -55,6 +55,9 @@ type TaskStatus = "completed" | "ongoing" | "pending" | "overdue";
 type Submission = {
   id: string;
   task_id: string;
+  task_number?: number | null;
+  task_title?: string | null;
+  domain?: string | null;
   status: string;
   github_url: string | null;
   deployed_url: string | null;
@@ -64,6 +67,10 @@ type Submission = {
   reviewed_at?: string | null;
   previous_submission_id?: string | null;
   resubmission_count?: number | null;
+  pdf_url?: string | null;
+  screenshot_url?: string | null;
+  student_id?: string | null;
+  application_id?: string | null;
 };
 
 function getTaskStatus(submission: Submission | undefined, dueDate: Date): TaskStatus {
@@ -76,13 +83,25 @@ function getTaskStatus(submission: Submission | undefined, dueDate: Date): TaskS
   return "ongoing";
 }
 
-function computeDueDate(taskNumber: number): Date {
-  const d = new Date();
+function computeDueDate(
+  taskNumber: number,
+  startDate?: string | Date | null,
+  durationMonths: number = 1,
+  totalTasksCount: number = 5
+): Date {
+  const base = startDate ? new Date(startDate) : new Date();
+  const validBase = isNaN(base.getTime()) ? new Date() : base;
+
   if (taskNumber === 0) {
+    const d = new Date(validBase.getTime());
     d.setDate(d.getDate() + 3);
-  } else {
-    d.setDate(d.getDate() + taskNumber * 6);
+    return d;
   }
+
+  const totalDays = Math.max(30, durationMonths * 30);
+  const taskDays = Math.round((taskNumber / Math.max(1, totalTasksCount)) * totalDays);
+  const d = new Date(validBase.getTime());
+  d.setDate(d.getDate() + taskDays);
   return d;
 }
 
@@ -194,6 +213,7 @@ export function TasksSection({
   domainSlug,
   submissions: rawSubmissions,
   appId,
+  startDate,
   duration,
   totalTasks,
   planType,
@@ -212,6 +232,7 @@ export function TasksSection({
   domainSlug: string;
   submissions: Submission[];
   appId: string;
+  startDate?: string | Date | null;
   duration?: number;
   totalTasks?: number | null;
   planType?: string | null;
@@ -233,6 +254,7 @@ export function TasksSection({
   const [showSort, setShowSort] = useState(false);
   const [confettiTask, setConfettiTask] = useState<string | null>(null);
   const [taskIdMap, setTaskIdMap] = useState<Record<number, string>>({});
+  const [dbTasks, setDbTasks] = useState<any[]>([]);
   const [tasksReady, setTasksReady] = useState(false);
 
   const isPremiumActive = Boolean(isPremiumPlanEnabled && planType === "premium");
@@ -252,35 +274,94 @@ export function TasksSection({
   }, [isPremiumActive, totalTasks, domainSlug, duration]);
 
   const domainData = getDomainTasks(domainSlug);
-  const allTasks = duration ? getTasksByDuration(domainSlug, duration, effectiveLimit) : (domainData?.tasks ?? []);
 
-  // Fetch task IDs from DB
+  // Fetch task IDs and definitions from DB
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      let query = supabase.from("tasks").select("id, task_number").eq("domain", domainSlug);
-      query = query.lte("task_number", effectiveLimit);
-      const { data } = await query;
+      const { data } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("domain", domainSlug)
+        .order("task_number", { ascending: true });
       if (cancelled) return;
-      const map: Record<number, string> = {};
-      for (const t of data ?? []) map[t.task_number] = t.id;
-      if (!cancelled) { setTaskIdMap(map); setTasksReady(true); }
+      if (data && data.length > 0) {
+        setDbTasks(data);
+        const map: Record<number, string> = {};
+        for (const t of data) map[t.task_number] = t.id;
+        setTaskIdMap(map);
+      }
+      setTasksReady(true);
     })();
     return () => { cancelled = true; };
-  }, [domainSlug, effectiveLimit]);
+  }, [domainSlug]);
+
+  const allTasks = useMemo(() => {
+    // 1. If domain tasks are configured in DB, use them
+    const nonZeroDbTasks = dbTasks.filter(
+      (t) => Number(t.task_number) > 0 && Number(t.task_number) <= effectiveLimit
+    );
+    if (nonZeroDbTasks.length > 0) {
+      return nonZeroDbTasks.map((t) => {
+        const desc = t.description || "";
+        let features: string[] = [];
+        let cleanDesc = desc;
+        if (desc.includes("Key Features:")) {
+          const parts = desc.split("Key Features:");
+          cleanDesc = parts[0].trim();
+          features = parts[1].split(",").map((f: string) => f.trim()).filter(Boolean);
+        } else if (desc.includes("\n")) {
+          const lines = desc.split("\n").map((l: string) => l.trim()).filter(Boolean);
+          cleanDesc = lines[0];
+          features = lines.slice(1);
+        }
+        if (features.length === 0) {
+          features = [
+            "Project architecture and workflow planning",
+            "Clean code implementation with modern tools",
+            "Functional testing and bug fixing",
+            "Documentation and GitHub repository submission",
+          ];
+        }
+        return {
+          taskNumber: Number(t.task_number),
+          title: t.title || `Task ${t.task_number}`,
+          description: cleanDesc || `Complete ${t.title} for your ${domainData?.name ?? domainSlug} internship.`,
+          features,
+          outcome: `Complete and deploy a working ${t.title}.`,
+          resources: t.resources || undefined,
+        };
+      });
+    }
+
+    // 2. Fallback to static task roadmap
+    return duration
+      ? getTasksByDuration(domainSlug, duration, effectiveLimit)
+      : (domainData?.tasks ?? []);
+  }, [dbTasks, effectiveLimit, domainSlug, duration, domainData]);
 
   const isAppFeeLocked = Boolean(isAppFeeRequired && appFeeAmount > 0 && appFeePayment?.status !== "approved");
 
   const tasksWithMeta = useMemo(() => {
-    const getLatestSub = (tId: string) => {
-      const matches = (rawSubmissions || []).filter((s) => s.task_id === tId);
+    const getLatestSub = (tId: string, taskNumber?: number, taskTitle?: string) => {
+      const matches = (rawSubmissions || []).filter((s) => {
+        if (s.task_id === tId) return true;
+        if (taskNumber === 0 && (
+          s.task_id === `${domainSlug}-0` ||
+          s.task_id === "29bfaac4-e233-47de-9dd9-59b7cb8b9a52" ||
+          s.task_title?.toLowerCase().includes("linkedin") ||
+          s.task_title?.toLowerCase().includes("offer letter")
+        )) return true;
+        if (taskTitle && s.task_title && s.task_title.toLowerCase().trim() === taskTitle.toLowerCase().trim()) return true;
+        return false;
+      });
       if (!matches.length) return undefined;
       return [...matches].sort((a, b) => new Date(b.submitted_at || 0).getTime() - new Date(a.submitted_at || 0).getTime())[0];
     };
 
     const linkedinId = taskIdMap[0] ?? `${domainSlug}-0`;
-    const linkedinSub = linkedinId ? getLatestSub(linkedinId) : undefined;
-    const linkedinDue = computeDueDate(1);
+    const linkedinSub = linkedinId ? getLatestSub(linkedinId, 0, LINKEDIN_TASK.title) : undefined;
+    const linkedinDue = computeDueDate(0, startDate, duration ?? 1, allTasks.length || 5);
     const linkedinStatus = getTaskStatus(linkedinSub, linkedinDue);
     const linkedinDone = linkedinStatus === "completed"; // Approved
 
@@ -300,8 +381,8 @@ export function TasksSection({
     let prevTaskApproved = linkedinDone; // Task 1 unlocks if LinkedIn is done & App fee is paid
     const domainTasks = allTasks.map((t, idx) => {
       const id = taskIdMap[t.taskNumber] ?? `${domainSlug}-${t.taskNumber}`;
-      const sub = getLatestSub(id);
-      const dueDate = computeDueDate(t.taskNumber);
+      const sub = getLatestSub(id, t.taskNumber, t.title);
+      const dueDate = computeDueDate(t.taskNumber, startDate, duration ?? 1, allTasks.length || 5);
       const status = getTaskStatus(sub, dueDate);
       const remaining = daysRemaining(dueDate);
 
@@ -339,7 +420,7 @@ export function TasksSection({
     });
 
     return [linkedinMeta, ...domainTasks];
-  }, [allTasks, rawSubmissions, taskIdMap, domainSlug, isAppFeeLocked, submissionStatus]);
+  }, [allTasks, rawSubmissions, taskIdMap, domainSlug, isAppFeeLocked, submissionStatus, startDate, duration]);
 
   const stats = useMemo(() => {
     const completed = tasksWithMeta.filter((t) => t.status === "completed").length;
@@ -754,7 +835,11 @@ function TaskSubmitDialog({
       const deployedUrl = String(fd.get("deployed_url") || "");
       const payload: Record<string, any> = {
         application_id: appId,
+        student_id: user.id,
         task_id: taskId,
+        task_number: task.taskNumber,
+        task_title: task.title,
+        domain: domain?.slug ?? "",
         github_url: githubUrl,
         notes,
         status: "pending" as const,
@@ -802,7 +887,11 @@ function TaskSubmitDialog({
 
         const resubPayload: Record<string, any> = {
           application_id: appId,
+          student_id: user.id,
           task_id: taskId,
+          task_number: task.taskNumber,
+          task_title: task.title,
+          domain: domain?.slug ?? "",
           github_url: githubUrl,
           notes: resubNotes,
           status: "pending",

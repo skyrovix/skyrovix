@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FadeUp, Reveal } from "@/components/motion";
 import { 
-  ShieldCheck, Target, Award, Sparkles, ArrowRight, 
-  CheckCircle2, Quote, BadgeCheck, FileText, Search, 
-  Users, GraduationCap, Building2, Globe, Laptop, 
-  Code2, Database, Lock, Server, Cpu
+  Target, Sparkles, ArrowRight, CheckCircle2, 
+  Lightbulb, Compass, HeartHandshake, ShieldCheck, 
+  Flame, BookOpen, UserCheck, TrendingUp, Laptop, 
+  Code, GraduationCap, Briefcase, RefreshCw, Layers
 } from "lucide-react";
 import { BreadcrumbJsonLd, WebPageJsonLd } from "@/components/JsonLd";
 import { FounderStorySection } from "@/components/FounderStorySection";
@@ -14,22 +14,22 @@ import msme from "@/assets/msme.png";
 export const Route = createFileRoute("/_navbar-layout/about")({
   head: () => ({
     meta: [
-      { title: "About Skyrovix | MSME-Registered Virtual Internship Platform for Students India" },
+      { title: "About Skyrovix | Transforming Students Through Real-World Learning and Internships" },
       { 
         name: "description", 
-        content: "Learn about Skyrovix — an MSME-registered virtual internship and training platform helping college students, engineering students, CSE and IT students, and fresh graduates gain industry-ready skills through project-based internships. Get offer letters, digital ID cards, and QR-verified certificates." 
+        content: "Learn about Skyrovix — a virtual internship and training platform focused on helping students develop practical skills, gain project-based experience, and prepare for future career opportunities." 
       },
       { 
         name: "keywords", 
-        content: "about skyrovix, skyrovix internship platform, virtual internship company India, MSME registered training, project based internship platform, internship for college students, internship for CSE students, internship for IT students, internship for engineering students, skill development platform India, internship with real projects, work from home internship India, summer internship 2026" 
+        content: "about skyrovix, skyrovix virtual internship, student training platform, practical learning, project based learning, technical skills, career readiness, MSME registered training, virtual internship India" 
       },
       { name: "robots", content: "index, follow" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Skyrovix" },
-      { property: "og:title", content: "About Skyrovix — MSME-Registered Virtual Internship Platform" },
+      { property: "og:title", content: "About Skyrovix — Transforming Students Through Real-World Learning" },
       { 
         property: "og:description", 
-        content: "MSME-registered virtual internship platform helping students gain real-world skills through task-based projects across 25+ domains." 
+        content: "Skyrovix is a virtual internship and training platform helping students build portfolios, develop skills, and prepare for meaningful careers." 
       },
       { property: "og:url", content: "https://skyrovix.online/about" },
       { property: "og:image", content: "https://skyrovix.online/og-default.png" },
@@ -40,10 +40,10 @@ export const Route = createFileRoute("/_navbar-layout/about")({
       { property: "og:locale", content: "en_IN" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@skyrovix" },
-      { name: "twitter:title", content: "About Skyrovix — MSME-Registered Virtual Internship Platform" },
+      { name: "twitter:title", content: "About Skyrovix — Transforming Students Through Real-World Learning" },
       { 
         name: "twitter:description", 
-        content: "MSME-registered virtual internship platform helping students gain real-world skills through task-based projects across 25+ domains." 
+        content: "Skyrovix is a virtual internship and training platform helping students build portfolios, develop skills, and prepare for meaningful careers." 
       },
       { name: "twitter:image", content: "https://skyrovix.online/og-default.png" },
       { name: "twitter:image:alt", content: "About Skyrovix — Virtual Internship Platform" },
@@ -63,345 +63,370 @@ function AboutPage() {
         ]}
       />
       <WebPageJsonLd
-        title="About Skyrovix — MSME-Registered Virtual Internship Platform"
-        description="Learn about Skyrovix, an MSME-registered virtual internship and training platform helping college students, fresh graduates, and job seekers gain real-world skills through task-based projects."
+        title="About Skyrovix — Transforming Students Through Real-World Learning and Internships"
+        description="Skyrovix is a virtual internship and training platform focused on helping students develop practical skills, gain project-based experience, and prepare for future career opportunities."
         url="https://skyrovix.online/about"
       />
 
-      {/* ─── HERO ─── */}
+      {/* ─────────────────────────────────────────────────────────────
+          HEADER / HERO: SKYROVIX - ABOUT US
+      ───────────────────────────────────────────────────────────── */}
       <AuroraBackground>
-        <section className="mx-auto max-w-5xl px-4 pt-4 sm:pt-8 pb-12 sm:pb-20 md:pb-24 text-center">
+        <section className="mx-auto max-w-5xl px-4 pt-4 sm:pt-8 pb-10 sm:pb-16 text-center">
           <FadeUp>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-sm backdrop-blur mb-6">
-              <Sparkles className="size-3 sm:size-3.5" /> About Skyrovix
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3.5 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] shadow-xs backdrop-blur mb-5 tracking-widest uppercase">
+              <Sparkles className="size-3 sm:size-3.5" /> SKYROVIX · ABOUT US
             </div>
-            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
-              Bridging <span className="brand-text">education &amp; industry</span>
+            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.15]">
+              Transforming Students Through{" "}
+              <span className="brand-text">Real-World Learning</span> and Internships.
             </h1>
-            <p className="mt-5 mx-auto max-w-2xl text-sm sm:text-lg text-muted-foreground">
-              We run a task-based virtual internship program that helps students gain genuine,
-              portfolio-grade experience — not just a certificate.
+            <p className="mt-4 mx-auto max-w-2xl text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed font-medium">
+              Learn. Build. Experience. Grow.
             </p>
           </FadeUp>
         </section>
       </AuroraBackground>
 
-      {/* ─── MISSION + STATS ─── */}
-      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24">
+      {/* ─────────────────────────────────────────────────────────────
+          01. ABOUT SKYROVIX
+      ───────────────────────────────────────────────────────────── */}
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-14 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>
-            <div className="grid items-center gap-12 lg:grid-cols-2">
-              <div>
-                <p className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-4">
-                  Our Mission
-                </p>
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.15]">
-                  MSME-registered. <span className="brand-text">Industry-focused.</span>
-                </h2>
-                <p className="mt-4 text-muted-foreground leading-relaxed">
-                  The gap between college coursework and real-world engineering work is huge. We close
-                  that gap with structured, mentor-reviewed internship tracks across 25+
-                  in-demand technology domains.
-                </p>
-                <div className="mt-5 space-y-2">
-                  {[
-                    "Instant offer letter & digital ID card",
-                    "Real-world practical projects per track",
-                    "QR-verified certificate on completion",
-                    "MSME-registered — UDYAM-TN-17-0076606",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                      <CheckCircle2 className="size-4 shrink-0 text-green-500" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: "25+", label: "Domains" },
-                  { value: "300+", label: "Projects" },
-                  { value: "100%", label: "Self-paced" },
-                  { value: "₹0", label: "Application fee" },
-                ].map((s, i) => (
-                  <FadeUp key={s.label} delay={0.1 + i * 0.08}>
-                    <div className="relative overflow-hidden rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-6 text-center card-elevated hover:card-elevated-hover">
-                      <div className="absolute -top-6 -right-6 size-20 rounded-full bg-[#f95c4b]/5 dark:bg-[#f95c4b]/10 blur-2xl" />
-                      <div className="relative">
-                        <div className="text-3xl font-bold brand-text">{s.value}</div>
-                        <div className="mt-1 text-sm text-muted-foreground">{s.label}</div>
-                      </div>
-                    </div>
-                  </FadeUp>
-                ))}
-                <FadeUp delay={0.35}>
-                  <div className="col-span-2 flex items-center gap-3.5 rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-4 card-elevated hover:card-elevated-hover">
-                    <img src={msme} alt="MSME Registered" className="h-10 w-auto object-contain" />
-                    <div className="text-xs">
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">Govt. Registered Enterprise</p>
-                      <p className="text-muted-foreground font-mono text-[11px]">UDYAM-TN-17-0076606 · Ministry of MSME</p>
-                    </div>
-                  </div>
-                </FadeUp>
-              </div>
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-3">
+                01. About Skyrovix
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                Who We Are
+              </h2>
             </div>
           </Reveal>
+
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Left Narrative */}
+            <div className="lg:col-span-7 space-y-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+              <FadeUp>
+                <p>
+                  <strong className="text-foreground font-semibold">Skyrovix</strong> is a virtual internship and training platform focused on helping students develop practical skills, gain project-based experience, and prepare for future career opportunities.
+                </p>
+                <p>
+                  We aim to connect academic knowledge with practical implementation through structured learning programs, hands-on projects, skill development, and virtual internship opportunities.
+                </p>
+                <p>
+                  Our platform encourages students to explore technology, strengthen their abilities, build portfolios, and turn what they learn into practical outcomes.
+                </p>
+              </FadeUp>
+            </div>
+
+            {/* Right Card: What We Focus On */}
+            <div className="lg:col-span-5">
+              <FadeUp delay={0.15}>
+                <div className="rounded-2xl sm:rounded-3xl border border-[#e5e7eb] dark:border-white/10 bg-white/70 dark:bg-[#201d22]/90 p-6 sm:p-7 shadow-xs card-elevated hover:card-elevated-hover">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#f95c4b] dark:text-[#ee9590] mb-4">
+                    <Layers className="size-4" /> What We Focus On
+                  </div>
+                  <ul className="space-y-3">
+                    {[
+                      "Virtual internship programs",
+                      "Industry-focused training",
+                      "Practical, project-based learning",
+                      "Technical and professional skill development",
+                      "Portfolio building and career readiness",
+                    ].map((focusItem) => (
+                      <li key={focusItem} className="flex items-start gap-3 text-xs sm:text-sm text-foreground font-medium">
+                        <CheckCircle2 className="size-4 shrink-0 text-[#f95c4b] mt-0.5" />
+                        <span>{focusItem}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </FadeUp>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ─── FOUNDER STORY ─── */}
+      {/* ─────────────────────────────────────────────────────────────
+          02. OUR STORY
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-14 sm:py-20 bg-white dark:bg-[#141316]">
+        <div className="mx-auto max-w-6xl px-4">
+          <Reveal>
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-3">
+                <Lightbulb className="size-3.5" /> 02. Our Story
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                An Idea That Became an <span className="brand-text">Opportunity</span>
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Story Text */}
+            <div className="lg:col-span-8 space-y-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+              <FadeUp>
+                <p>
+                  Skyrovix started with a simple thought: students need more than academic knowledge to prepare for the professional world.
+                </p>
+                <p>
+                  Through learning technology and experiencing internship opportunities, our founder recognised how valuable practical exposure, project development, and industry-oriented skills can be. That experience inspired the idea of creating a platform where students could move beyond theory and learn by building.
+                </p>
+                <p>
+                  What began as an individual vision gradually developed into a virtual internship and training platform with a clear purpose: to make practical learning opportunities more accessible and help students take confident steps towards their goals.
+                </p>
+              </FadeUp>
+            </div>
+
+            {/* Side Callout / Recognition Card */}
+            <div className="lg:col-span-4">
+              <FadeUp delay={0.2}>
+                <div className="rounded-2xl sm:rounded-3xl border border-[#f95c4b]/20 bg-gradient-to-br from-orange-50/70 via-rose-50/40 to-amber-50/70 dark:from-[#26171b] dark:via-[#1e1722] dark:to-[#17141b] p-6 text-center shadow-xs">
+                  <img src={msme} alt="MSME Registered Enterprise" className="h-12 w-auto mx-auto object-contain mb-3" />
+                  <p className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    Govt. MSME Certified
+                  </p>
+                  <p className="text-[11px] font-mono text-muted-foreground mt-1">
+                    UDYAM-TN-17-0076606
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+                    Dedicated to democratizing practical computer science and software development education across India.
+                  </p>
+                </div>
+              </FadeUp>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          03. OUR VISION & MISSION
+      ───────────────────────────────────────────────────────────── */}
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <Reveal>
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-3">
+                <Compass className="size-3.5" /> 03. Our Vision &amp; Mission
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                The Purpose That Guides Our Work
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+            {/* Vision Card */}
+            <FadeUp delay={0.1} className="h-full">
+              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-[#f95c4b]/25 bg-white/70 dark:bg-[#201d22]/90 p-7 sm:p-9 shadow-sm card-elevated hover:card-elevated-hover">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-2xl bg-[#f95c4b]/15 p-3 text-[#f95c4b] dark:text-[#ee9590] mb-4">
+                    <Compass className="size-6" />
+                  </div>
+                  <h3 className="text-xs font-bold text-[#f95c4b] dark:text-[#ee9590] uppercase tracking-wider">
+                    Our Vision
+                  </h3>
+                  <h4 className="text-xl sm:text-2xl font-bold text-foreground mt-1 tracking-tight">
+                    Accessible Practical Learning for Every Student
+                  </h4>
+                  <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
+                    To create a future where every student has access to practical learning, real-world experience, and opportunities to build a meaningful career.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-border/50 text-xs font-semibold text-[#f95c4b] dark:text-[#ee9590]">
+                  Learn · Build · Experience · Grow
+                </div>
+              </div>
+            </FadeUp>
+
+            {/* Mission Card */}
+            <FadeUp delay={0.2} className="h-full">
+              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-orange-500/25 bg-white/70 dark:bg-[#201d22]/90 p-7 sm:p-9 shadow-sm card-elevated hover:card-elevated-hover">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-2xl bg-orange-500/15 p-3 text-orange-600 dark:text-orange-400 mb-4">
+                    <Target className="size-6" />
+                  </div>
+                  <h3 className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                    Our Mission
+                  </h3>
+                  <h4 className="text-xl sm:text-2xl font-bold text-foreground mt-1 tracking-tight">
+                    Connecting Academic Learning with Industry Needs
+                  </h4>
+                  <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
+                    To empower students through industry-focused training, hands-on projects, virtual internships, and skill development that helps connect academic learning with industry expectations.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-border/50 text-xs font-semibold text-orange-600 dark:text-orange-400">
+                  Transforming Students Through Real-World Learning and Internships
+                </div>
+              </div>
+            </FadeUp>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          04. FOUNDER STORY (NO CHANGE CURRENT - FULL COMPONENT)
+      ───────────────────────────────────────────────────────────── */}
       <FounderStorySection />
 
-      {/* ─── VALUES ─── */}
-      <section className="py-20 sm:py-24">
+      {/* ─────────────────────────────────────────────────────────────
+          05. OUR CORE VALUES
+      ───────────────────────────────────────────────────────────── */}
+      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-14 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>
-            <div className="mx-auto mb-14 max-w-2xl text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#201d22]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
-                What We Stand For
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Values</h2>
-            </div>
-          </Reveal>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: Target, title: "Real Skills", desc: "Every task mirrors real industry work — no toy projects, no fillers." },
-              { icon: ShieldCheck, title: "Verifiable", desc: "Unique ID & QR on every certificate for instant verification by employers." },
-              { icon: Award, title: "Student-First", desc: "Built for learners with mentor-style task reviews and self-paced tracks." },
-              { icon: Building2, title: "MSME Registered", desc: "Registered under Govt. of India MSME (UDYAM-TN-17-0076606)." },
-            ].map((v, i) => (
-              <FadeUp key={v.title} delay={0.1 + i * 0.1}>
-                <div className="group rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-6 transition-all card-elevated hover:card-elevated-hover text-center sm:text-left">
-                  <div className="mx-auto sm:mx-0 grid size-11 place-items-center rounded-xl bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 text-[#f95c4b] dark:text-[#ee9590] transition-all group-hover:bg-[#f95c4b] group-hover:text-white">
-                    <v.icon className="size-5" />
-                  </div>
-                  <h3 className="mt-4 font-semibold">{v.title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{v.desc}</p>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── HOW IT WORKS ─── */}
-      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal>
-            <div className="mx-auto mb-14 max-w-2xl text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#201d22]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
-                <GraduationCap className="size-3.5" /> How It Works
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Your internship journey</h2>
-              <p className="mt-3 text-muted-foreground">From signup to certificate — four simple steps.</p>
-            </div>
-          </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { step: "01", icon: FileText, title: "Apply & Get Offer", desc: "Pick a domain, fill your details, and receive your offer letter instantly — no interview needed." },
-              { step: "02", icon: Users, title: "Receive ID Card", desc: "Get your digital identity card with a unique intern ID. You're officially part of Skyrovix." },
-              { step: "03", icon: Search, title: "Complete Projects", desc: "Work through 5-12 real-world tasks per track. Each task is reviewed by mentors." },
-              { step: "04", icon: BadgeCheck, title: "Earn Certificate", desc: "Finish your track, get a QR-verified certificate. Share it on LinkedIn, resume, everywhere." },
-            ].map((s, i) => (
-              <FadeUp key={s.step} delay={0.1 + i * 0.1}>
-                <div className="group relative rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/60 dark:bg-[#201d22]/90 p-6 transition-all card-elevated hover:card-elevated-hover">
-                  <div className="absolute -top-3 -right-3 flex size-8 items-center justify-center rounded-full bg-[#f95c4b] text-[10px] font-bold text-white shadow-sm shadow-[#f95c4b]/30">
-                    {s.step}
-                  </div>
-                  <div className="grid size-11 place-items-center rounded-xl bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 text-[#f95c4b] dark:text-[#ee9590] transition-all group-hover:bg-[#f95c4b] group-hover:text-white">
-                    <s.icon className="size-5" />
-                  </div>
-                  <h3 className="mt-4 font-semibold">{s.title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{s.desc}</p>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── THE SKYROVIX PLATFORM & ORGANIZATION DETAILS ─── */}
-      <section className="relative border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] overflow-hidden py-20 sm:py-28">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal>
-            <div className="text-center mb-14 sm:mb-20">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/50 dark:bg-[#201d22]/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-4">
-                <Sparkles className="size-3.5" /> Organization &amp; Ecosystem
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight">
-                The <span className="brand-text">Skyrovix</span> Platform
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-3">
+                <ShieldCheck className="size-3.5" /> 05. Our Core Values
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                The Principles Behind Every Decision
               </h2>
-              <p className="mt-4 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                An industry-standard virtual internship and technical training environment designed to equip students with verifiable, portfolio-grade engineering capability.
+            </div>
+          </Reveal>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: Flame,
+                title: "Innovation",
+                desc: "We explore new ideas, technologies, and better ways to make learning useful and engaging.",
+              },
+              {
+                icon: BookOpen,
+                title: "Practical Learning",
+                desc: "We encourage students to learn by doing, experimenting, solving problems, and building projects.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Integrity",
+                desc: "We aim to communicate clearly and act with honesty, transparency, and responsibility.",
+              },
+              {
+                icon: UserCheck,
+                title: "Student Empowerment",
+                desc: "We want learners to build confidence, independence, and the skills to take ownership of their growth.",
+              },
+              {
+                icon: TrendingUp,
+                title: "Continuous Growth",
+                desc: "We value curiosity, lifelong learning, and adapting to changing technologies and industry needs.",
+              },
+            ].map((v, i) => (
+              <FadeUp key={v.title} delay={0.08 * i}>
+                <div className="rounded-2xl border border-[#e5e7eb] dark:border-white/10 bg-white/70 dark:bg-[#201d22]/90 p-6 h-full flex flex-col justify-between card-elevated hover:card-elevated-hover">
+                  <div>
+                    <div className="grid size-11 place-items-center rounded-xl bg-[#f95c4b]/10 dark:bg-[#f95c4b]/20 text-[#f95c4b] dark:text-[#ee9590] mb-4">
+                      <v.icon className="size-5" />
+                    </div>
+                    <h3 className="font-bold text-base sm:text-lg text-foreground">{v.title}</h3>
+                    <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">{v.desc}</p>
+                  </div>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          06. OUR COMMITMENT TO STUDENTS
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-14 sm:py-20 bg-white dark:bg-[#141316]">
+        <div className="mx-auto max-w-6xl px-4">
+          <Reveal>
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-bold tracking-widest text-[#f95c4b] dark:text-[#ee9590] uppercase mb-3">
+                <HeartHandshake className="size-3.5" /> 06. Our Commitment to Students
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                Your Growth Is Our <span className="brand-text">Priority</span>
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                At Skyrovix, we are committed to creating a supportive learning environment where students can strengthen their abilities through practical experiences and structured opportunities.
               </p>
             </div>
           </Reveal>
 
-          {/* 2-Column Organization Details Grid */}
-          <div className="grid lg:grid-cols-2 gap-8 items-stretch">
-            {/* Column 1: Core Company & Mission */}
-            <Reveal className="h-full">
-              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-border/60 bg-white/70 dark:bg-[#201d22]/70 p-8 sm:p-10 shadow-sm backdrop-blur">
-                <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/20 bg-[#f95c4b]/10 px-3 py-1 text-xs font-semibold text-[#f95c4b] dark:text-[#ee9590] uppercase tracking-wider">
-                    <Building2 className="size-3.5" /> Company Profile
-                  </div>
-
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                    Empowering Next-Gen Developers Across India
-                  </h3>
-
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Skyrovix is an MSME-registered enterprise dedicated to democratizing practical computer science and engineering education. Founded with the mission to solve the chronic disconnect between classroom theory and modern industry demands, Skyrovix provides real-world, self-paced internship experiences across 25+ cutting-edge domains.
-                  </p>
-
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-start gap-3 text-xs sm:text-sm text-muted-foreground">
-                      <CheckCircle2 className="size-4 shrink-0 text-emerald-500 mt-0.5" />
-                      <span><strong>MSME Registration:</strong> Officially recognized under Government of India (UDYAM-TN-17-0076606).</span>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: Laptop,
+                title: "Accessible Opportunities",
+                desc: "Virtual learning and internship opportunities designed to reach students in different locations.",
+              },
+              {
+                icon: Code,
+                title: "Hands-on Experience",
+                desc: "Assignments and project-based activities that encourage practical application.",
+              },
+              {
+                icon: TrendingUp,
+                title: "Skill Development",
+                desc: "Opportunities to strengthen technical knowledge, communication, and problem-solving.",
+              },
+              {
+                icon: GraduationCap,
+                title: "Learning Support",
+                desc: "Guidance and a structured learning journey to help students make progress.",
+              },
+              {
+                icon: Briefcase,
+                title: "Career Preparation",
+                desc: "Encouragement to build portfolios, document projects, and develop professional confidence.",
+              },
+              {
+                icon: RefreshCw,
+                title: "Continuous Improvement",
+                desc: "A commitment to improving the platform and learning experience based on student needs.",
+              },
+            ].map((c, i) => (
+              <FadeUp key={c.title} delay={0.08 * i}>
+                <div className="rounded-2xl border border-border/60 bg-white/60 dark:bg-[#201d22]/70 p-6 shadow-xs card-elevated hover:card-elevated-hover h-full flex flex-col justify-between">
+                  <div>
+                    <div className="size-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 grid place-items-center mb-4">
+                      <c.icon className="size-5" />
                     </div>
-                    <div className="flex items-start gap-3 text-xs sm:text-sm text-muted-foreground">
-                      <CheckCircle2 className="size-4 shrink-0 text-emerald-500 mt-0.5" />
-                      <span><strong>Hands-On Architecture:</strong> Practical GitHub repositories, hosted web demos, and live API deployments.</span>
-                    </div>
-                    <div className="flex items-start gap-3 text-xs sm:text-sm text-muted-foreground">
-                      <CheckCircle2 className="size-4 shrink-0 text-emerald-500 mt-0.5" />
-                      <span><strong>Zero Application Barrier:</strong> 100% free application process so every student has an equal opportunity to learn.</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#f95c4b]/15 bg-[#f95c4b]/5 dark:bg-[#f95c4b]/10 p-4 flex items-start gap-3">
-                    <Quote className="mt-0.5 size-4 shrink-0 text-[#f95c4b] dark:text-[#ee9590]" />
-                    <p className="text-xs text-muted-foreground italic leading-relaxed">
-                      &ldquo;Our vision is simple: ensure every engineering, arts, and science student graduates with functional, portfolio-ready code and an authentic understanding of real-world software development.&rdquo;
-                    </p>
+                    <h3 className="font-bold text-base text-foreground">{c.title}</h3>
+                    <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">{c.desc}</p>
                   </div>
                 </div>
-
-                <div className="pt-8 border-t border-[#e5e7eb] dark:border-white/10 mt-8 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Headquarters</p>
-                    <p className="text-sm font-bold text-foreground mt-0.5">Tamil Nadu, India</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Official Email</p>
-                    <p className="text-sm font-bold text-foreground mt-0.5">skyrovix@gmail.com</p>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-
-            {/* Column 2: Platform Standards & Trust */}
-            <Reveal className="h-full" delay={0.15}>
-              <div className="relative h-full flex flex-col justify-between rounded-3xl border border-border/60 bg-white/70 dark:bg-[#201d22]/70 p-8 sm:p-10 shadow-sm backdrop-blur">
-                <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50/60 dark:bg-emerald-950/30 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
-                    <ShieldCheck className="size-3.5" /> Integrity &amp; Verification
-                  </div>
-
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                    Verifiable Credentials Trusted by Employers
-                  </h3>
-
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    At Skyrovix, we adhere to strict verification and quality controls. We do not issue certificates for passive video watching; every credential reflects tangible project code thoroughly reviewed by technical mentors.
-                  </p>
-
-                  <div className="grid gap-3.5 pt-2">
-                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#28242b] border border-border/60 space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                        <Award className="size-4 text-[#f95c4b]" /> Tamper-Proof Cryptographic Certificates
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Every certificate includes a unique Certificate ID, cryptographic SHA verification hash, and direct QR code authentication via <code className="text-[#f95c4b] font-mono">/verify-certificate</code>.
-                      </p>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#28242b] border border-border/60 space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                        <Search className="size-4 text-[#f95c4b]" /> Mentor Review &amp; Code Quality Audits
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Experienced developers review student pull requests and hosted deployments. Constructive revisions ensure work meets genuine production benchmarks.
-                      </p>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#28242b] border border-border/60 space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                        <Lock className="size-4 text-emerald-600 dark:text-emerald-400" /> Student Data Security &amp; Privacy
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Enterprise-level PostgreSQL database security with Row-Level Security (RLS) and a strict zero-data-selling guarantee.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-[#e5e7eb] dark:border-white/10 mt-8 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Recognition</p>
-                    <p className="text-sm font-bold text-foreground mt-0.5">Govt. MSME Certified</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Verification</p>
-                    <p className="text-sm font-bold text-foreground mt-0.5">24/7 Online QR Portal</p>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Technology Domains Grid */}
-          <div className="mt-12 sm:mt-16 rounded-3xl border border-border/60 bg-white/50 dark:bg-[#201d22]/50 p-6 sm:p-10 text-center">
-            <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3">Industry-Ready Domains Offered at Skyrovix</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
-              Our structured internship curricula cover the full spectrum of high-demand technology disciplines:
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {[
-                "Full Stack Web Development", "Python Programming", "Java Development", "MERN Stack",
-                "Data Science", "Machine Learning & AI", "Cloud Computing", "DevOps & CI/CD",
-                "UI/UX Product Design", "Cyber Security", "Android App Development", "Flutter & React Native",
-                "Data Analytics & Power BI", "Database Management", "Prompt Engineering", "Software Testing"
-              ].map((domain) => (
-                <span key={domain} className="rounded-xl border border-border/60 bg-white dark:bg-[#201d22] px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs">
-                  {domain}
-                </span>
-              ))}
-            </div>
+              </FadeUp>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ─── CTA ─── */}
-      <section className="px-4 py-20 sm:py-24">
+      {/* ─────────────────────────────────────────────────────────────
+          07. START BUILDING YOUR FUTURE (CLOSING MESSAGE & CTA)
+      ───────────────────────────────────────────────────────────── */}
+      <section className="px-4 py-16 sm:py-24 border-t border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619]">
         <div className="mx-auto max-w-5xl">
           <Reveal>
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#181619] via-[#201d22] to-[#181619] border border-white/10 p-8 sm:p-12 md:p-16 text-center text-white shadow-2xl shadow-black/40">
-              {/* Diagonal light overlay */}
+              {/* Background ambient lighting */}
               <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_40%,rgba(255,255,255,0.02)_50%,transparent_60%)]" />
-
-              {/* Glow orbs */}
               <div className="absolute -top-32 -right-32 size-[450px] rounded-full bg-[#f95c4b]/20 blur-[120px]" />
               <div className="absolute -bottom-32 -left-32 size-[350px] rounded-full bg-[#ee9590]/15 blur-[100px]" />
 
-              {/* Decorative rings */}
-              <div className="absolute top-10 right-10 size-32 rounded-full border border-white/5" />
-              <div className="absolute top-16 right-16 size-48 rounded-full border border-white/5" />
-              <div className="absolute -bottom-8 -left-8 size-40 rounded-full border border-white/5" />
-
               <div className="relative">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/8 px-4 py-1.5 text-xs font-medium text-white/70 border border-white/10 mb-5 backdrop-blur-sm">
-                  <span className="size-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                  Instant Offer Letter &amp; Verified Certificate
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/8 px-4 py-1.5 text-xs font-semibold text-white/80 border border-white/10 mb-4 backdrop-blur-sm">
+                  <span>07. Start Building Your Future · Our Closing Message</span>
                 </div>
                 <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight leading-[1.15] text-white">
-                  Be part of the <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-white bg-clip-text text-transparent">Skyrovix journey</span>
+                  Your Future Starts With What You <span className="bg-gradient-to-r from-[#f95c4b] via-[#ee9590] to-white bg-clip-text text-transparent">Build Today.</span>
                 </h2>
-                <p className="mt-3 text-sm sm:text-base text-white/70 max-w-lg mx-auto leading-relaxed">
-                  Get your offer letter in seconds. No application fee.
+                <p className="mt-3.5 text-sm sm:text-base text-white/70 max-w-xl mx-auto leading-relaxed">
+                  Explore new skills, gain practical experience, and take the next step in your professional journey with Skyrovix.
                 </p>
+
+                <p className="mt-4 text-xs sm:text-sm font-bold tracking-widest uppercase text-[#f95c4b] dark:text-[#ee9590]">
+                  SKYROVIX — Learn. Build. Grow.
+                </p>
+
                 <div className="mt-8 flex flex-wrap justify-center gap-3">
                   <Link to="/internship">
                     <span className="group inline-flex items-center gap-2 rounded-xl bg-[#f95c4b] text-white px-7 py-3.5 text-sm font-bold shadow-xl shadow-[#f95c4b]/30 hover:bg-[#e04b3a] transition-all btn-premium hover:btn-premium-hover active:btn-premium-active cursor-pointer">

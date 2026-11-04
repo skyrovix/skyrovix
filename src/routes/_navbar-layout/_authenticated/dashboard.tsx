@@ -1165,8 +1165,22 @@ function Dashboard() {
                 <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
                   <h3 className="flex items-center gap-2 font-bold text-sm"><ScrollText className="size-4 text-primary" /> Application Details</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Start Date</p><p className="font-semibold mt-0.5">{new Date(da.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">End Date</p><p className="font-semibold mt-0.5">{da.completed_at ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Start Date</p><p className="font-semibold mt-0.5">{new Date(da.offer_issued_at || da.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
+                      <p className="text-muted-foreground">End Date</p>
+                      <p className="font-semibold mt-0.5">
+                        {da.completed_at
+                          ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                          : (() => {
+                              const s = new Date(da.offer_issued_at || da.created_at);
+                              if (isNaN(s.getTime())) return "—";
+                              const e = new Date(s);
+                              e.setMonth(e.getMonth() + (da.duration ?? 1));
+                              return e.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+                            })()
+                        }
+                      </p>
+                    </div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type === "premium" && isPremiumPlanGlobalEnabled ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type === "premium" ? "pending" : "not_required")}</p></div>
@@ -1214,6 +1228,7 @@ function Dashboard() {
                   domainSlug={da.domain}
                   submissions={daSubs ?? []}
                   appId={da.id}
+                  startDate={da.offer_issued_at || da.created_at}
                   duration={da.duration ?? undefined}
                   totalTasks={da.total_tasks}
                   planType={da.plan_type}
@@ -1449,6 +1464,7 @@ function Dashboard() {
               domainSlug={app.domain}
               submissions={internSubmissions ?? []}
               appId={app.id}
+              startDate={app.offer_issued_at || app.created_at}
               duration={app.duration ?? undefined}
               totalTasks={app.total_tasks}
               planType={app.plan_type}
@@ -1767,8 +1783,22 @@ function Dashboard() {
                 <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
                   <h3 className="flex items-center gap-2 font-bold text-sm"><ScrollText className="size-4 text-primary" /> Application Details</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Start Date</p><p className="font-semibold mt-0.5">{new Date(da.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">End Date</p><p className="font-semibold mt-0.5">{da.completed_at ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Start Date</p><p className="font-semibold mt-0.5">{new Date(da.offer_issued_at || da.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
+                      <p className="text-muted-foreground">End Date</p>
+                      <p className="font-semibold mt-0.5">
+                        {da.completed_at
+                          ? new Date(da.completed_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                          : (() => {
+                              const s = new Date(da.offer_issued_at || da.created_at);
+                              if (isNaN(s.getTime())) return "—";
+                              const e = new Date(s);
+                              e.setMonth(e.getMonth() + (da.duration ?? 1));
+                              return e.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+                            })()
+                        }
+                      </p>
+                    </div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type === "premium" && isPremiumPlanGlobalEnabled ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type === "premium" ? "pending" : "not_required")}</p></div>
@@ -1814,6 +1844,7 @@ function Dashboard() {
                   domainSlug={da.domain}
                   submissions={daSubs ?? []}
                   appId={da.id}
+                  startDate={da.offer_issued_at || da.created_at}
                   duration={da.duration ?? undefined}
                   totalTasks={da.total_tasks}
                   planType={da.plan_type}

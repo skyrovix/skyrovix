@@ -103,7 +103,7 @@ export function FounderProfileView() {
                 </a>
               </Button>
               <div className="flex items-center gap-3">
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                <a href={COMPANY.founder.linkedin} target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Connect on LinkedIn">
                   <Linkedin className="size-4" />
                 </a>
                 <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition">

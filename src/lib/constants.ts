@@ -6,7 +6,11 @@ export const COMPANY = {
   website: "www.skyrovix.online",
   websiteIn: "www.skyrovix.in",
   websites: ["www.skyrovix.online", "www.skyrovix.in"],
-  founder: { name: "Hariharan S", title: "Founder & CEO" },
+  founder: { 
+    name: "Hariharan S", 
+    title: "Founder & CEO",
+    linkedin: "https://www.linkedin.com/in/hariharan-s-92b566381",
+  },
   cofounder: { name: "Maheshwaran S", title: "Co-Founder" },
 };
 
