@@ -254,3 +254,281 @@ export async function syncApplicationsEmailStatusServer(): Promise<{ success: bo
   }
 }
 
+export async function resendStudentDocumentEmailServer(
+  input: {
+    applicationId?: string;
+    certificateId?: string;
+    internId?: string;
+    userId?: string;
+    studentEmail?: string;
+    documentType: "offer_letter" | "certificate" | "both";
+    targetEmail?: string;
+  }
+): Promise<{
+  success: boolean;
+  error?: string;
+  sentOfferLetter?: boolean;
+  sentCertificate?: boolean;
+  certificateId?: string;
+  targetEmail: string;
+  message: string;
+}> {
+  const {
+    applicationId,
+    certificateId,
+    internId,
+    userId,
+    studentEmail,
+    documentType,
+    targetEmail,
+  } = input;
+
+  const lookupAppId = (applicationId || "").trim();
+  const lookupCertId = (certificateId || "").trim();
+  const lookupInternId = (internId || "").trim();
+  const lookupUserId = (userId || "").trim();
+  const lookupEmail = (studentEmail || "").trim();
+
+  if (!lookupAppId && !lookupCertId && !lookupInternId && !lookupUserId && !lookupEmail && !targetEmail) {
+    return {
+      success: false,
+      error: "At least one student or document identifier (Application ID, Certificate ID, Intern ID, or Email) is required",
+      targetEmail: targetEmail || "",
+      message: "At least one student or document identifier is required",
+    };
+  }
+
+  try {
+    // 1. Check if a certificate exists for any of these identifiers
+    let existingCert: any = null;
+    if (lookupCertId || lookupAppId || lookupInternId) {
+      const certRes = await dbQuery(
+        `SELECT * FROM certificates 
+         WHERE certificate_id = ? 
+            OR id = ? 
+            OR application_id = ? 
+            OR intern_id = ?
+         ORDER BY issued_at DESC LIMIT 1`,
+        [lookupCertId || lookupAppId, lookupCertId || lookupAppId, lookupAppId, lookupInternId]
+      );
+      if (certRes.rows && certRes.rows.length > 0) {
+        existingCert = certRes.rows[0];
+      }
+    }
+
+    // 2. Fetch application record
+    let app: any = null;
+    const targetAppId = existingCert?.application_id || lookupAppId;
+    const targetInternId = existingCert?.intern_id || lookupInternId;
+    const targetUserId = existingCert?.student_id || lookupUserId;
+
+    const appRes = await dbQuery(
+      `SELECT a.*, c.certificate_id AS existing_cert_id
+       FROM applications a
+       LEFT JOIN certificates c ON (c.application_id = a.id OR (c.intern_id IS NOT NULL AND c.intern_id = a.intern_id))
+       WHERE (a.id = ? AND ? != '')
+          OR (a.intern_id = ? AND ? != '')
+          OR (a.user_id = ? AND ? != '')
+          OR (a.email = ? AND ? != '')
+          OR (c.certificate_id = ? AND ? != '')
+       ORDER BY a.created_at DESC
+       LIMIT 1`,
+      [
+        targetAppId, targetAppId,
+        targetInternId, targetInternId,
+        targetUserId, targetUserId,
+        lookupEmail, lookupEmail,
+        lookupCertId, lookupCertId,
+      ]
+    );
+
+    if (appRes.rows && appRes.rows.length > 0) {
+      app = appRes.rows[0];
+    } else if (existingCert) {
+      // Synthesize application details from certificate & profile if application row is missing
+      let profileUser: any = null;
+      if (existingCert.student_id) {
+        const profRes = await dbQuery(
+          `SELECT id, email, full_name, college, course, year FROM profiles WHERE id = ? LIMIT 1`,
+          [existingCert.student_id]
+        );
+        if (profRes.rows && profRes.rows.length > 0) profileUser = profRes.rows[0];
+      }
+
+      app = {
+        id: existingCert.application_id || existingCert.id,
+        user_id: existingCert.student_id,
+        full_name: existingCert.student_name || profileUser?.full_name || "Student",
+        email: profileUser?.email || lookupEmail || "",
+        intern_id: existingCert.intern_id,
+        domain: existingCert.domain || "internship",
+        duration: 1,
+        existing_cert_id: existingCert.certificate_id,
+      };
+    }
+
+    if (!app) {
+      return {
+        success: false,
+        error: "Student application record not found for this certificate",
+        targetEmail: targetEmail || lookupEmail || "",
+        message: "Student application record not found for this certificate",
+      };
+    }
+
+    // 3. Resolve the recipient email address with multiple fallbacks
+    let emailToUse = (targetEmail && targetEmail.includes("@")) ? targetEmail.trim() : "";
+    if (!emailToUse && lookupEmail && lookupEmail.includes("@")) {
+      emailToUse = lookupEmail;
+    }
+    if (!emailToUse && app.email && app.email.includes("@")) {
+      emailToUse = app.email.trim();
+    }
+    if (!emailToUse && app.user_id) {
+      const profRes = await dbQuery(`SELECT email FROM profiles WHERE id = ? LIMIT 1`, [app.user_id]);
+      if (profRes.rows?.[0]?.email) emailToUse = profRes.rows[0].email.trim();
+    }
+    if (!emailToUse && app.user_id) {
+      const userRes = await dbQuery(`SELECT email FROM users WHERE id = ? LIMIT 1`, [app.user_id]);
+      if (userRes.rows?.[0]?.email) emailToUse = userRes.rows[0].email.trim();
+    }
+
+    if (!emailToUse || !emailToUse.includes("@")) {
+      return {
+        success: false,
+        error: "Student email address not found in profile or application records. Please specify a recipient email in the resend options dialog.",
+        targetEmail: emailToUse || "",
+        message: "Student email address not found",
+      };
+    }
+
+    const { getDomain } = await import("@/lib/constants");
+    const domainObj = getDomain(app.domain);
+    const domainName = domainObj?.name ?? app.domain ?? "Internship Track";
+
+    let sentOfferLetter = false;
+    let sentCertificate = false;
+    let certId = app.existing_cert_id;
+    const errors: string[] = [];
+
+    // 2. Resend Offer Letter
+    if (documentType === "offer_letter" || documentType === "both") {
+      try {
+        const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
+        const offerRes = await sendOfferLetterEmail({
+          to: emailToUse,
+          studentName: app.full_name,
+          studentId: app.user_id,
+          internId: app.intern_id,
+          domainName,
+          duration: app.duration || 1,
+        });
+
+        if (offerRes.success) {
+          sentOfferLetter = true;
+          await dbQuery(
+            `UPDATE applications 
+             SET offer_issued_at = COALESCE(offer_issued_at, NOW()),
+                 email_status = 'sent',
+                 email_sent_at = NOW(),
+                 email_error = NULL
+             WHERE id = ?`,
+            [app.id]
+          );
+        } else {
+          errors.push(`Offer Letter failed: ${offerRes.error || "Email delivery failed"}`);
+          await dbQuery(
+            `UPDATE applications SET email_status = 'failed', email_error = ? WHERE id = ?`,
+            [offerRes.error || "Offer letter email delivery failed", app.id]
+          );
+        }
+      } catch (e: any) {
+        errors.push(`Offer Letter error: ${e.message}`);
+      }
+    }
+
+    // 3. Resend Certificate
+    if (documentType === "certificate" || documentType === "both") {
+      try {
+        // If certificate record doesn't exist yet, generate one
+        if (!certId) {
+          const year = new Date().getFullYear();
+          const rand = Math.floor(100000 + Math.random() * 900000);
+          certId = `SKX-${year}-${rand}`;
+          const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+          const certRecordId = crypto.randomUUID();
+
+          await dbQuery(
+            `INSERT INTO certificates (id, application_id, certificate_id, intern_id, student_name, domain, verification_hash, issued_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+            [certRecordId, app.id, certId, app.intern_id, app.full_name, app.domain, hash]
+          );
+
+          await dbQuery(
+            `UPDATE applications 
+             SET certificate_generated = 1,
+                 certificate_generated_at = COALESCE(certificate_generated_at, NOW())
+             WHERE id = ?`,
+            [app.id]
+          );
+        }
+
+        const { sendCertificateEmail } = await import("@/lib/email-helpers");
+        const certRes = await sendCertificateEmail({
+          to: emailToUse,
+          studentName: app.full_name,
+          studentId: app.user_id,
+          certId,
+          domainName,
+          internId: app.intern_id,
+        });
+
+        if (certRes.success) {
+          sentCertificate = true;
+          await dbQuery(
+            `UPDATE applications 
+             SET certificate_generated = 1,
+                 certificate_generated_at = COALESCE(certificate_generated_at, NOW()),
+                 email_status = 'sent',
+                 email_sent_at = NOW(),
+                 email_error = NULL
+             WHERE id = ?`,
+            [app.id]
+          );
+        } else {
+          errors.push(`Certificate failed: ${certRes.error || "Email delivery failed"}`);
+          await dbQuery(
+            `UPDATE applications SET email_status = 'failed', email_error = ? WHERE id = ?`,
+            [certRes.error || "Certificate email delivery failed", app.id]
+          );
+        }
+      } catch (e: any) {
+        errors.push(`Certificate error: ${e.message}`);
+      }
+    }
+
+    const success = (documentType === "both" ? (sentOfferLetter && sentCertificate) : (sentOfferLetter || sentCertificate));
+    const message = success
+      ? `Document(s) successfully resent to ${emailToUse}`
+      : errors.join("; ") || "Resend failed";
+
+    return {
+      success,
+      error: success ? undefined : message,
+      sentOfferLetter,
+      sentCertificate,
+      certificateId: certId,
+      targetEmail: emailToUse,
+      message,
+    };
+  } catch (err: any) {
+    console.error("[Admin] resendStudentDocumentEmailServer error:", err);
+    return {
+      success: false,
+      error: err.message || "Failed to resend document email",
+      targetEmail: targetEmail || "",
+      message: err.message || "Failed to resend document email",
+    };
+  }
+}
+

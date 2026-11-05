@@ -748,9 +748,8 @@ export function CertificateDoc({ fullName, internId, domain, certId, issuedAt, v
               </Text>
               <View style={{ width: 140, height: 1.5, backgroundColor: "#d97706", marginBottom: 8, borderRadius: 1 }} />
               <Text style={{ fontSize: 9.5, color: "#334155", textAlign: "center", maxWidth: 660, lineHeight: 1.5 }}>
-                In recognition of outstanding performance and successful completion of the industry-oriented virtual internship program in
-                {" "}<Text style={{ fontWeight: 700, color: "#b45309" }}>{domain}</Text>{" "}
-                , demonstrating technical proficiency, professional dedication, and successful completion of the assigned capstone project.
+                In recognition of outstanding performance and successful completion of the industry-oriented virtual internship program in{" "}
+                <Text style={{ fontWeight: 700, color: "#b45309" }}>{domain}</Text>, demonstrating technical proficiency, professional dedication, and successful completion of the assigned capstone project.
               </Text>
             </View>
 
@@ -869,6 +868,71 @@ export async function downloadCertificate(params: {
     <CertificateDoc {...params} verifyUrl={verifyUrl} qrCodeDataUri={qrDataUri} />,
     `Certificate_${params.certId}.pdf`
   );
+}
+
+/**
+ * Server-safe renderer that compiles CertificateDoc to a Node.js PDF Buffer
+ * using the exact same template and styling as the client-side download.
+ */
+export async function renderCertificateBuffer(params: {
+  fullName: string;
+  internId: string;
+  domain: string;
+  certId: string;
+  issuedAt: string;
+  verifyUrl?: string;
+  grade?: string;
+  imageAssets?: ImageAssets;
+}): Promise<Buffer> {
+  const { renderToBuffer } = await import("@react-pdf/renderer");
+  const verifyUrl = params.verifyUrl || `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(params.certId.trim())}`;
+  let qrCodeDataUri: string | undefined;
+  try {
+    qrCodeDataUri = await QRCode.toDataURL(verifyUrl, { width: 180, margin: 1 });
+  } catch {
+    /* proceed without qr */
+  }
+
+  const doc = (
+    <CertificateDoc
+      {...params}
+      verifyUrl={verifyUrl}
+      qrCodeDataUri={qrCodeDataUri}
+      imageAssets={params.imageAssets}
+    />
+  );
+  return renderToBuffer(doc) as Promise<Buffer>;
+}
+
+export async function renderOfferLetterBuffer(params: {
+  fullName: string;
+  internId: string;
+  domain: string;
+  issuedAt: string;
+  duration?: number;
+  imageAssets?: ImageAssets;
+  verifyUrl?: string;
+  qrCodeDataUri?: string;
+}): Promise<Buffer> {
+  const { renderToBuffer } = await import("@react-pdf/renderer");
+  const verifyUrl = params.verifyUrl || `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(params.internId.trim())}`;
+  let qrCodeDataUri = params.qrCodeDataUri;
+  if (!qrCodeDataUri) {
+    try {
+      qrCodeDataUri = await QRCode.toDataURL(verifyUrl, { width: 140, margin: 1 });
+    } catch {
+      /* proceed */
+    }
+  }
+
+  const doc = (
+    <OfferLetterDoc
+      {...params}
+      verifyUrl={verifyUrl}
+      qrCodeDataUri={qrCodeDataUri}
+    />
+  );
+  return renderToBuffer(doc) as Promise<Buffer>;
 }
 
 

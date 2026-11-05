@@ -113,5 +113,33 @@ export const syncApplicationsEmailStatus = createServerFn({ method: "POST" })
     return syncApplicationsEmailStatusServer();
   });
 
+export interface ResendDocumentEmailInput {
+  applicationId?: string;
+  certificateId?: string;
+  internId?: string;
+  userId?: string;
+  studentEmail?: string;
+  documentType: "offer_letter" | "certificate" | "both";
+  targetEmail?: string;
+}
+
+export interface ResendDocumentEmailResult {
+  success: boolean;
+  error?: string;
+  sentOfferLetter?: boolean;
+  sentCertificate?: boolean;
+  certificateId?: string;
+  targetEmail: string;
+  message: string;
+}
+
+export const resendStudentDocumentEmail = createServerFn({ method: "POST" })
+  .validator((d: any) => d as ResendDocumentEmailInput)
+  .handler(async ({ data }): Promise<ResendDocumentEmailResult> => {
+    const { resendStudentDocumentEmailServer } = await import("@/lib/admin-service.server");
+    return resendStudentDocumentEmailServer(data);
+  });
+
+
 
 

@@ -37,11 +37,13 @@ echo "🔨 Building production bundles with Vite & Nitro..."
 npm run build
 
 # 5. Restart PM2 with updated environment
-echo "🔄 Restarting PM2 process 'skyrovix-main'..."
-pm2 restart skyrovix-main --update-env
+echo "🔄 Reloading PM2 process 'skyrovix-main'..."
+pm2 flush skyrovix-main 2>/dev/null || true
+pm2 reload skyrovix-main --update-env 2>/dev/null || pm2 restart skyrovix-main --update-env
 
 # 6. Verify local Node.js port 3000
-echo "🧪 Testing local server health..."
+echo "🧪 Waiting for server to initialize..."
+sleep 3
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/ || true)
 echo "Server HTTP Status: ${HTTP_STATUS}"
 

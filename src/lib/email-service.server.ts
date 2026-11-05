@@ -248,12 +248,25 @@ export async function sendEmailDirect(data: SendEmailInput): Promise<EmailResult
 
   if (pdfData && (documentType === "offer_letter" || documentType === "certificate")) {
     try {
-      const { jsPDF } = await import("jspdf");
       if (documentType === "offer_letter") {
-        pdfBuffer = await buildOfferLetterPdf(jsPDF, pdfData);
+        try {
+          const { renderOfferLetterBuffer } = await import("@/components/pdf-docs");
+          pdfBuffer = await renderOfferLetterBuffer(pdfData as any);
+        } catch (offerErr: any) {
+          console.warn("[Email] renderOfferLetterBuffer fallback to jsPDF:", offerErr?.message);
+          const { jsPDF } = await import("jspdf");
+          pdfBuffer = await buildOfferLetterPdf(jsPDF, pdfData);
+        }
         attachmentFilename = `Skyrovix_Offer_Letter_${(pdfData.fullName || "Student").replace(/\s+/g, "_")}.pdf`;
       } else {
-        pdfBuffer = await buildCertificatePdf(jsPDF, pdfData);
+        try {
+          const { renderCertificateBuffer } = await import("@/components/pdf-docs");
+          pdfBuffer = await renderCertificateBuffer(pdfData as any);
+        } catch (certErr: any) {
+          console.warn("[Email] renderCertificateBuffer fallback to jsPDF:", certErr?.message);
+          const { jsPDF } = await import("jspdf");
+          pdfBuffer = await buildCertificatePdf(jsPDF, pdfData);
+        }
         attachmentFilename = `Skyrovix_Certificate_${(pdfData.fullName || "Student").replace(/\s+/g, "_")}.pdf`;
       }
     } catch (pdfErr: any) {
@@ -407,7 +420,7 @@ async function buildCertificatePdf(jsPDF: any, data: any): Promise<Buffer> {
     console.warn("[Email] Logo render note:", err?.message);
   }
 
-  // 4. Header Titles
+  // 4. Header Titles (Perfect Center Alignment)
   doc.setTextColor(180, 83, 9);
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
@@ -439,7 +452,7 @@ async function buildCertificatePdf(jsPDF: any, data: any): Promise<Buffer> {
 
   // 5. Main Certificate Title
   doc.setTextColor(15, 23, 42);
-  doc.setFontSize(20);
+  doc.setFontSize(21);
   doc.setFont("helvetica", "bold");
   doc.text("CERTIFICATE OF EXCELLENCE", pageWidth / 2, 118, { align: "center" });
 
@@ -448,103 +461,133 @@ async function buildCertificatePdf(jsPDF: any, data: any): Promise<Buffer> {
   doc.setFont("helvetica", "bold");
   doc.text("VIRTUAL INTERNSHIP & SKILL DEVELOPMENT", pageWidth / 2, 134, { align: "center" });
 
+  // Accent line under title
+  doc.setDrawColor(217, 119, 6);
+  doc.setLineWidth(1.2);
+  doc.line(pageWidth / 2 - 40, 140, pageWidth / 2 + 40, 140);
+
   // 6. Presentation Citation
   doc.setTextColor(71, 85, 105);
-  doc.setFontSize(11);
+  doc.setFontSize(10.5);
   doc.setFont("helvetica", "normal");
-  doc.text("This certificate is proudly awarded to", pageWidth / 2, 165, { align: "center" });
+  doc.text("This certificate is proudly awarded to", pageWidth / 2, 168, { align: "center" });
 
-  // Recipient Full Name
+  // Recipient Full Name (Auto-scaled to prevent overflowing)
   const recipientName = (data.fullName || "Intern").toUpperCase();
-  doc.setTextColor(15, 23, 42);
-  doc.setFontSize(30);
+  let nameFontSize = 28;
   doc.setFont("helvetica", "bold");
-  doc.text(recipientName, pageWidth / 2, 205, { align: "center" });
+  doc.setFontSize(nameFontSize);
+  while (doc.getTextWidth(recipientName) > 540 && nameFontSize > 18) {
+    nameFontSize -= 1;
+    doc.setFontSize(nameFontSize);
+  }
+  doc.setTextColor(15, 23, 42);
+  doc.text(recipientName, pageWidth / 2, 206, { align: "center" });
 
   // Decorative name underline
   doc.setDrawColor(217, 119, 6);
   doc.setLineWidth(1.5);
   const nameWidth = doc.getTextWidth(recipientName);
-  const underLineWidth = Math.max(160, Math.min(nameWidth + 40, 480));
-  doc.line(pageWidth / 2 - underLineWidth / 2, 214, pageWidth / 2 + underLineWidth / 2, 214);
+  const underLineWidth = Math.max(160, Math.min(nameWidth + 36, 480));
+  doc.line(pageWidth / 2 - underLineWidth / 2, 215, pageWidth / 2 + underLineWidth / 2, 215);
 
   // Citation text
   doc.setTextColor(51, 65, 85);
-  doc.setFontSize(10.5);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   const domainTitle = data.domain || "Technology & Software Engineering";
   const certText = `In recognition of outstanding performance and successful completion of the industry-oriented virtual internship program in ${domainTitle}, demonstrating technical proficiency, professional dedication, and successful completion of the assigned capstone project.`;
-  const splitText = doc.splitTextToSize(certText, 580);
+  const splitText = doc.splitTextToSize(certText, 600);
   doc.text(splitText, pageWidth / 2, 238, { align: "center" });
 
-  // 7. Metadata Pill Box
+  // 7. Metadata Pill Box: Proportional 620pt box with 4 dynamically centered, non-overlapping columns
+  const pillWidth = 620;
+  const pillHeight = 32;
+  const pillX = pageWidth / 2 - pillWidth / 2;
+  const pillY = 296;
+
   doc.setFillColor(255, 255, 255);
-  doc.roundedRect(pageWidth / 2 - 280, 288, 560, 34, 6, 6, "F");
+  doc.roundedRect(pillX, pillY, pillWidth, pillHeight, 16, 16, "F");
   doc.setDrawColor(203, 213, 225);
   doc.setLineWidth(0.8);
-  doc.roundedRect(pageWidth / 2 - 280, 288, 560, 34, 6, 6, "S");
+  doc.roundedRect(pillX, pillY, pillWidth, pillHeight, 16, 16, "S");
 
-  doc.setFontSize(8.5);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(180, 83, 9);
-  doc.text("CERT ID:", pageWidth / 2 - 262, 309);
-  doc.setTextColor(15, 23, 42);
-  doc.text(data.certId || "SKX-CERT", pageWidth / 2 - 210, 309);
+  const colWidth = pillWidth / 4;
+  const textY = pillY + 20;
 
-  doc.setDrawColor(226, 232, 240);
-  doc.line(pageWidth / 2 - 118, 296, pageWidth / 2 - 118, 314);
+  const pillItems = [
+    { label: "CERT ID:", val: data.certId || "SKX-CERT", valColor: [15, 23, 42], labelColor: [180, 83, 9] },
+    { label: "INTERN ID:", val: data.internId || "SKX-INT", valColor: [15, 23, 42], labelColor: [180, 83, 9] },
+    { label: "GRADE:", val: data.grade || "A+ (OUTSTANDING)", valColor: [5, 150, 105], labelColor: [180, 83, 9] },
+    { label: "ISSUED:", val: formattedDate, valColor: [15, 23, 42], labelColor: [100, 116, 139] },
+  ];
 
-  doc.setTextColor(180, 83, 9);
-  doc.text("INTERN ID:", pageWidth / 2 - 105, 309);
-  doc.setTextColor(15, 23, 42);
-  doc.text(data.internId || "SKX-INT", pageWidth / 2 - 45, 309);
+  doc.setFontSize(8);
+  pillItems.forEach((item, idx) => {
+    const colLeft = pillX + idx * colWidth;
+    const colCenter = colLeft + colWidth / 2;
 
-  doc.setDrawColor(226, 232, 240);
-  doc.line(pageWidth / 2 + 35, 296, pageWidth / 2 + 35, 314);
+    doc.setFont("helvetica", "bold");
+    const labelW = doc.getTextWidth(item.label + " ");
+    const valW = doc.getTextWidth(item.val);
+    const totalW = labelW + valW;
+    const startX = colCenter - totalW / 2;
 
-  doc.setTextColor(180, 83, 9);
-  doc.text("GRADE:", pageWidth / 2 + 48, 309);
-  doc.setTextColor(5, 150, 105);
-  doc.text(data.grade || "A+ (OUTSTANDING)", pageWidth / 2 + 92, 309);
+    // Draw Label
+    doc.setTextColor(item.labelColor[0], item.labelColor[1], item.labelColor[2]);
+    doc.text(item.label, startX, textY);
 
-  doc.setDrawColor(226, 232, 240);
-  doc.line(pageWidth / 2 + 180, 296, pageWidth / 2 + 180, 314);
+    // Draw Value
+    doc.setTextColor(item.valColor[0], item.valColor[1], item.valColor[2]);
+    doc.text(item.val, startX + labelW, textY);
 
-  doc.setTextColor(100, 116, 139);
-  doc.text("ISSUED:", pageWidth / 2 + 192, 309);
-  doc.setTextColor(15, 23, 42);
-  doc.text(formattedDate, pageWidth / 2 + 236, 309);
+    // Divider line between columns
+    if (idx < 3) {
+      const divX = colLeft + colWidth;
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.8);
+      doc.line(divX, pillY + 7, divX, pillY + pillHeight - 7);
+    }
+  });
 
-  // 8. Signatures, Official Embossed Seal & QR Code: Balanced Symmetrical 4-Column Row
+  // 8. Signatures, Official Embossed Seal & QR Code: Perfectly Symmetrical 4 Columns
+  // Centers: 145, 329, 513, 697 (equal 184pt spacing across page, symmetric around center 421)
+  const col1Center = 145;
+  const col2Center = 329;
+  const col3Center = 513;
+  const col4Center = pageWidth - 145;
+
+  const sigBaseY = 444;
+
   try {
     // Col 1 (Left): Founder Signature
     if (EMAIL_ASSETS?.sigFounder) {
-      doc.addImage(EMAIL_ASSETS.sigFounder, "PNG", 92, 376, 105, 48);
+      doc.addImage(EMAIL_ASSETS.sigFounder, "PNG", col1Center - 50, sigBaseY - 50, 100, 44);
     }
     doc.setDrawColor(148, 163, 184);
     doc.setLineWidth(0.8);
-    doc.line(85, 430, 205, 430);
+    doc.line(col1Center - 60, sigBaseY, col1Center + 60, sigBaseY);
     doc.setTextColor(15, 23, 42);
-    doc.setFontSize(10);
+    doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
-    doc.text("Hariharan S", 145, 444, { align: "center" });
+    doc.text("Hariharan S", col1Center, sigBaseY + 14, { align: "center" });
     doc.setTextColor(180, 83, 9);
-    doc.setFontSize(7.5);
+    doc.setFontSize(7.2);
     doc.setFont("helvetica", "bold");
-    doc.text("Founder & CEO, Skyrovix", 145, 456, { align: "center" });
+    doc.text("Founder & CEO, Skyrovix", col1Center, sigBaseY + 26, { align: "center" });
 
     // Col 2 (Center-Left): Official Seal
     if (EMAIL_ASSETS?.seal) {
-      doc.addImage(EMAIL_ASSETS.seal, "PNG", 310, 366, 66, 66);
+      doc.addImage(EMAIL_ASSETS.seal, "PNG", col2Center - 30, sigBaseY - 60, 60, 60);
     }
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(7.5);
     doc.setFont("helvetica", "bold");
-    doc.text("Official Verified Seal", 343, 444, { align: "center" });
+    doc.text("Official Verified Seal", col2Center, sigBaseY + 14, { align: "center" });
     doc.setTextColor(180, 83, 9);
     doc.setFontSize(6.8);
     doc.setFont("helvetica", "normal");
-    doc.text("SKYROVIX • MSME", 343, 456, { align: "center" });
+    doc.text("SKYROVIX • MSME", col2Center, sigBaseY + 26, { align: "center" });
 
     // Col 3 (Center-Right): QR Code
     const verifyLink = data.verifyUrl || `https://skyrovix.in/verify-certificate`;
@@ -554,34 +597,34 @@ async function buildCertificatePdf(jsPDF: any, data: any): Promise<Buffer> {
         margin: 1,
         color: { dark: "#0f172a", light: "#ffffff" },
       });
-      doc.addImage(qrDataUri, "PNG", 468, 374, 54, 54);
+      doc.addImage(qrDataUri, "PNG", col3Center - 25, sigBaseY - 55, 50, 50);
     } catch (qrErr: any) {
       console.warn("[Email] QR render note:", qrErr?.message);
     }
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(7.5);
     doc.setFont("helvetica", "bold");
-    doc.text("Digitally Verified Certificate", 495, 444, { align: "center" });
+    doc.text("Digitally Verified Certificate", col3Center, sigBaseY + 14, { align: "center" });
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(6.8);
     doc.setFont("helvetica", "normal");
-    doc.text("Scan to verify online", 495, 456, { align: "center" });
+    doc.text("Scan to verify online", col3Center, sigBaseY + 26, { align: "center" });
 
     // Col 4 (Right): Co-Founder Signature
     if (EMAIL_ASSETS?.sigCofounder) {
-      doc.addImage(EMAIL_ASSETS.sigCofounder, "PNG", pageWidth - 198, 376, 105, 48);
+      doc.addImage(EMAIL_ASSETS.sigCofounder, "PNG", col4Center - 50, sigBaseY - 50, 100, 44);
     }
     doc.setDrawColor(148, 163, 184);
     doc.setLineWidth(0.8);
-    doc.line(pageWidth - 205, 430, pageWidth - 85, 430);
+    doc.line(col4Center - 60, sigBaseY, col4Center + 60, sigBaseY);
     doc.setTextColor(15, 23, 42);
-    doc.setFontSize(10);
+    doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
-    doc.text("Maheshwaran S", pageWidth - 145, 444, { align: "center" });
+    doc.text("Maheshwaran S", col4Center, sigBaseY + 14, { align: "center" });
     doc.setTextColor(180, 83, 9);
-    doc.setFontSize(7.5);
+    doc.setFontSize(7.2);
     doc.setFont("helvetica", "bold");
-    doc.text("Co-Founder, Skyrovix", pageWidth - 145, 456, { align: "center" });
+    doc.text("Co-Founder, Skyrovix", col4Center, sigBaseY + 26, { align: "center" });
   } catch (sigErr: any) {
     console.warn("[Email] Signature render note:", sigErr?.message);
   }

@@ -246,15 +246,21 @@ export function getCertificateEmailHtml(params: {
           <!-- Top Header in Skyrovix Obsidian & Coral -->
           <tr>
             <td style="background: linear-gradient(135deg, #181619 0%, #29242b 55%, #f95c4b 100%); padding: 38px 32px 32px 32px; text-align: center;">
-              <span style="display: inline-block; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); color: #ffd8c8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 9999px; margin-bottom: 12px;">
-                Verified Credential · Completion Certificate
-              </span>
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 1px;">
-                SKYROVIX
-              </h1>
-              <p style="margin: 6px 0 0 0; color: #ffd8c8; font-size: 13px; font-weight: 500; letter-spacing: 0.5px;">
-                Certificate of Internship Completion
-              </p>
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                    <span style="display: inline-block; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); color: #ffd8c8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 9999px; margin-bottom: 12px;">
+                      Verified Credential · Completion Certificate
+                    </span>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 1px;">
+                      SKYROVIX
+                    </h1>
+                    <p style="margin: 6px 0 0 0; color: #ffd8c8; font-size: 13px; font-weight: 500; letter-spacing: 0.5px;">
+                      Certificate of Internship Completion
+                    </p>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -304,6 +310,10 @@ export function getCertificateEmailHtml(params: {
                   <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #181619; font-size: 13px; font-weight: 600;">${domainName}</td>
                 </tr>
                 <tr>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #64748b; font-size: 13px;">Official Document</td>
+                  <td style="padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #059669; font-size: 13px; font-weight: 600;">📎 Attached (Verified PDF Document)</td>
+                </tr>
+                <tr>
                   <td style="padding: 12px 20px; color: #64748b; font-size: 13px;">Online Verification</td>
                   <td style="padding: 12px 20px; font-size: 13px;">
                     <a href="${verifyUrl}" target="_blank" style="color: #f95c4b; text-decoration: underline; font-weight: 600;">Verify Certificate Online</a>
@@ -313,12 +323,25 @@ export function getCertificateEmailHtml(params: {
             </td>
           </tr>
 
-          <!-- Action Button -->
+          <!-- Action Buttons (Responsive & Centered) -->
           <tr>
             <td style="padding: 0 32px 24px 32px; text-align: center;">
-              <a href="${verifyUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #f95c4b 0%, #ee9590 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(249, 92, 75, 0.35); text-align: center;">
-                🔍 Verify Your Credential Online
-              </a>
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center" style="padding-bottom: 12px;">
+                    <a href="${verifyUrl}" target="_blank" style="display: block; width: 85%; max-width: 380px; background: linear-gradient(135deg, #f95c4b 0%, #ee9590 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 24px; border-radius: 10px; box-shadow: 0 4px 14px rgba(249, 92, 75, 0.35); text-align: center;">
+                      🔍 Verify Your Credential Online
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <a href="${dashboardUrl}" target="_blank" style="display: block; width: 85%; max-width: 380px; background-color: #181619; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 24px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(24, 22, 25, 0.2);">
+                      🚀 Go to Student Dashboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 

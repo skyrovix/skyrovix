@@ -31,6 +31,7 @@ import { FeeSettingsSection } from "@/components/admin/FeeSettingsSection";
 import { ProjectCatalogueAdminSection } from "@/components/admin/ProjectCatalogueAdminSection";
 import { GuidanceAdminSection } from "@/components/admin/GuidanceAdminSection";
 import { CredentialDemoSection } from "@/components/admin/CredentialDemoSection";
+import { ResendDocumentEmailDialog } from "@/components/admin/ResendDocumentEmailDialog";
 import { OfferLetterDoc, CertificateDoc, downloadCertificate, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
 import {
   getAdminStudents,
@@ -52,7 +53,7 @@ import {
   PanelRightOpen, FolderTree,   FileQuestion, PieChart, Percent, Briefcase,
   Loader2, Activity, Wifi, WifiOff, LogIn, Monitor, Smartphone, Tablet,
   Calendar, Zap, Megaphone, Layers, Globe, Ticket, Rocket,
-  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck, Github, Crown, Package, Code2, Gift,
+  HardDrive, RotateCcw, UserCheck, Tag, ShieldCheck, Github, Crown, Package, Code2, Gift, Send,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -1201,7 +1202,41 @@ function ApplicationsSection() {
   }, [data, statusFilter, planFilter, search]);
 
   const [sendingOfferId, setSendingOfferId] = useState<string | null>(null);
+  const [sendingCertId, setSendingCertId] = useState<string | null>(null);
+  const [resendDialogTarget, setResendDialogTarget] = useState<any | null>(null);
+  const [resendDialogDoc, setResendDialogDoc] = useState<"offer_letter" | "certificate" | "both">("both");
   const [syncingEmails, setSyncingEmails] = useState(false);
+
+  const handleSendCertificate = async (app: any) => {
+    setSendingCertId(app.id);
+    const toastId = toast.loading(`Sending Certificate to ${app.email}...`);
+    try {
+      const { resendStudentDocumentEmail } = await import("@/lib/admin-service");
+      const result = await resendStudentDocumentEmail({
+        data: {
+          applicationId: app.id,
+          userId: app.user_id,
+          internId: app.intern_id,
+          studentEmail: app.email,
+          documentType: "certificate",
+        },
+      });
+
+      if (result.success) {
+        toast.success(`✅ Certificate sent successfully to ${result.targetEmail || app.email}!`, { id: toastId });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-certs"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+      } else {
+        toast.error(`Certificate delivery failed: ${result.error || "Unknown error"}`, { id: toastId, duration: 8000 });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+      }
+    } catch (err: any) {
+      toast.error(`Error sending certificate: ${err.message}`, { id: toastId });
+    } finally {
+      setSendingCertId(null);
+    }
+  };
 
   const handleSyncEmailStatus = async () => {
     setSyncingEmails(true);
@@ -1496,8 +1531,38 @@ function ApplicationsSection() {
                     ) : (
                       <Mail className="mr-1.5 size-3.5" />
                     )}
-                    {selectedApp.email_status === "failed" ? "Retry Email" : selectedApp.email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter to Gmail"}
+                    {selectedApp.email_status === "failed" ? "Retry Offer Letter" : selectedApp.email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter"}
                   </Button>
+
+                  {(selectedApp.status === "completed" || selectedApp.certificate_generated) && (
+                    <Button
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white border-0"
+                      disabled={sendingCertId === selectedApp.id}
+                      onClick={() => handleSendCertificate(selectedApp)}
+                    >
+                      {sendingCertId === selectedApp.id ? (
+                        <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                      ) : (
+                        <Award className="mr-1.5 size-3.5" />
+                      )}
+                      Resend Certificate
+                    </Button>
+                  )}
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                    onClick={() => {
+                      setResendDialogTarget(selectedApp);
+                      setResendDialogDoc("both");
+                    }}
+                  >
+                    <Send className="mr-1.5 size-3.5" />
+                    Resend Options...
+                  </Button>
+
                   <Button size="sm" variant="outline" className="border-border/60" asChild>
                     <a href={`mailto:${selectedApp.email}`}><Mail className="mr-1 size-3.5" /> Compose</a>
                   </Button>
@@ -1600,7 +1665,7 @@ function ApplicationsSection() {
                             ? "text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
                             : "text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                         }`}
-                        title={(a as any).email_status === "failed" ? "Retry Email" : (a as any).email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter to Gmail"}
+                        title={(a as any).email_status === "failed" ? "Retry Offer Letter Email" : (a as any).email_status === "sent" ? "Resend Offer Letter" : "Send Offer Letter to Gmail"}
                       >
                         {sendingOfferId === a.id ? (
                           <Loader2 className="size-4 animate-spin" />
@@ -1610,6 +1675,55 @@ function ApplicationsSection() {
                           <Mail className="size-4" />
                         )}
                       </button>
+                      {(a.status === "completed" || (a as any).certificate_generated) && (
+                        <button
+                          onClick={() => handleSendCertificate(a)}
+                          disabled={sendingCertId === a.id}
+                          className="grid size-8 place-items-center rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition disabled:opacity-50"
+                          title="Resend Certificate to Gmail"
+                        >
+                          {sendingCertId === a.id ? <Loader2 className="size-4 animate-spin" /> : <Award className="size-4" />}
+                        </button>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition"
+                            title="Resend Document Email Options (Offer Letter / Certificate / Both)"
+                          >
+                            <Send className="size-3.5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem
+                            onClick={() => handleSendOfferLetter(a)}
+                            disabled={sendingOfferId === a.id}
+                            className="gap-2 cursor-pointer text-xs"
+                          >
+                            <Mail className="size-3.5 text-blue-600" />
+                            <span>Resend Offer Letter</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleSendCertificate(a)}
+                            disabled={sendingCertId === a.id}
+                            className="gap-2 cursor-pointer text-xs"
+                          >
+                            <Award className="size-3.5 text-emerald-600" />
+                            <span>Resend Certificate</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setResendDialogTarget(a);
+                              setResendDialogDoc("both");
+                            }}
+                            className="gap-2 cursor-pointer text-xs font-medium text-indigo-600 dark:text-indigo-400"
+                          >
+                            <Sparkles className="size-3.5" />
+                            <span>Resend Both / Custom Email...</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       {a.status === "pending" && (
                         <>
                           <button onClick={() => updateStatus(a.id, "approved", a)} className="grid size-8 place-items-center rounded-lg text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 transition" title="Approve & Send Offer Letter"><CheckCircle2 className="size-4" /></button>
@@ -1625,6 +1739,20 @@ function ApplicationsSection() {
           </tbody>
         </table>
       </div>
+
+      <ResendDocumentEmailDialog
+        open={Boolean(resendDialogTarget)}
+        onOpenChange={(open) => {
+          if (!open) setResendDialogTarget(null);
+        }}
+        app={resendDialogTarget}
+        defaultDoc={resendDialogDoc}
+        onSuccess={() => {
+          qc.invalidateQueries({ queryKey: ["admin-apps"] });
+          qc.invalidateQueries({ queryKey: ["admin-certs"] });
+          qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+        }}
+      />
     </div>
   );
 }
@@ -3122,6 +3250,7 @@ function PaymentsSection() {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }
@@ -3992,6 +4121,9 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
   const qc = useQueryClient();
   const [downloading, setDownloading] = useState(false);
   const [sendingCertId, setSendingCertId] = useState<string | null>(null);
+  const [sendingOfferId, setSendingOfferId] = useState<string | null>(null);
+  const [resendDialogCert, setResendDialogCert] = useState<any | null>(null);
+  const [resendDialogDoc, setResendDialogDoc] = useState<"offer_letter" | "certificate" | "both">("certificate");
   const [backfilling, setBackfilling] = useState(false);
 
   const { data } = useQuery({
@@ -3999,7 +4131,7 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
     queryFn: async () => {
       const { data: list } = await supabase
         .from("certificates")
-        .select("*, applications(full_name, intern_id, domain, email, user_id)")
+        .select("*, applications(*)")
         .order("issued_at", { ascending: false });
       return list ?? [];
     },
@@ -4070,34 +4202,94 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
     }
   };
 
-  const handleSendCertificate = async (c: any) => {
-    setSendingCertId(c.id);
-    const targetEmail = c.applications?.email;
-    const targetName = c.applications?.full_name ?? "Student";
-    if (!targetEmail) {
-      toast.error("Student email not found for this certificate");
-      setSendingCertId(null);
-      return;
-    }
+  const handleSendOfferLetter = async (c: any) => {
+    const app = c.applications;
+    const knownEmail = app?.email || c.email;
+    const studentName = c.applications?.full_name || c.student_name || "student";
 
-    const toastId = toast.loading(`Sending Certificate to ${targetEmail}...`);
+    setSendingOfferId(c.id);
+    const toastId = toast.loading(`Sending Offer Letter for ${studentName}...`);
     try {
-      const { sendCertificateEmail } = await import("@/lib/email-helpers");
-      const result = await sendCertificateEmail({
-        to: targetEmail,
-        studentName: targetName,
-        studentId: c.applications?.user_id ?? c.user_id ?? c.id,
-        certId: c.certificate_id,
-        domainName: getDomain(c.applications?.domain)?.name ?? c.applications?.domain ?? "Internship Track",
-        internId: c.applications?.intern_id ?? "",
+      const { resendStudentDocumentEmail } = await import("@/lib/admin-service");
+      const result = await resendStudentDocumentEmail({
+        data: {
+          applicationId: app?.id || c.application_id,
+          userId: app?.user_id || c.student_id || c.user_id,
+          internId: app?.intern_id || c.intern_id,
+          certificateId: c.certificate_id,
+          studentEmail: knownEmail,
+          documentType: "offer_letter",
+        },
       });
 
       if (result.success) {
-        toast.success(`Certificate ${c.certificate_id} sent to ${targetEmail}!`, { id: toastId });
+        toast.success(`✅ Offer Letter sent to ${result.targetEmail}!`, { id: toastId });
         qc.invalidateQueries({ queryKey: ["admin-certs"] });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
         qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
       } else {
-        toast.error(`Certificate delivery failed: ${result.error || "Unknown error"}`, { id: toastId, duration: 8000 });
+        if (result.error?.toLowerCase().includes("email")) {
+          setResendDialogCert({
+            id: c.applications?.id || c.application_id,
+            application_id: c.applications?.id || c.application_id,
+            full_name: studentName,
+            email: knownEmail || "",
+            intern_id: c.applications?.intern_id || c.intern_id,
+            domain: c.applications?.domain || c.domain,
+            duration: c.applications?.duration || 1,
+            certificate_id: c.certificate_id,
+          });
+          setResendDialogDoc("offer_letter");
+        }
+        toast.error(`Offer Letter delivery: ${result.error || "Unknown error"}`, { id: toastId, duration: 8000 });
+      }
+    } catch (err: any) {
+      toast.error(`Error sending offer letter: ${err.message}`, { id: toastId });
+    } finally {
+      setSendingOfferId(null);
+    }
+  };
+
+  const handleSendCertificate = async (c: any) => {
+    setSendingCertId(c.id);
+    const knownEmail = c.applications?.email || c.email;
+    const studentName = c.applications?.full_name || c.student_name || "student";
+
+    const toastId = toast.loading(`Sending Certificate for ${studentName}...`);
+    try {
+      const { resendStudentDocumentEmail } = await import("@/lib/admin-service");
+      const result = await resendStudentDocumentEmail({
+        data: {
+          applicationId: c.applications?.id || c.application_id,
+          userId: c.applications?.user_id ?? c.student_id ?? c.user_id,
+          internId: c.applications?.intern_id ?? c.intern_id,
+          certificateId: c.certificate_id,
+          studentEmail: knownEmail,
+          documentType: "certificate",
+        },
+      });
+
+      if (result.success) {
+        toast.success(`✅ Certificate ${c.certificate_id} sent to ${result.targetEmail}!`, { id: toastId });
+        qc.invalidateQueries({ queryKey: ["admin-certs"] });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+      } else {
+        if (result.error?.toLowerCase().includes("email")) {
+          setResendDialogCert({
+            id: c.applications?.id || c.application_id,
+            application_id: c.applications?.id || c.application_id,
+            full_name: studentName,
+            email: knownEmail || "",
+            intern_id: c.applications?.intern_id || c.intern_id,
+            domain: c.applications?.domain || c.domain,
+            duration: c.applications?.duration || 1,
+            certificate_id: c.certificate_id,
+          });
+          setResendDialogDoc("certificate");
+        }
+        toast.error(`Certificate delivery: ${result.error || "Unknown error"}`, { id: toastId, duration: 8000 });
+        qc.invalidateQueries({ queryKey: ["admin-certs"] });
       }
     } catch (err: any) {
       toast.error(`Error sending certificate: ${err.message}`, { id: toastId });
@@ -4204,30 +4396,102 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
               <th className="px-4 py-3 text-left">Email</th>
               <th className="px-4 py-3 text-left">Domain</th>
               <th className="px-4 py-3 text-left">Issued</th>
+              <th className="px-4 py-3 text-left">Email Status</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {!data?.length && (
-              <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">No certificates issued yet.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">No certificates issued yet.</td></tr>
             )}
             {data?.map((c: any) => (
               <tr key={c.id} className="border-b border-border/30 transition hover:bg-accent/20">
                 <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">{c.certificate_id}</td>
-                <td className="px-4 py-3 font-medium">{c.applications?.full_name}</td>
+                <td className="px-4 py-3 font-medium">{c.applications?.full_name || c.student_name}</td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">{c.applications?.email || "—"}</td>
-                <td className="px-4 py-3 text-xs text-muted-foreground">{getDomain(c.applications?.domain)?.name}</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">{getDomain(c.applications?.domain)?.name || c.domain}</td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(c.issued_at).toLocaleDateString("en-IN")}</td>
+                <td className="px-4 py-3">
+                  {c.applications?.email_status === "sent" ? (
+                    <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-0 text-[11px] gap-1 font-medium">
+                      <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" /> Sent
+                    </Badge>
+                  ) : c.applications?.email_status === "failed" ? (
+                    <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border-0 text-[11px] gap-1 font-medium" title={c.applications?.email_error || "Email delivery failed"}>
+                      <XCircle className="size-3 text-rose-600 dark:text-rose-400" /> Failed
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground border-border/60 text-[11px] gap-1 font-normal">
+                      <Clock className="size-3" /> Pending
+                    </Badge>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex items-center justify-end gap-1">
                     <button
-                      className="grid size-8 place-items-center rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition disabled:opacity-50"
-                      title="Send Certificate to Gmail"
+                      className="grid size-8 place-items-center rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition disabled:opacity-50"
+                      title="Resend Certificate to Gmail"
                       disabled={sendingCertId === c.id}
                       onClick={() => handleSendCertificate(c)}
                     >
-                      {sendingCertId === c.id ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+                      {sendingCertId === c.id ? <Loader2 className="size-4 animate-spin" /> : <Award className="size-4" />}
                     </button>
+                    <button
+                      className="grid size-8 place-items-center rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition disabled:opacity-50"
+                      title="Resend Offer Letter to Gmail"
+                      disabled={sendingOfferId === c.id}
+                      onClick={() => handleSendOfferLetter(c)}
+                    >
+                      {sendingOfferId === c.id ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition"
+                          title="Resend Options (Certificate / Offer Letter / Both)"
+                        >
+                          <Send className="size-3.5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuItem
+                          onClick={() => handleSendCertificate(c)}
+                          disabled={sendingCertId === c.id}
+                          className="gap-2 cursor-pointer text-xs"
+                        >
+                          <Award className="size-3.5 text-emerald-600" />
+                          <span>Resend Certificate</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleSendOfferLetter(c)}
+                          disabled={sendingOfferId === c.id}
+                          className="gap-2 cursor-pointer text-xs"
+                        >
+                          <Mail className="size-3.5 text-blue-600" />
+                          <span>Resend Offer Letter</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setResendDialogCert({
+                              id: c.applications?.id || c.application_id,
+                              application_id: c.applications?.id || c.application_id,
+                              full_name: c.applications?.full_name || c.student_name || "Student",
+                              email: c.applications?.email || "",
+                              intern_id: c.applications?.intern_id || c.intern_id,
+                              domain: c.applications?.domain || c.domain,
+                              duration: c.applications?.duration || 1,
+                              certificate_id: c.certificate_id,
+                            });
+                            setResendDialogDoc("both");
+                          }}
+                          className="gap-2 cursor-pointer text-xs font-medium text-indigo-600 dark:text-indigo-400"
+                        >
+                          <Sparkles className="size-3.5" />
+                          <span>Resend Both / Custom Email...</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <button className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="Download PDF" onClick={() => {
                       downloadCertificate({
                         fullName: c.applications?.full_name ?? "Student",
@@ -4246,6 +4510,20 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
           </tbody>
         </table>
       </div>
+
+      <ResendDocumentEmailDialog
+        open={Boolean(resendDialogCert)}
+        onOpenChange={(open) => {
+          if (!open) setResendDialogCert(null);
+        }}
+        app={resendDialogCert}
+        defaultDoc={resendDialogDoc}
+        onSuccess={() => {
+          qc.invalidateQueries({ queryKey: ["admin-certs"] });
+          qc.invalidateQueries({ queryKey: ["admin-apps"] });
+          qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
+        }}
+      />
     </div>
   );
 }
@@ -4569,6 +4847,7 @@ function StudentsSection() {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }
@@ -5956,78 +6235,27 @@ function EmailLogsSection() {
     const docLabel = log.document_type === "offer_letter" ? "Offer Letter" : "Certificate";
     const toastId = toast.loading(`Resending official ${docLabel} PDF to ${log.email_to}...`);
     try {
-      const { data: app } = await (supabase
-        .from("applications") as any)
-        .select("id, full_name, intern_id, domain, email, user_id, duration")
-        .eq("user_id", log.user_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { resendStudentDocumentEmail } = await import("@/lib/admin-service");
+      const result = await resendStudentDocumentEmail({
+        data: {
+          userId: log.user_id,
+          targetEmail: log.email_to,
+          certificateId: log.document_type === "certificate" ? log.reference_id : undefined,
+          internId: log.document_type === "offer_letter" ? log.reference_id : undefined,
+          documentType: log.document_type === "offer_letter" ? "offer_letter" : "certificate",
+        },
+      });
 
-      if (!app?.email) {
-        toast.error("Cannot resend: student application record not found", { id: toastId });
-        setResendingId(null);
-        return;
-      }
-
-      if (log.document_type === "offer_letter") {
-        const { sendOfferLetterEmail } = await import("@/lib/email-helpers");
-        const domainObj = getDomain(app.domain);
-        const result = await sendOfferLetterEmail({
-          to: app.email,
-          studentName: app.full_name,
-          studentId: app.user_id,
-          internId: app.intern_id,
-          domainName: domainObj?.name ?? app.domain,
-          duration: app.duration ?? 1,
-        });
-        if (result.success) {
-          await (supabase.from("applications") as any).update({
-            offer_issued_at: new Date().toISOString(),
-            email_status: "sent",
-            email_sent_at: new Date().toISOString(),
-            email_error: null,
-          }).eq("id", app.id);
-          qc.invalidateQueries({ queryKey: ["admin-apps"] });
-          qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
-          toast.success(`Offer Letter successfully resent to ${app.email}!`, { id: toastId });
-        } else {
-          await (supabase.from("applications") as any).update({
-            email_status: "failed",
-            email_error: result.error,
-          }).eq("id", app.id);
-          qc.invalidateQueries({ queryKey: ["admin-apps"] });
-          toast.error(`Resend failed: ${result.error}`, { id: toastId, duration: 8000 });
-        }
+      if (result.success) {
+        toast.success(`✅ ${docLabel} successfully resent to ${result.targetEmail || log.email_to}!`, { id: toastId });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-certs"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
       } else {
-        const { sendCertificateEmail } = await import("@/lib/email-helpers");
-        const result = await sendCertificateEmail({
-          to: app.email,
-          studentName: app.full_name,
-          studentId: app.user_id,
-          certId: log.reference_id || "SKX-CERT",
-          domainName: getDomain(app.domain)?.name ?? app.domain,
-          internId: app.intern_id || "",
-        });
-        if (result.success) {
-          await (supabase.from("applications") as any).update({
-            email_status: "sent",
-            email_sent_at: new Date().toISOString(),
-            email_error: null,
-          }).eq("id", app.id);
-          qc.invalidateQueries({ queryKey: ["admin-apps"] });
-          qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
-          toast.success(`Certificate successfully resent to ${app.email}!`, { id: toastId });
-        } else {
-          await (supabase.from("applications") as any).update({
-            email_status: "failed",
-            email_error: result.error,
-          }).eq("id", app.id);
-          qc.invalidateQueries({ queryKey: ["admin-apps"] });
-          toast.error(`Resend failed: ${result.error}`, { id: toastId, duration: 8000 });
-        }
+        toast.error(`Resend failed: ${result.error}`, { id: toastId, duration: 8000 });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
       }
-      qc.invalidateQueries({ queryKey: ["admin-email-logs"] });
     } catch (e: any) {
       toast.error(`Resend failed: ${e.message}`, { id: toastId });
     } finally {
@@ -6112,6 +6340,7 @@ function EmailLogsSection() {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }
@@ -6283,6 +6512,7 @@ function LoginHistorySection() {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }
@@ -7220,6 +7450,7 @@ function CoursesSection() {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }

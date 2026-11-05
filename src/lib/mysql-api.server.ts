@@ -329,6 +329,117 @@ export async function executeMysqlQuery(
               });
             }
           }
+        } else if (table === "certificates") {
+          if (req.select.includes("applications")) {
+            const appIds = [...new Set(rows.map((r: any) => r.application_id).filter(Boolean))];
+            const internIds = [...new Set(rows.map((r: any) => r.intern_id).filter(Boolean))];
+            const studentIds = [...new Set(rows.map((r: any) => r.student_id).filter(Boolean))];
+
+            let appRows: any[] = [];
+            if (appIds.length > 0) {
+              const appRes = await dbQuery(
+                `SELECT * FROM applications WHERE id IN (${appIds.map(() => "?").join(", ")})`,
+                appIds
+              );
+              appRows = appRes.rows || [];
+            }
+
+            const foundAppIds = new Set(appRows.map((a: any) => a.id));
+            const missingRows = rows.filter((r: any) => !r.application_id || !foundAppIds.has(r.application_id));
+            if (missingRows.length > 0) {
+              const fallbackInternIds = [...new Set(missingRows.map((r: any) => r.intern_id).filter(Boolean))];
+              if (fallbackInternIds.length > 0) {
+                const fallbackRes = await dbQuery(
+                  `SELECT * FROM applications WHERE intern_id IN (${fallbackInternIds.map(() => "?").join(", ")})`,
+                  fallbackInternIds
+                );
+                (fallbackRes.rows || []).forEach((a: any) => {
+                  if (!foundAppIds.has(a.id)) {
+                    appRows.push(a);
+                    foundAppIds.add(a.id);
+                  }
+                });
+              }
+
+              const fallbackStudentIds = [...new Set(missingRows.map((r: any) => r.student_id).filter(Boolean))];
+              if (fallbackStudentIds.length > 0) {
+                const fallbackStudentRes = await dbQuery(
+                  `SELECT * FROM applications WHERE user_id IN (${fallbackStudentIds.map(() => "?").join(", ")})`,
+                  fallbackStudentIds
+                );
+                (fallbackStudentRes.rows || []).forEach((a: any) => {
+                  if (!foundAppIds.has(a.id)) {
+                    appRows.push(a);
+                    foundAppIds.add(a.id);
+                  }
+                });
+              }
+            }
+
+            const appById = new Map(appRows.map((a: any) => [a.id, a]));
+            const appByInternId = new Map(appRows.filter((a: any) => a.intern_id).map((a: any) => [a.intern_id, a]));
+            const appByUserId = new Map(appRows.filter((a: any) => a.user_id).map((a: any) => [a.user_id, a]));
+
+            // Profiles fallback if application record has missing email or no application
+            const userIdsToFetch = [...new Set(rows.map((r: any) => r.student_id).filter(Boolean))];
+            let profMap = new Map<string, any>();
+            if (userIdsToFetch.length > 0) {
+              try {
+                const profRes = await dbQuery(
+                  `SELECT id, email, full_name FROM profiles WHERE id IN (${userIdsToFetch.map(() => "?").join(", ")})`,
+                  userIdsToFetch
+                );
+                profMap = new Map((profRes.rows || []).map((p: any) => [p.id, p]));
+              } catch {}
+            }
+
+            rows.forEach((r: any) => {
+              const matchedApp =
+                (r.application_id ? appById.get(r.application_id) : null) ||
+                (r.intern_id ? appByInternId.get(r.intern_id) : null) ||
+                (r.student_id ? appByUserId.get(r.student_id) : null) ||
+                null;
+
+              const prof = r.student_id ? profMap.get(r.student_id) : null;
+              const resolvedEmail = matchedApp?.email || prof?.email || null;
+
+              if (matchedApp) {
+                r.applications = {
+                  ...matchedApp,
+                  email: resolvedEmail || matchedApp.email,
+                };
+              } else if (prof) {
+                r.applications = {
+                  id: r.application_id || r.id,
+                  full_name: r.student_name || prof.full_name,
+                  email: prof.email,
+                  user_id: r.student_id,
+                  intern_id: r.intern_id,
+                  domain: r.domain,
+                  status: "completed",
+                  email_status: "sent",
+                };
+              } else {
+                r.applications = null;
+              }
+
+              r.email = resolvedEmail || r.email || null;
+            });
+          }
+        } else if (table === "payments") {
+          if (req.select.includes("applications")) {
+            const appIds = [...new Set(rows.map((r: any) => r.application_id).filter(Boolean))];
+            if (appIds.length > 0) {
+              const appRes = await dbQuery(
+                `SELECT * FROM applications WHERE id IN (${appIds.map(() => "?").join(", ")})`,
+                appIds
+              );
+              const appMap = new Map((appRes.rows || []).map((a: any) => [a.id, a]));
+              rows.forEach((r: any) => {
+                r.applications = appMap.get(r.application_id) || null;
+              });
+            }
+          }
         } else if (table === "project_submissions") {
           if (req.select.includes("project_challenges")) {
             const challengeIds = [...new Set(rows.map((r: any) => r.challenge_id || r.project_id).filter(Boolean))];
