@@ -31,6 +31,7 @@ import { IDCard } from "@/components/IDCard";
 import { TasksSection } from "@/components/TasksSection";
 import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadCertificate, downloadIDCard, downloadOfferLetter, downloadPdf } from "@/components/pdf-docs";
 import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
+import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/CertificatePreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Copy, Download, FileText, CheckCircle2, Clock, XCircle, X, Upload, Award,
@@ -721,6 +722,21 @@ function Dashboard() {
   const [newHearAbout, setNewHearAbout] = useState("");
   const [newReferralName, setNewReferralName] = useState("");
   const [previewOfferApp, setPreviewOfferApp] = useState<Application | null>(null);
+  const [previewCertData, setPreviewCertData] = useState<CertificatePreviewData | null>(null);
+
+  const handleViewCertificate = (c: any, a: any) => {
+    if (!c || !a) return;
+    const domainObj = getDomain(a.domain);
+    setPreviewCertData({
+      certId: c.certificate_id,
+      internId: a.intern_id,
+      fullName: a.full_name,
+      domain: domainObj?.name ?? a.domain,
+      grade: c.grade || "A+ (OUTSTANDING)",
+      issuedAt: c.issued_at,
+      verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+    });
+  };
 
   const handleApplyNewCoupon = async () => {
     if (!newCouponCode.trim()) return;
@@ -1244,7 +1260,7 @@ function Dashboard() {
               {/* UTR Invoice scan section if tasks done but verification pending */}
               <div className="space-y-6">
                 {daCert ? (
-                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} />
+                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} onViewCertificate={handleViewCertificate} />
                 ) : (
                   <LockedCertificateCard
                     app={da}
@@ -1512,6 +1528,7 @@ function Dashboard() {
             cert={cert}
             payment={payment}
             onViewOfferLetter={(targetApp) => setPreviewOfferApp(targetApp)}
+            onViewCertificate={handleViewCertificate}
             isPremium={isPremium}
             onUpgradeToPremium={isPremiumPlanGlobalEnabled && app?.domain === "fullstack" ? () => handleTriggerUpgrade(app) : undefined}
             premiumPlanAmount={premiumPlanAmount}
@@ -1757,7 +1774,7 @@ function Dashboard() {
       return (
         <div className="space-y-6">
           <DashboardHero badge="Certificates" title="Your Certificates" description="View and download your verified internship certificates." icon={Award} />
-          <UnlockedCertificateCard app={app} cert={cert} domain={domain} />
+          <UnlockedCertificateCard app={app} cert={cert} domain={domain} onViewCertificate={handleViewCertificate} />
           
           {/* Details Overview */}
           <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
@@ -1967,7 +1984,7 @@ function Dashboard() {
               </div>
               <div className="space-y-6">
                 {daCert ? (
-                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} />
+                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} onViewCertificate={handleViewCertificate} />
                 ) : (
                   <LockedCertificateCard
                     app={da}
@@ -2873,6 +2890,15 @@ function Dashboard() {
         }}
       />
 
+      {/* Official Certificate Interactive Preview Dialog */}
+      <CertificatePreviewDialog
+        data={previewCertData}
+        open={!!previewCertData}
+        onOpenChange={(open) => {
+          if (!open) setPreviewCertData(null);
+        }}
+      />
+
       {/* Cashfree Payment for Upgrading to Premium */}
       {upgradePayment && (
         <PaymentSummaryDialog
@@ -2982,6 +3008,7 @@ function HeroSection({
   cert,
   payment,
   onViewOfferLetter,
+  onViewCertificate,
   isPremium,
   onUpgradeToPremium,
   premiumPlanAmount = 200,
@@ -2992,6 +3019,7 @@ function HeroSection({
   cert?: any;
   payment?: any;
   onViewOfferLetter?: (app: any) => void;
+  onViewCertificate?: (cert: any, app: any) => void;
   isPremium?: boolean;
   onUpgradeToPremium?: () => void;
   premiumPlanAmount?: number;
@@ -3167,21 +3195,27 @@ function HeroSection({
               ) : (
                 <button
                   type="button"
-                  onClick={cert ? () => downloadCertificate({
-                    fullName: app.full_name,
-                    internId: app.intern_id,
-                    domain: domain?.name ?? app.domain,
-                    certId: cert.certificate_id,
-                    issuedAt: cert.issued_at,
-                    verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
-                  }) : undefined}
+                  onClick={cert ? () => {
+                    if (onViewCertificate) {
+                      onViewCertificate(cert, app);
+                    } else {
+                      downloadCertificate({
+                        fullName: app.full_name,
+                        internId: app.intern_id,
+                        domain: domain?.name ?? app.domain,
+                        certId: cert.certificate_id,
+                        issuedAt: cert.issued_at,
+                        verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+                      });
+                    }
+                  } : undefined}
                   disabled={!cert}
                   className={`flex flex-col items-center justify-center p-2 rounded-2xl ${cert ? "bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-90 border-emerald-400/30 cursor-pointer shadow-sm hover:shadow-emerald-500/20" : "bg-white/[0.03] border-white/5 opacity-40 cursor-not-allowed"} border transition-all text-center group`}
                 >
                   <div className={`grid size-10 place-items-center rounded-xl ${cert ? "bg-emerald-500/30 text-emerald-300 group-hover:scale-110" : "bg-white/5 text-white/40"} transition-all`}>
                     <Award className="size-5" />
                   </div>
-                  <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">{cert ? "Certificate" : "Locked"}</span>
+                  <span className="mt-1 text-[10px] font-bold text-slate-200 leading-tight">{cert ? "View Cert" : "Locked"}</span>
                 </button>
               )}
             </div>
@@ -3198,12 +3232,12 @@ function HeroSection({
                 </Button>
               )}
 
-              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
+              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg cursor-pointer"
                 onClick={() => onViewOfferLetter?.(app)}>
                 <Eye className="size-4 text-[#ee9590]" /> View Offer Letter
               </Button>
 
-              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
+              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg cursor-pointer"
                 onClick={() => downloadOfferLetter({
                   fullName: app.full_name,
                   internId: app.intern_id,
@@ -3214,7 +3248,7 @@ function HeroSection({
                 <Download className="size-4 text-[#ee9590]" /> Download Offer Letter
               </Button>
 
-              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg"
+              <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg cursor-pointer"
                 onClick={() => downloadIDCard({
                   fullName: app.full_name, internId: app.intern_id, domain: domain?.name ?? app.domain, issuedAt: app.offer_issued_at || app.created_at, photoUrl: app.photo_url, email: app.email
                 })}>
@@ -3222,17 +3256,23 @@ function HeroSection({
               </Button>
 
               {cert && (
-                <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 hover:shadow-emerald-500/30"
-                  onClick={() => downloadCertificate({
-                    fullName: app.full_name,
-                    internId: app.intern_id,
-                    domain: domain?.name ?? app.domain,
-                    certId: cert.certificate_id,
-                    issuedAt: cert.issued_at,
-                    verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
-                  })}>
-                  <Award className="size-4 text-emerald-100" /> Download Certificate
-                </Button>
+                <>
+                  <Button size="sm" variant="ghost" className="rounded-2xl h-10 text-xs font-bold bg-white/10 hover:!bg-white/20 border border-white/10 hover:border-white/20 text-white hover:!text-white gap-2 transition-all hover:scale-105 active:scale-95 shadow-black/10 hover:shadow-lg cursor-pointer"
+                    onClick={() => onViewCertificate?.(cert, app)}>
+                    <Eye className="size-4 text-emerald-300" /> View Certificate
+                  </Button>
+                  <Button size="sm" className="rounded-2xl h-10 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white hover:!text-white border-0 gap-2 shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 hover:shadow-emerald-500/30 cursor-pointer"
+                    onClick={() => downloadCertificate({
+                      fullName: app.full_name,
+                      internId: app.intern_id,
+                      domain: domain?.name ?? app.domain,
+                      certId: cert.certificate_id,
+                      issuedAt: cert.issued_at,
+                      verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+                    })}>
+                    <Award className="size-4 text-emerald-100" /> Download Certificate
+                  </Button>
+                </>
               )}
             </div>
 
@@ -3705,7 +3745,7 @@ function TimelineSection({ steps, currentStep, onNavigateCertificates }: { steps
 
 // ─── CERTIFICATES ───
 
-function UnlockedCertificateCard({ app, cert, domain }: any) {
+function UnlockedCertificateCard({ app, cert, domain, onViewCertificate }: any) {
   if (!cert) return null;
   const issuedDate = cert.issued_at
     ? new Date(cert.issued_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
@@ -3713,22 +3753,28 @@ function UnlockedCertificateCard({ app, cert, domain }: any) {
   const certId = cert.certificate_id || "—";
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5">
+      <div className="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-br from-[#faf8f2] via-white to-amber-50/40 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 shadow-md">
         {/* Glow behind certificate icon */}
-        <div className="absolute -right-20 -top-20 size-64 rounded-full bg-emerald-500/10 blur-[80px] pointer-events-none" />
+        <div className="absolute -right-20 -top-20 size-64 rounded-full bg-amber-500/10 blur-[80px] pointer-events-none" />
         
         <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="grid size-16 place-items-center rounded-2xl brand-gradient text-white shadow-xl shadow-[#f95c4b]/25 shrink-0">
+          <div className="grid size-16 place-items-center rounded-2xl bg-[#181619] text-amber-500 shadow-xl shadow-amber-500/20 ring-2 ring-amber-500/30 shrink-0">
             <Award className="size-9" />
           </div>
           <div className="flex-1 text-center md:text-left">
             <Badge className="bg-emerald-600 text-white text-[10px] rounded-lg px-2.5 py-1 mb-2 border-0"><CheckCircle2 className="mr-1 size-3" /> VERIFIED CERTIFICATE</Badge>
             <h2 className="text-lg font-bold font-display text-foreground">{domain?.name ?? app?.domain} Internship Certificate</h2>
             <p className="text-xs text-muted-foreground mt-1">Issued to <span className="font-semibold text-foreground">{app?.full_name}</span> on {issuedDate}</p>
-            <p className="text-[9px] font-mono text-muted-foreground mt-1.5">Certificate ID: {certId}</p>
+            <p className="text-[9px] font-mono text-muted-foreground mt-1.5">Certificate ID: <strong className="text-amber-600 font-bold">{certId}</strong></p>
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full md:w-auto">
-            <Button size="sm" className="brand-gradient text-white border-0 rounded-2xl h-10 px-6 font-semibold shadow-md gap-1.5"
+            {onViewCertificate && (
+              <Button size="sm" variant="outline" className="rounded-2xl border-amber-600/40 h-10 px-6 font-bold gap-1.5 bg-white hover:bg-[#faf8f2] text-slate-900 cursor-pointer shadow-xs"
+                onClick={() => onViewCertificate(cert, app)}>
+                <Eye className="size-4 text-[#b45309]" /> View Certificate
+              </Button>
+            )}
+            <Button size="sm" className="brand-gradient text-white border-0 rounded-2xl h-10 px-6 font-semibold shadow-md gap-1.5 cursor-pointer"
               onClick={() => downloadCertificate({
                 fullName: app?.full_name ?? "Student",
                 internId: app?.intern_id ?? "",
@@ -3739,7 +3785,7 @@ function UnlockedCertificateCard({ app, cert, domain }: any) {
               })}>
               <Download className="size-4" /> Download PDF
             </Button>
-            <Button asChild size="sm" variant="outline" className="rounded-2xl border-border/60 h-10 px-6 font-semibold gap-1.5 bg-white/40">
+            <Button asChild size="sm" variant="outline" className="rounded-2xl border-border/60 h-10 px-6 font-semibold gap-1.5 bg-white/40 cursor-pointer">
               <Link to="/verify-certificate"><ExternalLink className="size-4" /> Verify Certificate</Link>
             </Button>
           </div>

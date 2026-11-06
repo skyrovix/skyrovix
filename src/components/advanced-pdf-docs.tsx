@@ -1326,3 +1326,4 @@ export async function renderAdvancedDocBuffer(data: AdvancedDocData): Promise<Bu
   const arrayBuffer = await blob.arrayBuffer();
   return Buffer.from(arrayBuffer);
 }
+

@@ -574,23 +574,23 @@ export function CredentialDemoSection() {
                         <img src={EMAIL_ASSETS.logo} alt="Skyrovix" className="h-9 w-auto object-contain" />
                       )}
                       {EMAIL_ASSETS?.vinix && (
-                        <img src={EMAIL_ASSETS.vinix} alt="Vinix" className="h-5 w-auto object-contain hidden sm:inline" />
+                        <img src={EMAIL_ASSETS.vinix} alt="Vinix" className="h-5.5 w-auto object-contain" />
                       )}
                     </div>
                     <div className="text-center">
-                      <h1 className="text-lg sm:text-xl font-extrabold tracking-[0.25em] text-amber-600 uppercase">
+                      <h1 className="text-lg sm:text-xl font-extrabold tracking-[0.25em] text-[#b45309] uppercase">
                         SKYROVIX
                       </h1>
-                      <p className="text-[8px] font-semibold tracking-wider text-slate-700">
+                      <p className="text-[8px] font-bold tracking-wider text-slate-700">
                         Skill Development & Future Tech Innovations • MSME Certified
                       </p>
-                      <p className="text-[7px] text-amber-700/80">
-                        UDYAM-TN-17-0076606 • Ministry of MSME, Govt. of India
+                      <p className="text-[7px] text-[#b45309] tracking-wide mt-0.5">
+                        Registered under MSME, Ministry of MSME, Govt. of India (UDYAM-TN-17-0076606)
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       {EMAIL_ASSETS?.yrTech && (
-                        <img src={EMAIL_ASSETS.yrTech} alt="YR Tech" className="h-5 w-auto object-contain hidden sm:inline" />
+                        <img src={EMAIL_ASSETS.yrTech} alt="YR Tech" className="h-5.5 w-auto object-contain" />
                       )}
                       {EMAIL_ASSETS?.msme && (
                         <img src={EMAIL_ASSETS.msme} alt="MSME" className="h-7 w-auto object-contain" />
@@ -603,29 +603,31 @@ export function CredentialDemoSection() {
                     <h2 className="text-lg sm:text-xl font-extrabold tracking-[0.2em] uppercase font-serif text-slate-900">
                       CERTIFICATE OF EXCELLENCE
                     </h2>
-                    <p className="text-[8.5px] font-bold tracking-[0.25em] text-amber-600 uppercase mt-0.5">
+                    <p className="text-[8.5px] font-bold tracking-[0.25em] text-[#b45309] uppercase mt-0.5">
                       VIRTUAL INTERNSHIP & SKILL DEVELOPMENT
                     </p>
-                    <p className="text-[9.5px] font-serif italic mt-2 text-slate-600">
+                    <div className="mx-auto w-16 h-0.5 bg-[#d97706] mt-1.5 mb-1.5" />
+
+                    <p className="text-[9.5px] font-serif italic text-slate-600">
                       This certificate is proudly awarded to
                     </p>
                     <h3 className="text-xl sm:text-2xl font-black tracking-wide uppercase font-display text-slate-900 mt-1">
-                      {studentName || "STUDENT INTERN"}
+                      {(studentName || "STUDENT INTERN").toUpperCase()}
                     </h3>
-                    <div className="mx-auto w-32 h-0.5 bg-amber-500 my-1.5" />
-                    <p className="text-[8.5px] sm:text-[9.5px] max-w-lg mx-auto leading-relaxed text-slate-700">
+                    <div className="mx-auto w-32 h-0.5 bg-[#d97706] my-1.5" />
+                    <p className="text-[8px] sm:text-[9px] max-w-lg mx-auto leading-relaxed text-slate-700">
                       In recognition of outstanding performance and successful completion of the industry-oriented virtual internship program in{" "}
-                      <span className="font-bold text-amber-600 underline">{domainTitle}</span>, demonstrating technical proficiency and capstone execution.
+                      <span className="font-bold text-[#b45309]">{domainTitle}</span>, demonstrating technical proficiency, professional dedication, and successful completion of the assigned capstone project.
                     </p>
                     {/* Badge Bar */}
-                    <div className="inline-flex items-center gap-3 px-3 py-1 rounded-full mt-2 text-[8px] font-mono border bg-white/95 border-slate-300 text-slate-800 shadow-xs">
-                      <span>CERT ID: <strong className="text-amber-600">{certId}</strong></span>
-                      <span>|</span>
-                      <span>INTERN ID: <strong className="text-amber-600">{internId}</strong></span>
-                      <span>|</span>
-                      <span>GRADE: <strong className="text-emerald-600">{grade}</strong></span>
-                      <span>|</span>
-                      <span>ISSUED: <strong>{displayDate}</strong></span>
+                    <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full mt-2 text-[8px] font-mono border bg-white border-slate-300 text-slate-800 shadow-xs">
+                      <span>CERT ID: <strong className="text-slate-900 font-bold">{certId}</strong></span>
+                      <span className="text-slate-300">|</span>
+                      <span>INTERN ID: <strong className="text-[#b45309] font-bold">{internId}</strong></span>
+                      <span className="text-slate-300">|</span>
+                      <span>GRADE: <strong className="text-emerald-600 font-bold">{grade}</strong></span>
+                      <span className="text-slate-300">|</span>
+                      <span>ISSUED: <strong className="text-slate-900 font-bold">{displayDate}</strong></span>
                     </div>
                   </div>
 
@@ -637,21 +639,23 @@ export function CredentialDemoSection() {
                       )}
                       <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
                       <p className="font-bold text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-                      <p className="text-[7px] text-amber-600 font-semibold">{COMPANY.founder.title}</p>
+                      <p className="text-[7px] text-[#b45309] font-bold">{COMPANY.founder.title}</p>
                     </div>
 
                     <div className="text-center">
                       {EMAIL_ASSETS?.seal && (
-                        <img src={EMAIL_ASSETS.seal} alt="Seal" className="size-10 mx-auto object-contain" />
+                        <img src={EMAIL_ASSETS.seal} alt="Seal" className="size-9 mx-auto object-contain" />
                       )}
-                      <p className="text-[7px] font-semibold text-slate-500 mt-0.5">Official Verified Seal</p>
+                      <p className="text-[7px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
+                      <p className="text-[6.5px] text-[#b45309] font-semibold">SKYROVIX • MSME</p>
                     </div>
 
                     <div className="text-center">
-                      <div className="p-0.5 inline-block rounded bg-white border border-amber-200">
+                      <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
                         <QRCodeSVG value={verifyCertUrl} size={34} />
                       </div>
-                      <p className="text-[7px] text-slate-400 font-mono mt-0.5">Scan to verify</p>
+                      <p className="text-[7px] font-bold text-slate-500 mt-0.5">Digitally Verified Certificate</p>
+                      <p className="text-[6.5px] text-slate-400 font-mono">Scan to verify online</p>
                     </div>
 
                     <div className="text-center">
@@ -660,8 +664,18 @@ export function CredentialDemoSection() {
                       )}
                       <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
                       <p className="font-bold text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-                      <p className="text-[7px] text-amber-600 font-semibold">{COMPANY.cofounder.title}</p>
+                      <p className="text-[7px] text-[#b45309] font-bold">{COMPANY.cofounder.title}</p>
                     </div>
+                  </div>
+
+                  {/* Security Footer */}
+                  <div className="flex items-center justify-between text-[6.5px] sm:text-[7.5px] text-slate-500 pt-1.5 border-t border-slate-300 mt-1">
+                    <span>
+                      A digitally verifiable credential issued by SKYROVIX IT Solutions (Udyam Registered – Ministry of MSME, Govt. of India).
+                    </span>
+                    <span>
+                      Official verification portal: <span className="text-[#b45309] font-bold">https://skyrovix.in/verify-certificate</span>
+                    </span>
                   </div>
                 </div>
               </div>
