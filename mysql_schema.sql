@@ -835,4 +835,81 @@ INSERT INTO tasks (id, domain, task_number, title, description, resources) VALUE
 (UUID(), 'digitalmarketing', 5, 'DM Capstone', 'Real campaign for a small business / portfolio site with measurable results.', '')
 ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description);
 
+-- ====================================================================
+-- ADVANCED INTERNSHIP DOCUMENT GENERATION SYSTEM
+-- Applicable to: Full Stack Development, MERN Stack Development, MEAN Stack Development
+-- ====================================================================
+
+CREATE TABLE IF NOT EXISTS student_performance_evaluations (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  application_id VARCHAR(36) NOT NULL UNIQUE,
+  user_id VARCHAR(36) NULL,
+  is_high_performer TINYINT(1) NOT NULL DEFAULT 0,
+  code_quality INT NOT NULL DEFAULT 9,
+  technical_skills INT NOT NULL DEFAULT 9,
+  problem_solving INT NOT NULL DEFAULT 9,
+  teamwork INT NOT NULL DEFAULT 9,
+  project_performance INT NOT NULL DEFAULT 9,
+  final_rating VARCHAR(50) NOT NULL DEFAULT 'A+ (Outstanding)',
+  mentor_remarks TEXT NULL,
+  evaluated_by VARCHAR(100) NULL,
+  evaluated_at DATETIME NULL,
+  created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_perf_app (application_id)
+);
+
+CREATE TABLE IF NOT EXISTS internship_documents (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  document_id VARCHAR(100) NOT NULL UNIQUE,
+  application_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NULL,
+  document_type VARCHAR(50) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  student_name VARCHAR(255) NOT NULL,
+  domain VARCHAR(100) NOT NULL,
+  plan_type VARCHAR(50) NOT NULL DEFAULT 'standard',
+  issue_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status VARCHAR(50) NOT NULL DEFAULT 'issued',
+  verification_hash VARCHAR(255) NOT NULL,
+  metadata JSON NULL,
+  created_by VARCHAR(100) NULL,
+  created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_doc_app (application_id),
+  INDEX idx_doc_type (document_type),
+  INDEX idx_doc_id (document_id),
+  UNIQUE KEY uq_app_doc_type (application_id, document_type)
+);
+
+CREATE TABLE IF NOT EXISTS internship_document_requests (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  application_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NULL,
+  document_type VARCHAR(50) NOT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  student_note TEXT NULL,
+  admin_note TEXT NULL,
+  reviewed_by VARCHAR(100) NULL,
+  reviewed_at DATETIME NULL,
+  created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_req_app_doc (application_id, document_type),
+  INDEX idx_req_app (application_id),
+  INDEX idx_req_status (status)
+);
+
+CREATE TABLE IF NOT EXISTS document_approval_history (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  application_id VARCHAR(36) NOT NULL,
+  document_id VARCHAR(100) NULL,
+  document_type VARCHAR(50) NOT NULL,
+  action VARCHAR(50) NOT NULL,
+  actor_email VARCHAR(255) NULL,
+  remarks TEXT NULL,
+  metadata JSON NULL,
+  created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_hist_app (application_id)
+);
+
 SET FOREIGN_KEY_CHECKS = 1;

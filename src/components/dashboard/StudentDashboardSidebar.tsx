@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ListChecks,
   Briefcase, Award, CreditCard, User, Crown, ChevronLeft,
   ChevronRight, ExternalLink, HelpCircle, Sparkles, LogOut,
-  CheckCircle2, Laptop
+  CheckCircle2, Laptop, FileText
 } from "lucide-react";
 
 export interface NavItemConfig {
@@ -42,6 +42,7 @@ export const DASHBOARD_NAV_GROUPS: { group: string; items: NavItemConfig[] }[] =
     items: [
       { id: "internships", label: "My Internships", icon: Briefcase },
       { id: "certificates", label: "Certificates", icon: Award },
+      { id: "documents", label: "My Documents", icon: FileText },
       { id: "payment", label: "Payment", icon: CreditCard },
       { id: "profile", label: "Profile", icon: User },
     ],

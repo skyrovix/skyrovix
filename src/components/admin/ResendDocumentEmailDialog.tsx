@@ -70,7 +70,7 @@ export function ResendDocumentEmailDialog({
 
   if (!app) return null;
 
-  const domainObj = getDomain(app.domain);
+  const domainObj = getDomain(app.domain || "");
   const domainTitle = domainObj?.name ?? app.domain ?? "Internship Program";
   const existingCertId =
     app.certificate_id ||

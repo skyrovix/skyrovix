@@ -14,7 +14,7 @@ import { verifyCredentialServerFn, type VerificationResponse, type VerificationR
 export type VerificationState =
   | { state: "idle" }
   | { state: "loading" }
-  | { state: "found"; data: VerificationResultData; type: "offer_letter" | "certificate" | "course" | "project" }
+  | { state: "found"; data: VerificationResultData; type: "offer_letter" | "certificate" | "course" | "project" | "advanced_doc" }
   | { state: "notfound" }
   | { state: "error"; message: string };
 
@@ -359,6 +359,96 @@ export function VerificationView({ initialId = "", canonicalPath = "/verify-cert
                 <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#faf8f2] dark:bg-card/60 border border-border/40 px-4 py-3 text-xs text-muted-foreground">
                   <Award className="size-4 text-[#f95c4b] dark:text-[#ee9590]" />
                   <span>Digitally verified by Skyrovix — MSME-registered IT company (UDYAM-TN-17-0076606)</span>
+                </div>
+              </div>
+            </FadeUp>
+          );
+        })()}
+
+        {/* 3.5. ADVANCED INTERNSHIP DOCUMENT VERIFIED RESULT */}
+        {result.state === "found" && result.type === "advanced_doc" && (() => {
+          const d = result.data;
+          const domainObj = getDomain(d.domain);
+          const domainName = domainObj?.name || d.domain || "Full Stack Development";
+          return (
+            <FadeUp y={10} duration={0.4}>
+              <div className="mt-6 rounded-2xl border border-green-200/60 dark:border-green-900/40 bg-card p-6 sm:p-8 shadow-sm">
+                {/* Header */}
+                <div className="flex items-center gap-4 pb-5 border-b border-border/40">
+                  <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-green-50 dark:bg-green-950/30">
+                    <CheckCircle2 className="size-7 text-green-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-bold">Verified ✓</h2>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 dark:bg-green-950/30 px-2.5 py-0.5 text-[10px] font-semibold text-green-700 dark:text-green-400 border border-green-200/60 dark:border-green-900/40">
+                        <ShieldCheck className="size-3" /> Official & Authentic
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      This official {d.document_title || "internship document"} is authentic and issued by Skyrovix IT Solutions.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="mt-5 space-y-0 divide-y divide-border/40 text-sm">
+                  <Row k="Document Type" v={<span className="font-semibold text-foreground">{d.document_title || "Internship Document"}</span>} />
+                  <Row k="Recipient Name" v={d.full_name} />
+                  <Row k="Internship Domain" v={domainName} />
+                  {d.intern_id && (
+                    <Row
+                      k="Intern ID"
+                      v={<span className="font-mono text-green-600 dark:text-green-400 font-semibold">{d.intern_id}</span>}
+                    />
+                  )}
+                  {d.duration !== undefined && d.duration !== null && (
+                    <Row k="Tenure Duration" v={`${d.duration} Month${d.duration > 1 ? "s" : ""}`} />
+                  )}
+                  {d.plan_type && (
+                    <Row
+                      k="Internship Plan Track"
+                      v={
+                        <Badge variant="outline" className="capitalize text-xs font-semibold">
+                          {d.plan_type === "premium" ? "Premium Scholar Track" : "Standard Track"}
+                        </Badge>
+                      }
+                    />
+                  )}
+                  {d.issued_at && (
+                    <Row
+                      k="Date of Issuance"
+                      v={new Date(d.issued_at).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    />
+                  )}
+                  <Row
+                    k="Verification Status"
+                    v={
+                      <Badge className="bg-green-600 text-white font-bold text-xs">
+                        Verified & Authentic
+                      </Badge>
+                    }
+                  />
+                  <Row
+                    k="Document Reference ID"
+                    v={<span className="font-mono text-green-600 dark:text-green-400 font-semibold">{d.cert_id}</span>}
+                  />
+                  {d.verification_hash && (
+                    <Row
+                      k="Cryptographic Hash"
+                      v={<span className="font-mono text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-xs">{d.verification_hash}</span>}
+                    />
+                  )}
+                </div>
+
+                {/* Footer trust badge */}
+                <div className="mt-5 flex items-center gap-2 rounded-xl bg-[#faf8f2] dark:bg-card/60 border border-border/40 px-4 py-3 text-xs text-muted-foreground">
+                  <Award className="size-4 text-[#f95c4b] dark:text-[#ee9590]" />
+                  <span>Digitally verified by Skyrovix IT Solutions — Registered under Ministry of MSME, Govt. of India (UDYAM-TN-17-0076606)</span>
                 </div>
               </div>
             </FadeUp>

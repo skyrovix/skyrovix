@@ -1,7 +1,7 @@
 import { dbQuery } from "./db.server";
 
 export interface VerificationResultData {
-  idType: "offer_letter" | "certificate" | "course" | "project";
+  idType: "offer_letter" | "certificate" | "course" | "project" | "advanced_doc";
   full_name: string;
   domain: string;
   status: string;
@@ -13,10 +13,14 @@ export interface VerificationResultData {
   score?: number;
   project_title?: string;
   verification_hash?: string;
+  document_type?: string;
+  document_title?: string;
+  plan_type?: string;
+  metadata?: any;
 }
 
 export type VerificationResponse =
-  | { state: "found"; type: "offer_letter" | "certificate" | "course" | "project"; data: VerificationResultData }
+  | { state: "found"; type: "offer_letter" | "certificate" | "course" | "project" | "advanced_doc"; data: VerificationResultData }
   | { state: "notfound" }
   | { state: "error"; message: string };
 
@@ -265,6 +269,67 @@ export async function verifyCredentialServer(rawId: string): Promise<Verificatio
           status: "awarded",
         },
       };
+    }
+
+    // -------------------------------------------------------------
+    // 6. ADVANCED INTERNSHIP DOCUMENTS LOOKUP (internship_documents)
+    // -------------------------------------------------------------
+    try {
+      const advDocRes = await dbQuery(
+        `SELECT 
+           d.id,
+           d.document_id,
+           d.document_type,
+           d.title,
+           d.student_name,
+           d.domain,
+           d.plan_type,
+           d.issue_date,
+           d.status,
+           d.verification_hash,
+           d.metadata,
+           a.intern_id,
+           a.duration
+         FROM internship_documents d
+         LEFT JOIN applications a ON a.id = d.application_id
+         WHERE d.document_id ILIKE $1
+         LIMIT 1`,
+        [normalized]
+      );
+
+      if (advDocRes.rows && advDocRes.rows.length > 0) {
+        const row = advDocRes.rows[0];
+        let meta: any = null;
+        try {
+          meta = typeof row.metadata === "string" ? JSON.parse(row.metadata) : row.metadata;
+        } catch {
+          meta = null;
+        }
+
+        return {
+          state: "found",
+          type: "advanced_doc",
+          data: {
+            idType: "advanced_doc",
+            cert_id: row.document_id,
+            intern_id: row.intern_id || undefined,
+            full_name: row.student_name,
+            domain: row.domain,
+            status: row.status || "verified",
+            duration: row.duration ? Number(row.duration) : undefined,
+            issued_at: row.issue_date ? new Date(row.issue_date).toISOString() : undefined,
+            verification_hash: row.verification_hash || undefined,
+            document_type: row.document_type,
+            document_title: row.title,
+            plan_type: row.plan_type,
+            project_title: meta?.projectTitle || undefined,
+            score: meta?.assessmentScore ? undefined : meta?.finalRating ? undefined : undefined,
+            metadata: meta,
+          },
+        };
+      }
+    } catch (advErr) {
+      console.warn("[verifyCredentialServer] Advanced doc lookup non-fatal error:", advErr);
     }
 
     // No matching credential found

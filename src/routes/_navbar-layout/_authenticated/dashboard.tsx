@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StudentDashboardSidebar } from "@/components/dashboard/StudentDashboardSidebar";
+import { MyDocumentsSection } from "@/components/dashboard/MyDocumentsSection";
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -1029,14 +1030,14 @@ function Dashboard() {
           </div>
         );
       }
-      if (active === "tasks" || active === "certificates") {
+      if (active === "tasks" || active === "certificates" || active === "documents") {
         return (
           <div className="space-y-6">
             <DashboardHero
-              badge={active === "tasks" ? "My Tasks" : "Certificates"}
-              title={active === "tasks" ? "Internship Tasks" : "Your Certificates"}
-              description={active === "tasks" ? "Track and complete your internship tasks with mentor feedback." : "View and download your verified internship certificates."}
-              icon={active === "tasks" ? ListChecks : Award}
+              badge={active === "tasks" ? "My Tasks" : active === "documents" ? "My Documents" : "Certificates"}
+              title={active === "tasks" ? "Internship Tasks" : active === "documents" ? "Advanced Documents" : "Your Certificates"}
+              description={active === "tasks" ? "Track and complete your internship tasks with mentor feedback." : active === "documents" ? "View and download your verified advanced credentials." : "View and download your verified internship certificates."}
+              icon={active === "tasks" ? ListChecks : active === "documents" ? FileText : Award}
             />
             <div className="rounded-3xl border border-dashed border-border/50 bg-white/40 p-12 text-center backdrop-blur-xl dark:bg-slate-900/40">
               <Briefcase className="size-12 mx-auto mb-4 text-muted-foreground/50" />
@@ -1768,6 +1769,23 @@ function Dashboard() {
               <div><p className="text-muted-foreground">Verified Date</p><p className="font-semibold mt-0.5 text-foreground">{cert.issued_at ? new Date(cert.issued_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</p></div>
             </div>
           </div>
+        </div>
+      );
+    }
+
+    if (active === "documents") {
+      return (
+        <div className="space-y-6">
+          <MyDocumentsSection
+            app={app}
+            user={user}
+            onNavigateToTasks={() => navigate({ search: { tab: "tasks" } as any })}
+            onUpgradeToPremium={
+              isPremiumPlanGlobalEnabled && app?.domain === "fullstack"
+                ? () => handleTriggerUpgrade(app)
+                : undefined
+            }
+          />
         </div>
       );
     }
