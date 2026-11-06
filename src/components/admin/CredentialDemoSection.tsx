@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
-import { EMAIL_ASSETS } from "@/lib/email-assets";
 import { downloadCertificate, downloadIDCard, downloadOfferLetter } from "@/components/pdf-docs";
 import {
   downloadAdvancedDocPdf,
@@ -30,9 +28,18 @@ import {
   Layers,
   Crown,
   ScrollText,
-  ExternalLink,
   CheckCircle2,
 } from "lucide-react";
+import {
+  CompletionCertificateSheet,
+  OfferLetterSheet,
+  LorSheet,
+  ExperienceLetterSheet,
+  ProjectCertificateSheet,
+  PerformanceReportSheet,
+  AppreciationCertificateSheet,
+  SkillCertificateSheet,
+} from "@/components/documents/CredentialSheets";
 
 type DemoTab =
   | "all"
@@ -52,6 +59,13 @@ export function CredentialDemoSection() {
   const [studentName, setStudentName] = useState("Hariharan S");
   const [internId, setInternId] = useState("SKX-2026-9055");
   const [certId, setCertId] = useState("SKX-CERT-2026-15713");
+  const [lorDocId, setLorDocId] = useState("SKX-LOR-2026-44182");
+  const [expDocId, setExpDocId] = useState("SKX-EXP-2026-61928");
+  const [prjDocId, setPrjDocId] = useState("SKX-PRJ-2026-83021");
+  const [perfDocId, setPerfDocId] = useState("SKX-PERF-2026-72819");
+  const [apprDocId, setApprDocId] = useState("SKX-APR-2026-53810");
+  const [sklDocId, setSklDocId] = useState("SKX-SKL-2026-92147");
+
   const [selectedDomain, setSelectedDomain] = useState("fullstack");
   const [planType, setPlanType] = useState<"standard" | "premium">("premium");
   const [durationMonths, setDurationMonths] = useState<number>(3);
@@ -83,13 +97,12 @@ export function CredentialDemoSection() {
   // Verification URLs
   const verifyCertUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(certId.trim())}`;
   const verifyInternUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(internId.trim())}`;
-
-  // Formatted display date
-  const displayDate = new Date(issuedDate).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  const verifyLorUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(lorDocId.trim())}`;
+  const verifyExpUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(expDocId.trim())}`;
+  const verifyPrjUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(prjDocId.trim())}`;
+  const verifyPerfUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(perfDocId.trim())}`;
+  const verifyApprUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(apprDocId.trim())}`;
+  const verifySklUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(sklDocId.trim())}`;
 
   const generateRandomCredentials = () => {
     const randomNum = Math.floor(10000 + Math.random() * 90000);
@@ -97,6 +110,12 @@ export function CredentialDemoSection() {
     const year = new Date().getFullYear();
     setCertId(`SKX-CERT-${year}-${randomNum}`);
     setInternId(`SKX-${year}-${internNum}`);
+    setLorDocId(`SKX-LOR-${year}-${Math.floor(10000 + Math.random() * 90000)}`);
+    setExpDocId(`SKX-EXP-${year}-${Math.floor(10000 + Math.random() * 90000)}`);
+    setPrjDocId(`SKX-PRJ-${year}-${Math.floor(10000 + Math.random() * 90000)}`);
+    setPerfDocId(`SKX-PERF-${year}-${Math.floor(10000 + Math.random() * 90000)}`);
+    setApprDocId(`SKX-APR-${year}-${Math.floor(10000 + Math.random() * 90000)}`);
+    setSklDocId(`SKX-SKL-${year}-${Math.floor(10000 + Math.random() * 90000)}`);
     toast.success("Generated fresh demo IDs");
   };
 
@@ -108,9 +127,7 @@ export function CredentialDemoSection() {
   };
 
   // Helper for Advanced Doc Data
-  const getDemoDocData = (type: AdvancedDocType, customDocIdPrefix: string): AdvancedDocData => {
-    const year = new Date().getFullYear();
-    const docId = `SKX-${customDocIdPrefix}-${year}-${Math.floor(10000 + Math.random() * 90000)}`;
+  const getDemoDocData = (type: AdvancedDocType, docId: string): AdvancedDocData => {
     const verifyUrl = `${getPublicSiteUrl()}/verify?id=${encodeURIComponent(docId)}`;
 
     return {
@@ -202,11 +219,11 @@ export function CredentialDemoSection() {
     }
   };
 
-  const handleDownloadAdvancedPdf = async (type: AdvancedDocType, prefix: string, label: string) => {
+  const handleDownloadAdvancedPdf = async (type: AdvancedDocType, docId: string, label: string) => {
     setDownloadingDoc(type);
     const toastId = toast.loading(`Rendering ${label} PDF...`);
     try {
-      const data = getDemoDocData(type, prefix);
+      const data = getDemoDocData(type, docId);
       await downloadAdvancedDocPdf(data);
       toast.success(`${label} downloaded!`, { id: toastId });
     } catch (err: any) {
@@ -538,7 +555,7 @@ export function CredentialDemoSection() {
 
           {/* 1. CERTIFICATE OF EXCELLENCE (Imperial Ivory & Gold) */}
           {(activeTab === "all" || activeTab === "cert") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Award className="size-4.5 text-amber-500" />
@@ -551,140 +568,28 @@ export function CredentialDemoSection() {
                   size="sm"
                   onClick={handleDownloadCertPdf}
                   disabled={downloadingDoc === "cert"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "cert" ? "Generating..." : "Download Certificate PDF"}
                 </Button>
               </div>
 
-              {/* Visual Render Canvas */}
-              <div
-                className="relative w-full rounded-2xl overflow-hidden shadow-lg border bg-[#faf8f2] text-slate-900 border-amber-600/40"
-                style={{ aspectRatio: "1.414 / 1" }}
-              >
-                <div className="absolute inset-3 rounded-xl pointer-events-none border-2 border-[#b45309]" />
-                <div className="absolute inset-5 rounded-lg pointer-events-none border border-[#d97706]/40" />
-
-                <div className="relative h-full flex flex-col justify-between p-6 sm:p-8 select-none">
-                  {/* Header */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      {EMAIL_ASSETS?.logo && (
-                        <img src={EMAIL_ASSETS.logo} alt="Skyrovix" className="h-9 w-auto object-contain" />
-                      )}
-                      {EMAIL_ASSETS?.vinix && (
-                        <img src={EMAIL_ASSETS.vinix} alt="Vinix" className="h-5.5 w-auto object-contain" />
-                      )}
-                    </div>
-                    <div className="text-center">
-                      <h1 className="text-lg sm:text-xl font-extrabold tracking-[0.25em] text-[#b45309] uppercase">
-                        SKYROVIX
-                      </h1>
-                      <p className="text-[8px] font-bold tracking-wider text-slate-700">
-                        Skill Development & Future Tech Innovations • MSME Certified
-                      </p>
-                      <p className="text-[7px] text-[#b45309] tracking-wide mt-0.5">
-                        Registered under MSME, Ministry of MSME, Govt. of India (UDYAM-TN-17-0076606)
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {EMAIL_ASSETS?.yrTech && (
-                        <img src={EMAIL_ASSETS.yrTech} alt="YR Tech" className="h-5.5 w-auto object-contain" />
-                      )}
-                      {EMAIL_ASSETS?.msme && (
-                        <img src={EMAIL_ASSETS.msme} alt="MSME" className="h-7 w-auto object-contain" />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Body Title */}
-                  <div className="text-center my-auto py-1">
-                    <h2 className="text-lg sm:text-xl font-extrabold tracking-[0.2em] uppercase font-serif text-slate-900">
-                      CERTIFICATE OF EXCELLENCE
-                    </h2>
-                    <p className="text-[8.5px] font-bold tracking-[0.25em] text-[#b45309] uppercase mt-0.5">
-                      VIRTUAL INTERNSHIP & SKILL DEVELOPMENT
-                    </p>
-                    <div className="mx-auto w-16 h-0.5 bg-[#d97706] mt-1.5 mb-1.5" />
-
-                    <p className="text-[9.5px] font-serif italic text-slate-600">
-                      This certificate is proudly awarded to
-                    </p>
-                    <h3 className="text-xl sm:text-2xl font-black tracking-wide uppercase font-display text-slate-900 mt-1">
-                      {(studentName || "STUDENT INTERN").toUpperCase()}
-                    </h3>
-                    <div className="mx-auto w-32 h-0.5 bg-[#d97706] my-1.5" />
-                    <p className="text-[8px] sm:text-[9px] max-w-lg mx-auto leading-relaxed text-slate-700">
-                      In recognition of outstanding performance and successful completion of the industry-oriented virtual internship program in{" "}
-                      <span className="font-bold text-[#b45309]">{domainTitle}</span>, demonstrating technical proficiency, professional dedication, and successful completion of the assigned capstone project.
-                    </p>
-                    {/* Badge Bar */}
-                    <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full mt-2 text-[8px] font-mono border bg-white border-slate-300 text-slate-800 shadow-xs">
-                      <span>CERT ID: <strong className="text-slate-900 font-bold">{certId}</strong></span>
-                      <span className="text-slate-300">|</span>
-                      <span>INTERN ID: <strong className="text-[#b45309] font-bold">{internId}</strong></span>
-                      <span className="text-slate-300">|</span>
-                      <span>GRADE: <strong className="text-emerald-600 font-bold">{grade}</strong></span>
-                      <span className="text-slate-300">|</span>
-                      <span>ISSUED: <strong className="text-slate-900 font-bold">{displayDate}</strong></span>
-                    </div>
-                  </div>
-
-                  {/* Signatures & Seal */}
-                  <div className="grid grid-cols-4 items-end pt-2">
-                    <div className="text-center">
-                      {EMAIL_ASSETS?.sigFounder && (
-                        <img src={EMAIL_ASSETS.sigFounder} alt="Sign" className="h-8 mx-auto object-contain" />
-                      )}
-                      <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-                      <p className="font-bold text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-                      <p className="text-[7px] text-[#b45309] font-bold">{COMPANY.founder.title}</p>
-                    </div>
-
-                    <div className="text-center">
-                      {EMAIL_ASSETS?.seal && (
-                        <img src={EMAIL_ASSETS.seal} alt="Seal" className="size-9 mx-auto object-contain" />
-                      )}
-                      <p className="text-[7px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
-                      <p className="text-[6.5px] text-[#b45309] font-semibold">SKYROVIX • MSME</p>
-                    </div>
-
-                    <div className="text-center">
-                      <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-                        <QRCodeSVG value={verifyCertUrl} size={34} />
-                      </div>
-                      <p className="text-[7px] font-bold text-slate-500 mt-0.5">Digitally Verified Certificate</p>
-                      <p className="text-[6.5px] text-slate-400 font-mono">Scan to verify online</p>
-                    </div>
-
-                    <div className="text-center">
-                      {EMAIL_ASSETS?.sigCofounder && (
-                        <img src={EMAIL_ASSETS.sigCofounder} alt="Sign" className="h-8 mx-auto object-contain" />
-                      )}
-                      <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-                      <p className="font-bold text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-                      <p className="text-[7px] text-[#b45309] font-bold">{COMPANY.cofounder.title}</p>
-                    </div>
-                  </div>
-
-                  {/* Security Footer */}
-                  <div className="flex items-center justify-between text-[6.5px] sm:text-[7.5px] text-slate-500 pt-1.5 border-t border-slate-300 mt-1">
-                    <span>
-                      A digitally verifiable credential issued by SKYROVIX IT Solutions (Udyam Registered – Ministry of MSME, Govt. of India).
-                    </span>
-                    <span>
-                      Official verification portal: <span className="text-[#b45309] font-bold">https://skyrovix.in/verify-certificate</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <CompletionCertificateSheet
+                fullName={studentName}
+                internId={internId}
+                documentId={certId}
+                domainName={domainTitle}
+                issuedAt={issuedDate}
+                verifyUrl={verifyCertUrl}
+                grade={grade}
+              />
             </div>
           )}
 
           {/* 2. EXECUTIVE ID CARD (Front & Back) */}
           {(activeTab === "all" || activeTab === "idcard") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <IdCardIcon className="size-4.5 text-blue-500" />
@@ -698,7 +603,7 @@ export function CredentialDemoSection() {
                     size="sm"
                     variant="outline"
                     onClick={() => setIdCardFlipped(!idCardFlipped)}
-                    className="rounded-xl text-xs h-8 gap-1 border-border/70"
+                    className="rounded-xl text-xs h-8 gap-1 border-border/70 cursor-pointer"
                   >
                     <RotateCw className="size-3" />
                     {idCardFlipped ? "Flip to Front" : "Flip to Back"}
@@ -707,7 +612,7 @@ export function CredentialDemoSection() {
                     size="sm"
                     onClick={handleDownloadIdPdf}
                     disabled={downloadingDoc === "idcard"}
-                    className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                    className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                   >
                     <Download className="size-3.5" />
                     {downloadingDoc === "idcard" ? "Generating..." : "Download ID PDF"}
@@ -755,18 +660,6 @@ export function CredentialDemoSection() {
                         <span className="font-semibold text-emerald-600">{validUntil}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                      <div className="p-1 rounded bg-slate-100">
-                        <QRCodeSVG value={verifyInternUrl} size={42} />
-                      </div>
-                      <div className="text-right">
-                        {EMAIL_ASSETS?.sigFounder && (
-                          <img src={EMAIL_ASSETS.sigFounder} alt="Sign" className="h-7 ml-auto object-contain" />
-                        )}
-                        <span className="text-[8px] font-bold block text-slate-900">{COMPANY.founder.name}</span>
-                        <span className="text-[7px] text-[#f95c4b] block">Authorized Signatory</span>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
@@ -775,7 +668,7 @@ export function CredentialDemoSection() {
 
           {/* 3. OFFER & APPOINTMENT LETTER */}
           {(activeTab === "all" || activeTab === "offer") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ScrollText className="size-4.5 text-purple-600" />
@@ -788,65 +681,27 @@ export function CredentialDemoSection() {
                   size="sm"
                   onClick={handleDownloadOfferLetterPdf}
                   disabled={downloadingDoc === "offer"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "offer" ? "Generating..." : "Download Offer PDF"}
                 </Button>
               </div>
 
-              {/* Offer Letter Preview Card */}
-              <div className="p-6 rounded-2xl bg-[#faf8f2] border border-border/70 space-y-4 text-xs">
-                <div className="flex items-center justify-between border-b pb-3 border-[#f95c4b]/30">
-                  <div className="flex items-center gap-2">
-                    {EMAIL_ASSETS?.logo && <img src={EMAIL_ASSETS.logo} alt="Logo" className="h-8 w-auto" />}
-                    <div>
-                      <p className="font-bold text-sm text-[#181619]">SKYROVIX</p>
-                      <p className="text-[10px] text-muted-foreground">Skill Development & Future Tech Innovations</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-xs font-bold text-primary">{internId}</p>
-                    <p className="text-[10px] text-muted-foreground">{displayDate}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="font-bold text-xs uppercase text-primary">INTERNSHIP OFFER LETTER</p>
-                  <p className="font-semibold text-slate-800">Dear {studentName},</p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    We are pleased to formally offer you an internship appointment as a{" "}
-                    <strong className="text-foreground">{domainTitle} Intern</strong> at Skyrovix IT Solutions for a duration of{" "}
-                    <strong>{durationMonths} Month{durationMonths > 1 ? "s" : ""}</strong>.
-                  </p>
-                  <div className="p-3 rounded-xl bg-white border border-border/60 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                    <div><span className="text-muted-foreground block">Intern ID</span><span className="font-bold font-mono">{internId}</span></div>
-                    <div><span className="text-muted-foreground block">Domain</span><span className="font-bold">{domainTitle}</span></div>
-                    <div><span className="text-muted-foreground block">Track</span><span className="font-bold capitalize">{planType}</span></div>
-                    <div><span className="text-muted-foreground block">Mode</span><span className="font-bold text-emerald-600">Virtual / Remote</span></div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                  <div>
-                    {EMAIL_ASSETS?.sigFounder && <img src={EMAIL_ASSETS.sigFounder} alt="Sign" className="h-7 object-contain" />}
-                    <p className="font-bold text-[10px]">Hariharan S</p>
-                    <p className="text-[9px] text-muted-foreground">Founder & CEO, Skyrovix</p>
-                  </div>
-                  {EMAIL_ASSETS?.seal && <img src={EMAIL_ASSETS.seal} alt="Seal" className="size-9 object-contain" />}
-                  <div>
-                    {EMAIL_ASSETS?.sigCofounder && <img src={EMAIL_ASSETS.sigCofounder} alt="Sign" className="h-7 object-contain" />}
-                    <p className="font-bold text-[10px]">Maheshwaran S</p>
-                    <p className="text-[9px] text-muted-foreground">Co-Founder, Skyrovix</p>
-                  </div>
-                </div>
-              </div>
+              <OfferLetterSheet
+                fullName={studentName}
+                internId={internId}
+                domainName={domainTitle}
+                durationMonths={durationMonths}
+                issuedAt={issuedDate}
+                verifyUrl={verifyCertUrl}
+              />
             </div>
           )}
 
           {/* 4. LETTER OF RECOMMENDATION (LOR) */}
           {(activeTab === "all" || activeTab === "lor") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Crown className="size-4.5 text-amber-500" />
@@ -857,49 +712,34 @@ export function CredentialDemoSection() {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => handleDownloadAdvancedPdf("lor", "LOR", "Letter of Recommendation")}
+                  onClick={() => handleDownloadAdvancedPdf("lor", lorDocId, "Letter of Recommendation")}
                   disabled={downloadingDoc === "lor"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "lor" ? "Generating..." : "Download LOR PDF"}
                 </Button>
               </div>
 
-              <div className="p-6 rounded-2xl bg-[#faf8f2] border border-amber-300/60 space-y-3 text-xs">
-                <div className="flex justify-between border-b pb-2 border-amber-400/40">
-                  <span className="font-bold text-xs uppercase tracking-wider text-[#181619]">TO WHOM IT MAY CONCERN</span>
-                  <span className="font-mono text-primary font-bold">{internId}</span>
-                </div>
-                <p className="text-slate-700 leading-relaxed">
-                  It is with immense pleasure that I formally write this Letter of Recommendation for{" "}
-                  <strong className="text-foreground">{studentName}</strong>, who has successfully completed a rigorous, hands-on virtual internship in{" "}
-                  <strong className="text-foreground">{domainTitle}</strong>.
-                </p>
-                <p className="text-slate-700 leading-relaxed">
-                  Throughout their tenure, {studentName} exhibited exemplary technical competence, analytical acumen, and an exceptional dedication to engineering standards in full stack microservices, clean API architectures, and responsive frontend systems.
-                </p>
-                <div className="p-2.5 rounded-xl bg-white border border-border/60 text-[11px] font-medium text-slate-800">
-                  "{mentorRemarks}"
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                  <div className="text-left">
-                    <p className="font-bold text-[10px]">Hariharan S</p>
-                    <p className="text-[9px] text-muted-foreground">Founder & CEO</p>
-                  </div>
-                  {EMAIL_ASSETS?.seal && <img src={EMAIL_ASSETS.seal} alt="Seal" className="size-8 object-contain" />}
-                  <div className="text-right">
-                    <p className="font-bold text-[10px]">Maheshwaran S</p>
-                    <p className="text-[9px] text-muted-foreground">Co-Founder</p>
-                  </div>
-                </div>
-              </div>
+              <LorSheet
+                fullName={studentName}
+                internId={internId}
+                documentId={lorDocId}
+                domainName={domainTitle}
+                durationMonths={durationMonths}
+                issuedAt={issuedDate}
+                verifyUrl={verifyLorUrl}
+                metadata={{
+                  projectTitle,
+                  mentorRemarks,
+                }}
+              />
             </div>
           )}
 
           {/* 5. EXPERIENCE & RELIEVING LETTER */}
           {(activeTab === "all" || activeTab === "exp") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText className="size-4.5 text-emerald-600" />
@@ -910,32 +750,30 @@ export function CredentialDemoSection() {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => handleDownloadAdvancedPdf("experience_letter", "EXP", "Experience Letter")}
+                  onClick={() => handleDownloadAdvancedPdf("experience_letter", expDocId, "Experience Letter")}
                   disabled={downloadingDoc === "experience_letter"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "experience_letter" ? "Generating..." : "Download Experience PDF"}
                 </Button>
               </div>
 
-              <div className="p-6 rounded-2xl bg-white border border-border/70 space-y-3 text-xs">
-                <p className="font-bold text-xs uppercase tracking-wider text-slate-900">INTERNSHIP EXPERIENCE & RELIEVING CERTIFICATE</p>
-                <p className="text-slate-700 leading-relaxed">
-                  This is to certify that <strong className="text-foreground">{studentName}</strong> has successfully completed their software engineering internship tenure in{" "}
-                  <strong>{domainTitle}</strong> for <strong>{durationMonths} Months</strong>. The candidate contributed to sprint deliverables, RESTful endpoints, and database schema designs adhering to industry software engineering best practices.
-                </p>
-                <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px]">
-                  <span>Tenure: Verified & Approved</span>
-                  <span className="font-mono text-primary font-bold">{internId}</span>
-                </div>
-              </div>
+              <ExperienceLetterSheet
+                fullName={studentName}
+                internId={internId}
+                documentId={expDocId}
+                domainName={domainTitle}
+                durationMonths={durationMonths}
+                issuedAt={issuedDate}
+                verifyUrl={verifyExpUrl}
+              />
             </div>
           )}
 
           {/* 6. PROJECT COMPLETION CERTIFICATE */}
           {(activeTab === "all" || activeTab === "project") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Layers className="size-4.5 text-orange-500" />
@@ -946,32 +784,34 @@ export function CredentialDemoSection() {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => handleDownloadAdvancedPdf("project_certificate", "PRJ", "Project Certificate")}
+                  onClick={() => handleDownloadAdvancedPdf("project_certificate", prjDocId, "Project Certificate")}
                   disabled={downloadingDoc === "project_certificate"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "project_certificate" ? "Generating..." : "Download Project Cert PDF"}
                 </Button>
               </div>
 
-              <div className="p-6 rounded-2xl bg-[#faf8f2] border border-amber-400/60 space-y-3 text-xs">
-                <p className="font-bold text-xs uppercase tracking-wider text-amber-700">PROJECT COMPLETION CERTIFICATE</p>
-                <p className="text-slate-800 leading-relaxed">
-                  Awarded to <strong className="text-foreground">{studentName}</strong> for successful design, engineering, and live deployment of:
-                </p>
-                <div className="p-3 rounded-xl bg-white border border-amber-200">
-                  <p className="font-bold text-primary text-sm">{projectTitle}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">Tech Stack: {techStack}</p>
-                  <p className="text-[10px] text-emerald-600 font-bold mt-1">Status: Verified & Live Deployed</p>
-                </div>
-              </div>
+              <ProjectCertificateSheet
+                fullName={studentName}
+                internId={internId}
+                documentId={prjDocId}
+                domainName={domainTitle}
+                issuedAt={issuedDate}
+                verifyUrl={verifyPrjUrl}
+                grade={grade}
+                metadata={{
+                  projectTitle,
+                  technologies: techStack.split(",").map((s) => s.trim()),
+                }}
+              />
             </div>
           )}
 
           {/* 7. PERFORMANCE EVALUATION REPORT */}
           {(activeTab === "all" || activeTab === "report") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sliders className="size-4.5 text-indigo-600" />
@@ -982,30 +822,41 @@ export function CredentialDemoSection() {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => handleDownloadAdvancedPdf("evaluation_report", "PERF", "Performance Report")}
+                  onClick={() => handleDownloadAdvancedPdf("evaluation_report", perfDocId, "Performance Report")}
                   disabled={downloadingDoc === "evaluation_report"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "evaluation_report" ? "Generating..." : "Download Report PDF"}
                 </Button>
               </div>
 
-              <div className="p-6 rounded-2xl bg-white border border-border/70 space-y-3 text-xs">
-                <p className="font-bold text-xs uppercase tracking-wider text-slate-900">QUANTITATIVE AUDIT & SCORECARD</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px]">
-                  <div className="p-2.5 rounded-xl bg-slate-50 border"><span className="text-muted-foreground block text-[10px]">Code Quality</span><span className="font-bold text-primary">9.7 / 10</span></div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 border"><span className="text-muted-foreground block text-[10px]">Technical Skills</span><span className="font-bold text-primary">9.8 / 10</span></div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 border"><span className="text-muted-foreground block text-[10px]">Problem Solving</span><span className="font-bold text-primary">9.6 / 10</span></div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 border"><span className="text-muted-foreground block text-[10px]">Final Rating</span><span className="font-bold text-emerald-600">{grade}</span></div>
-                </div>
-              </div>
+              <PerformanceReportSheet
+                fullName={studentName}
+                internId={internId}
+                documentId={perfDocId}
+                domainName={domainTitle}
+                durationMonths={durationMonths}
+                issuedAt={issuedDate}
+                verifyUrl={verifyPerfUrl}
+                planType={planType}
+                grade={grade}
+                metadata={{
+                  codeQuality: 9.7,
+                  technicalSkills: 9.8,
+                  problemSolving: 9.6,
+                  projectPerformance: 9.8,
+                  teamwork: 9.5,
+                  mentorRemarks,
+                  finalRating: grade,
+                }}
+              />
             </div>
           )}
 
           {/* 8. CERTIFICATE OF APPRECIATION */}
           {(activeTab === "all" || activeTab === "appreciation") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Star className="size-4.5 text-rose-500 fill-rose-500" />
@@ -1016,27 +867,32 @@ export function CredentialDemoSection() {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => handleDownloadAdvancedPdf("appreciation_certificate", "APR", "Appreciation Certificate")}
+                  onClick={() => handleDownloadAdvancedPdf("appreciation_certificate", apprDocId, "Appreciation Certificate")}
                   disabled={downloadingDoc === "appreciation_certificate"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "appreciation_certificate" ? "Generating..." : "Download Appreciation PDF"}
                 </Button>
               </div>
 
-              <div className="p-6 rounded-2xl bg-[#faf8f2] border border-rose-200 space-y-3 text-xs">
-                <p className="font-bold text-xs uppercase tracking-wider text-rose-700">CERTIFICATE OF APPRECIATION</p>
-                <p className="text-slate-800 leading-relaxed">
-                  Presented to <strong className="text-foreground">{studentName}</strong> in recognition of outstanding performance and dedication in {domainTitle}, specifically for {appreciationReason}
-                </p>
-              </div>
+              <AppreciationCertificateSheet
+                fullName={studentName}
+                internId={internId}
+                documentId={apprDocId}
+                domainName={domainTitle}
+                issuedAt={issuedDate}
+                verifyUrl={verifyApprUrl}
+                metadata={{
+                  appreciationReason,
+                }}
+              />
             </div>
           )}
 
           {/* 9. SKILL ACHIEVEMENT CERTIFICATE */}
           {(activeTab === "all" || activeTab === "skill") && (
-            <div className="space-y-2.5 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
+            <div className="space-y-3 p-5 rounded-3xl bg-white border border-border/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="size-4.5 text-teal-600" />
@@ -1047,23 +903,27 @@ export function CredentialDemoSection() {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => handleDownloadAdvancedPdf("skill_certificate", "SKL", "Skill Certificate")}
+                  onClick={() => handleDownloadAdvancedPdf("skill_certificate", sklDocId, "Skill Certificate")}
                   disabled={downloadingDoc === "skill_certificate"}
-                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs"
+                  className="rounded-xl text-xs h-8 gap-1.5 brand-gradient text-white font-bold shadow-xs cursor-pointer"
                 >
                   <Download className="size-3.5" />
                   {downloadingDoc === "skill_certificate" ? "Generating..." : "Download Skill Cert PDF"}
                 </Button>
               </div>
 
-              <div className="p-6 rounded-2xl bg-white border border-border/70 space-y-3 text-xs">
-                <p className="font-bold text-xs uppercase tracking-wider text-teal-700">PRACTICAL SKILL MASTERY VALIDATION</p>
-                <p className="text-slate-800 leading-relaxed">
-                  Validates that <strong className="text-foreground">{studentName}</strong> has demonstrated verified mastery in{" "}
-                  <strong>{domainTitle} — Full Stack System Architecture & Engineering</strong> with an assessment score of{" "}
-                  <strong className="text-emerald-600">96 / 100 (Grade A+)</strong>.
-                </p>
-              </div>
+              <SkillCertificateSheet
+                fullName={studentName}
+                internId={internId}
+                documentId={sklDocId}
+                domainName={domainTitle}
+                issuedAt={issuedDate}
+                verifyUrl={verifySklUrl}
+                metadata={{
+                  skillName: `${domainTitle} — Full Stack System Architecture & Engineering`,
+                  assessmentScore: "96 / 100 (Grade A+)",
+                }}
+              />
             </div>
           )}
 

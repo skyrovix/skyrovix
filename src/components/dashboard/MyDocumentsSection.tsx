@@ -20,6 +20,7 @@ import {
   Briefcase,
   Layers,
   Send,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,7 @@ import {
   downloadAdvancedDocPdf,
   type AdvancedDocData,
 } from "@/components/advanced-pdf-docs";
+import { AdvancedDocPreviewDialog } from "@/components/AdvancedDocPreviewDialog";
 
 interface MyDocumentsSectionProps {
   app: any;
@@ -62,6 +64,7 @@ export function MyDocumentsSection({
   const [requestingDoc, setRequestingDoc] = useState<DocumentItemStatus | null>(null);
   const [studentNote, setStudentNote] = useState<string>("");
   const [downloadingType, setDownloadingType] = useState<string | null>(null);
+  const [previewDocData, setPreviewDocData] = useState<AdvancedDocData | null>(null);
 
   // Fetch student advanced documents summary
   const { data: summary, isLoading, refetch } = useQuery({
@@ -403,14 +406,38 @@ export function MyDocumentsSection({
               {/* Action Button at bottom */}
               <div className="pt-4 border-t border-border/50 mt-4">
                 {isIssued ? (
-                  <Button
-                    onClick={() => handleDownload(doc)}
-                    disabled={downloadingType === doc.documentType}
-                    className="w-full h-10 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white text-xs shadow-xs"
-                  >
-                    <Download className={`size-3.5 mr-1.5 ${downloadingType === doc.documentType ? "animate-bounce" : ""}`} />
-                    {downloadingType === doc.documentType ? "Generating PDF..." : "Download Official PDF"}
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setPreviewDocData({
+                          documentId: doc.documentRecord!.document_id,
+                          documentType: doc.documentType,
+                          fullName: app.full_name || "Scholar",
+                          internId: app.intern_id || "SKX-INTERN",
+                          domain: app.domain || "fullstack",
+                          domainName: (summary as any)?.domainName || "Full Stack Development",
+                          planType: app.plan_type === "premium" ? "premium" : "standard",
+                          durationMonths: Number(app.duration) || 1,
+                          issuedAt: doc.documentRecord!.issue_date || new Date().toISOString(),
+                          verifyUrl: `https://skyrovix.in/verify/${doc.documentRecord!.document_id}`,
+                          metadata: doc.documentRecord!.metadata,
+                        })
+                      }
+                      className="h-10 rounded-2xl text-xs font-bold border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 gap-1.5 cursor-pointer text-slate-800 dark:text-slate-200"
+                    >
+                      <Eye className="size-3.5 text-primary" />
+                      Preview
+                    </Button>
+                    <Button
+                      onClick={() => handleDownload(doc)}
+                      disabled={downloadingType === doc.documentType}
+                      className="h-10 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white text-xs shadow-xs gap-1.5 cursor-pointer"
+                    >
+                      <Download className={`size-3.5 ${downloadingType === doc.documentType ? "animate-bounce" : ""}`} />
+                      {downloadingType === doc.documentType ? "Generating..." : "Download PDF"}
+                    </Button>
+                  </div>
                 ) : isPending ? (
                   <Button
                     disabled
@@ -527,6 +554,15 @@ export function MyDocumentsSection({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ==================================================================== */}
+      {/* HIGH-FIDELITY DOCUMENT PREVIEW DIALOG */}
+      {/* ==================================================================== */}
+      <AdvancedDocPreviewDialog
+        data={previewDocData}
+        open={Boolean(previewDocData)}
+        onOpenChange={(open) => !open && setPreviewDocData(null)}
+      />
     </div>
   );
 }

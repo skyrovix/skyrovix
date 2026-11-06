@@ -22,6 +22,7 @@ import {
   BookOpen,
   Briefcase,
   Layers,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ import {
   downloadAdvancedDocPdf,
   type AdvancedDocData,
 } from "@/components/advanced-pdf-docs";
+import { AdvancedDocPreviewDialog } from "@/components/AdvancedDocPreviewDialog";
 
 const DOC_DEFINITIONS: {
   type: AdvancedDocType;
@@ -130,6 +132,7 @@ export function AdvancedDocumentsAdminSection() {
   const [customProjectTitle, setCustomProjectTitle] = useState<string>("");
   const [customAppreciationReason, setCustomAppreciationReason] = useState<string>("");
   const [generatingDocType, setGeneratingDocType] = useState<string | null>(null);
+  const [adminPreviewDocData, setAdminPreviewDocData] = useState<AdvancedDocData | null>(null);
 
   // Query Students
   const { data: students = [], isLoading, refetch } = useQuery({
@@ -980,15 +983,40 @@ export function AdvancedDocumentsAdminSection() {
                           {/* Action Buttons */}
                           <div className="flex items-center gap-2 shrink-0 self-end sm:self-start">
                             {generatedDoc && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDownloadDoc(managingStudent, generatedDoc)}
-                                className="rounded-xl h-8 px-3 text-xs font-semibold border-emerald-300 text-emerald-800 hover:bg-emerald-50"
-                              >
-                                <Download className="size-3.5 mr-1" />
-                                Download PDF
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setAdminPreviewDocData({
+                                      documentId: generatedDoc.document_id,
+                                      documentType: generatedDoc.document_type,
+                                      fullName: managingStudent.fullName,
+                                      internId: managingStudent.internId,
+                                      domain: managingStudent.domain,
+                                      domainName: managingStudent.domainName,
+                                      planType: managingStudent.planType,
+                                      durationMonths: managingStudent.durationMonths,
+                                      issuedAt: generatedDoc.issue_date || new Date().toISOString(),
+                                      verifyUrl: `https://skyrovix.in/verify/${generatedDoc.document_id}`,
+                                      metadata: generatedDoc.metadata,
+                                    })
+                                  }
+                                  className="rounded-xl h-8 px-2.5 text-xs font-semibold border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                                >
+                                  <Eye className="size-3.5 mr-1 text-primary" />
+                                  Preview
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDownloadDoc(managingStudent, generatedDoc)}
+                                  className="rounded-xl h-8 px-3 text-xs font-semibold border-emerald-300 text-emerald-800 hover:bg-emerald-50 cursor-pointer"
+                                >
+                                  <Download className="size-3.5 mr-1" />
+                                  Download PDF
+                                </Button>
+                              </>
                             )}
 
                             {canGenerate && (
@@ -1040,6 +1068,13 @@ export function AdvancedDocumentsAdminSection() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Advanced Document High-Fidelity Preview Dialog */}
+      <AdvancedDocPreviewDialog
+        data={adminPreviewDocData}
+        open={Boolean(adminPreviewDocData)}
+        onOpenChange={(open) => !open && setAdminPreviewDocData(null)}
+      />
     </div>
   );
 }
