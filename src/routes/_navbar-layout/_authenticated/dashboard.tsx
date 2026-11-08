@@ -630,6 +630,7 @@ function Dashboard() {
 
   const certPaymentState: CertPaymentState = useMemo(() => {
     if (!isTasksCompleted) return "LOCKED";
+    if (isPremium) return "NOT_REQUIRED";
     if (isOfferActive && app?.certificate_offer_eligible === true) return "FREE_OFFER";
     if (!certFeeConfig.enabled || certFeeAmount === 0) return "NOT_REQUIRED";
     if (
@@ -644,7 +645,7 @@ function Dashboard() {
     if (certPaymentRecord?.status === "rejected") return "REJECTED";
     if (certPaymentRecord?.status === "pending" || certPaymentRecord?.status === "under_review") return "PENDING";
     return "PAYMENT_REQUIRED";
-  }, [isTasksCompleted, isOfferActive, app?.certificate_offer_eligible, app?.certificate_payment_status, app?.status, app?.certificate_generated, certificate, certFeeConfig.enabled, certFeeAmount, certPaymentRecord]);
+  }, [isTasksCompleted, isPremium, isOfferActive, app?.certificate_offer_eligible, app?.certificate_payment_status, app?.status, app?.certificate_generated, certificate, certFeeConfig.enabled, certFeeAmount, certPaymentRecord]);
 
   const isCertPaymentVerified = Boolean(
     certPaymentState === "FREE_OFFER" ||
@@ -1236,9 +1237,16 @@ function Dashboard() {
           (daApproved >= daTotal && daApproved > 0)
         );
 
+        const daIsPremium = Boolean(
+          da.plan_type?.trim().toLowerCase() === "premium" &&
+          (da.plan_payment_status === "paid" || da.plan_payment_status === "waived")
+        );
+
         let daCertPaymentState: CertPaymentState = "LOCKED";
         if (!daTasksCompleted) {
           daCertPaymentState = "LOCKED";
+        } else if (daIsPremium) {
+          daCertPaymentState = "NOT_REQUIRED";
         } else if (isOfferActive && da.certificate_offer_eligible === true) {
           daCertPaymentState = "FREE_OFFER";
         } else if (!certFeeConfig.enabled || certFeeAmount === 0) {
@@ -1996,9 +2004,16 @@ function Dashboard() {
           (daApproved >= daTotal && daApproved > 0)
         );
 
+        const daIsPremium = Boolean(
+          da.plan_type?.trim().toLowerCase() === "premium" &&
+          (da.plan_payment_status === "paid" || da.plan_payment_status === "waived")
+        );
+
         let daCertPaymentState: CertPaymentState = "LOCKED";
         if (!daTasksCompleted) {
           daCertPaymentState = "LOCKED";
+        } else if (daIsPremium) {
+          daCertPaymentState = "NOT_REQUIRED";
         } else if (!certFeeConfig.enabled || certFeeAmount === 0) {
           daCertPaymentState = "NOT_REQUIRED";
         } else if (daCertPayment?.status === "approved" || da.certificate_payment_status === "approved") {

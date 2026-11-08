@@ -51,6 +51,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
     customerEmail: string;
     customerPhone: string;
     couponCode?: string | null;
+    userId?: string | null;
   } | null>(null);
 
   // Location and Hear about us fields
@@ -265,9 +266,6 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
         toast.success("🎉 You qualified for the Certificate Free Offer! Your certificate is ₹0 upon task completion.");
       }
 
-      // Note: Upfront payment is not required. Completion fee is paid only after task completion & admin approval.
-      onOpenChange(false);
-
       const assignedInternId = appResult.application?.intern_id || intern_id;
       const studentEmail = (currentUser.email || appResult.application.email || "").trim();
       const domainObj = getDomain(currentDomain);
@@ -298,6 +296,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
             await (supabase.from("applications" as any) as any).update({
               email_status: "failed",
               email_error: result.error || "Email delivery failed",
+              offer_issued_at: new Date().toISOString(),
             }).eq("intern_id", assignedInternId);
             toast.success("Application submitted successfully! You can view and download your Offer Letter from your Dashboard.", { id: "offer-letter-delivery", duration: 8000 });
           }
@@ -314,9 +313,26 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
       }
 
       onOpenChange(false);
-      reset();
       onSuccess?.();
 
+      if (effectivePlan === "premium" && finalPayable > 0) {
+        setPendingPayment({
+          open: true,
+          productType: "premium_plan",
+          applicationId: appId,
+          productService: `Skyrovix Full Stack Premium Internship Plan (${applyDuration} Months)`,
+          amount: premiumFee,
+          discountAmount: couponDiscount,
+          customerName: studentFullName,
+          customerEmail: studentEmail,
+          customerPhone: studentPhone,
+          couponCode: couponApplied?.code ?? null,
+          userId: currentUser.id,
+        });
+        return;
+      }
+
+      reset();
       navigate({ to: "/dashboard" });
     } catch (err) {
       const msg = (err as any)?.message || (err as any)?.error_description || "Something went wrong.";
@@ -333,6 +349,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
       : null;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onOpenChange(false); reset(); } }}>
       <DialogContent className="sm:max-w-lg max-h-[90dvh] sm:max-h-[85dvh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader className="mb-1 sm:mb-0">
@@ -796,37 +813,38 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
           </p>
         </form>
       </DialogContent>
+    </Dialog>
 
-      {/* Cashfree Payment Gateway Trigger */}
-      {pendingPayment && (
-        <PaymentSummaryDialog
-          open={pendingPayment.open}
-          onOpenChange={(op) => {
-            if (!op) {
-              setPendingPayment(null);
-              reset();
-              navigate({ to: "/dashboard" });
-            }
-          }}
-          productType={pendingPayment.productType || "premium_plan"}
-          productService={pendingPayment.productService}
-          amount={pendingPayment.amount}
-          discountAmount={pendingPayment.discountAmount}
-          customerName={pendingPayment.customerName}
-          customerEmail={pendingPayment.customerEmail}
-          customerPhone={pendingPayment.customerPhone}
-          userId={user?.id}
-          applicationId={pendingPayment.applicationId}
-          couponCode={pendingPayment.couponCode}
-          onSuccess={() => {
+    {/* Cashfree Payment Gateway Trigger */}
+    {pendingPayment && (
+      <PaymentSummaryDialog
+        open={pendingPayment.open}
+        onOpenChange={(op) => {
+          if (!op) {
             setPendingPayment(null);
             reset();
-            onSuccess?.();
-            toast.success("Payment verified! Welcome to Skyrovix Virtual Internship.");
             navigate({ to: "/dashboard" });
-          }}
-        />
-      )}
-    </Dialog>
+          }
+        }}
+        productType={pendingPayment.productType || "premium_plan"}
+        productService={pendingPayment.productService}
+        amount={pendingPayment.amount}
+        discountAmount={pendingPayment.discountAmount}
+        customerName={pendingPayment.customerName}
+        customerEmail={pendingPayment.customerEmail}
+        customerPhone={pendingPayment.customerPhone}
+        userId={pendingPayment.userId || user?.id}
+        applicationId={pendingPayment.applicationId}
+        couponCode={pendingPayment.couponCode}
+        onSuccess={() => {
+          setPendingPayment(null);
+          reset();
+          onSuccess?.();
+          toast.success("Payment verified! Welcome to Skyrovix Virtual Internship.");
+          navigate({ to: "/dashboard" });
+        }}
+      />
+    )}
+  </>
   );
 }

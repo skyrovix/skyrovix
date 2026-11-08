@@ -141,6 +141,7 @@ function DomainsPage() {
     customerEmail: string;
     customerPhone: string;
     couponCode?: string | null;
+    userId?: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -374,6 +375,23 @@ function DomainsPage() {
         }
       } else {
         toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { duration: 8000 });
+      }
+
+      if (effectivePlan === "premium" && finalPayable > 0) {
+        setPendingPayment({
+          open: true,
+          productType: "premium_plan",
+          applicationId: appId,
+          productService: `Skyrovix Full Stack Premium Internship Plan (${applyDuration} Months)`,
+          amount: premiumFee,
+          discountAmount: couponDiscount,
+          customerName: studentFullName,
+          customerEmail: studentEmail,
+          customerPhone: studentPhone,
+          couponCode: couponApplied?.code ?? null,
+          userId: currentUser.id,
+        });
+        return;
       }
 
       navigate({ to: "/dashboard", search: {} as any });
@@ -1000,7 +1018,7 @@ function DomainsPage() {
           amount={pendingPayment.amount}
           discountAmount={pendingPayment.discountAmount}
           applicationId={pendingPayment.applicationId}
-          userId={user?.id}
+          userId={pendingPayment.userId || user?.id}
           couponCode={pendingPayment.couponCode}
           customerName={pendingPayment.customerName}
           customerEmail={pendingPayment.customerEmail}
