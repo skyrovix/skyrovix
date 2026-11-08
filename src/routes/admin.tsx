@@ -33,6 +33,7 @@ import { GuidanceAdminSection } from "@/components/admin/GuidanceAdminSection";
 import { CredentialDemoSection } from "@/components/admin/CredentialDemoSection";
 import { ResendDocumentEmailDialog } from "@/components/admin/ResendDocumentEmailDialog";
 import { AdvancedDocumentsAdminSection } from "@/components/admin/AdvancedDocumentsAdminSection";
+import { StudentKitsAdminSection } from "@/components/admin/StudentKitsAdminSection";
 import { OfferLetterDoc, CertificateDoc, downloadCertificate, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
 import {
   getAdminStudents,
@@ -114,6 +115,7 @@ const SIDEBAR_GROUPS = [
       { id: "courses", label: "Courses", icon: BookOpen },
       { id: "certificates", label: "Certificates", icon: Award },
       { id: "advanced-documents", label: "Advanced Documents", icon: FileText },
+      { id: "student-kits", label: "Student Kits", icon: Package },
       { id: "credential-demo", label: "ID & Certificate Demo", icon: Eye },
       { id: "payments", label: "Payment Verification", icon: ShieldCheck },
       { id: "coupons", label: "Coupons & Discounts", icon: Tag },
@@ -149,7 +151,7 @@ const SIDEBAR_GROUPS = [
   }
 ] as const;
 
-type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "project-catalogue" | "guidance" | "promotions" | "popup" | "certificates" | "advanced-documents" | "credential-demo" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
+type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "project-catalogue" | "guidance" | "promotions" | "popup" | "certificates" | "advanced-documents" | "student-kits" | "credential-demo" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
 
 interface AdminNotification {
   id: string;
@@ -478,6 +480,7 @@ function AdminPanel() {
             {active === "popup" && <PromoPopupSection />}
             {active === "certificates" && <CertificatesSection onOpenDemo={() => setActive("credential-demo")} />}
             {active === "advanced-documents" && <AdvancedDocumentsAdminSection />}
+            {active === "student-kits" && <StudentKitsAdminSection />}
             {active === "credential-demo" && <CredentialDemoSection />}
             {active === "students" && <StudentsSection />}
             {active === "courses" && <CoursesSection />}

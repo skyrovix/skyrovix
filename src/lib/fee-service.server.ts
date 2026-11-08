@@ -359,13 +359,15 @@ export async function checkAllTasksVerified(
   }
 
   const isFullstack = app.domain === "fullstack";
-  const isPremium = app.plan_type === "premium";
+  const isPremium = app.plan_type?.trim().toLowerCase() === "premium" || Number(app.total_tasks) > 12;
   const taskLimits: Record<number, number> = (isFullstack && isPremium)
     ? { 1: 5, 2: 8, 3: 25, 6: 50 }
     : { 1: 5, 2: 8, 3: 10, 6: 12 };
-  const limit = (Number(app.total_tasks) > 0)
-    ? Number(app.total_tasks)
-    : (taskLimits[Number(app.duration) || 1] ?? 5);
+  const limit = (isFullstack && isPremium)
+    ? Math.max(taskLimits[Number(app.duration) || 1] ?? 5, Number(app.total_tasks) || 0)
+    : ((Number(app.total_tasks) > 0)
+      ? Number(app.total_tasks)
+      : (taskLimits[Number(app.duration) || 1] ?? 5));
 
   // Fetch all domain tasks with task_number > 0 and task_number <= limit
   const reqTasksRes = await queryFn(
@@ -915,9 +917,10 @@ export async function claimFreeCertificate(data: {
   return withTransaction(async (client) => {
     // 1. Verify application exists, belongs to student, and tasks are approved
     const appRes = await client.query(
-      `SELECT id, user_id, total_tasks, domain, full_name, email,
+      `SELECT id, user_id, total_tasks, domain, full_name, email, intern_id,
               certificate_offer_eligible, certificate_offer_amount, certificate_offer_snapshot,
-              certificate_payment_status, all_tasks_verified
+              certificate_payment_status, certificate_payment_unlocked, all_tasks_verified,
+              status, plan_type
        FROM public.applications WHERE id = $1`,
       [applicationId]
     );
@@ -952,9 +955,43 @@ export async function claimFreeCertificate(data: {
       new Date()
     );
 
-    const isOfferEligible = Boolean(app.certificate_offer_eligible && offerEnabled && offerStatus.isActive);
+    // Eligible if enrolled under the promotional offer OR offer is currently active
+    const isOfferEligible = Boolean(
+      app.certificate_offer_eligible === true ||
+      app.certificate_offer_eligible === 1 ||
+      app.certificate_offer_eligible === "1" ||
+      app.certificate_offer_eligible === "true" ||
+      Boolean(app.certificate_offer_eligible) ||
+      (offerEnabled && offerStatus.isActive)
+    );
+
+    const isPremium = app.plan_type === "premium";
+    const isCompleted = app.status === "completed";
+    const isUnlocked = Boolean(app.certificate_payment_unlocked);
+
+    // Check modern payment_records table
+    const payRecRes = await client.query(
+      "SELECT id FROM public.payment_records WHERE application_id = $1 AND payment_type = 'certificate' AND status = 'approved' LIMIT 1",
+      [applicationId]
+    );
+    const hasApprovedPaymentRecord = payRecRes.rows.length > 0;
+
+    // Check legacy payments table
+    const legacyPayRes = await client.query(
+      "SELECT id FROM public.payments WHERE application_id = $1 AND status = 'verified' LIMIT 1",
+      [applicationId]
+    );
+    const hasLegacyApprovedPayment = legacyPayRes.rows.length > 0;
+
     const isPaymentApproved =
-      app.certificate_payment_status === "approved" || (isOfferEligible && app.certificate_payment_status === "waived");
+      app.certificate_payment_status === "approved" ||
+      app.certificate_payment_status === "waived" ||
+      hasApprovedPaymentRecord ||
+      hasLegacyApprovedPayment ||
+      isPremium ||
+      isCompleted ||
+      isUnlocked ||
+      isOfferEligible;
 
     if (!isOfferEligible && !isPaymentApproved && feeEnabled && normalFee > 0) {
       throw new Error(

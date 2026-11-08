@@ -25,6 +25,8 @@ import {
   Rocket,
   ChevronDown,
   ChevronRight,
+  FileText,
+  Gift,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -50,12 +52,15 @@ const NAV_BADGES: Record<string, { text: string; variant: "coral" | "emerald" }>
 };
 
 const DASHBOARD_ITEMS = [
-  { to: "/", label: "Home", icon: Home },
+  { to: "/dashboard", label: "Overview", icon: LayoutDashboard, search: { tab: "overview" } },
   { to: "/dashboard", label: "My Tasks", icon: ListChecks, search: { tab: "tasks" } },
   { to: "/dashboard", label: "My Internships", icon: Briefcase, search: { tab: "internships" } },
-  { to: "/dashboard", label: "Payment", icon: CreditCard, search: { tab: "payment" } },
   { to: "/dashboard", label: "Certificates", icon: Award, search: { tab: "certificates" } },
+  { to: "/dashboard", label: "My Documents", icon: FileText, search: { tab: "documents" } },
+  { to: "/dashboard", label: "Student Kit", icon: Gift, search: { tab: "student-kit" } },
+  { to: "/dashboard", label: "Payment", icon: CreditCard, search: { tab: "payment" } },
   { to: "/dashboard", label: "Profile", icon: User, search: { tab: "profile" } },
+  { to: "/", label: "Home", icon: Home },
   { to: "/review", label: "Review", icon: MessageSquare },
 ] as const;
 
@@ -234,12 +239,14 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
     variant === "public"
       ? false
       : pathname === "/dashboard" || pathname.startsWith("/review");
-  const itemsToRender = isDashboardPage ? DASHBOARD_ITEMS : NAV;
+  const desktopItems = NAV;
+  const mobileItems = isDashboardPage ? DASHBOARD_ITEMS : NAV;
 
   const isItemActive = (
-    item: (typeof DASHBOARD_ITEMS)[number] | (typeof NAV)[number]
+    item: (typeof DASHBOARD_ITEMS)[number] | (typeof NAV)[number],
+    isMobileDrawer = false
   ) => {
-    if (isDashboardPage) {
+    if (isDashboardPage && isMobileDrawer) {
       if (item.to === "/") {
         return false;
       }
@@ -249,8 +256,8 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
       if (item.to === "/dashboard") {
         if (pathname !== "/dashboard") return false;
         const targetTab =
-          "search" in item && item.search?.tab ? item.search.tab : "tasks";
-        const activeTab = currentTab || "tasks";
+          "search" in item && item.search?.tab ? item.search.tab : "overview";
+        const activeTab = currentTab || "overview";
         return targetTab === activeTab;
       }
       return false;
@@ -358,8 +365,8 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
             )}
             onMouseLeave={() => setHoveredNav(null)}
           >
-            {itemsToRender.map((n) => {
-              const isActive = isItemActive(n);
+            {desktopItems.map((n) => {
+              const isActive = isItemActive(n, false);
               const isSelected = hoveredNav ? hoveredNav === n.label : isActive;
 
               return (
@@ -370,7 +377,7 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
                 >
                   <Link
                     to={n.to}
-                    search={"search" in n ? n.search : undefined}
+                    search={"search" in n ? ((n as any).search) : undefined}
                     activeOptions={{ exact: n.to === "/" }}
                     className={cn(
                       "relative inline-flex flex-col items-center justify-center whitespace-nowrap transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f95c4b] rounded-lg",
@@ -503,9 +510,19 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
               )}
 
               {/* Navigation Items */}
-              {itemsToRender.map((item) => {
+              {isDashboardPage && (
+                <div className="flex items-center justify-between px-2 pt-1 pb-2">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#f95c4b]">
+                    STUDENT DASHBOARD MENU
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 bg-black/5 px-2 py-0.5 rounded-full">
+                    Workspace
+                  </span>
+                </div>
+              )}
+              {mobileItems.map((item) => {
                 const Icon = item.icon;
-                const active = isItemActive(item);
+                const active = isItemActive(item, true);
                 const badge = NAV_BADGES[item.label];
 
                 return (

@@ -73,7 +73,7 @@ export interface AdvancedDocData {
 const pStyles = StyleSheet.create({
   pagePortrait: {
     paddingTop: 24,
-    paddingBottom: 22,
+    paddingBottom: 36,
     paddingHorizontal: 28,
     fontSize: 8.5,
     color: BRAND.ink,
@@ -189,11 +189,11 @@ const pStyles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: "uppercase",
     marginTop: 6,
-    marginBottom: 3,
+    marginBottom: 4,
   },
   titleUnderline: {
-    width: 44,
-    height: 2,
+    width: 140,
+    height: 1.5,
     backgroundColor: BRAND.coral,
     alignSelf: "center",
     marginBottom: 12,
@@ -207,11 +207,13 @@ const pStyles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   recipientLabel: {
     fontSize: 6.5,
     color: BRAND.muted,
     textTransform: "uppercase",
+    letterSpacing: 0.8,
     marginBottom: 2,
   },
   recipientName: {
@@ -222,7 +224,7 @@ const pStyles = StyleSheet.create({
   recipientDetail: {
     fontSize: 7.5,
     color: BRAND.slate,
-    marginTop: 1,
+    marginTop: 1.5,
   },
   paragraph: {
     fontSize: 8.2,
@@ -235,54 +237,66 @@ const pStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginTop: 14,
-    paddingTop: 6,
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: BRAND.border,
   },
   sigBlock: {
-    width: 140,
+    width: "25%",
     alignItems: "center",
+    justifyContent: "flex-end",
   },
   sigImg: {
     height: 28,
+    maxHeight: 28,
     objectFit: "contain",
-    marginBottom: 3,
+    marginBottom: 2,
   },
   sigLine: {
     borderTopWidth: 0.8,
-    borderTopColor: BRAND.black,
-    width: "100%",
+    borderTopColor: "#94a3b8",
+    width: 80,
+    alignSelf: "center",
     marginBottom: 3,
+    marginTop: 2,
   },
   sigName: {
-    fontSize: 7.8,
+    fontSize: 8,
     fontWeight: 700,
     color: BRAND.black,
     textAlign: "center",
   },
   sigTitle: {
     fontSize: 6.5,
-    color: BRAND.muted,
+    color: BRAND.coral,
+    fontWeight: 700,
     textAlign: "center",
     marginTop: 1,
   },
   sealBlock: {
+    width: "25%",
     alignItems: "center",
-    justifyContent: "center",
-    width: 100,
+    justifyContent: "flex-end",
   },
   sealImg: {
-    width: 48,
-    height: 48,
+    width: 36,
+    height: 36,
     objectFit: "contain",
   },
+  qrBlock: {
+    width: "25%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
   qrImg: {
-    width: 44,
-    height: 44,
+    width: 34,
+    height: 34,
     objectFit: "contain",
   },
   footer: {
     position: "absolute",
-    bottom: 14,
+    bottom: 22,
     left: 28,
     right: 28,
     flexDirection: "row",
@@ -291,6 +305,30 @@ const pStyles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: BRAND.border,
     paddingTop: 4,
+  },
+  sigRowPortrait: {
+    position: "absolute",
+    bottom: 38,
+    left: 28,
+    right: 28,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: BRAND.border,
+  },
+  footerPortrait: {
+    position: "absolute",
+    bottom: 18,
+    left: 28,
+    right: 28,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderTopWidth: 0.5,
+    borderTopColor: BRAND.border,
+    paddingTop: 3.5,
   },
   footerText: {
     fontSize: 6.2,
@@ -318,6 +356,11 @@ export function LorDoc(props: AdvancedDocData) {
     month: "long",
     year: "numeric",
   });
+
+  const projectTitle = metadata?.projectTitle || "Enterprise Cloud Platform with Scalable Microservices";
+  const mentorRemarks =
+    metadata?.mentorRemarks ||
+    "Candidate has demonstrated exceptional commitment, clean architecture delivery, and robust system design throughout their internship tenure.";
 
   return (
     <Document>
@@ -349,7 +392,7 @@ export function LorDoc(props: AdvancedDocData) {
         <View style={pStyles.titleUnderline} />
 
         {/* Addressed To */}
-        <Text style={{ fontSize: 9, fontWeight: 700, color: BRAND.black, marginBottom: 8 }}>
+        <Text style={{ fontSize: 9.5, fontWeight: 700, color: BRAND.black, marginBottom: 5 }}>
           TO WHOM IT MAY CONCERN
         </Text>
 
@@ -359,12 +402,12 @@ export function LorDoc(props: AdvancedDocData) {
             <Text style={pStyles.recipientLabel}>Candidate Information</Text>
             <Text style={pStyles.recipientName}>{fullName}</Text>
             <Text style={pStyles.recipientDetail}>
-              Internship Domain: {domainName} ({durationMonths} Month{durationMonths > 1 ? "s" : ""})
+              Internship Domain: <Text style={{ fontWeight: 700, color: BRAND.black }}>{domainName}</Text> ({durationMonths} Month{durationMonths > 1 ? "s" : ""})
             </Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={pStyles.recipientLabel}>Internship ID</Text>
-            <Text style={{ fontSize: 9, fontWeight: 700, color: BRAND.coral, fontFamily: "Helvetica-Bold" }}>
+            <Text style={pStyles.recipientLabel}>INTERNSHIP ID</Text>
+            <Text style={{ fontSize: 10, fontWeight: 700, color: BRAND.coral, fontFamily: "Helvetica-Bold" }}>
               {internId}
             </Text>
             <Text style={pStyles.recipientDetail}>Track: Premium Verified Scholar</Text>
@@ -373,7 +416,7 @@ export function LorDoc(props: AdvancedDocData) {
 
         {/* Body Paragraphs */}
         <Text style={pStyles.paragraph}>
-          It is with immense pleasure that I formally write this Letter of Recommendation for{" "}
+          It is with immense pleasure and high professional regard that I formally write this Letter of Recommendation for{" "}
           <Text style={{ fontWeight: 700, color: BRAND.black }}>{fullName}</Text>, who has successfully completed a rigorous, hands-on virtual internship in{" "}
           <Text style={{ fontWeight: 700, color: BRAND.black }}>{domainName}</Text> at Skyrovix IT Solutions.
         </Text>
@@ -382,28 +425,70 @@ export function LorDoc(props: AdvancedDocData) {
           Throughout the {durationMonths}-month intensive tenure, {fullName} exhibited exemplary technical competence, analytical acumen, and an exceptional dedication to engineering standards. The candidate spearheaded end-to-end full stack architecture implementations, robust API microservices, database schemas, and dynamic user interfaces with clean modular code and thorough unit validation.
         </Text>
 
-        <Text style={pStyles.paragraph}>
-          {metadata?.projectTitle
-            ? `In their capstone initiative, "${metadata.projectTitle}", ${fullName} demonstrated deep technical mastery in modern web architectures, agile software delivery, responsive UI design, and production deployment resilience.`
-            : `During the comprehensive capstone evaluation, ${fullName} demonstrated commendable problem-solving capability, proactive debugging skills, and the capacity to translate complex architectural requirements into scalable, high-performance software artifacts.`}
-        </Text>
+        {/* Verified Capstone Project & Engineering Contributions Card */}
+        <View style={{ backgroundColor: BRAND.bgCream, borderWidth: 0.6, borderColor: BRAND.border, borderRadius: 4, paddingVertical: 6, paddingHorizontal: 9, marginBottom: 7 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 3.5, borderBottomWidth: 0.5, borderBottomColor: BRAND.border, paddingBottom: 2.5 }}>
+            <Text style={{ fontSize: 6.8, fontWeight: 700, color: BRAND.coral, textTransform: "uppercase" }}>
+              Verified Capstone Project & Engineering Contributions
+            </Text>
+            <Text style={{ fontSize: 6.8, fontWeight: 700, color: "#16a34a" }}>
+              Status: Verified & Approved
+            </Text>
+          </View>
+          <Text style={{ fontSize: 8, fontWeight: 700, color: BRAND.black, marginBottom: 3 }}>
+            Project: <Text style={{ color: BRAND.coral }}>"{projectTitle}"</Text>
+          </Text>
+          <View style={{ paddingLeft: 4 }}>
+            <View style={{ flexDirection: "row", marginBottom: 2 }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>Full-Stack System Architecture:</Text> Engineered responsive components, state management pipelines, and decoupled API controllers.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", marginBottom: 2 }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>API Microservices & Security:</Text> Implemented secure RESTful endpoints, token authentication, and data validation layers.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", marginBottom: 2 }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>Database Design & Integrity:</Text> Modeled relational schemas, structured query indexes, and ensured strict data persistence.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>Quality Assurance & Delivery:</Text> Maintained Git version control, peer review standards, and automated deployment checks.
+              </Text>
+            </View>
+          </View>
+        </View>
 
         <Text style={pStyles.paragraph}>
-          Beyond technical capabilities, {fullName} demonstrated exemplary professionalism, punctuality, and proactive communication. The candidate consistently incorporated constructive code review feedback and collaborated harmoniously with mentors and peers.
+          Beyond technical capabilities, {fullName} demonstrated exemplary professionalism, punctuality, and proactive communication. The candidate consistently incorporated constructive code review feedback, solved complex architectural challenges with autonomy, and collaborated harmoniously with mentors and peers.
         </Text>
 
-        <Text style={pStyles.paragraph}>
-          {metadata?.mentorRemarks
-            ? `Mentor Assessment: "${metadata.mentorRemarks}"`
-            : `Skyrovix strongly endorses ${fullName} for future software engineering roles, technical responsibilities, or postgraduate academic programs. We have no doubt that they will be an invaluable asset to any high-performing engineering team.`}
+        {/* Mentor Assessment & Endorsement Box */}
+        <View style={{ backgroundColor: BRAND.bgCream, borderWidth: 0.5, borderColor: BRAND.border, borderLeftWidth: 3, borderLeftColor: BRAND.coral, borderRadius: 3, paddingVertical: 5, paddingHorizontal: 8, marginBottom: 6 }}>
+          <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.coral, textTransform: "uppercase", marginBottom: 1.5 }}>
+            Mentor & Supervisory Board Assessment
+          </Text>
+          <Text style={{ fontSize: 7.6, color: BRAND.black, fontStyle: "italic", lineHeight: 1.35 }}>
+            "{mentorRemarks}"
+          </Text>
+          <Text style={{ fontSize: 7.2, color: BRAND.slate, marginTop: 2 }}>
+            Skyrovix strongly endorses {fullName} for prospective software engineering roles, technical responsibilities, or advanced postgraduate academic programs with highest distinction.
+          </Text>
+        </View>
+
+        <Text style={{ fontSize: 7.2, color: BRAND.muted, marginBottom: 6 }}>
+          For official verification of credentials or employer inquiries, please contact our Credentials Board at <Text style={{ color: BRAND.coral, fontWeight: 700 }}>contact@skyrovix.in</Text> or verify online via the QR code below.
         </Text>
 
-        <Text style={{ fontSize: 8.5, color: BRAND.slate, marginTop: 4, marginBottom: 12 }}>
-          Please feel free to reach out to us at <Text style={{ color: BRAND.coral }}>contact@skyrovix.in</Text> should you require further background information.
-        </Text>
-
-        {/* Signatures & Seal */}
-        <View style={pStyles.sigRow}>
+        {/* Signatures & Seal (Anchored cleanly above footer) */}
+        <View style={pStyles.sigRowPortrait}>
           <View style={pStyles.sigBlock}>
             <Image src={sigFounderImg} style={pStyles.sigImg} />
             <View style={pStyles.sigLine} />
@@ -413,19 +498,25 @@ export function LorDoc(props: AdvancedDocData) {
 
           <View style={pStyles.sealBlock}>
             <Image src={sealImg} style={pStyles.sealImg} />
-            <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 2, textAlign: "center" }}>
+            <View style={{ width: 80, height: 0.8, marginTop: 2, marginBottom: 3 }} />
+            <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted, textAlign: "center" }}>
               Official Verified Seal
             </Text>
+            <Text style={{ fontSize: 6.5, color: "transparent", marginTop: 1 }}>.</Text>
           </View>
 
           {qrCodeDataUri ? (
-            <View style={{ alignItems: "center", width: 80 }}>
+            <View style={pStyles.qrBlock}>
               <Image src={qrCodeDataUri} style={pStyles.qrImg} />
-              <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 1, textAlign: "center" }}>
+              <View style={{ width: 80, height: 0.8, marginTop: 2, marginBottom: 3 }} />
+              <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted, textAlign: "center" }}>
                 Scan to Verify
               </Text>
+              <Text style={{ fontSize: 6.5, color: "transparent", marginTop: 1 }}>.</Text>
             </View>
-          ) : null}
+          ) : (
+            <View style={pStyles.qrBlock} />
+          )}
 
           <View style={pStyles.sigBlock}>
             <Image src={sigCofounderImg} style={pStyles.sigImg} />
@@ -435,8 +526,8 @@ export function LorDoc(props: AdvancedDocData) {
           </View>
         </View>
 
-        {/* Footer */}
-        <View style={pStyles.footer}>
+        {/* Footer (Anchored at page bottom) */}
+        <View style={pStyles.footerPortrait}>
           <Text style={pStyles.footerText}>
             A digitally verifiable document issued by Skyrovix IT Solutions (MSME Registered, Govt. of India).
           </Text>
@@ -532,32 +623,44 @@ export function ExperienceLetterDoc(props: AdvancedDocData) {
           During this tenure, {fullName} actively contributed to the full lifecycle of software development sprints, demonstrating hands-on proficiency in the following core engineering responsibilities:
         </Text>
 
-        {/* Responsibilities list */}
-        <View style={{ marginBottom: 8, paddingLeft: 6 }}>
-          <View style={{ flexDirection: "row", marginBottom: 3 }}>
-            <Text style={{ width: 14, color: BRAND.coral, fontWeight: 700 }}>•</Text>
-            <Text style={{ flex: 1, fontSize: 8, color: BRAND.slate, lineHeight: 1.4 }}>
-              <Text style={{ fontWeight: 700, color: BRAND.black }}>Architecture & Design:</Text> Engineered responsive web application components, component state pipelines, and scalable relational / NoSQL database schemas.
-            </Text>
+        {/* Responsibilities list card */}
+        <View style={{ backgroundColor: BRAND.bgCream, borderWidth: 0.6, borderColor: BRAND.border, borderRadius: 4, paddingVertical: 6, paddingHorizontal: 9, marginBottom: 7 }}>
+          <Text style={{ fontSize: 6.8, fontWeight: 700, color: BRAND.coral, textTransform: "uppercase", marginBottom: 3, borderBottomWidth: 0.5, borderBottomColor: BRAND.border, paddingBottom: 2 }}>
+            Verified Technical Responsibilities & Deliverables
+          </Text>
+          <View style={{ paddingLeft: 4 }}>
+            <View style={{ flexDirection: "row", marginBottom: 2 }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>Architecture & Design:</Text> Engineered responsive web application components, component state pipelines, and scalable relational schemas.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", marginBottom: 2 }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>API Integration & Microservices:</Text> Built, debugged, and documented secure RESTful endpoints, data validation layers, and API handlers.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", marginBottom: 2 }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>Quality Assurance & Delivery:</Text> Maintained high code quality through unit testing, Git version control, and automated deployment checks.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 10, color: BRAND.coral, fontWeight: 700, fontSize: 7.5 }}>•</Text>
+              <Text style={{ flex: 1, fontSize: 7.5, color: BRAND.slate, lineHeight: 1.35 }}>
+                <Text style={{ fontWeight: 700, color: BRAND.black }}>Collaborative Problem Solving:</Text> Participated in peer code reviews, sprint task retrospectives, and technical mentoring feedback loops.
+              </Text>
+            </View>
           </View>
-          <View style={{ flexDirection: "row", marginBottom: 3 }}>
-            <Text style={{ width: 14, color: BRAND.coral, fontWeight: 700 }}>•</Text>
-            <Text style={{ flex: 1, fontSize: 8, color: BRAND.slate, lineHeight: 1.4 }}>
-              <Text style={{ fontWeight: 700, color: BRAND.black }}>API Integration & Microservices:</Text> Built, debugged, and documented secure RESTful endpoints, data validation layers, and third-party API handlers.
-            </Text>
-          </View>
-          <View style={{ flexDirection: "row", marginBottom: 3 }}>
-            <Text style={{ width: 14, color: BRAND.coral, fontWeight: 700 }}>•</Text>
-            <Text style={{ flex: 1, fontSize: 8, color: BRAND.slate, lineHeight: 1.4 }}>
-              <Text style={{ fontWeight: 700, color: BRAND.black }}>Quality Assurance & Delivery:</Text> Maintained high code quality through unit testing, Git version control, branch merging workflows, and automated deployment checks.
-            </Text>
-          </View>
-          <View style={{ flexDirection: "row", marginBottom: 3 }}>
-            <Text style={{ width: 14, color: BRAND.coral, fontWeight: 700 }}>•</Text>
-            <Text style={{ flex: 1, fontSize: 8, color: BRAND.slate, lineHeight: 1.4 }}>
-              <Text style={{ fontWeight: 700, color: BRAND.black }}>Collaborative Problem Solving:</Text> Participated in peer code reviews, sprint task retrospectives, and technical mentoring feedback loops.
-            </Text>
-          </View>
+        </View>
+
+        {/* Deliverables & Evaluation Badge Bar */}
+        <View style={{ backgroundColor: BRAND.white, borderWidth: 0.6, borderColor: BRAND.border, borderRadius: 3, paddingVertical: 4, paddingHorizontal: 8, marginBottom: 7, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={{ fontSize: 7, color: BRAND.muted }}>TASK COMPLETION: <Text style={{ fontWeight: 700, color: "#16a34a" }}>100% (Approved)</Text></Text>
+          <Text style={{ fontSize: 7, color: BRAND.muted }}>EVALUATION: <Text style={{ fontWeight: 700, color: BRAND.coral }}>High-Performer (Grade A+)</Text></Text>
+          <Text style={{ fontSize: 7, color: BRAND.muted }}>STATUS: <Text style={{ fontWeight: 700, color: BRAND.black }}>Relieved in Good Standing</Text></Text>
         </View>
 
         <Text style={pStyles.paragraph}>
@@ -568,8 +671,12 @@ export function ExperienceLetterDoc(props: AdvancedDocData) {
           {fullName} stands relieved of their internship duties effective {completionDateStr} following full verification and approval of all assigned deliverables. We wish them every success in all future professional and academic pursuits.
         </Text>
 
+        <Text style={{ fontSize: 7.2, color: BRAND.muted, marginBottom: 6 }}>
+          Official institutional experience credential verifiable at <Text style={{ color: BRAND.coral, fontWeight: 700 }}>skyrovix.in</Text> or via the authorized cryptographic QR code below.
+        </Text>
+
         {/* Signatures & Seal */}
-        <View style={pStyles.sigRow}>
+        <View style={pStyles.sigRowPortrait}>
           <View style={pStyles.sigBlock}>
             <Image src={sigFounderImg} style={pStyles.sigImg} />
             <View style={pStyles.sigLine} />
@@ -579,19 +686,25 @@ export function ExperienceLetterDoc(props: AdvancedDocData) {
 
           <View style={pStyles.sealBlock}>
             <Image src={sealImg} style={pStyles.sealImg} />
-            <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 2, textAlign: "center" }}>
+            <View style={{ width: 80, height: 0.8, marginTop: 2, marginBottom: 3 }} />
+            <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted, textAlign: "center" }}>
               Official Verified Seal
             </Text>
+            <Text style={{ fontSize: 6.5, color: "transparent", marginTop: 1 }}>.</Text>
           </View>
 
           {qrCodeDataUri ? (
-            <View style={{ alignItems: "center", width: 80 }}>
+            <View style={pStyles.qrBlock}>
               <Image src={qrCodeDataUri} style={pStyles.qrImg} />
-              <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 1, textAlign: "center" }}>
+              <View style={{ width: 80, height: 0.8, marginTop: 2, marginBottom: 3 }} />
+              <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted, textAlign: "center" }}>
                 Scan to Verify
               </Text>
+              <Text style={{ fontSize: 6.5, color: "transparent", marginTop: 1 }}>.</Text>
             </View>
-          ) : null}
+          ) : (
+            <View style={pStyles.qrBlock} />
+          )}
 
           <View style={pStyles.sigBlock}>
             <Image src={sigCofounderImg} style={pStyles.sigImg} />
@@ -602,7 +715,7 @@ export function ExperienceLetterDoc(props: AdvancedDocData) {
         </View>
 
         {/* Footer */}
-        <View style={pStyles.footer}>
+        <View style={pStyles.footerPortrait}>
           <Text style={pStyles.footerText}>
             Official Skyrovix IT Solutions Experience Record • UDYAM-TN-17-0076606
           </Text>
@@ -722,28 +835,34 @@ export function ProjectCertificateDoc(props: AdvancedDocData) {
 
             {/* Bottom Row: Signatures + Seals */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingHorizontal: 16 }}>
-              <View style={{ alignItems: "center", width: 120 }}>
+              <View style={{ alignItems: "center", width: 110 }}>
                 <Image src={sigFounderImg} style={{ height: 26, objectFit: "contain", marginBottom: 2 }} />
-                <View style={{ borderTopWidth: 0.8, borderTopColor: BRAND.black, width: "100%", marginBottom: 2 }} />
+                <View style={{ borderTopWidth: 0.8, borderTopColor: "#94a3b8", width: 80, alignSelf: "center", marginBottom: 2 }} />
                 <Text style={{ fontSize: 7.5, fontWeight: 700, color: BRAND.black }}>Hariharan S</Text>
                 <Text style={{ fontSize: 6, color: BRAND.muted }}>Founder & CEO</Text>
               </View>
 
-              <View style={{ alignItems: "center" }}>
-                <Image src={sealImg} style={{ width: 44, height: 44, objectFit: "contain" }} />
-                <Text style={{ fontSize: 5.5, color: BRAND.gold, marginTop: 1 }}>Official Verified Seal</Text>
+              <View style={{ alignItems: "center", width: 110 }}>
+                <Image src={sealImg} style={{ width: 34, height: 34, objectFit: "contain", marginBottom: 2 }} />
+                <View style={{ width: 80, height: 0.8, alignSelf: "center", marginBottom: 2 }} />
+                <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.gold }}>Official Verified Seal</Text>
+                <Text style={{ fontSize: 6, color: "transparent" }}>.</Text>
               </View>
 
               {qrCodeDataUri ? (
-                <View style={{ alignItems: "center" }}>
-                  <Image src={qrCodeDataUri} style={{ width: 40, height: 40, objectFit: "contain" }} />
-                  <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 1 }}>Scan to verify</Text>
+                <View style={{ alignItems: "center", width: 110 }}>
+                  <Image src={qrCodeDataUri} style={{ width: 32, height: 32, objectFit: "contain", marginBottom: 2 }} />
+                  <View style={{ width: 80, height: 0.8, alignSelf: "center", marginBottom: 2 }} />
+                  <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted }}>Scan to verify</Text>
+                  <Text style={{ fontSize: 6, color: "transparent" }}>.</Text>
                 </View>
-              ) : null}
+              ) : (
+                <View style={{ width: 110 }} />
+              )}
 
-              <View style={{ alignItems: "center", width: 120 }}>
+              <View style={{ alignItems: "center", width: 110 }}>
                 <Image src={sigCofounderImg} style={{ height: 26, objectFit: "contain", marginBottom: 2 }} />
-                <View style={{ borderTopWidth: 0.8, borderTopColor: BRAND.black, width: "100%", marginBottom: 2 }} />
+                <View style={{ borderTopWidth: 0.8, borderTopColor: "#94a3b8", width: 80, alignSelf: "center", marginBottom: 2 }} />
                 <Text style={{ fontSize: 7.5, fontWeight: 700, color: BRAND.black }}>Maheshwaran S</Text>
                 <Text style={{ fontSize: 6, color: BRAND.muted }}>Co-Founder</Text>
               </View>
@@ -913,7 +1032,7 @@ export function PerformanceReportDoc(props: AdvancedDocData) {
         </Text>
 
         {/* Signatures & Seal */}
-        <View style={pStyles.sigRow}>
+        <View style={pStyles.sigRowPortrait}>
           <View style={pStyles.sigBlock}>
             <Image src={sigFounderImg} style={pStyles.sigImg} />
             <View style={pStyles.sigLine} />
@@ -923,19 +1042,25 @@ export function PerformanceReportDoc(props: AdvancedDocData) {
 
           <View style={pStyles.sealBlock}>
             <Image src={sealImg} style={pStyles.sealImg} />
-            <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 2, textAlign: "center" }}>
+            <View style={{ width: 80, height: 0.8, marginTop: 2, marginBottom: 3 }} />
+            <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted, textAlign: "center" }}>
               Official Assessment Seal
             </Text>
+            <Text style={{ fontSize: 6.5, color: "transparent", marginTop: 1 }}>.</Text>
           </View>
 
           {qrCodeDataUri ? (
-            <View style={{ alignItems: "center", width: 80 }}>
+            <View style={pStyles.qrBlock}>
               <Image src={qrCodeDataUri} style={pStyles.qrImg} />
-              <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 1, textAlign: "center" }}>
+              <View style={{ width: 80, height: 0.8, marginTop: 2, marginBottom: 3 }} />
+              <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted, textAlign: "center" }}>
                 Scan to Verify
               </Text>
+              <Text style={{ fontSize: 6.5, color: "transparent", marginTop: 1 }}>.</Text>
             </View>
-          ) : null}
+          ) : (
+            <View style={pStyles.qrBlock} />
+          )}
 
           <View style={pStyles.sigBlock}>
             <Image src={sigCofounderImg} style={pStyles.sigImg} />
@@ -946,7 +1071,7 @@ export function PerformanceReportDoc(props: AdvancedDocData) {
         </View>
 
         {/* Footer */}
-        <View style={pStyles.footer}>
+        <View style={pStyles.footerPortrait}>
           <Text style={pStyles.footerText}>
             Confidential Academic & Performance Record • Skyrovix IT Solutions (MSME Certified)
           </Text>
@@ -1053,28 +1178,34 @@ export function AppreciationCertificateDoc(props: AdvancedDocData) {
 
             {/* Bottom Row */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingHorizontal: 20 }}>
-              <View style={{ alignItems: "center", width: 120 }}>
+              <View style={{ alignItems: "center", width: 110 }}>
                 <Image src={sigFounderImg} style={{ height: 26, objectFit: "contain", marginBottom: 2 }} />
-                <View style={{ borderTopWidth: 0.8, borderTopColor: BRAND.black, width: "100%", marginBottom: 2 }} />
+                <View style={{ borderTopWidth: 0.8, borderTopColor: "#94a3b8", width: 80, alignSelf: "center", marginBottom: 2 }} />
                 <Text style={{ fontSize: 7.5, fontWeight: 700, color: BRAND.black }}>Hariharan S</Text>
                 <Text style={{ fontSize: 6, color: BRAND.muted }}>Founder & CEO</Text>
               </View>
 
-              <View style={{ alignItems: "center" }}>
-                <Image src={sealImg} style={{ width: 44, height: 44, objectFit: "contain" }} />
-                <Text style={{ fontSize: 5.5, color: BRAND.gold, marginTop: 1 }}>Official Verified Seal</Text>
+              <View style={{ alignItems: "center", width: 110 }}>
+                <Image src={sealImg} style={{ width: 34, height: 34, objectFit: "contain", marginBottom: 2 }} />
+                <View style={{ width: 80, height: 0.8, alignSelf: "center", marginBottom: 2 }} />
+                <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.gold }}>Official Verified Seal</Text>
+                <Text style={{ fontSize: 6, color: "transparent" }}>.</Text>
               </View>
 
               {qrCodeDataUri ? (
-                <View style={{ alignItems: "center" }}>
-                  <Image src={qrCodeDataUri} style={{ width: 40, height: 40, objectFit: "contain" }} />
-                  <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 1 }}>Scan to verify</Text>
+                <View style={{ alignItems: "center", width: 110 }}>
+                  <Image src={qrCodeDataUri} style={{ width: 32, height: 32, objectFit: "contain", marginBottom: 2 }} />
+                  <View style={{ width: 80, height: 0.8, alignSelf: "center", marginBottom: 2 }} />
+                  <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted }}>Scan to verify</Text>
+                  <Text style={{ fontSize: 6, color: "transparent" }}>.</Text>
                 </View>
-              ) : null}
+              ) : (
+                <View style={{ width: 110 }} />
+              )}
 
-              <View style={{ alignItems: "center", width: 120 }}>
+              <View style={{ alignItems: "center", width: 110 }}>
                 <Image src={sigCofounderImg} style={{ height: 26, objectFit: "contain", marginBottom: 2 }} />
-                <View style={{ borderTopWidth: 0.8, borderTopColor: BRAND.black, width: "100%", marginBottom: 2 }} />
+                <View style={{ borderTopWidth: 0.8, borderTopColor: "#94a3b8", width: 80, alignSelf: "center", marginBottom: 2 }} />
                 <Text style={{ fontSize: 7.5, fontWeight: 700, color: BRAND.black }}>Maheshwaran S</Text>
                 <Text style={{ fontSize: 6, color: BRAND.muted }}>Co-Founder</Text>
               </View>
@@ -1205,28 +1336,34 @@ export function SkillCertificateDoc(props: AdvancedDocData) {
 
             {/* Bottom Row */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingHorizontal: 16 }}>
-              <View style={{ alignItems: "center", width: 120 }}>
+              <View style={{ alignItems: "center", width: 110 }}>
                 <Image src={sigFounderImg} style={{ height: 26, objectFit: "contain", marginBottom: 2 }} />
-                <View style={{ borderTopWidth: 0.8, borderTopColor: BRAND.black, width: "100%", marginBottom: 2 }} />
+                <View style={{ borderTopWidth: 0.8, borderTopColor: "#94a3b8", width: 80, alignSelf: "center", marginBottom: 2 }} />
                 <Text style={{ fontSize: 7.5, fontWeight: 700, color: BRAND.black }}>Hariharan S</Text>
                 <Text style={{ fontSize: 6, color: BRAND.muted }}>Founder & CEO</Text>
               </View>
 
-              <View style={{ alignItems: "center" }}>
-                <Image src={sealImg} style={{ width: 44, height: 44, objectFit: "contain" }} />
-                <Text style={{ fontSize: 5.5, color: BRAND.gold, marginTop: 1 }}>Official Verified Seal</Text>
+              <View style={{ alignItems: "center", width: 110 }}>
+                <Image src={sealImg} style={{ width: 34, height: 34, objectFit: "contain", marginBottom: 2 }} />
+                <View style={{ width: 80, height: 0.8, alignSelf: "center", marginBottom: 2 }} />
+                <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.gold }}>Official Verified Seal</Text>
+                <Text style={{ fontSize: 6, color: "transparent" }}>.</Text>
               </View>
 
               {qrCodeDataUri ? (
-                <View style={{ alignItems: "center" }}>
-                  <Image src={qrCodeDataUri} style={{ width: 40, height: 40, objectFit: "contain" }} />
-                  <Text style={{ fontSize: 5.5, color: BRAND.muted, marginTop: 1 }}>Scan to verify</Text>
+                <View style={{ alignItems: "center", width: 110 }}>
+                  <Image src={qrCodeDataUri} style={{ width: 32, height: 32, objectFit: "contain", marginBottom: 2 }} />
+                  <View style={{ width: 80, height: 0.8, alignSelf: "center", marginBottom: 2 }} />
+                  <Text style={{ fontSize: 6.5, fontWeight: 700, color: BRAND.muted }}>Scan to verify</Text>
+                  <Text style={{ fontSize: 6, color: "transparent" }}>.</Text>
                 </View>
-              ) : null}
+              ) : (
+                <View style={{ width: 110 }} />
+              )}
 
-              <View style={{ alignItems: "center", width: 120 }}>
+              <View style={{ alignItems: "center", width: 110 }}>
                 <Image src={sigCofounderImg} style={{ height: 26, objectFit: "contain", marginBottom: 2 }} />
-                <View style={{ borderTopWidth: 0.8, borderTopColor: BRAND.black, width: "100%", marginBottom: 2 }} />
+                <View style={{ borderTopWidth: 0.8, borderTopColor: "#94a3b8", width: 80, alignSelf: "center", marginBottom: 2 }} />
                 <Text style={{ fontSize: 7.5, fontWeight: 700, color: BRAND.black }}>Maheshwaran S</Text>
                 <Text style={{ fontSize: 6, color: BRAND.muted }}>Co-Founder</Text>
               </View>

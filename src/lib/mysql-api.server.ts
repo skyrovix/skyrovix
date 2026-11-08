@@ -46,6 +46,8 @@ const ALLOWED_TABLES = new Set([
   "leaderboard",
   "login_sessions",
   "student_kit_items",
+  "student_kits",
+  "student_kit_purchases",
   "guidance_schedules",
   "students",
   "registrations",
@@ -68,6 +70,7 @@ const ADMIN_ONLY_MUTATION_TABLES = new Set([
   "student_performance_evaluations",
   "internship_documents",
   "document_approval_history",
+  "student_kits",
 ]);
 
 function isSafeIdentifier(str: string): boolean {

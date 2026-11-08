@@ -4540,7 +4540,7 @@ export function getTasksByDuration(
     return domain.tasks.filter((t) => t.taskNumber <= planTypeOrLimit);
   }
 
-  const isPremium = planTypeOrLimit === "premium";
+  const isPremium = typeof planTypeOrLimit === "string" && planTypeOrLimit.trim().toLowerCase() === "premium";
 
   if (normalizedSlug === "fullstack") {
     if (isPremium) {

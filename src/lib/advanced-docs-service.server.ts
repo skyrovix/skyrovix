@@ -162,7 +162,7 @@ export async function getStudentAdvancedDocsDataServer(
   }
 
   const domainName = getFullDomainName(domainNorm);
-  const planType: "standard" | "premium" = app.plan_type === "premium" ? "premium" : "standard";
+  const planType: "standard" | "premium" = app.plan_type?.trim().toLowerCase() === "premium" ? "premium" : "standard";
   const durationMonths = Number(app.duration) || 1;
 
   // 2. Fetch approved tasks count
@@ -173,7 +173,7 @@ export async function getStudentAdvancedDocsDataServer(
     [applicationId]
   );
   const approvedTasks = Number(subQuery.rows?.[0]?.approved_count) || 0;
-  const totalTasks = Number(app.total_tasks) || 5;
+  const totalTasks = Number(app.total_tasks) || (planType === "premium" && domainNorm === "fullstack" ? (durationMonths === 6 ? 50 : (durationMonths === 3 ? 25 : 5)) : 5);
 
   const isCompleted =
     app.status === "completed" ||
@@ -488,7 +488,8 @@ export async function getAdminAdvancedDocsDataServer(filters?: {
     const domainNorm = normalizeDomain(r.domain);
     const domainName = getFullDomainName(domainNorm);
     const approvedTasks = Number(r.approved_tasks) || 0;
-    const totalTasks = Number(r.total_tasks) || 5;
+    const planType = r.plan_type?.trim().toLowerCase() === "premium" ? "premium" : "standard";
+    const totalTasks = Number(r.total_tasks) || (planType === "premium" && domainNorm === "fullstack" ? (Number(r.duration) === 6 ? 50 : (Number(r.duration) === 3 ? 25 : 5)) : 5);
     const isCompleted =
       r.status === "completed" ||
       r.all_tasks_verified === 1 ||
@@ -650,7 +651,8 @@ export async function adminGenerateDocumentServer(input: {
     throw new Error("Document generation is only permitted for Full Stack, MERN Stack, and MEAN Stack domains.");
   }
 
-  const planType = app.plan_type === "premium" ? "premium" : "standard";
+  const planType = app.plan_type?.trim().toLowerCase() === "premium" ? "premium" : "standard";
+  const durationMonths = Number(app.duration) || 1;
 
   // Check completion
   const subQuery = await dbQuery(
@@ -658,7 +660,7 @@ export async function adminGenerateDocumentServer(input: {
     [applicationId]
   );
   const approvedTasks = Number(subQuery.rows?.[0]?.approved_count) || 0;
-  const totalTasks = Number(app.total_tasks) || 5;
+  const totalTasks = Number(app.total_tasks) || (planType === "premium" && domainNorm === "fullstack" ? (durationMonths === 6 ? 50 : (durationMonths === 3 ? 25 : 5)) : 5);
   const isCompleted =
     app.status === "completed" ||
     app.all_tasks_verified === 1 ||

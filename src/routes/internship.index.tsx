@@ -953,38 +953,6 @@ function DomainsPage() {
                     )}
                   </div>
 
-                  {/* Dynamic Fee Summary Card */}
-                  <div className="rounded-2xl border border-border/60 bg-muted/20 p-3.5 sm:p-4 space-y-2.5 w-full min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-muted-foreground min-w-0">
-                      <span className="shrink-0 font-medium">Selected Internship</span>
-                      <span className="font-semibold text-foreground sm:text-right break-words min-w-0">
-                        {applyDuration} {applyDuration === 1 ? "Month" : "Months"} • {isPremiumTrack ? `Intensive Track (₹${premiumFee})` : `Standard Track (₹${standardFee})`} ({dur.tasks} Tasks)
-                      </span>
-                    </div>
-                    <div className="flex flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">Upfront Registration</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">₹0 (Free to Start)</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-muted-foreground min-w-0">
-                      <span className="shrink-0 font-medium">Completion &amp; Certificate Fee</span>
-                      <span className="font-semibold text-foreground sm:text-right break-words min-w-0">
-                        {finalPayable === 0 ? "₹0 (Free Waiver)" : `₹${finalPayable} (Payable after task completion)`}
-                      </span>
-                    </div>
-                    {couponDiscount > 0 && (
-                      <div className="flex flex-row items-center justify-between gap-2 text-xs text-emerald-600 font-semibold">
-                        <span>Coupon Discount</span>
-                        <span>-₹{couponDiscount}</span>
-                      </div>
-                    )}
-                    <div className="pt-2 border-t border-border/50 flex flex-row items-center justify-between gap-2">
-                      <span className="text-xs sm:text-sm font-extrabold text-foreground">Pay Today</span>
-                      <span className="text-sm sm:text-lg font-black text-emerald-600 dark:text-emerald-400 text-right">
-                        ₹0 (Instant Offer Letter)
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Submit button */}
                   <motion.div
                     whileHover={{ y: -2 }}

@@ -279,6 +279,70 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
       )
     `);
 
+    // Student Kits Catalog & Downloads Management
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS student_kits (
+        id VARCHAR(36) NOT NULL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NULL,
+        pdf_url VARCHAR(500) NOT NULL,
+        cover_image_url VARCHAR(500) NULL,
+        price DECIMAL(10,2) NOT NULL DEFAULT 20.00,
+        is_free_for_premium TINYINT(1) NOT NULL DEFAULT 1,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        domain VARCHAR(100) NULL DEFAULT 'all',
+        edition VARCHAR(50) NULL DEFAULT 'Edition 1.0',
+        downloads_count INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS student_kit_purchases (
+        id VARCHAR(36) NOT NULL PRIMARY KEY,
+        kit_id VARCHAR(36) NOT NULL,
+        application_id VARCHAR(36) NULL,
+        user_id VARCHAR(36) NULL,
+        student_email VARCHAR(255) NULL,
+        student_name VARCHAR(255) NULL,
+        plan_type VARCHAR(50) NOT NULL DEFAULT 'standard',
+        amount_paid DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        payment_id VARCHAR(255) NULL,
+        unlocked_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_kit_app (application_id),
+        INDEX idx_kit_user (user_id),
+        INDEX idx_kit_id (kit_id)
+      )
+    `);
+
+    // Ensure default Web Development Student Kit is seeded if empty
+    try {
+      const [existingKits]: any = await pool.query("SELECT COUNT(*) AS count FROM student_kits");
+      const count = Number(existingKits?.[0]?.count || 0);
+      if (count === 0) {
+        await pool.query(
+          `INSERT INTO student_kits (id, title, description, pdf_url, cover_image_url, price, is_free_for_premium, is_active, domain, edition)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            "sk-kit-webdev-10",
+            "Web Development Student Kit",
+            "From complete beginner to job-ready full stack developer. Complete learning resources, roadmap, cheat sheets, code templates & development tools.",
+            "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf",
+            "/student-kit-cover.jpg",
+            20.00,
+            1,
+            1,
+            "all",
+            "Edition 1.0",
+          ]
+        );
+      }
+    } catch {
+      // safe fallback
+    }
+
     globalThis.__skyrovix_schema_migrated = true;
   } catch (err: any) {
     if (trySwitchLocalPort(err)) {

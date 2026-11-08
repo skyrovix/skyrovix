@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ListChecks,
   Briefcase, Award, CreditCard, User, Crown, ChevronLeft,
   ChevronRight, ExternalLink, HelpCircle, Sparkles, LogOut,
-  CheckCircle2, Laptop, FileText
+  CheckCircle2, Laptop, FileText, Gift
 } from "lucide-react";
 
 export interface NavItemConfig {
@@ -43,6 +43,7 @@ export const DASHBOARD_NAV_GROUPS: { group: string; items: NavItemConfig[] }[] =
       { id: "internships", label: "My Internships", icon: Briefcase },
       { id: "certificates", label: "Certificates", icon: Award },
       { id: "documents", label: "My Documents", icon: FileText },
+      { id: "student-kit", label: "Student Kit", icon: Gift },
       { id: "payment", label: "Payment", icon: CreditCard },
       { id: "profile", label: "Profile", icon: User },
     ],
@@ -157,9 +158,7 @@ export function StudentDashboardSidebar({
             <nav className="space-y-0.5">
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive =
-                  activeTab === item.id ||
-                  (item.id === "tasks" && activeTab === "overview");
+                const isActive = activeTab === item.id;
 
                 const badgeLabel = item.badge;
 

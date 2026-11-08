@@ -76,7 +76,7 @@ export function AuroraBackground({
       </div>
 
       {/* ── Page content cleanly above decorative layers ── */}
-      <div className="relative z-[1] w-full max-w-full min-w-0">{children}</div>
+      <div className="relative z-[1] w-full max-w-full min-w-0 h-full flex flex-col justify-between">{children}</div>
     </div>
   );
 }

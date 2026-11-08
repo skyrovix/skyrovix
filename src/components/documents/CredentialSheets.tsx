@@ -118,29 +118,31 @@ export function CompletionCertificateSheet({
           <div className="text-center">
             {sigFounderImg && <img src={sigFounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.founder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.founder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.founder.title}</p>
           </div>
 
           <div className="text-center">
             {sealImg && <img src={sealImg} alt="Seal" className="size-7 sm:size-8 mx-auto object-contain" />}
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
-            <p className="text-[6px] text-[#b45309] font-semibold">SKYROVIX • MSME</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Official Verified Seal</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-semibold leading-tight mt-0.5">SKYROVIX • MSME</p>
           </div>
 
           <div className="text-center">
             <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-              <QRCodeSVG value={verifyUrl} size={30} />
+              <QRCodeSVG value={verifyUrl} size={28} />
             </div>
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Digitally Verified</p>
-            <p className="text-[6px] text-slate-400 font-mono">Scan to verify online</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Digitally Verified</p>
+            <p className="text-[6.5px] sm:text-[7px] text-slate-400 font-mono leading-tight mt-0.5">Scan to verify</p>
           </div>
 
           <div className="text-center">
             {sigCofounderImg && <img src={sigCofounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.cofounder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.cofounder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.cofounder.title}</p>
           </div>
         </div>
 
@@ -383,7 +385,7 @@ export function LorSheet({
           <h1 className="text-base sm:text-lg font-black tracking-[0.18em] uppercase text-[#181619]">
             LETTER OF RECOMMENDATION
           </h1>
-          <div className="w-16 h-0.5 bg-[#f95c4b] mx-auto mt-1" />
+          <div className="w-36 h-0.5 bg-[#f95c4b] mx-auto mt-1.5" />
         </div>
 
         {/* Salutation */}
@@ -410,25 +412,56 @@ export function LorSheet({
         {/* Formal Recommendation Paragraphs */}
         <div className="space-y-2.5 text-xs text-slate-700 leading-relaxed text-justify mb-4">
           <p>
-            It is with immense pleasure that I formally write this Letter of Recommendation for <strong className="text-slate-900 font-bold">{fullName}</strong>, who has successfully completed a rigorous, hands-on virtual internship in <strong className="text-slate-900 font-bold">{domainName}</strong> at Skyrovix IT Solutions.
+            It is with immense pleasure and high professional regard that I formally write this Letter of Recommendation for <strong className="text-slate-900 font-bold">{fullName}</strong>, who has successfully completed a rigorous, hands-on virtual internship in <strong className="text-slate-900 font-bold">{domainName}</strong> at Skyrovix IT Solutions.
           </p>
           <p>
             Throughout the {durationMonths}-month intensive tenure, {fullName} exhibited exemplary technical competence, analytical acumen, and an exceptional dedication to engineering standards. The candidate spearheaded end-to-end full stack architecture implementations, robust API microservices, database schemas, and dynamic user interfaces with clean modular code and thorough unit validation.
           </p>
+
+          {/* Verified Capstone Project & Engineering Contributions Card */}
+          <div className="p-3 rounded-xl bg-[#faf8f2] border border-amber-300/80 my-2">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-amber-200/60">
+              <span className="text-[10px] font-bold text-[#f95c4b] uppercase tracking-wider">
+                Verified Capstone Project & Engineering Contributions
+              </span>
+              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Verified & Approved
+              </span>
+            </div>
+            <p className="font-bold text-xs text-slate-900 mb-2">
+              Project: <span className="text-[#f95c4b]">"{projectTitle}"</span>
+            </p>
+            <div className="space-y-1 text-[11px] text-slate-700 pl-1">
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#f95c4b] font-bold">•</span>
+                <span><strong className="text-slate-900">Full-Stack System Architecture:</strong> Engineered responsive components, state pipelines, and modular API controllers.</span>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#f95c4b] font-bold">•</span>
+                <span><strong className="text-slate-900">API Microservices & Security:</strong> Implemented secure RESTful endpoints, token authentication, and data validation layers.</span>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#f95c4b] font-bold">•</span>
+                <span><strong className="text-slate-900">Database Design & Integrity:</strong> Modeled relational schemas, structured query indexes, and ensured strict data persistence.</span>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#f95c4b] font-bold">•</span>
+                <span><strong className="text-slate-900">Quality Assurance & Delivery:</strong> Maintained Git version control, peer review standards, and automated deployment checks.</span>
+              </div>
+            </div>
+          </div>
+
           <p>
-            In their capstone initiative, <strong className="text-slate-900">"{projectTitle}"</strong>, {fullName} demonstrated deep technical mastery in modern web architectures, agile software delivery, responsive UI design, and production deployment resilience.
-          </p>
-          <p>
-            Beyond technical capabilities, {fullName} demonstrated exemplary professionalism, punctuality, and proactive communication. The candidate consistently incorporated constructive code review feedback and collaborated harmoniously with mentors and peers.
+            Beyond technical capabilities, {fullName} demonstrated exemplary professionalism, punctuality, and proactive communication. The candidate consistently incorporated constructive code review feedback from mentors, solved complex architectural challenges with autonomy, and collaborated harmoniously with peers.
           </p>
 
           {/* Mentor Assessment Quote */}
-          <div className="p-2.5 rounded-xl bg-[#faf8f2] border border-slate-200 text-[11px] font-medium text-slate-800 italic">
+          <div className="p-2.5 rounded-xl bg-[#faf8f2] border-l-4 border-l-[#f95c4b] border border-slate-200 text-[11px] font-medium text-slate-800 italic">
             "{mentorRemarks}"
           </div>
 
           <p className="text-[11px] text-slate-500 pt-1">
-            Please feel free to reach out to us at <strong className="text-[#f95c4b]">contact@skyrovix.in</strong> should you require further background information.
+            For institutional credentials verification or background inquiries, please contact our Credentials Board at <strong className="text-[#f95c4b]">contact@skyrovix.in</strong> or verify online using the QR code below.
           </p>
         </div>
 
@@ -436,28 +469,32 @@ export function LorSheet({
         <div className="grid grid-cols-4 items-end pt-3 border-t border-slate-200">
           <div className="text-center">
             {sigFounderImg && <img src={sigFounderImg} alt="Sign" className="h-8 mx-auto object-contain" />}
-            <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-            <p className="text-[7.5px] text-[#f95c4b] font-bold">{COMPANY.founder.title}</p>
+            <div className="w-20 h-px mx-auto my-1 bg-slate-400" />
+            <p className="font-bold text-[9px] text-slate-900 leading-tight">{COMPANY.founder.name}</p>
+            <p className="text-[7.5px] text-[#f95c4b] font-bold leading-tight mt-0.5">{COMPANY.founder.title}</p>
           </div>
 
           <div className="text-center">
             {sealImg && <img src={sealImg} alt="Seal" className="size-9 mx-auto object-contain" />}
-            <p className="text-[7px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
+            <div className="w-20 h-px mx-auto my-1 opacity-0" />
+            <p className="font-bold text-[8px] text-slate-500 leading-tight">Official Verified Seal</p>
+            <p className="text-[7.5px] text-transparent leading-tight mt-0.5 select-none">Seal</p>
           </div>
 
           <div className="text-center">
             <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-              <QRCodeSVG value={verifyUrl} size={34} />
+              <QRCodeSVG value={verifyUrl} size={32} />
             </div>
-            <p className="text-[7px] font-bold text-slate-500 mt-0.5">Scan to Verify</p>
+            <div className="w-20 h-px mx-auto my-1 opacity-0" />
+            <p className="font-bold text-[8px] text-slate-500 leading-tight">Scan to Verify</p>
+            <p className="text-[7.5px] text-transparent leading-tight mt-0.5 select-none">Verify</p>
           </div>
 
           <div className="text-center">
             {sigCofounderImg && <img src={sigCofounderImg} alt="Sign" className="h-8 mx-auto object-contain" />}
-            <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-            <p className="text-[7.5px] text-[#f95c4b] font-bold">{COMPANY.cofounder.title}</p>
+            <div className="w-20 h-px mx-auto my-1 bg-slate-400" />
+            <p className="font-bold text-[9px] text-slate-900 leading-tight">{COMPANY.cofounder.name}</p>
+            <p className="text-[7.5px] text-[#f95c4b] font-bold leading-tight mt-0.5">{COMPANY.cofounder.title}</p>
           </div>
         </div>
 
@@ -582,28 +619,32 @@ export function ExperienceLetterSheet({
         <div className="grid grid-cols-4 items-end pt-3 border-t border-slate-200">
           <div className="text-center">
             {sigFounderImg && <img src={sigFounderImg} alt="Sign" className="h-8 mx-auto object-contain" />}
-            <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-            <p className="text-[7.5px] text-emerald-700 font-bold">{COMPANY.founder.title}</p>
+            <div className="w-20 h-px mx-auto my-1 bg-slate-400" />
+            <p className="font-bold text-[9px] text-slate-900 leading-tight">{COMPANY.founder.name}</p>
+            <p className="text-[7.5px] text-emerald-700 font-bold leading-tight mt-0.5">{COMPANY.founder.title}</p>
           </div>
 
           <div className="text-center">
             {sealImg && <img src={sealImg} alt="Seal" className="size-9 mx-auto object-contain" />}
-            <p className="text-[7px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
+            <div className="w-20 h-px mx-auto my-1 opacity-0" />
+            <p className="font-bold text-[8px] text-slate-500 leading-tight">Official Verified Seal</p>
+            <p className="text-[7.5px] text-transparent leading-tight mt-0.5 select-none">Seal</p>
           </div>
 
           <div className="text-center">
             <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-              <QRCodeSVG value={verifyUrl} size={34} />
+              <QRCodeSVG value={verifyUrl} size={32} />
             </div>
-            <p className="text-[7px] font-bold text-slate-500 mt-0.5">Scan to Verify</p>
+            <div className="w-20 h-px mx-auto my-1 opacity-0" />
+            <p className="font-bold text-[8px] text-slate-500 leading-tight">Scan to Verify</p>
+            <p className="text-[7.5px] text-transparent leading-tight mt-0.5 select-none">Verify</p>
           </div>
 
           <div className="text-center">
             {sigCofounderImg && <img src={sigCofounderImg} alt="Sign" className="h-8 mx-auto object-contain" />}
-            <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-            <p className="text-[7.5px] text-emerald-700 font-bold">{COMPANY.cofounder.title}</p>
+            <div className="w-20 h-px mx-auto my-1 bg-slate-400" />
+            <p className="font-bold text-[9px] text-slate-900 leading-tight">{COMPANY.cofounder.name}</p>
+            <p className="text-[7.5px] text-emerald-700 font-bold leading-tight mt-0.5">{COMPANY.cofounder.title}</p>
           </div>
         </div>
 
@@ -723,27 +764,31 @@ export function ProjectCertificateSheet({
           <div className="text-center">
             {sigFounderImg && <img src={sigFounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.founder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.founder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.founder.title}</p>
           </div>
 
           <div className="text-center">
             {sealImg && <img src={sealImg} alt="Seal" className="size-7 sm:size-8 mx-auto object-contain" />}
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Official Verified Seal</p>
+            <p className="text-[6.5px] sm:text-[7px] text-transparent leading-tight mt-0.5 select-none">Seal</p>
           </div>
 
           <div className="text-center">
             <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-              <QRCodeSVG value={verifyUrl} size={30} />
+              <QRCodeSVG value={verifyUrl} size={28} />
             </div>
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Scan to verify</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Scan to verify</p>
+            <p className="text-[6.5px] sm:text-[7px] text-transparent leading-tight mt-0.5 select-none">Verify</p>
           </div>
 
           <div className="text-center">
             {sigCofounderImg && <img src={sigCofounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.cofounder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.cofounder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.cofounder.title}</p>
           </div>
         </div>
 
@@ -912,28 +957,32 @@ export function PerformanceReportSheet({
         <div className="grid grid-cols-4 items-end pt-3 border-t border-slate-200">
           <div className="text-center">
             {sigFounderImg && <img src={sigFounderImg} alt="Sign" className="h-8 mx-auto object-contain" />}
-            <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-            <p className="text-[7.5px] text-indigo-700 font-bold">{COMPANY.founder.title}</p>
+            <div className="w-20 h-px mx-auto my-1 bg-slate-400" />
+            <p className="font-bold text-[9px] text-slate-900 leading-tight">{COMPANY.founder.name}</p>
+            <p className="text-[7.5px] text-indigo-700 font-bold leading-tight mt-0.5">{COMPANY.founder.title}</p>
           </div>
 
           <div className="text-center">
             {sealImg && <img src={sealImg} alt="Seal" className="size-9 mx-auto object-contain" />}
-            <p className="text-[7px] font-bold text-slate-500 mt-0.5">Official Assessment Seal</p>
+            <div className="w-20 h-px mx-auto my-1 opacity-0" />
+            <p className="font-bold text-[8px] text-slate-500 leading-tight">Official Assessment Seal</p>
+            <p className="text-[7.5px] text-transparent leading-tight mt-0.5 select-none">Seal</p>
           </div>
 
           <div className="text-center">
             <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-              <QRCodeSVG value={verifyUrl} size={34} />
+              <QRCodeSVG value={verifyUrl} size={32} />
             </div>
-            <p className="text-[7px] font-bold text-slate-500 mt-0.5">Scan to Verify</p>
+            <div className="w-20 h-px mx-auto my-1 opacity-0" />
+            <p className="font-bold text-[8px] text-slate-500 leading-tight">Scan to Verify</p>
+            <p className="text-[7.5px] text-transparent leading-tight mt-0.5 select-none">Verify</p>
           </div>
 
           <div className="text-center">
             {sigCofounderImg && <img src={sigCofounderImg} alt="Sign" className="h-8 mx-auto object-contain" />}
-            <div className="w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-            <p className="text-[7.5px] text-indigo-700 font-bold">{COMPANY.cofounder.title}</p>
+            <div className="w-20 h-px mx-auto my-1 bg-slate-400" />
+            <p className="font-bold text-[9px] text-slate-900 leading-tight">{COMPANY.cofounder.name}</p>
+            <p className="text-[7.5px] text-indigo-700 font-bold leading-tight mt-0.5">{COMPANY.cofounder.title}</p>
           </div>
         </div>
 
@@ -1039,27 +1088,31 @@ export function AppreciationCertificateSheet({
           <div className="text-center">
             {sigFounderImg && <img src={sigFounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.founder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.founder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.founder.title}</p>
           </div>
 
           <div className="text-center">
             {sealImg && <img src={sealImg} alt="Seal" className="size-7 sm:size-8 mx-auto object-contain" />}
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Official Verified Seal</p>
+            <p className="text-[6.5px] sm:text-[7px] text-transparent leading-tight mt-0.5 select-none">Seal</p>
           </div>
 
           <div className="text-center">
             <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-              <QRCodeSVG value={verifyUrl} size={30} />
+              <QRCodeSVG value={verifyUrl} size={28} />
             </div>
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Scan to verify</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Scan to verify</p>
+            <p className="text-[6.5px] sm:text-[7px] text-transparent leading-tight mt-0.5 select-none">Verify</p>
           </div>
 
           <div className="text-center">
             {sigCofounderImg && <img src={sigCofounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.cofounder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.cofounder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.cofounder.title}</p>
           </div>
         </div>
 
@@ -1184,27 +1237,31 @@ export function SkillCertificateSheet({
           <div className="text-center">
             {sigFounderImg && <img src={sigFounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.founder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.founder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.founder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.founder.title}</p>
           </div>
 
           <div className="text-center">
             {sealImg && <img src={sealImg} alt="Seal" className="size-7 sm:size-8 mx-auto object-contain" />}
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Official Verified Seal</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Official Verified Seal</p>
+            <p className="text-[6.5px] sm:text-[7px] text-transparent leading-tight mt-0.5 select-none">Seal</p>
           </div>
 
           <div className="text-center">
             <div className="p-0.5 inline-block rounded bg-white border border-slate-200">
-              <QRCodeSVG value={verifyUrl} size={30} />
+              <QRCodeSVG value={verifyUrl} size={28} />
             </div>
-            <p className="text-[6.5px] font-bold text-slate-500 mt-0.5">Scan to verify</p>
+            <div className="w-16 sm:w-20 h-px mx-auto my-0.5 opacity-0" />
+            <p className="font-bold text-[7px] sm:text-[8px] text-slate-500 leading-tight">Scan to verify</p>
+            <p className="text-[6.5px] sm:text-[7px] text-transparent leading-tight mt-0.5 select-none">Verify</p>
           </div>
 
           <div className="text-center">
             {sigCofounderImg && <img src={sigCofounderImg} alt="Sign" className="h-6 sm:h-7 mx-auto object-contain" />}
             <div className="w-16 sm:w-20 h-px mx-auto my-0.5 bg-slate-400" />
-            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900">{COMPANY.cofounder.name}</p>
-            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold">{COMPANY.cofounder.title}</p>
+            <p className="font-bold text-[8px] sm:text-[9px] text-slate-900 leading-tight">{COMPANY.cofounder.name}</p>
+            <p className="text-[6.5px] sm:text-[7px] text-[#b45309] font-bold leading-tight mt-0.5">{COMPANY.cofounder.title}</p>
           </div>
         </div>
 
@@ -1216,3 +1273,4 @@ export function SkillCertificateSheet({
     </div>
   );
 }
+

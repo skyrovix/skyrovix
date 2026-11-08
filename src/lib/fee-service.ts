@@ -128,23 +128,26 @@ export function evaluateOfferStatus(
   if (!offerEnabled) {
     return { isActive: false, status: "inactive" };
   }
-  if (!startAt || !endAt) {
-    return { isActive: false, status: "inactive" };
+  // If offer is enabled and no explicit date range is specified, it is active indefinitely
+  if (!startAt && !endAt) {
+    return { isActive: true, status: "active" };
   }
-  const start = new Date(startAt).getTime();
-  const end = new Date(endAt).getTime();
   const current = now.getTime();
 
-  if (isNaN(start) || isNaN(end)) {
-    return { isActive: false, status: "inactive" };
+  if (startAt) {
+    const start = new Date(startAt).getTime();
+    if (!isNaN(start) && current < start) {
+      return { isActive: false, status: "scheduled" };
+    }
   }
 
-  if (current < start) {
-    return { isActive: false, status: "scheduled" };
+  if (endAt) {
+    const end = new Date(endAt).getTime();
+    if (!isNaN(end) && current > end) {
+      return { isActive: false, status: "expired" };
+    }
   }
-  if (current > end) {
-    return { isActive: false, status: "expired" };
-  }
+
   return { isActive: true, status: "active" };
 }
 

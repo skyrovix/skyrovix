@@ -257,15 +257,19 @@ export function TasksSection({
   const [dbTasks, setDbTasks] = useState<any[]>([]);
   const [tasksReady, setTasksReady] = useState(false);
 
-  const isPremiumActive = Boolean(isPremiumPlanEnabled && planType === "  premium");
+  const isPremiumActive = Boolean(
+    planType?.trim().toLowerCase() === "premium" ||
+    (totalTasks && totalTasks > 12)
+  );
   const effectiveLimit = useMemo(() => {
     if (domainSlug === "fullstack") {
       if (isPremiumActive) {
         const fullstackLimits: Record<number, number> = { 1: 5, 2: 8, 3: 25, 6: 50 };
-        return fullstackLimits[duration ?? 1] ?? 5;
+        const calculated = fullstackLimits[duration ?? 1] ?? 5;
+        return Math.max(calculated, totalTasks ?? 0);
       } else {
         const standardLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
-        return standardLimits[duration ?? 1] ?? 5;
+        return Math.max(standardLimits[duration ?? 1] ?? 5, totalTasks ?? 0);
       }
     }
     if (totalTasks && totalTasks > 0) return totalTasks;
@@ -297,7 +301,105 @@ export function TasksSection({
   }, [domainSlug]);
 
   const allTasks = useMemo(() => {
-    // 1. If domain tasks are configured in DB, use them
+    // 1. Get baseline roadmap tasks from static definition
+    const staticTasks = duration
+      ? getTasksByDuration(domainSlug, duration, effectiveLimit)
+      : (domainData?.tasks ?? []).filter((t) => t.taskNumber <= effectiveLimit);
+
+    // Build a lookup map of DB tasks by task_number
+    const dbTaskMap = new Map<number, any>();
+    dbTasks.forEach((t) => {
+      const num = Number(t.task_number);
+      if (num > 0 && num <= effectiveLimit) {
+        dbTaskMap.set(num, t);
+      }
+    });
+
+    // 2. If static tasks exist, merge with DB tasks
+    if (staticTasks.length > 0) {
+      const targetCount = effectiveLimit > 0 ? effectiveLimit : staticTasks.length;
+      const mergedList: Array<{
+        taskNumber: number;
+        title: string;
+        description: string;
+        features: string[];
+        outcome: string;
+        resources?: string;
+      }> = [];
+
+      for (let num = 1; num <= targetCount; num++) {
+        const st = staticTasks.find((s) => s.taskNumber === num);
+        const dbT = dbTaskMap.get(num);
+
+        if (st && dbT) {
+          const desc = dbT.description || st.description || "";
+          let features: string[] = st.features || [];
+          let cleanDesc = desc;
+          if (desc.includes("Key Features:")) {
+            const parts = desc.split("Key Features:");
+            cleanDesc = parts[0].trim();
+            const extracted = parts[1].split(",").map((f: string) => f.trim()).filter(Boolean);
+            if (extracted.length > 0) features = extracted;
+          } else if (desc.includes("\n")) {
+            const lines = desc.split("\n").map((l: string) => l.trim()).filter(Boolean);
+            cleanDesc = lines[0];
+            const extracted = lines.slice(1);
+            if (extracted.length > 0) features = extracted;
+          }
+          mergedList.push({
+            taskNumber: num,
+            title: dbT.title || st.title,
+            description: cleanDesc,
+            features: features.length > 0 ? features : st.features,
+            outcome: st.outcome || `Complete and deploy a working ${dbT.title || st.title}.`,
+            resources: dbT.resources || undefined,
+          });
+        } else if (st) {
+          mergedList.push({
+            taskNumber: st.taskNumber,
+            title: st.title,
+            description: st.description,
+            features: st.features,
+            outcome: st.outcome,
+          });
+        } else if (dbT) {
+          const desc = dbT.description || "";
+          let features: string[] = [];
+          let cleanDesc = desc;
+          if (desc.includes("Key Features:")) {
+            const parts = desc.split("Key Features:");
+            cleanDesc = parts[0].trim();
+            features = parts[1].split(",").map((f: string) => f.trim()).filter(Boolean);
+          } else if (desc.includes("\n")) {
+            const lines = desc.split("\n").map((l: string) => l.trim()).filter(Boolean);
+            cleanDesc = lines[0];
+            features = lines.slice(1);
+          }
+          if (features.length === 0) {
+            features = [
+              "Project architecture and workflow planning",
+              "Clean code implementation with modern tools",
+              "Functional testing and bug fixing",
+              "Documentation and GitHub repository submission",
+            ];
+          }
+          mergedList.push({
+            taskNumber: num,
+            title: dbT.title || `Task ${num}`,
+            description: cleanDesc || `Complete ${dbT.title} for your ${domainData?.name ?? domainSlug} internship.`,
+            features,
+            outcome: `Complete and deploy a working ${dbT.title}.`,
+            resources: dbT.resources || undefined,
+          });
+        }
+      }
+
+      if (mergedList.length > 0) {
+        return mergedList;
+      }
+    }
+
+    // 3. Fallback: if no static tasks found for this domain, use DB tasks
     const nonZeroDbTasks = dbTasks.filter(
       (t) => Number(t.task_number) > 0 && Number(t.task_number) <= effectiveLimit
     );
@@ -334,7 +436,7 @@ export function TasksSection({
       });
     }
 
-    // 2. Fallback to static task roadmap
+    // 4. Default fallback
     return duration
       ? getTasksByDuration(domainSlug, duration, effectiveLimit)
       : (domainData?.tasks ?? []);
@@ -352,6 +454,7 @@ export function TasksSection({
           s.task_title?.toLowerCase().includes("linkedin") ||
           s.task_title?.toLowerCase().includes("offer letter")
         )) return true;
+        if (taskNumber !== undefined && Number(s.task_number) === taskNumber) return true;
         if (taskTitle && s.task_title && s.task_title.toLowerCase().trim() === taskTitle.toLowerCase().trim()) return true;
         return false;
       });

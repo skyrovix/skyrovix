@@ -41,11 +41,11 @@ import {
   ListChecks, LayoutDashboard, Flag, AlertTriangle, AlertCircle, Zap, Hash, Circle, Loader2,
   TrendingUp, Lock, Unlock, Eye, LogOut,
   Settings, Wallet, CreditCard, ScrollText, Briefcase,
-  Share2, HelpCircle, Package, Instagram, Crown, Menu,
+  Share2, HelpCircle, Package, Instagram, Crown, Menu, Gift,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StudentDashboardSidebar } from "@/components/dashboard/StudentDashboardSidebar";
 import { MyDocumentsSection } from "@/components/dashboard/MyDocumentsSection";
+import { StudentKitDashboardView } from "@/components/dashboard/StudentKitDashboardView";
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -392,14 +392,17 @@ function Dashboard() {
   }, [allAppSubmissions, app]);
 
   const getAppTaskLimit = (appDomain?: string | null, appDuration?: number | null, totalTasks?: number | null, planType?: string | null) => {
-    const isPremiumActive = Boolean(isPremiumPlanGlobalEnabled && planType === "premium");
+    const isPremiumActive = Boolean(
+      planType?.trim().toLowerCase() === "premium" || (totalTasks && totalTasks > 12)
+    );
     if (appDomain === "fullstack") {
       if (isPremiumActive) {
         const fsLimits: Record<number, number> = { 1: 5, 2: 8, 3: 25, 6: 50 };
-        return fsLimits[appDuration ?? 1] ?? 5;
+        const calculated = fsLimits[appDuration ?? 1] ?? 5;
+        return Math.max(calculated, totalTasks ?? 0);
       }
       const fsLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
-      return fsLimits[appDuration ?? 1] ?? 5;
+      return Math.max(fsLimits[appDuration ?? 1] ?? 5, totalTasks ?? 0);
     }
     if (totalTasks && totalTasks > 0) return totalTasks;
     const defaultLimits: Record<number, number> = { 1: 5, 2: 8, 3: 10, 6: 12 };
@@ -544,7 +547,7 @@ function Dashboard() {
   }, [appsList, allAppSubmissions, allAppCerts, qc]);
 
   const searchParams = Route.useSearch();
-  const rawTab = searchParams.tab ?? "tasks";
+  const rawTab = searchParams.tab ?? "overview";
   const active =
     rawTab === "projects" ||
     rawTab === "guidance" ||
@@ -567,12 +570,10 @@ function Dashboard() {
   const certTriggered = useRef(false);
   const [upgradePayment, setUpgradePayment] = useState<any | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const isPremium = Boolean(
-    isPremiumPlanGlobalEnabled &&
     app &&
-    app.plan_type === "premium" &&
+    app.plan_type?.trim().toLowerCase() === "premium" &&
     (app.plan_payment_status === "paid" || app.plan_payment_status === "waived")
   );
 
@@ -1046,14 +1047,14 @@ function Dashboard() {
           </div>
         );
       }
-      if (active === "tasks" || active === "certificates" || active === "documents") {
+      if (active === "tasks" || active === "certificates" || active === "documents" || active === "student-kit") {
         return (
           <div className="space-y-6">
             <DashboardHero
-              badge={active === "tasks" ? "My Tasks" : active === "documents" ? "My Documents" : "Certificates"}
-              title={active === "tasks" ? "Internship Tasks" : active === "documents" ? "Advanced Documents" : "Your Certificates"}
-              description={active === "tasks" ? "Track and complete your internship tasks with mentor feedback." : active === "documents" ? "View and download your verified advanced credentials." : "View and download your verified internship certificates."}
-              icon={active === "tasks" ? ListChecks : active === "documents" ? FileText : Award}
+              badge={active === "tasks" ? "My Tasks" : active === "documents" ? "My Documents" : active === "student-kit" ? "Student Kit" : "Certificates"}
+              title={active === "tasks" ? "Internship Tasks" : active === "documents" ? "Advanced Documents" : active === "student-kit" ? "Student Kit" : "Your Certificates"}
+              description={active === "tasks" ? "Track and complete your internship tasks with mentor feedback." : active === "documents" ? "View and download your verified advanced credentials." : active === "student-kit" ? "Access your learning resources, roadmaps & development kits." : "View and download your verified internship certificates."}
+              icon={active === "tasks" ? ListChecks : active === "documents" ? FileText : active === "student-kit" ? Gift : Award}
             />
             <div className="rounded-3xl border border-dashed border-border/50 bg-white/40 p-12 text-center backdrop-blur-xl dark:bg-slate-900/40">
               <Briefcase className="size-12 mx-auto mb-4 text-muted-foreground/50" />
@@ -1074,7 +1075,134 @@ function Dashboard() {
       );
     }
 
-    if (active === "overview" || active === "tasks") {
+    if (active === "tasks") {
+      return (
+        <div className="space-y-6">
+          <DashboardHero
+            badge="My Tasks"
+            title={`${domain?.name ?? app.domain} Tasks`}
+            description="Complete and submit your milestone tasks sequentially to earn mentor verification."
+            icon={ListChecks}
+          />
+
+          {/* Multiple Enrolled Domains Switcher */}
+          {appsList && appsList.length > 1 && (
+            <div className="hidden sm:flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl border border-border/60 bg-white/80 backdrop-blur-xl shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="size-8 rounded-xl bg-[#f95c4b]/10 text-[#f95c4b] grid place-items-center font-bold">
+                  <Briefcase className="size-4" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs sm:text-sm text-[#181619]">Your Enrolled Internships ({appsList.length})</h4>
+                  <p className="text-[11px] text-muted-foreground">Select an internship to view its tasks, progress, or certificate</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {appsList.map((a) => {
+                  const d = getDomain(a.domain);
+                  const isCurrent = app?.id === a.id;
+                  const aSubs = allAppSubmissions?.filter((s: any) => s.application_id === a.id) ?? [];
+                  const aApproved = aSubs.filter((s: any) => s.status === "approved").length;
+                  const aTotal = getAppTaskLimit(a.domain, a.duration, a.total_tasks, a.plan_type);
+                  const isCompleted = a.all_tasks_verified || a.certificate_payment_unlocked || a.status === "completed" || (aApproved >= aTotal && aTotal > 0);
+                  const aCert = allAppCerts?.find((c: any) => c.application_id === a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAppId(a.id);
+                        toast.success(`Active domain set to ${d?.name ?? a.domain}`);
+                      }}
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                        isCurrent
+                          ? "bg-gradient-to-r from-[#f95c4b] to-[#ee9590] text-white shadow-md shadow-[#f95c4b]/20 scale-[1.02]"
+                          : "bg-white hover:bg-[#faf8f2] text-foreground border border-border/60 shadow-xs"
+                      }`}
+                    >
+                      <span className="text-base">{d?.icon ?? "💼"}</span>
+                      <span>{d?.name ?? a.domain}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                        isCurrent
+                          ? "bg-white/20 text-white"
+                          : aCert
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : isCompleted
+                              ? "bg-[#f95c4b]/10 text-[#f95c4b]"
+                              : "bg-slate-100 text-muted-foreground"
+                      }`}>
+                        {aCert ? "Certified" : isCompleted ? "Tasks Done" : `${aApproved}/${aTotal}`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Task Progress Summary Card */}
+          <div className="rounded-3xl border border-border/60 bg-white/80 p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-[#181619] flex items-center gap-2">
+                  <ListChecks className="size-4.5 text-[#f95c4b]" />
+                  <span>Syllabus Milestone Deliverables</span>
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Track your weekly code tasks, GitHub repositories, and mentor feedback.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-xs font-bold px-2.5 py-1">
+                  ✓ {internApproved} of {internTotal || 5} Approved
+                </Badge>
+                {internPending > 0 && (
+                  <Badge className="bg-amber-500/10 text-amber-700 border border-amber-500/20 text-xs font-bold px-2.5 py-1">
+                    ⏳ {internPending} In Review
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full brand-gradient rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round((internApproved / Math.max(1, internTotal || 5)) * 100))}%` }}
+              />
+            </div>
+          </div>
+
+          <TasksSection
+            domainSlug={app.domain}
+            submissions={internSubmissions ?? []}
+            appId={app.id}
+            startDate={app.offer_issued_at || app.created_at}
+            duration={app.duration ?? undefined}
+            totalTasks={app.total_tasks}
+            planType={app.plan_type}
+            isPremiumPlanEnabled={isPremiumPlanGlobalEnabled}
+            submissionStatus={submissionStatus}
+            isAppFeeRequired={isAppFeeRequired}
+            appFeeAmount={appFeeAmount}
+            appFeePayment={appPayment}
+            isCertPaymentRequired={certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED"}
+            certFeeAmount={app.plan_type === "premium" ? (Number(app.plan_fee) || premiumPlanAmount) : certFeeAmount}
+            onOpenCertPayment={() => handleOpenCertPayment(app)}
+            onNavigateCertificates={() => {
+              navigate({ search: { tab: "certificates" } as any });
+            }}
+            onOpenAppPayment={() => {
+              navigate({ search: { tab: "payment" } as any });
+            }}
+            onChange={() => {
+              qc.invalidateQueries({ queryKey: ["all-submissions"] });
+              qc.invalidateQueries({ queryKey: ["my-applications"] });
+            }}
+          />
+        </div>
+      );
+    }
+
+    if (active === "overview") {
       if (detailView?.type === "app") {
         const da = appsList?.find((a) => a.id === detailView.id);
         if (!da) {
@@ -1243,8 +1371,8 @@ function Dashboard() {
                       </p>
                     </div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type === "premium" && isPremiumPlanGlobalEnabled ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type === "premium" ? "pending" : "not_required")}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type?.trim().toLowerCase() === "premium" ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type?.trim().toLowerCase() === "premium" ? "pending" : "not_required")}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
                       <p className="text-muted-foreground">App Fee Status</p>
                       {daIsAppFeeRequired ? (
@@ -1467,7 +1595,7 @@ function Dashboard() {
 
           {/* Multiple Enrolled Domains Switcher */}
           {appsList && appsList.length > 1 && (
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl border border-border/60 bg-white/80 backdrop-blur-xl shadow-xs">
+            <div className="hidden sm:flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl border border-border/60 bg-white/80 backdrop-blur-xl shadow-xs">
               <div className="flex items-center gap-2.5">
                 <div className="size-8 rounded-xl bg-[#f95c4b]/10 text-[#f95c4b] grid place-items-center font-bold">
                   <Briefcase className="size-4" />
@@ -1807,6 +1935,22 @@ function Dashboard() {
       );
     }
 
+    if (active === "student-kit") {
+      return (
+        <div className="space-y-6">
+          <StudentKitDashboardView
+            app={app}
+            isPremium={isPremium}
+            onUpgradeToPremium={
+              isPremiumPlanGlobalEnabled && app?.domain === "fullstack"
+                ? () => handleTriggerUpgrade(app)
+                : undefined
+            }
+          />
+        </div>
+      );
+    }
+
     if (active === "profile") {
       return (
         <div className="space-y-6">
@@ -1969,8 +2113,8 @@ function Dashboard() {
                       </p>
                     </div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Approved Tasks</p><p className="font-semibold mt-0.5">{daApproved} of {daTotal}</p></div>
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type === "premium" && isPremiumPlanGlobalEnabled ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
-                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type === "premium" ? "pending" : "not_required")}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Tier</p><p className="font-semibold mt-0.5 text-foreground">{da.plan_type?.trim().toLowerCase() === "premium" ? `Premium Plan (₹${premiumPlanAmount})` : "Standard Plan"}</p></div>
+                    <div className="rounded-xl border border-border/30 bg-secondary/30 p-3"><p className="text-muted-foreground">Plan Payment</p><p className="font-semibold mt-0.5 capitalize">{da.plan_payment_status || (da.plan_type?.trim().toLowerCase() === "premium" ? "pending" : "not_required")}</p></div>
                     <div className="rounded-xl border border-border/30 bg-secondary/30 p-3">
                       <p className="text-muted-foreground">App Fee Status</p>
                       {daIsAppFeeRequired ? (
@@ -2088,7 +2232,7 @@ function Dashboard() {
                           <div className="flex flex-wrap items-center gap-2 mb-1">
                             <h3 className="font-bold text-base text-[#181619]">{d?.name ?? a.domain}</h3>
                             <Badge className="text-[10px] px-2 py-0.5 rounded-lg border-0 bg-emerald-500 text-white">{a.status === "ongoing" ? "Active" : a.status}</Badge>
-                            {a.plan_type === "premium" && isPremiumPlanGlobalEnabled ? (
+                            {a.plan_type?.trim().toLowerCase() === "premium" ? (
                               <Badge className="text-[10px] px-2 py-0.5 rounded-lg border-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold flex items-center gap-1">
                                 <Crown className="size-2.5" /> Premium Plan
                               </Badge>
@@ -2100,7 +2244,7 @@ function Dashboard() {
                             {aCert && <Badge className="text-[10px] px-2 py-0.5 rounded-lg border-0 bg-emerald-600 text-white">Certified</Badge>}
                           </div>
                           <p className="text-xs text-muted-foreground mb-3">
-                            ID: <span className="font-mono font-bold text-[#181619]">{a.intern_id}</span> · {a.duration ?? 1} month{(a.duration ?? 1) > 1 ? "s" : ""} · {a.plan_type === "premium" && isPremiumPlanGlobalEnabled ? "Premium Tier" : "Standard Tier"} · Applied {new Date(a.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                            ID: <span className="font-mono font-bold text-[#181619]">{a.intern_id}</span> · {a.duration ?? 1} month{(a.duration ?? 1) > 1 ? "s" : ""} · {a.plan_type?.trim().toLowerCase() === "premium" ? "Premium Tier" : "Standard Tier"} · Applied {new Date(a.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                           </p>
                           <div className="flex items-center gap-3">
                             <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
@@ -2817,63 +2961,7 @@ function Dashboard() {
 
           {/* Main Content Area */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
-            {/* Mobile Navigation Trigger Bar (screens < lg) */}
-            <div className="lg:hidden flex items-center justify-between p-3 rounded-2xl bg-white/95 border border-border/70 shadow-xs backdrop-blur-md">
-              <button
-                type="button"
-                onClick={() => setMobileNavOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#181619] text-white text-xs font-bold shadow-sm cursor-pointer"
-              >
-                <Menu className="size-4" />
-                <span>Dashboard Menu</span>
-              </button>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#181619]">
-                  {navItems.find((n) => n.id === active)?.label || "Overview"}
-                </span>
-                <span className="size-2 rounded-full bg-[#f95c4b]" />
-              </div>
-
-              <div className="size-8 rounded-xl brand-gradient text-white grid place-items-center text-xs font-bold shadow-xs">
-                {(app?.full_name || "S").slice(0, 1).toUpperCase()}
-              </div>
-            </div>
-
-            {/* Mobile Drawer Sheet */}
-            <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-              <SheetContent side="left" className="p-3.5 w-72 bg-white flex flex-col justify-between">
-                <SheetHeader className="text-left pb-2 border-b border-border/40">
-                  <SheetTitle className="text-xs font-black uppercase tracking-wider text-[#181619] flex items-center gap-2">
-                    <span className="size-6 rounded-lg brand-gradient text-white grid place-items-center text-xs">
-                      S
-                    </span>
-                    Student Workspace
-                  </SheetTitle>
-                </SheetHeader>
-
-                <div className="flex-1 overflow-y-auto py-2">
-                  <StudentDashboardSidebar
-                    activeTab={active}
-                    onSelectTab={(tabId) => {
-                      setMobileNavOpen(false);
-                      navigate({ search: { tab: tabId } as any });
-                    }}
-                    app={app}
-                    domainName={domain?.name}
-                    isPremium={isPremium}
-                    onUpgradeToPremium={app?.domain === "fullstack" ? () => {
-                      setMobileNavOpen(false);
-                      handleTriggerUpgrade(app);
-                    } : undefined}
-                    collapsed={false}
-                    isMobileSheet={true}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-
-            {/* Main Content Body (Clean & wide without top horizontal pills) */}
+            {/* Main Content Body (Clean & wide without duplicate top bar) */}
             <main className="w-full min-w-0">
               {renderContent()}
             </main>
@@ -3825,7 +3913,15 @@ function LockedCertificateCard({
     (internTotal > 0 && internApproved >= internTotal)
   );
   const isOfferActive = Boolean(certFeeConfig?.offer_enabled ?? false);
-  const isOfferEligible = Boolean(isOfferActive && app?.certificate_offer_eligible);
+  const isOfferEligible = Boolean(
+    app?.certificate_offer_eligible === true ||
+    app?.certificate_offer_eligible === 1 ||
+    app?.certificate_offer_eligible === "1" ||
+    app?.certificate_offer_eligible === "true" ||
+    Boolean(app?.certificate_offer_eligible) ||
+    app?.plan_type === "premium" ||
+    isOfferActive
+  );
   const isFeeEnabled = certFeeConfig ? (certFeeConfig.enabled !== false && certFeeConfig.is_enabled !== false) : (certFeeAmount ?? 100) > 0;
   const paymentStatus = (
     certPaymentRecord?.status ||
@@ -4244,13 +4340,23 @@ function WelcomeDashboard({ user, onCreated }: { user: any; onCreated: () => voi
             Your Skyrovix learning hub. Select your internship domain, complete practical tasks, and apply for an internship anytime.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button size="lg" className="brand-gradient text-white border-0 rounded-2xl h-11 hover:opacity-95 shadow-md shadow-[#f95c4b]/20" onClick={() => setShowApplyDialog(true)}>
-              <FileText className="mr-2 size-4" /> Apply for Internship
+            <Button asChild size="lg" className="brand-gradient text-white border-0 rounded-2xl h-11 hover:opacity-95 shadow-md shadow-[#f95c4b]/20 cursor-pointer">
+              <Link to="/internship">
+                <FileText className="mr-2 size-4" /> Apply for Internship
+              </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-2xl h-11 bg-white border-border/60 hover:bg-[#faf8f2]">
-              <Link to="/internship"><Layers className="mr-2 size-4" /> Explore Internships</Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-2xl h-11 bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-500/30 gap-2 text-xs sm:text-sm font-bold shadow-2xs hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+              onClick={() => window.open("https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f", "_blank")}
+            >
+              <svg className="size-4 fill-emerald-600 shrink-0" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.46h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+              </svg>
+              <span>WhatsApp Channel</span>
             </Button>
-            <Button size="lg" variant="outline" className="rounded-2xl h-11 bg-white hover:bg-slate-50 gap-2 text-xs font-bold" onClick={() => window.open("https://www.instagram.com/skyrovix?stkn=ZXY2ZXdxZTM5czNr", "_blank")}>
+            <Button size="lg" variant="outline" className="rounded-2xl h-11 bg-white hover:bg-slate-50 gap-2 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer" onClick={() => window.open("https://www.instagram.com/skyrovix?stkn=ZXY2ZXdxZTM5czNr", "_blank")}>
               <Instagram className="size-4 text-pink-600" /> Instagram
             </Button>
           </div>

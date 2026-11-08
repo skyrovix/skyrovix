@@ -390,6 +390,15 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
         await dbQuery(
           `UPDATE public.applications
            SET plan_payment_status = 'paid',
+               plan_type = 'premium',
+               total_tasks = CASE
+                 WHEN domain = 'fullstack' AND duration = 6 THEN 50
+                 WHEN domain = 'fullstack' AND duration = 3 THEN 25
+                 WHEN duration = 6 THEN 12
+                 WHEN duration = 3 THEN 10
+                 WHEN duration = 2 THEN 8
+                 ELSE 5
+               END,
                plan_payment_id = COALESCE(plan_payment_id, $1),
                plan_paid_at = COALESCE(plan_paid_at, now()),
                status = 'approved',
@@ -584,6 +593,15 @@ export const verifyPaymentOrderServer = createServerFn({ method: "POST" })
           await client.query(
             `UPDATE public.applications
              SET plan_payment_status = 'paid',
+                 plan_type = 'premium',
+                 total_tasks = CASE
+                   WHEN domain = 'fullstack' AND duration = 6 THEN 50
+                   WHEN domain = 'fullstack' AND duration = 3 THEN 25
+                   WHEN duration = 6 THEN 12
+                   WHEN duration = 3 THEN 10
+                   WHEN duration = 2 THEN 8
+                   ELSE 5
+                 END,
                  plan_payment_id = $1,
                  plan_payment_method = $2,
                  plan_paid_at = COALESCE(plan_paid_at, now()),
