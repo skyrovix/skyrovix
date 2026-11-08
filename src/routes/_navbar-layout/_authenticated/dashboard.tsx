@@ -780,10 +780,15 @@ function Dashboard() {
       return toast.error("Referral Name is required for selected referral source");
     }
     
-    // Check if already enrolled in this domain and active/pending
-    const alreadyEnrolled = appsList?.some(a => a.domain === newDomain && (a.status === "ongoing" || a.status === "approved" || a.status === "pending"));
-    if (alreadyEnrolled) {
-      return toast.error("You are already enrolled or have a pending application in this domain!");
+    // Check if already enrolled in this exact domain and duration
+    const exactDuplicate = appsList?.some(
+      (a) =>
+        a.domain === newDomain &&
+        Number(a.duration) === Number(newDuration) &&
+        (a.status === "ongoing" || a.status === "approved" || a.status === "pending")
+    );
+    if (exactDuplicate) {
+      return toast.error("You already have an active application with this duration! Please select another duration.");
     }
 
     if (newDomain !== "fullstack" && (newDuration === 3 || newDuration === 6)) {
@@ -2404,14 +2409,11 @@ function Dashboard() {
                     <SelectValue placeholder="Choose a learning stream..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {DOMAINS.map((d) => {
-                      const isEnrolled = enrolledSlugsForNew.has(d.slug);
-                      return (
-                        <SelectItem key={d.slug} value={d.slug} disabled={isEnrolled}>
-                          {d.name} {isEnrolled && "(Already Enrolled)"}
-                        </SelectItem>
-                      );
-                    })}
+                    {DOMAINS.map((d) => (
+                      <SelectItem key={d.slug} value={d.slug}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

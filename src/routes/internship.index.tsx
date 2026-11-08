@@ -499,14 +499,11 @@ function DomainsPage() {
                         <SelectValue placeholder="Choose a learning stream..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {DOMAINS.map((d) => {
-                          const isEnrolled = enrolledSlugs.has(d.slug);
-                          return (
-                            <SelectItem key={d.slug} value={d.slug} disabled={isEnrolled}>
-                              {d.name} {isEnrolled && "(Already Enrolled)"}
-                            </SelectItem>
-                          );
-                        })}
+                        {DOMAINS.map((d) => (
+                          <SelectItem key={d.slug} value={d.slug}>
+                            {d.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
