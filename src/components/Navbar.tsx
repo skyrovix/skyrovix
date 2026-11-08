@@ -28,7 +28,8 @@ import {
   FileText,
   Gift,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getPublicSiteUrl } from "@/lib/constants";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -239,8 +240,38 @@ export function Navbar({ variant }: { variant?: "public" | "auto" } = {}) {
     variant === "public"
       ? false
       : pathname === "/dashboard" || pathname.startsWith("/review");
+  const { data: userApps } = useQuery({
+    queryKey: ["navbar-user-apps", user?.id],
+    enabled: !!user,
+    staleTime: 15_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("applications")
+        .select("id, domain, plan_type, plan_payment_status")
+        .eq("user_id", user!.id);
+      return data ?? [];
+    },
+  });
+
+  const isUserPremium = Boolean(
+    userApps?.some(
+      (a: any) =>
+        a.plan_type?.trim().toLowerCase() === "premium" &&
+        (a.plan_payment_status === "paid" || a.plan_payment_status === "waived")
+    )
+  );
+
+  const filteredDashboardItems = useMemo(() => {
+    return DASHBOARD_ITEMS.filter((item) => {
+      if (item.label === "Student Kit") {
+        return isUserPremium;
+      }
+      return true;
+    });
+  }, [isUserPremium]);
+
   const desktopItems = NAV;
-  const mobileItems = isDashboardPage ? DASHBOARD_ITEMS : NAV;
+  const mobileItems = isDashboardPage ? filteredDashboardItems : NAV;
 
   const isItemActive = (
     item: (typeof DASHBOARD_ITEMS)[number] | (typeof NAV)[number],

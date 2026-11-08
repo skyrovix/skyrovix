@@ -75,7 +75,7 @@ export function StudentKitDashboardView({
   });
 
   const kits = data?.kits || [];
-  const isPremiumUser = Boolean(data?.isPremiumUser || isPremium || app?.plan_type === "premium");
+  const isPremiumUser = Boolean(isPremium);
 
   // Primary kit (Web Development Student Kit)
   const primaryKit: StudentKitItem = kits[0] || {
@@ -86,13 +86,13 @@ export function StudentKitDashboardView({
       "From complete beginner to job-ready full stack developer. Complete learning resources, roadmap, cheat sheets, code templates & development tools.",
     pdf_url: "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf",
     cover_image_url: "/student-kit-cover.jpg",
-    price: 20,
+    price: 200,
     is_unlocked: isPremiumUser,
     unlock_reason: isPremiumUser ? "premium" : "locked",
     can_download: isPremiumUser,
   };
 
-  const isUnlocked = Boolean(primaryKit.is_unlocked || isPremiumUser);
+  const isUnlocked = Boolean(isPremiumUser);
 
   // Unlock mutation
   const unlockMutation = useMutation({
@@ -123,7 +123,7 @@ export function StudentKitDashboardView({
   });
 
   const handleDownload = (kit: StudentKitItem) => {
-    if (kit.is_unlocked || isPremiumUser) {
+    if (isPremiumUser) {
       toast.success("Downloading Student Kit PDF...");
       const link = document.createElement("a");
       link.href = kit.pdf_url;
@@ -133,18 +133,26 @@ export function StudentKitDashboardView({
       link.click();
       document.body.removeChild(link);
     } else {
-      setSelectedKit(kit);
-      setUnlockModalOpen(true);
+      if (onUpgradeToPremium) {
+        onUpgradeToPremium();
+      } else {
+        setSelectedKit(kit);
+        setUnlockModalOpen(true);
+      }
     }
   };
 
   const handleOpenPreview = (kit: StudentKitItem) => {
-    if (kit.is_unlocked || isPremiumUser) {
+    if (isPremiumUser) {
       setSelectedKit(kit);
       setPreviewOpen(true);
     } else {
-      setSelectedKit(kit);
-      setUnlockModalOpen(true);
+      if (onUpgradeToPremium) {
+        onUpgradeToPremium();
+      } else {
+        setSelectedKit(kit);
+        setUnlockModalOpen(true);
+      }
     }
   };
 
@@ -295,31 +303,19 @@ export function StudentKitDashboardView({
                   <div>
                     <div className="flex items-baseline gap-2.5">
                       <span className="text-2xl sm:text-3xl font-black text-[#181619] dark:text-white tracking-tight">
-                        {isPremiumUser ? "FREE" : isUnlocked ? "UNLOCKED" : `₹${primaryKit.price}`}
+                        {isPremiumUser ? "UNLOCKED & FREE" : "LOCKED (PREMIUM ONLY)"}
                       </span>
-                      {!isPremiumUser && !isUnlocked && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground line-through font-bold">
-                            ₹499.00
-                          </span>
-                          <span className="text-[10.5px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
-                            96% Subsidized
-                          </span>
-                        </div>
-                      )}
                     </div>
                     <p className="text-xs text-muted-foreground font-medium mt-1">
                       {isPremiumUser
                         ? "✨ Complimentarily unlocked for your Full Stack Premium Internship plan."
-                        : isUnlocked
-                        ? "✓ Verified purchase for this internship application. Download anytime."
-                        : "Nominal download fee for Standard Plan students. Free for Premium Track."}
+                        : "The official Student Kit is exclusively available for verified Full Stack Premium Interns."}
                     </p>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
-                    {isUnlocked ? (
+                    {isPremiumUser ? (
                       <>
                         <Button
                           variant="outline"
@@ -339,16 +335,15 @@ export function StudentKitDashboardView({
                       </>
                     ) : (
                       <>
-                        <Button
-                          onClick={() => {
-                            setSelectedKit(primaryKit);
-                            setUnlockModalOpen(true);
-                          }}
-                          className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-6 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
-                        >
-                          <Lock className="size-4" />
-                          Unlock & Download Kit (₹{primaryKit.price})
-                        </Button>
+                        {onUpgradeToPremium && (
+                          <Button
+                            onClick={onUpgradeToPremium}
+                            className="rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-extrabold gap-2 h-11 px-6 shadow-lg shadow-amber-500/25 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all"
+                          >
+                            <Crown className="size-4" />
+                            {app?.plan_type === "premium" ? "Complete Payment (₹200) to Unlock" : "Upgrade to Premium (₹200) to Unlock"}
+                          </Button>
+                        )}
                       </>
                     )}
                   </div>

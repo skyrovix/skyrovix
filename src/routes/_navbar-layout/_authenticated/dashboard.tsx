@@ -577,6 +577,12 @@ function Dashboard() {
     (app.plan_payment_status === "paid" || app.plan_payment_status === "waived")
   );
 
+  const isUnpaidPremium = Boolean(
+    app &&
+    app.plan_type?.trim().toLowerCase() === "premium" &&
+    !isPremium
+  );
+
   const handleTriggerUpgrade = (targetApp?: any) => {
     const a = targetApp || app;
     if (!a) return;
@@ -1082,6 +1088,55 @@ function Dashboard() {
     }
 
     if (active === "tasks") {
+      if (isUnpaidPremium) {
+        return (
+          <div className="space-y-6">
+            <DashboardHero
+              badge="Tasks Locked"
+              title={`${domain?.name ?? app.domain} Tasks`}
+              description="Complete your Premium Plan payment to unlock all your tasks and capstone project milestones."
+              icon={Lock}
+            />
+
+            <div className="rounded-3xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-white to-orange-500/5 p-8 sm:p-12 backdrop-blur-xl shadow-xl dark:from-amber-950/20 dark:to-slate-900/60 text-center max-w-2xl mx-auto space-y-6">
+              <div className="mx-auto size-20 rounded-3xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white grid place-items-center shadow-lg shadow-amber-500/30">
+                <Crown className="size-10 fill-current" />
+              </div>
+
+              <div className="space-y-2">
+                <Badge className="bg-amber-500 text-slate-950 font-black text-xs px-3 py-1">
+                  👑 PREMIUM PLAN PAYMENT PENDING
+                </Badge>
+                <h2 className="text-xl sm:text-3xl font-black text-foreground tracking-tight">
+                  Complete Payment to Unlock All Tasks
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto">
+                  You enrolled in the Full Stack Intensive Track ({app.duration ?? 3} Months). Please complete your ₹{premiumPlanAmount} payment to access all {getAppTaskLimit(app.domain, app.duration, app.total_tasks, app.plan_type)} tasks, project blueprints, Student Kit, and LOR eligibility.
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  size="lg"
+                  onClick={() => handleTriggerUpgrade(app)}
+                  className="rounded-2xl h-12 px-8 text-sm font-black bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white border-0 gap-2 shadow-xl shadow-amber-500/30 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                >
+                  <Crown className="size-4" /> Pay ₹{premiumPlanAmount} &amp; Unlock Tasks
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate({ search: { tab: "overview" } as any })}
+                  className="rounded-2xl h-12 px-6 text-xs font-bold border-border/80 cursor-pointer"
+                >
+                  Back to Overview
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="space-y-6">
           <DashboardHero
@@ -1949,6 +2004,59 @@ function Dashboard() {
     }
 
     if (active === "student-kit") {
+      if (!isPremium) {
+        return (
+          <div className="space-y-6">
+            <DashboardHero
+              badge="Premium Exclusive"
+              title="Official Student Kit"
+              description="The Skyrovix 120+ page Web Development Student Kit is available exclusively for verified Premium Plan interns."
+              icon={Lock}
+            />
+
+            <div className="rounded-3xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-white to-orange-500/5 p-8 sm:p-12 backdrop-blur-xl shadow-xl dark:from-amber-950/20 dark:to-slate-900/60 text-center max-w-2xl mx-auto space-y-6">
+              <div className="mx-auto size-20 rounded-3xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white grid place-items-center shadow-lg shadow-amber-500/30">
+                <Gift className="size-10" />
+              </div>
+
+              <div className="space-y-2">
+                <Badge className="bg-amber-500 text-slate-950 font-black text-xs px-3 py-1">
+                  👑 PREMIUM PLAN EXCLUSIVE
+                </Badge>
+                <h2 className="text-xl sm:text-3xl font-black text-foreground tracking-tight">
+                  Student Kit is Locked
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto">
+                  {app?.plan_type === "premium"
+                    ? `Complete your ₹${premiumPlanAmount} Premium Plan payment to unlock and download the complete 120+ page Web Development Student Kit, capstone blueprints, and cheat sheets.`
+                    : "The official Skyrovix Student Kit is exclusively available to Full Stack Premium Track interns. Upgrade your plan to unlock full lifetime access."}
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                {isPremiumPlanGlobalEnabled && app?.domain === "fullstack" && (app.duration === 3 || app.duration === 6) && (
+                  <Button
+                    size="lg"
+                    onClick={() => handleTriggerUpgrade(app)}
+                    className="rounded-2xl h-12 px-8 text-sm font-black bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white border-0 gap-2 shadow-xl shadow-amber-500/30 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <Crown className="size-4" /> {app?.plan_type === "premium" ? `Complete Payment (₹${premiumPlanAmount})` : `Upgrade to Premium (₹${premiumPlanAmount})`}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate({ search: { tab: "overview" } as any })}
+                  className="rounded-2xl h-12 px-6 text-xs font-bold border-border/80 cursor-pointer"
+                >
+                  Back to Overview
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="space-y-6">
           <StudentKitDashboardView
@@ -2273,16 +2381,16 @@ function Dashboard() {
                             <span className="text-xs font-bold text-[#181619] shrink-0">{aApproved}/{aTotal} tasks</span>
                           </div>
                           <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-emerald-200/40">
-                            {isPremiumPlanGlobalEnabled && a.plan_type !== "premium" && a.domain === "fullstack" && (a.duration === 3 || a.duration === 6) && (
+                            {isPremiumPlanGlobalEnabled && a.domain === "fullstack" && (a.duration === 3 || a.duration === 6) && (a.plan_type !== "premium" || a.plan_payment_status !== "paid") && (
                               <Button
                                 size="sm"
-                                className="rounded-xl h-8 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold hover:from-amber-600 hover:to-orange-600 border-0 gap-1.5 shadow-sm"
+                                className="rounded-xl h-8 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold hover:from-amber-600 hover:to-orange-600 border-0 gap-1.5 shadow-sm cursor-pointer"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleTriggerUpgrade(a);
                                 }}
                               >
-                                <Crown className="size-3" /> Upgrade to Premium (₹{premiumPlanAmount})
+                                <Crown className="size-3" /> {a.plan_type === "premium" ? `Complete Payment (₹${premiumPlanAmount})` : `Upgrade to Premium (₹${premiumPlanAmount})`}
                               </Button>
                             )}
                             <Button
@@ -3132,6 +3240,7 @@ function HeroSection({
   const domain = getDomain(app.domain);
   const internTotal = durationLimit || 4;
   const pct = durationLimit > 0 ? Math.min(100, Math.round((internApproved / durationLimit) * 100)) : 0;
+  const isUnpaidPremium = Boolean(app?.plan_type?.trim().toLowerCase() === "premium" && !isPremium);
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#181619] via-[#242026] to-[#181619] text-white p-4 sm:p-7 md:p-9 shadow-xl shadow-[#181619]/25 border border-white/10 animate-premium-glow hover:shadow-[#f95c4b]/10 transition-all duration-500">
@@ -3178,6 +3287,10 @@ function HeroSection({
                   {isPremium ? (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 shadow-md shadow-amber-500/20">
                       <Crown className="size-3 fill-current" /> Premium Plan
+                    </span>
+                  ) : app.plan_type === "premium" ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      <Crown className="size-3" /> Premium Plan (Payment Pending)
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#f95c4b]/20 text-[#ee9590] border border-[#f95c4b]/30">
@@ -3232,11 +3345,11 @@ function HeroSection({
             </div>
             <div className="flex items-center gap-1.5">
               <Sparkles className="size-3.5 text-amber-300 shrink-0" />
-              <span>Tier: <strong className="text-amber-300 font-semibold">{isPremium ? "Premium Plan" : "Standard Plan"}</strong></span>
+              <span>Tier: <strong className="text-amber-300 font-semibold">{isPremium ? "Premium Plan" : app.plan_type === "premium" ? "Premium (Pending)" : "Standard Plan"}</strong></span>
             </div>
             <div className="hidden sm:flex items-center gap-1.5">
               <ListChecks className="size-3.5 text-emerald-300 shrink-0" />
-              <span>Tasks: <strong className="text-emerald-300 font-semibold">{internApproved} / {durationLimit} Completed</strong></span>
+              <span>Tasks: <strong className="text-emerald-300 font-semibold">{isUnpaidPremium ? "Locked (Payment Required)" : `${internApproved} / ${durationLimit} Completed`}</strong></span>
             </div>
           </div>
 
@@ -3295,7 +3408,9 @@ function HeroSection({
                   <div className="grid size-10 place-items-center rounded-xl bg-amber-500/30 text-amber-300 group-hover:scale-110 transition-all">
                     <Crown className="size-5" />
                   </div>
-                  <span className="mt-1 text-[10px] font-black text-amber-300 leading-tight">Upgrade ₹{premiumPlanAmount}</span>
+                  <span className="mt-1 text-[10px] font-black text-amber-300 leading-tight">
+                    {app.plan_type === "premium" ? `Pay ₹${premiumPlanAmount}` : `Upgrade ₹${premiumPlanAmount}`}
+                  </span>
                 </button>
               ) : (
                 <button
@@ -3333,7 +3448,7 @@ function HeroSection({
                   onClick={onUpgradeToPremium}
                   className="rounded-2xl h-10 text-xs font-black bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white border-0 gap-2 shadow-lg shadow-amber-500/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
-                  <Crown className="size-4" /> Upgrade to Premium (₹{premiumPlanAmount})
+                  <Crown className="size-4" /> {app.plan_type === "premium" ? `Complete Premium Payment (₹${premiumPlanAmount})` : `Upgrade to Premium (₹${premiumPlanAmount})`}
                 </Button>
               )}
 
