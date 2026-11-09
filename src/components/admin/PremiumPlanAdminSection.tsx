@@ -60,6 +60,7 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
 
   // Payments Tab States
   const [search, setSearch] = useState("");
+  const [trackFilter, setTrackFilter] = useState<"all" | "fullstack" | "premium">("all");
   const [categoryFilter, setCategoryFilter] = useState<"all" | "cashfree" | "manual" | "free" | "offer_discount" | "pending">("all");
 
   // Manual Pay Modal State
@@ -128,9 +129,27 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
   // Filtered Payments List
   const filteredRecords = useMemo(() => {
     let list = records;
-    if (categoryFilter !== "all") {
-      list = list.filter((r) => r.payment_category === categoryFilter);
+
+    if (trackFilter === "fullstack") {
+      list = list.filter((r) => r.domain?.toLowerCase().includes("fullstack"));
+    } else if (trackFilter === "premium") {
+      list = list.filter((r) => r.plan_type === "premium" || r.plan_payment_status === "paid" || r.plan_payment_status === "free" || r.plan_payment_status === "waived");
     }
+
+    if (categoryFilter !== "all") {
+      if (categoryFilter === "offer_discount") {
+        list = list.filter((r) => Boolean(r.coupon_code) || r.discount_amount > 0 || r.payment_category === "offer_discount");
+      } else if (categoryFilter === "cashfree") {
+        list = list.filter((r) => r.payment_category === "cashfree" || (r.plan_payment_status === "paid" && (r.plan_payment_method?.toLowerCase().includes("cashfree") || r.plan_payment_id?.toLowerCase().startsWith("order_") || r.plan_payment_id?.toLowerCase().startsWith("cf_"))));
+      } else if (categoryFilter === "manual") {
+        list = list.filter((r) => r.payment_category === "manual" || (r.plan_payment_status === "paid" && !r.plan_payment_method?.toLowerCase().includes("cashfree") && !r.plan_payment_id?.toLowerCase().startsWith("order_") && !r.plan_payment_id?.toLowerCase().startsWith("cf_")));
+      } else if (categoryFilter === "free") {
+        list = list.filter((r) => r.plan_payment_status === "free" || r.plan_payment_status === "waived" || r.payment_category === "free");
+      } else if (categoryFilter === "pending") {
+        list = list.filter((r) => r.plan_payment_status !== "paid" && r.plan_payment_status !== "free" && r.plan_payment_status !== "waived");
+      }
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       list = list.filter(
@@ -139,12 +158,13 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
           r.email?.toLowerCase().includes(q) ||
           r.intern_id?.toLowerCase().includes(q) ||
           r.phone?.includes(q) ||
+          r.domain?.toLowerCase().includes(q) ||
           r.coupon_code?.toLowerCase().includes(q) ||
           r.plan_payment_id?.toLowerCase().includes(q)
       );
     }
     return list;
-  }, [records, categoryFilter, search]);
+  }, [records, trackFilter, categoryFilter, search]);
 
   // Handle Mark as Paid (Manual)
   const handleConfirmManualPay = async () => {
@@ -481,11 +501,55 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
       {activeTab === "payments" && (
         <div className="space-y-4">
           {/* Controls Bar: Filters & Search */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
-            {/* Filter Pills */}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              {/* Track selector */}
+              <div className="flex items-center gap-1 rounded-xl bg-card border border-border/80 p-1 shrink-0 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setTrackFilter("all")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    trackFilter === "all" ? "bg-amber-500 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  All Applications ({records.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTrackFilter("fullstack")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    trackFilter === "fullstack" ? "bg-amber-500 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Full Stack ({records.filter((r) => r.domain?.toLowerCase().includes("fullstack")).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTrackFilter("premium")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                    trackFilter === "premium" ? "bg-amber-500 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Crown className="size-3" /> Premium Active ({records.filter((r) => r.plan_type === "premium" || r.plan_payment_status === "paid" || r.plan_payment_status === "free" || r.plan_payment_status === "waived").length})
+                </button>
+              </div>
+
+              {/* Search Box */}
+              <div className="relative w-full lg:w-72 shrink-0">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search student, email, ID, UTR..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-9 w-full rounded-xl pl-9 text-xs border-border/80"
+                />
+              </div>
+            </div>
+
+            {/* Status Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
               {[
-                { id: "all", label: "All Students", count: records.length },
+                { id: "all", label: "All Status", count: records.length },
                 { id: "cashfree", label: "Gateway Paid", count: stats.cashfreePaid },
                 { id: "manual", label: "Manual UPI", count: stats.manualPaid },
                 { id: "free", label: "100% Free", count: stats.freeWaivers },
@@ -505,17 +569,6 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
                   <span className="text-[10px] opacity-75">({f.count})</span>
                 </button>
               ))}
-            </div>
-
-            {/* Search Box */}
-            <div className="relative w-full sm:w-72">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search student, email, ID, UTR..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-9 w-full rounded-xl pl-9 text-xs border-border/80"
-              />
             </div>
           </div>
 

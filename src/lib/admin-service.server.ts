@@ -683,19 +683,59 @@ export interface AdminPremiumPaymentsResult {
 
 export async function getAdminPremiumPaymentsServer(): Promise<AdminPremiumPaymentsResult> {
   try {
+    // 1. Ensure required columns exist in applications table dynamically
+    try {
+      await dbQuery(`
+        SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'applications' AND COLUMN_NAME = 'plan_admin_notes'
+      `).then(async (res) => {
+        if (!res.rows || res.rows.length === 0) {
+          await dbQuery("ALTER TABLE `applications` ADD COLUMN `plan_admin_notes` TEXT NULL").catch(() => {});
+        }
+      }).catch(() => {});
+
+      await dbQuery(`
+        SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'applications' AND COLUMN_NAME = 'plan_payment_method'
+      `).then(async (res) => {
+        if (!res.rows || res.rows.length === 0) {
+          await dbQuery("ALTER TABLE `applications` ADD COLUMN `plan_payment_method` VARCHAR(50) NULL").catch(() => {});
+        }
+      }).catch(() => {});
+
+      await dbQuery(`
+        SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'applications' AND COLUMN_NAME = 'plan_payment_id'
+      `).then(async (res) => {
+        if (!res.rows || res.rows.length === 0) {
+          await dbQuery("ALTER TABLE `applications` ADD COLUMN `plan_payment_id` VARCHAR(150) NULL").catch(() => {});
+        }
+      }).catch(() => {});
+    } catch (migErr) {
+      console.warn("[Admin] Dynamic column check warning:", migErr);
+    }
+
     const appsRes = await dbQuery(`
       SELECT 
         a.id, a.user_id, a.full_name, a.email, a.phone, a.intern_id, a.domain, a.duration, a.college,
-        a.plan_type, a.plan_fee, a.agreed_fee, a.discount_amount, a.plan_payment_status,
+        COALESCE(a.plan_type, 'standard') as plan_type,
+        COALESCE(a.plan_fee, 200.00) as plan_fee,
+        COALESCE(a.agreed_fee, 0.00) as agreed_fee,
+        COALESCE(a.discount_amount, 0.00) as discount_amount,
+        COALESCE(a.plan_payment_status, 'pending') as plan_payment_status,
         a.plan_payment_method, a.plan_payment_id, a.plan_admin_notes, a.coupon_code,
-        a.plan_paid_at, a.created_at, a.total_tasks
+        a.plan_paid_at, a.created_at, COALESCE(a.total_tasks, 5) as total_tasks
       FROM public.applications a
-      WHERE a.plan_type = 'premium'
-         OR (a.plan_payment_status IS NOT NULL AND a.plan_payment_status != 'not_required')
-         OR a.plan_fee > 0
-         OR a.agreed_fee > 0
-         OR (a.domain = 'fullstack' AND a.duration IN (3, 6))
-      ORDER BY COALESCE(a.plan_paid_at, a.created_at) DESC
+      ORDER BY 
+        CASE 
+          WHEN a.plan_payment_status = 'paid' THEN 1
+          WHEN a.plan_payment_status = 'free' OR a.plan_payment_status = 'waived' THEN 2
+          WHEN a.coupon_code IS NOT NULL AND a.coupon_code != '' THEN 3
+          WHEN a.plan_type = 'premium' THEN 4
+          WHEN a.domain = 'fullstack' THEN 5
+          ELSE 6
+        END ASC,
+        COALESCE(a.plan_paid_at, a.created_at) DESC
     `);
 
     const subsRes = await dbQuery(`
