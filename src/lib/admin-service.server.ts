@@ -71,6 +71,14 @@ export async function deleteStudentAccountServer(studentId: string): Promise<Del
 
   try {
     return await withTransaction(async (client) => {
+      const safeDelete = async (sql: string, params: any[]) => {
+        try {
+          await client.query(sql, params);
+        } catch (err: any) {
+          console.warn(`[Admin] safeDelete notice (${sql}):`, err.message);
+        }
+      };
+
       // 1. Safety check: Protect Admin accounts from deletion
       const profRes = await client.query("SELECT id, email FROM public.profiles WHERE id = $1 LIMIT 1", [studentId]);
       const userRes = await client.query("SELECT id, email FROM public.users WHERE id = $1 LIMIT 1", [studentId]);
@@ -85,7 +93,7 @@ export async function deleteStudentAccountServer(studentId: string): Promise<Del
         return { success: false, error: "Unauthorized: Admin accounts cannot be deleted." };
       }
 
-      // 2. Find and delete all applications for this student
+      // 2. Find and delete all applications for this student and their dependent records
       const appRows = await client.query(
         "SELECT id FROM public.applications WHERE user_id = $1 OR (email IS NOT NULL AND email = $2)",
         [studentId, studentEmail]
@@ -93,56 +101,57 @@ export async function deleteStudentAccountServer(studentId: string): Promise<Del
       const appIds: string[] = appRows.rows.map((r: any) => r.id);
 
       for (const appId of appIds) {
-        await client.query("DELETE FROM public.submissions WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.submission_history WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.payment_records WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.payments WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.certificates WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.offer_letters WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.coupon_redemptions WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.intern_workflows WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.linkedin_submissions WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.document_tokens WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.student_kit_purchases WHERE application_id = $1", [appId]);
-        await client.query("DELETE FROM public.applications WHERE id = $1", [appId]);
+        await safeDelete("DELETE FROM public.submissions WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.submission_history WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.payment_records WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.payments WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.certificates WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.offer_letters WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.coupon_redemptions WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.intern_workflows WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.linkedin_submissions WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.document_tokens WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.student_kit_purchases WHERE application_id = $1", [appId]);
+        await safeDelete("DELETE FROM public.applications WHERE id = $1", [appId]);
+      }
+      if (studentEmail) {
+        await safeDelete("DELETE FROM public.applications WHERE user_id = $1 OR email = $2", [studentId, studentEmail]);
+      } else {
+        await safeDelete("DELETE FROM public.applications WHERE user_id = $1", [studentId]);
       }
 
-      // 3. Delete direct application-related records by user_id
-      await client.query("DELETE FROM public.submissions WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.payment_records WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.payments WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.certificates WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.coupon_redemptions WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.cashfree_orders WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.document_tokens WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.student_kit_purchases WHERE user_id = $1", [studentId]);
+      // 3. Delete direct records linked by user_id
+      await safeDelete("DELETE FROM public.payment_records WHERE user_id = $1", [studentId]);
+      await safeDelete("DELETE FROM public.coupon_redemptions WHERE user_id = $1", [studentId]);
+      await safeDelete("DELETE FROM public.cashfree_orders WHERE user_id = $1", [studentId]);
+      await safeDelete("DELETE FROM public.student_kit_purchases WHERE user_id = $1", [studentId]);
 
-      // 4. Delete course enrollments and progress
+      // 4. Course enrollments and progress (cascading via enrollment_id)
       const enrRows = await client.query("SELECT id FROM public.enrollments WHERE user_id = $1", [studentId]);
       for (const enr of enrRows.rows) {
-        await client.query("DELETE FROM public.lesson_progress WHERE enrollment_id = $1", [enr.id]);
-        await client.query("DELETE FROM public.course_task_submissions WHERE enrollment_id = $1", [enr.id]);
-        await client.query("DELETE FROM public.quiz_attempts WHERE enrollment_id = $1", [enr.id]);
-        await client.query("DELETE FROM public.topic_quiz_attempts WHERE enrollment_id = $1", [enr.id]);
-        await client.query("DELETE FROM public.course_certificates WHERE enrollment_id = $1", [enr.id]);
-        await client.query("DELETE FROM public.enrollments WHERE id = $1", [enr.id]);
+        await safeDelete("DELETE FROM public.lesson_progress WHERE enrollment_id = $1", [enr.id]);
+        await safeDelete("DELETE FROM public.course_task_submissions WHERE enrollment_id = $1", [enr.id]);
+        await safeDelete("DELETE FROM public.quiz_attempts WHERE enrollment_id = $1", [enr.id]);
+        await safeDelete("DELETE FROM public.topic_quiz_attempts WHERE enrollment_id = $1", [enr.id]);
+        await safeDelete("DELETE FROM public.course_certificates WHERE enrollment_id = $1", [enr.id]);
+        await safeDelete("DELETE FROM public.enrollments WHERE id = $1", [enr.id]);
       }
-      await client.query("DELETE FROM public.lesson_progress WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.course_task_submissions WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.quiz_attempts WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.topic_quiz_attempts WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.course_certificates WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.enrollments WHERE user_id = $1", [studentId]);
+      await safeDelete("DELETE FROM public.enrollments WHERE user_id = $1", [studentId]);
 
-      // 5. Delete student kits, challenges, login sessions and notifications
-      await client.query("DELETE FROM public.user_student_kits WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.student_tasks WHERE user_id = $1 OR student_id = $1", [studentId, studentId]);
-      await client.query("DELETE FROM public.project_submissions WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.login_sessions WHERE student_id = $1 OR user_id = $1", [studentId, studentId]);
-      await client.query("DELETE FROM public.user_notifications WHERE user_id = $1", [studentId]);
-      await client.query("DELETE FROM public.notifications WHERE user_id = $1", [studentId]);
+      // 5. Delete login sessions (table uses student_id and email, not user_id)
+      if (studentEmail) {
+        await safeDelete("DELETE FROM public.login_sessions WHERE student_id = $1 OR email = $2", [studentId, studentEmail]);
+      } else {
+        await safeDelete("DELETE FROM public.login_sessions WHERE student_id = $1", [studentId]);
+      }
 
-      // 6. Delete profile, user roles & base user account
+      // 6. Delete student performance evaluations, guidance schedules and notifications
+      await safeDelete("DELETE FROM public.student_performance_evaluations WHERE student_id = $1", [studentId]);
+      await safeDelete("DELETE FROM public.guidance_schedules WHERE student_id = $1", [studentId]);
+      await safeDelete("DELETE FROM public.user_notifications WHERE user_id = $1", [studentId]);
+      await safeDelete("DELETE FROM public.notifications WHERE user_id = $1", [studentId]);
+
+      // 7. Delete profile, user roles & base user account
       await client.query("DELETE FROM public.user_roles WHERE user_id = $1", [studentId]);
       await client.query("DELETE FROM public.profiles WHERE id = $1", [studentId]);
       if (studentEmail) {
