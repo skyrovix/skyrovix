@@ -26,7 +26,7 @@ const LOGOS = [
 
 export function MobileFloatingIcons() {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block" aria-hidden="true">
       {LOGOS.map((l, i) => (
         <div
           key={i}

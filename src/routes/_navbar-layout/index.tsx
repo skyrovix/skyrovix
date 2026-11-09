@@ -175,13 +175,270 @@ function Landing() {
     <div className="w-full">
       <FAQJsonLd faqs={FAQ_DATA} />
       <BreadcrumbJsonLd items={[{ name: "Home", url: "https://skyrovix.online/" }]} />
-      {/* ─── HERO ─── */}
-      <AuroraBackground className="min-h-screen lg:h-screen lg:max-h-screen flex flex-col justify-between overflow-hidden">
-        <section className="relative flex-1 pt-16 sm:pt-18 lg:pt-16 pb-1 sm:pb-2 flex items-center justify-center overflow-hidden">
-          {/* Floating programming language icons across entire hero */}
-          <MobileFloatingIcons />
-          <div className="mx-auto max-w-7xl px-4 relative z-10 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+      {/* ─── MOBILE HERO: SECTION 1 (Value Proposition & Quick Apply) ─── */}
+      <section className="lg:hidden relative w-full pt-20 sm:pt-24 pb-8 px-4 overflow-hidden bg-gradient-to-b from-[#faf8f2] via-[#fff5f3]/80 to-[#faf8f2] dark:from-[#181619] dark:via-[#1e191d] dark:to-[#181619]">
+        {/* Soft background ambient glow */}
+        <div aria-hidden="true" className="pointer-events-none absolute -top-12 -right-12 size-64 rounded-full bg-[#f95c4b]/12 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute top-1/2 -left-16 size-60 rounded-full bg-[#ee9590]/15 blur-3xl" />
+
+        <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-start text-left">
+          {/* Internship Platform Badge */}
+          <FadeUp delay={0.02} duration={0.5}>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/25 bg-gradient-to-r from-[#f95c4b]/10 via-[#ee9590]/10 to-[#f95c4b]/5 px-3 py-1.5 text-[10px] sm:text-[11px] font-extrabold text-[#f95c4b] dark:text-[#ee9590] shadow-2xs backdrop-blur-md">
+              <span className="relative flex size-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f95c4b] opacity-75" />
+                <span className="relative inline-flex rounded-full size-2 bg-[#f95c4b]" />
+              </span>
+              <span className="tracking-wide">INDIA'S MOST PRACTICAL VIRTUAL INTERNSHIP</span>
+            </div>
+          </FadeUp>
+
+          {/* Primary Heading with Running Letters Dynamic Animation */}
+          <FadeUp delay={0.06} duration={0.6}>
+            <h1 className="font-display text-[29px] sm:text-4xl leading-[1.14] font-black tracking-tight text-[#181619] dark:text-white text-left break-words">
+              Build Skills.<br />
+              Gain Experience.<br />
+              <HeroRunningLetters
+                words={[
+                  "Get Certified.",
+                  "Launch Your Career.",
+                  "Earn Verified LOR.",
+                  "Master Future Tech.",
+                  "Land Dream Jobs.",
+                ]}
+              />
+            </h1>
+          </FadeUp>
+
+          {/* Sub-headline description */}
+          <FadeUp delay={0.10} duration={0.6}>
+            <p className="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium">
+              Skyrovix empowers students and aspiring engineers with hands-on capstone projects, 1-on-1 mentor guidance, and verified MSME credentials that accelerate your tech career.
+            </p>
+          </FadeUp>
+
+          {/* Checklist items — 2x2 grid */}
+          <FadeUp delay={0.14} duration={0.6} className="w-full">
+            <div className="mt-3.5 grid grid-cols-2 gap-2 w-full">
+              {[
+                { label: "Real-world Projects", icon: Code2, desc: "GitHub Tasks", color: "text-[#f95c4b]" },
+                { label: "Mentor Guidance", icon: Users, desc: "1-on-1 Review", color: "text-[#f95c4b] dark:text-[#ee9590]" },
+                { label: "Certificate & LOR", icon: FileText, desc: "MSME Verified", color: "text-emerald-600 dark:text-emerald-400" },
+                { label: "100% Remote", icon: Globe, desc: "Self Paced", color: "text-[#f95c4b]" },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-border/60 bg-white/90 dark:bg-[#201d22]/90 backdrop-blur-sm shadow-2xs min-w-0"
+                >
+                  <div className={`size-7 rounded-lg bg-[#f95c4b]/10 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0`}>
+                    <item.icon className="size-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-bold text-slate-900 dark:text-white/95 block truncate">{item.label}</span>
+                    <span className="text-[9px] text-muted-foreground font-semibold block">{item.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </FadeUp>
+
+          {/* Buttons Row */}
+          <FadeUp delay={0.18} duration={0.6} className="w-full">
+            <div className="mt-4 flex flex-row items-center gap-2.5 w-full">
+              <Link to="/auth" search={{ redirect: undefined }} className="flex-1">
+                <Button size="default" className="w-full rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ea5342] text-white border-0 px-3 py-2.5 text-xs font-bold shadow-md shadow-[#f95c4b]/25 flex items-center justify-center gap-1.5 cursor-pointer">
+                  Explore Internships <ArrowRight className="size-3.5" />
+                </Button>
+              </Link>
+              <a href="#how-it-works" className="flex-1">
+                <Button size="default" variant="outline" className="w-full rounded-xl border border-border/70 dark:border-white/15 px-3 py-2.5 text-xs font-bold text-[#181619] dark:text-white bg-white/70 dark:bg-white/5 backdrop-blur-md flex items-center justify-center gap-1.5 cursor-pointer">
+                  <Play className="size-3 fill-current text-[#f95c4b]" />
+                  How It Works
+                </Button>
+              </a>
+            </div>
+
+            {/* Social Proof & Rating */}
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground font-medium">
+              <div className="flex -space-x-1.5 shrink-0 select-none">
+                <div className="size-6 rounded-full ring-2 ring-white dark:ring-[#181619] bg-gradient-to-tr from-amber-500 to-orange-500 text-white font-black text-[10px] grid place-items-center shadow-xs">
+                  <span>H</span>
+                </div>
+                <div className="size-6 rounded-full ring-2 ring-white dark:ring-[#181619] bg-gradient-to-tr from-blue-500 to-indigo-600 text-white font-black text-[10px] grid place-items-center shadow-xs">
+                  <span>P</span>
+                </div>
+                <div className="size-6 rounded-full ring-2 ring-white dark:ring-[#181619] bg-gradient-to-tr from-emerald-500 to-teal-600 text-white font-black text-[10px] grid place-items-center shadow-xs">
+                  <span>S</span>
+                </div>
+                <div className="size-6 rounded-full ring-2 ring-white dark:ring-[#181619] bg-gradient-to-tr from-purple-500 to-pink-500 text-white font-black text-[10px] grid place-items-center shadow-xs">
+                  <span>R</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <div className="flex text-amber-500">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="size-3 fill-amber-500 text-amber-500" />
+                  ))}
+                </div>
+                <span className="font-extrabold text-[#181619] dark:text-white text-[11px]">4.9/5</span>
+                <span className="text-[10px] text-muted-foreground font-medium">(1,000+ Students)</span>
+              </div>
+
+              <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
+                <CheckCircle2 className="size-3" /> Govt MSME Registered
+              </span>
+            </div>
+          </FadeUp>
+
+          {/* Coupon Banner - Fixed wrap and legible on mobile */}
+          <FadeUp delay={0.22} duration={0.6} className="w-full">
+            <div className="mt-3.5 p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-50/60 to-amber-500/5 dark:from-amber-500/10 dark:via-[#201d22]/90 dark:to-transparent border border-amber-500/30 w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 backdrop-blur-md shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="size-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                  <Sparkles className="size-4" />
+                </div>
+                <div className="text-left min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300">FIRST100 COUPON</p>
+                    <span className="text-[8.5px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap inline-flex">Limited</span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">First 100 students get 100% Free Virtual Internship!</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setApplyDomain(DOMAINS[0]?.slug)}
+                className="w-full sm:w-auto shrink-0 px-3 py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[11px] font-extrabold shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+              >
+                <span>Apply with FIRST100</span>
+                <ChevronRight className="size-3.5" />
+              </button>
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ─── MOBILE HERO: SECTION 2 (Student Community Showcase & Stats) ─── */}
+      <section className="lg:hidden relative w-full pt-8 pb-4 px-4 overflow-hidden border-t border-slate-200/60 dark:border-white/10 bg-gradient-to-b from-[#faf8f2] via-white to-[#faf8f2] dark:from-[#181619] dark:via-[#161418] dark:to-[#181619]">
+        <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center text-center">
+
+          {/* Section 2 Header */}
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-white/5 px-3 py-1 text-[10px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider shadow-2xs backdrop-blur-md">
+            <GraduationCap className="size-3 text-[#f95c4b]" />
+            <span>STUDENT COMMUNITY & CREDENTIALS</span>
+          </div>
+
+          <h2 className="text-xl sm:text-2xl font-black text-[#181619] dark:text-white tracking-tight">
+            Real Projects. Verified Credentials.
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground font-medium max-w-xs">
+            Complete capstone projects, get mentor reviews, and earn MSME-recognized certificates.
+          </p>
+
+          {/* Student Team Image with Floating Badges */}
+          <div className="relative w-full max-w-[340px] sm:max-w-[400px] mx-auto mt-6 px-3 flex items-center justify-center">
+            <img
+              src={heroTeamImage}
+              alt="Skyrovix Interns"
+              className="relative z-10 w-full max-w-[300px] sm:max-w-[350px] h-auto object-contain select-none pointer-events-none drop-shadow-md"
+            />
+
+            {/* Real-world Projects badge — left */}
+            <div className="animate-float-badge-1 absolute top-[26%] left-0 sm:left-1 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20">
+              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
+                <Code2 className="size-3" />
+              </div>
+              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Real-world Projects</span>
+            </div>
+
+            {/* Industry Certificate badge — top */}
+            <div className="animate-float-badge-2 absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2.5 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20 whitespace-nowrap">
+              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
+                <GraduationCap className="size-3" />
+              </div>
+              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200">Industry Certificate</span>
+            </div>
+
+            {/* Offer Letter badge — right top */}
+            <div className="animate-float-badge-3 absolute top-[20%] right-0 sm:right-1 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20">
+              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
+                <FileText className="size-3" />
+              </div>
+              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Offer Letter</span>
+            </div>
+
+            {/* Task-based badge — right bottom */}
+            <div className="animate-float-badge-4 absolute bottom-[22%] right-0 sm:right-1 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20">
+              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
+                <Users className="size-3" />
+              </div>
+              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Task-based</span>
+            </div>
+          </div>
+
+          {/* Statistics Card — 2x2 grid on mobile */}
+          <div className="w-full max-w-md mx-auto mt-6 bg-white dark:bg-[#201d22] rounded-2xl border border-[#e5e7eb] dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.06)] grid grid-cols-2 overflow-hidden backdrop-blur-md">
+            {/* Students Enrolled */}
+            <div className="text-center flex flex-col items-center justify-center py-3 px-2 border-r border-b border-slate-100 dark:border-slate-800/80">
+              <div className="size-7 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mb-1">
+                <Users className="size-3.5" />
+              </div>
+              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
+                {stats?.studentsEnrolledDisplay || "1,077+"}
+              </div>
+              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Students Enrolled</div>
+            </div>
+
+            {/* Internship Domains */}
+            <div className="text-center flex flex-col items-center justify-center py-3 px-2 border-b border-slate-100 dark:border-slate-800/80">
+              <div className="size-7 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 mb-1">
+                <Briefcase className="size-3.5" />
+              </div>
+              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
+                {stats?.internshipDomainsDisplay || "25+"}
+              </div>
+              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Internship Domains</div>
+            </div>
+
+            {/* Projects Available */}
+            <div className="text-center flex flex-col items-center justify-center py-3 px-2 border-r border-slate-100 dark:border-slate-800/80">
+              <div className="size-7 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mb-1">
+                <Code2 className="size-3.5" />
+              </div>
+              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
+                {stats?.projectsAvailableDisplay || "175+"}
+              </div>
+              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Projects Available</div>
+            </div>
+
+            {/* Average Rating */}
+            <div className="text-center flex flex-col items-center justify-center py-3 px-2">
+              <div className="size-7 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 mb-1">
+                <Star className="size-3.5 fill-amber-500" />
+              </div>
+              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
+                {stats?.averageRating || "4.9/5"}
+              </div>
+              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Average Rating</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Continuous Running Letters Highlights Ticker on Mobile */}
+        <div className="mt-6 w-full">
+          <HeroRunningTicker />
+        </div>
+      </section>
+
+      {/* ─── DESKTOP HERO (lg+) ─── */}
+      <div className="hidden lg:block w-full">
+        <AuroraBackground className="h-screen max-h-screen flex flex-col justify-between overflow-hidden">
+          <section className="relative flex-1 pt-16 lg:pt-16 pb-2 flex items-center justify-center overflow-hidden">
+            {/* Floating programming language icons across entire hero */}
+            <MobileFloatingIcons />
+            <div className="mx-auto max-w-7xl px-4 relative z-10 w-full">
+              <div className="grid grid-cols-12 gap-8 items-center">
 
               {/* Left Column: Hero Text Content with Clean, Fast Rendering */}
               <div className="lg:col-span-7 flex flex-col items-start text-left w-full px-2 sm:px-0">
@@ -421,6 +678,7 @@ function Landing() {
         {/* Continuous Running Letters Highlights Ticker */}
         <HeroRunningTicker />
       </AuroraBackground>
+    </div>
 
       {/* ─── OUR IMPACT (TRUSTED BY STUDENTS, BUILT FOR A BETTER FUTURE) ─── */}
       <Reveal delay={0.1}>
