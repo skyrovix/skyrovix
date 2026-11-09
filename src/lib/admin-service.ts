@@ -16,6 +16,13 @@ export const deleteCourseEnrollment = createServerFn({ method: "POST" })
     return deleteCourseEnrollmentServer(data.enrollmentId);
   });
 
+export const deleteStudentAccount = createServerFn({ method: "POST" })
+  .validator((d: any) => d as { studentId: string })
+  .handler(async ({ data }): Promise<DeleteResult> => {
+    const { deleteStudentAccountServer } = await import("@/lib/admin-service.server");
+    return deleteStudentAccountServer(data.studentId);
+  });
+
 export interface AdminStudentAccount {
   id: string;
   user_id: string;

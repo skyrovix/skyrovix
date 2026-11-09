@@ -40,6 +40,7 @@ import {
   getAdminCourses,
   toggleCoursePublish,
   deleteCourseEnrollment,
+  deleteStudentAccount,
   type AdminStudentAccount,
   type AdminCourseItem,
   type CourseStudentEnrollment,
@@ -4538,9 +4539,38 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
 // STUDENTS (USER ACCOUNTS)
 // ══════════════════════════════════════════════
 function StudentsSection() {
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "account_only" | "applied" | "online">("all");
   const [selectedStudent, setSelectedStudent] = useState<AdminStudentAccount | null>(null);
+  const [deleteStudentTarget, setDeleteStudentTarget] = useState<AdminStudentAccount | null>(null);
+  const [isDeletingStudent, setIsDeletingStudent] = useState(false);
+
+  const handleDeleteStudent = async () => {
+    if (!deleteStudentTarget) return;
+    setIsDeletingStudent(true);
+    try {
+      const res = await deleteStudentAccount({
+        data: { studentId: deleteStudentTarget.id || deleteStudentTarget.user_id },
+      });
+      if (res.success) {
+        toast.success(
+          `Student account ${deleteStudentTarget.full_name || deleteStudentTarget.email} deleted successfully`
+        );
+        qc.invalidateQueries({ queryKey: ["admin-students-directory"] });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-overview"] });
+        qc.invalidateQueries({ queryKey: ["admin-analytics-totals"] });
+        setDeleteStudentTarget(null);
+      } else {
+        toast.error(res.error || "Failed to delete student account");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete student account");
+    } finally {
+      setIsDeletingStudent(false);
+    }
+  };
 
   const { data: students, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["admin-students-directory"],
@@ -4588,6 +4618,75 @@ function StudentsSection() {
     <div className="animate-fade-in-up space-y-4">
       {selectedStudent && (
         <StudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+      )}
+
+      {deleteStudentTarget && (
+        <Portal>
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => !isDeletingStudent && setDeleteStudentTarget(null)}
+          >
+            <div
+              className="relative w-full max-w-md rounded-2xl border border-rose-500/30 bg-card p-6 shadow-2xl space-y-4 dark:bg-[#1E293B]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
+                <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/50">
+                  <AlertTriangle className="size-6 text-rose-600 dark:text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-foreground">Delete Student Account</h3>
+                  <p className="text-xs text-muted-foreground">Permanent database deletion</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/50 dark:border-rose-900/40 p-3.5 space-y-2 text-xs">
+                <p className="font-semibold text-rose-900 dark:text-rose-300">
+                  Are you sure you want to delete this student account?
+                </p>
+                <div className="space-y-1 text-muted-foreground">
+                  <p><span className="font-medium text-foreground">Name:</span> {deleteStudentTarget.full_name || "—"}</p>
+                  <p><span className="font-medium text-foreground">Email:</span> {deleteStudentTarget.email || "—"}</p>
+                  {deleteStudentTarget.intern_id && (
+                    <p><span className="font-medium text-foreground">Intern ID:</span> {deleteStudentTarget.intern_id}</p>
+                  )}
+                </div>
+                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium pt-1">
+                  ⚠️ This will permanently remove the student profile, user account, all internship applications, task submissions, payment records, and certificates. This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  disabled={isDeletingStudent}
+                  onClick={() => setDeleteStudentTarget(null)}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl border border-border hover:bg-accent transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeletingStudent}
+                  onClick={handleDeleteStudent}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isDeletingStudent ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="size-3.5" />
+                      <span>Delete Student</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Portal>
       )}
 
       {/* Header & Controls */}
@@ -4830,7 +4929,7 @@ function StudentsSection() {
                       <div className="flex justify-end gap-1">
                         <button
                           onClick={() => setSelectedStudent(s)}
-                          className="grid size-8 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition"
+                          className="grid size-8 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition cursor-pointer"
                           title="View Student Account Details"
                         >
                           <Eye className="size-4" />
@@ -4838,12 +4937,19 @@ function StudentsSection() {
                         {s.email && s.email !== "—" && (
                           <a
                             href={`mailto:${s.email}`}
-                            className="grid size-8 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition"
+                            className="grid size-8 place-items-center rounded-lg text-slate-600 hover:text-foreground hover:bg-accent/60 transition cursor-pointer"
                             title={`Send email to ${s.email}`}
                           >
                             <Mail className="size-4" />
                           </a>
                         )}
+                        <button
+                          onClick={() => setDeleteStudentTarget(s)}
+                          className="grid size-8 place-items-center rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
+                          title={`Delete student account (${s.full_name || s.email})`}
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -6527,12 +6633,37 @@ function LoginHistorySection() {
 // STUDENT DETAIL MODAL
 // ══════════════════════════════════════════════
 function StudentDetailModal({ student, onClose }: { student: any; onClose: () => void }) {
+  const qc = useQueryClient();
   const [tab, setTab] = useState<"profile" | "payments" | "submissions" | "certificates" | "login-history">("profile");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!student) return null;
 
   const userId = student.user_id || student.id || "";
   const appId = student.application_id || (student.is_application ? student.id : "");
+
+  const handleDelete = async () => {
+    if (!userId) return;
+    setIsDeleting(true);
+    try {
+      const res = await deleteStudentAccount({ data: { studentId: userId } });
+      if (res.success) {
+        toast.success(`Student account ${student.full_name || student.email} deleted successfully`);
+        qc.invalidateQueries({ queryKey: ["admin-students-directory"] });
+        qc.invalidateQueries({ queryKey: ["admin-apps"] });
+        qc.invalidateQueries({ queryKey: ["admin-overview"] });
+        qc.invalidateQueries({ queryKey: ["admin-analytics-totals"] });
+        onClose();
+      } else {
+        toast.error(res.error || "Failed to delete student account");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete student account");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const { data: payments } = useQuery({
     queryKey: ["admin-student-payments", userId, appId],
@@ -6607,8 +6738,59 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
                 <p className="text-xs text-muted-foreground">{student.email ?? "—"} · {student.intern_id ?? "User Account"}</p>
               </div>
             </div>
-            <button onClick={onClose} className="grid size-8 place-items-center rounded-lg hover:bg-accent/50"><X className="size-4" /></button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition cursor-pointer"
+                title="Delete this student account"
+              >
+                <Trash2 className="size-3.5" />
+                <span>Delete Student</span>
+              </button>
+              <button onClick={onClose} className="grid size-8 place-items-center rounded-lg hover:bg-accent/50 cursor-pointer"><X className="size-4" /></button>
+            </div>
           </div>
+
+          {showDeleteConfirm && (
+            <div className="mb-6 rounded-2xl border border-rose-500/40 bg-rose-50/90 dark:bg-rose-950/40 p-4 space-y-3">
+              <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
+                <AlertTriangle className="size-5 shrink-0" />
+                <h4 className="font-bold text-sm">Confirm Permanent Student Deletion</h4>
+              </div>
+              <p className="text-xs text-rose-900 dark:text-rose-200">
+                Are you sure you want to delete <strong>{student.full_name || student.email}</strong>? All internship applications, task submissions, payment records, certificates, and user account records will be permanently removed from the database.
+              </p>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-card hover:bg-accent transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="size-3.5" />
+                      <span>Yes, Delete Account</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="flex gap-1 rounded-xl bg-muted/50 p-1 mb-6 overflow-x-auto">

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,17 +72,7 @@ export function StudentDashboardSidebar({
         collapsed ? "w-20" : "w-64 xl:w-72"
       }`;
 
-  const visibleNavGroups = useMemo(() => {
-    return DASHBOARD_NAV_GROUPS.map((group) => ({
-      ...group,
-      items: group.items.filter((item) => {
-        if (item.id === "student-kit") {
-          return Boolean(isPremium);
-        }
-        return true;
-      }),
-    })).filter((group) => group.items.length > 0);
-  }, [isPremium]);
+  const visibleNavGroups = DASHBOARD_NAV_GROUPS;
 
   return (
     <aside className={containerClasses}>
