@@ -146,6 +146,9 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
     await ensureCol("applications", "plan_paid_at", "DATETIME NULL");
     await ensureCol("applications", "agreed_fee", "DECIMAL(10,2) NOT NULL DEFAULT 0.00");
     await ensureCol("applications", "discount_amount", "DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+    await ensureCol("applications", "plan_payment_method", "VARCHAR(50) NULL");
+    await ensureCol("applications", "plan_payment_id", "VARCHAR(150) NULL");
+    await ensureCol("applications", "plan_admin_notes", "TEXT NULL");
     await ensureCol("applications", "all_tasks_verified", "TINYINT(1) DEFAULT 0");
     await ensureCol("applications", "certificate_payment_unlocked", "TINYINT(1) DEFAULT 0");
     await ensureCol("applications", "certificate_payment_status", "VARCHAR(50) DEFAULT 'pending'");

@@ -59,7 +59,7 @@ export function CouponManagementSection({ adminId }: CouponManagementSectionProp
   const [newDesc, setNewDesc] = useState("");
   const [newType, setNewType] = useState<"percentage" | "fixed" | "free">("percentage");
   const [newValue, setNewValue] = useState<number>(100);
-  const [newAppliesTo, setNewAppliesTo] = useState<"certificate" | "application" | "both">("certificate");
+  const [newAppliesTo, setNewAppliesTo] = useState<"certificate" | "application" | "both" | "premium_plan">("certificate");
   const [newUsageLimit, setNewUsageLimit] = useState<number>(0);
   const [newSingleUse, setNewSingleUse] = useState<boolean>(true);
   const [newExpiresAt, setNewExpiresAt] = useState<string>("");
@@ -565,6 +565,7 @@ export function CouponManagementSection({ adminId }: CouponManagementSectionProp
                 >
                   <option value="certificate">Certificate Fee</option>
                   <option value="application">Application Fee</option>
+                  <option value="premium_plan">Premium Plan Upgrade</option>
                   <option value="both">Both Fees</option>
                 </select>
               </div>

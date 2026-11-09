@@ -25,6 +25,7 @@ import { PromoPopupSection } from "@/components/admin/PromoPopupSection";
 import { BackupSection } from "@/components/admin/BackupSection";
 import { ProjectSubmissionsSection } from "@/components/admin/ProjectSubmissionsSection";
 import { PaymentVerificationSection } from "@/components/admin/PaymentVerificationSection";
+import { PremiumPlanAdminSection } from "@/components/admin/PremiumPlanAdminSection";
 import { CouponManagementSection } from "@/components/admin/CouponManagementSection";
 import { VerificationOfferDialog } from "@/components/admin/VerificationOfferDialog";
 import { FeeSettingsSection } from "@/components/admin/FeeSettingsSection";
@@ -119,6 +120,7 @@ const SIDEBAR_GROUPS = [
       { id: "student-kits", label: "Student Kits", icon: Package },
       { id: "credential-demo", label: "ID & Certificate Demo", icon: Eye },
       { id: "payments", label: "Payment Verification", icon: ShieldCheck },
+      { id: "premium-plan", label: "Premium Plan", icon: Crown },
       { id: "coupons", label: "Coupons & Discounts", icon: Tag },
       { id: "fee-settings", label: "Fee Management", icon: IndianRupee },
       { id: "project-catalogue", label: "Project Vault (50+)", icon: Code2 },
@@ -152,7 +154,7 @@ const SIDEBAR_GROUPS = [
   }
 ] as const;
 
-type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "coupons" | "fee-settings" | "project-catalogue" | "guidance" | "promotions" | "popup" | "certificates" | "advanced-documents" | "student-kits" | "credential-demo" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
+type SectionId = "dashboard" | "applications" | "submissions" | "project-submissions" | "verification" | "payments" | "premium-plan" | "coupons" | "fee-settings" | "project-catalogue" | "guidance" | "promotions" | "popup" | "certificates" | "advanced-documents" | "student-kits" | "credential-demo" | "students" | "courses" | "login-history" | "email-logs" | "analytics" | "login-analytics" | "settings" | "domains" | "tasks" | "backup";
 
 interface AdminNotification {
   id: string;
@@ -473,6 +475,7 @@ function AdminPanel() {
             {active === "project-submissions" && <ProjectSubmissionsSection />}
             {active === "verification" && <VerificationSection />}
             {active === "payments" && <PaymentVerificationSection adminId={user?.id || ""} />}
+            {active === "premium-plan" && <PremiumPlanAdminSection adminId={user?.id || ""} />}
             {active === "coupons" && <CouponManagementSection adminId={user?.id || ""} />}
             {active === "fee-settings" && <FeeSettingsSection adminId={user?.id || ""} />}
             {active === "project-catalogue" && <ProjectCatalogueAdminSection />}

@@ -196,8 +196,9 @@ export const validateCouponServer = createServerFn({ method: "POST" })
   .validator((d: any) => d as {
     code: string;
     userId?: string;
+    applicationId?: string;
     domain?: string;
-    target?: "certificate" | "application";
+    target?: "certificate" | "application" | "premium_plan";
   })
   .handler(async ({ data }): Promise<CouponValidationResult> => {
     const { validateCouponLogic } = await import("@/lib/fee-service.server");
@@ -277,7 +278,7 @@ export const createCouponAdmin = createServerFn({ method: "POST" })
     description?: string;
     discountType: "percentage" | "fixed" | "free";
     discountValue: number;
-    appliesTo: "certificate" | "application" | "both";
+    appliesTo: "certificate" | "application" | "both" | "premium_plan";
     usageLimit: number;
     singleUsePerUser: boolean;
     expiresAt?: string | null;

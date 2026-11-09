@@ -637,3 +637,409 @@ export async function resendStudentDocumentEmailServer(
   }
 }
 
+// ══════════════════════════════════════════════
+// PREMIUM PLAN PAYMENTS & EXCLUSIVE OFFERS
+// ══════════════════════════════════════════════
+
+export interface AdminPremiumPaymentRecord {
+  id: string;
+  application_id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  intern_id: string;
+  domain: string;
+  duration: number;
+  college: string;
+  plan_type: string;
+  plan_fee: number;
+  agreed_fee: number;
+  discount_amount: number;
+  plan_payment_status: "paid" | "free" | "waived" | "pending" | "unpaid";
+  plan_payment_method: string | null;
+  plan_payment_id: string | null;
+  plan_admin_notes: string | null;
+  coupon_code: string | null;
+  plan_paid_at: string | null;
+  created_at: string;
+  approved_tasks_count: number;
+  total_tasks: number;
+  payment_category: "cashfree" | "manual" | "free" | "offer_discount" | "pending";
+}
+
+export interface AdminPremiumPaymentsResult {
+  records: AdminPremiumPaymentRecord[];
+  stats: {
+    totalStudents: number;
+    cashfreePaid: number;
+    manualPaid: number;
+    freeWaivers: number;
+    discountedOffers: number;
+    pendingUnpaid: number;
+    totalRevenue: number;
+  };
+}
+
+export async function getAdminPremiumPaymentsServer(): Promise<AdminPremiumPaymentsResult> {
+  try {
+    const appsRes = await dbQuery(`
+      SELECT 
+        a.id, a.user_id, a.full_name, a.email, a.phone, a.intern_id, a.domain, a.duration, a.college,
+        a.plan_type, a.plan_fee, a.agreed_fee, a.discount_amount, a.plan_payment_status,
+        a.plan_payment_method, a.plan_payment_id, a.plan_admin_notes, a.coupon_code,
+        a.plan_paid_at, a.created_at, a.total_tasks
+      FROM public.applications a
+      WHERE a.plan_type = 'premium'
+         OR (a.plan_payment_status IS NOT NULL AND a.plan_payment_status != 'not_required')
+         OR a.plan_fee > 0
+         OR a.agreed_fee > 0
+         OR (a.domain = 'fullstack' AND a.duration IN (3, 6))
+      ORDER BY COALESCE(a.plan_paid_at, a.created_at) DESC
+    `);
+
+    const subsRes = await dbQuery(`
+      SELECT application_id, COUNT(*) as approved_count 
+      FROM public.submissions 
+      WHERE status = 'approved' 
+      GROUP BY application_id
+    `).catch(() => ({ rows: [] }));
+
+    const subsMap: Record<string, number> = {};
+    for (const r of subsRes.rows || []) {
+      subsMap[r.application_id] = Number(r.approved_count || 0);
+    }
+
+    let totalStudents = 0;
+    let cashfreePaid = 0;
+    let manualPaid = 0;
+    let freeWaivers = 0;
+    let discountedOffers = 0;
+    let pendingUnpaid = 0;
+    let totalRevenue = 0;
+
+    const records: AdminPremiumPaymentRecord[] = (appsRes.rows || []).map((row: any) => {
+      totalStudents++;
+
+      const pStatus = (row.plan_payment_status || "pending").toLowerCase();
+      const pMethod = (row.plan_payment_method || "").toLowerCase();
+      const pId = (row.plan_payment_id || "").toLowerCase();
+      const coupon = (row.coupon_code || "").trim();
+      const baseFee = Number(row.plan_fee || 200);
+      const agreed = Number(row.agreed_fee || (pStatus === "paid" ? 200 : 0));
+      const discount = Number(row.discount_amount || (baseFee > agreed && agreed > 0 ? baseFee - agreed : 0));
+
+      let category: "cashfree" | "manual" | "free" | "offer_discount" | "pending" = "pending";
+
+      if (pStatus === "free" || pStatus === "waived" || (pStatus === "paid" && agreed === 0)) {
+        category = "free";
+        freeWaivers++;
+      } else if (pStatus === "paid") {
+        totalRevenue += agreed;
+        if (coupon || discount > 0) {
+          discountedOffers++;
+        }
+        if (pMethod.includes("cashfree") || pId.startsWith("order_") || pId.startsWith("cf_")) {
+          category = coupon || discount > 0 ? "offer_discount" : "cashfree";
+          cashfreePaid++;
+        } else {
+          category = coupon || discount > 0 ? "offer_discount" : "manual";
+          manualPaid++;
+        }
+      } else {
+        if (coupon || discount > 0) {
+          discountedOffers++;
+          category = "offer_discount";
+        } else {
+          pendingUnpaid++;
+          category = "pending";
+        }
+      }
+
+      return {
+        id: row.id,
+        application_id: row.id,
+        user_id: row.user_id,
+        full_name: row.full_name || "Student",
+        email: row.email || "",
+        phone: row.phone || "",
+        intern_id: row.intern_id || "",
+        domain: row.domain || "fullstack",
+        duration: Number(row.duration || 3),
+        college: row.college || "",
+        plan_type: row.plan_type || "premium",
+        plan_fee: baseFee,
+        agreed_fee: agreed,
+        discount_amount: discount,
+        plan_payment_status: pStatus as any,
+        plan_payment_method: row.plan_payment_method,
+        plan_payment_id: row.plan_payment_id,
+        plan_admin_notes: row.plan_admin_notes,
+        coupon_code: row.coupon_code,
+        plan_paid_at: row.plan_paid_at,
+        created_at: row.created_at,
+        approved_tasks_count: subsMap[row.id] || 0,
+        total_tasks: Number(row.total_tasks || 25),
+        payment_category: category,
+      };
+    });
+
+    return {
+      records,
+      stats: {
+        totalStudents,
+        cashfreePaid,
+        manualPaid,
+        freeWaivers,
+        discountedOffers,
+        pendingUnpaid,
+        totalRevenue,
+      },
+    };
+  } catch (err: any) {
+    console.error("[Admin] getAdminPremiumPaymentsServer error:", err);
+    return {
+      records: [],
+      stats: {
+        totalStudents: 0,
+        cashfreePaid: 0,
+        manualPaid: 0,
+        freeWaivers: 0,
+        discountedOffers: 0,
+        pendingUnpaid: 0,
+        totalRevenue: 0,
+      },
+    };
+  }
+}
+
+export async function updateAdminPremiumPaymentServer(data: {
+  applicationId: string;
+  status: "paid" | "free" | "waived" | "pending";
+  paymentMethod?: string;
+  agreedFee?: number;
+  discountAmount?: number;
+  couponCode?: string;
+  referenceId?: string;
+  adminNotes?: string;
+}): Promise<DeleteResult> {
+  const { applicationId, status, paymentMethod, agreedFee, discountAmount, couponCode, referenceId, adminNotes } = data;
+  if (!applicationId) return { success: false, error: "Application ID is required" };
+
+  try {
+    return await withTransaction(async (client) => {
+      const appRes = await client.query("SELECT * FROM public.applications WHERE id = $1 LIMIT 1", [applicationId]);
+      if (appRes.rows.length === 0) return { success: false, error: "Application not found" };
+
+      const app = appRes.rows[0];
+      const isPaidOrFree = status === "paid" || status === "free" || status === "waived";
+
+      // Calculate total tasks for premium plan
+      let totalTasks = app.total_tasks;
+      if (isPaidOrFree) {
+        if (app.domain === "fullstack" && app.duration === 6) totalTasks = 50;
+        else if (app.domain === "fullstack" && app.duration === 3) totalTasks = 25;
+        else if (app.duration === 6) totalTasks = 12;
+        else if (app.duration === 3) totalTasks = 10;
+        else if (app.duration === 2) totalTasks = 8;
+        else totalTasks = 5;
+      }
+
+      const finalStatus = status;
+      const finalPaidAt = isPaidOrFree ? new Date().toISOString() : null;
+      const finalAgreedFee = status === "free" || status === "waived" ? 0 : (agreedFee !== undefined ? agreedFee : (app.plan_fee || 200));
+      const finalDiscount = discountAmount !== undefined ? discountAmount : (app.plan_fee > finalAgreedFee ? app.plan_fee - finalAgreedFee : 0);
+      const finalMethod = paymentMethod || (status === "free" ? "admin_free_waiver" : "manual_upi");
+      const finalRef = referenceId || (status === "free" ? "FREE_GRANT" : "");
+
+      await client.query(`
+        UPDATE public.applications
+        SET plan_payment_status = $1,
+            plan_type = 'premium',
+            total_tasks = $2,
+            agreed_fee = $3,
+            discount_amount = $4,
+            plan_payment_method = $5,
+            plan_payment_id = $6,
+            plan_admin_notes = $7,
+            coupon_code = COALESCE($8, coupon_code),
+            plan_paid_at = CASE WHEN $9 IS NOT NULL THEN $9 ELSE plan_paid_at END,
+            updated_at = NOW()
+        WHERE id = $10
+      `, [
+        finalStatus,
+        totalTasks,
+        finalAgreedFee,
+        finalDiscount,
+        finalMethod,
+        finalRef,
+        adminNotes || null,
+        couponCode || null,
+        finalPaidAt,
+        applicationId,
+      ]);
+
+      // If marked as paid or free, ensure audit record in payment_records
+      if (isPaidOrFree) {
+        await client.query(`
+          INSERT INTO public.payment_records (
+            id, user_id, application_id, payment_type, amount, utr_number, status, reviewed_at, admin_note
+          ) VALUES (UUID(), $1, $2, 'application', $3, $4, 'approved', NOW(), $5)
+          ON DUPLICATE KEY UPDATE status = 'approved', amount = $3, admin_note = $5
+        `, [
+          app.user_id,
+          applicationId,
+          finalAgreedFee,
+          finalRef || "ADMIN_MANUAL",
+          `Admin action: marked ${status} (${finalMethod}). Notes: ${adminNotes || "None"}`,
+        ]).catch(() => {});
+      }
+
+      return { success: true };
+    });
+  } catch (err: any) {
+    console.error("[Admin] updateAdminPremiumPaymentServer error:", err);
+    return { success: false, error: err.message || "Failed to update payment status" };
+  }
+}
+
+export async function getAdminPremiumCouponsServer() {
+  try {
+    const res = await dbQuery(`
+      SELECT c.*, 
+        (SELECT COUNT(*) FROM public.coupon_redemptions cr WHERE cr.coupon_id = c.id) as redemption_count
+      FROM public.coupons c
+      WHERE c.applies_to = 'premium_plan' OR c.applies_to = 'both'
+      ORDER BY c.created_at DESC
+    `);
+    return res.rows || [];
+  } catch (err: any) {
+    console.error("[Admin] getAdminPremiumCouponsServer error:", err);
+    return [];
+  }
+}
+
+export async function createAdminPremiumCouponServer(data: {
+  adminId: string;
+  code: string;
+  description?: string;
+  discountType: "fixed" | "percentage" | "free";
+  discountValue: number;
+  usageLimit?: number;
+  expiresAt?: string;
+  isActive?: boolean;
+}) {
+  const cleanCode = data.code.trim().toUpperCase();
+  if (!cleanCode) throw new Error("Coupon code is required");
+  if (data.discountValue < 0) throw new Error("Discount value cannot be negative");
+
+  return withTransaction(async (client) => {
+    const existing = await client.query("SELECT id FROM public.coupons WHERE LOWER(code) = LOWER($1)", [cleanCode]);
+    if (existing.rows.length > 0) {
+      throw new Error(`Coupon with code "${cleanCode}" already exists`);
+    }
+
+    const couponId = crypto.randomUUID();
+    await client.query(`
+      INSERT INTO public.coupons (
+        id, code, description, discount_type, discount_value, applies_to, max_uses, single_use_per_user, expires_at, is_active, created_by
+      ) VALUES ($1, $2, $3, $4, $5, 'premium_plan', $6, 1, $7, $8, $9)
+    `, [
+      couponId,
+      cleanCode,
+      data.description || `Exclusive Premium Plan Offer: ${data.discountType === "free" ? "100% Free" : data.discountType === "fixed" ? `₹${data.discountValue} OFF` : `${data.discountValue}% OFF`}`,
+      data.discountType,
+      data.discountValue,
+      data.usageLimit || 0,
+      data.expiresAt ? new Date(data.expiresAt).toISOString() : null,
+      data.isActive !== false ? 1 : 0,
+      data.adminId || "admin",
+    ]);
+
+    return { success: true, couponId, code: cleanCode };
+  });
+}
+
+export async function activateFreePremiumCouponServer(data: {
+  applicationId: string;
+  couponCode: string;
+  userId?: string;
+}) {
+  const { applicationId, couponCode, userId } = data;
+  if (!applicationId || !couponCode) {
+    return { success: false, error: "Application ID and coupon code are required" };
+  }
+
+  const { validateCouponLogic } = await import("./fee-service.server");
+  const validation = await validateCouponLogic({
+    code: couponCode,
+    userId,
+    applicationId,
+    target: "premium_plan",
+  });
+
+  if (!validation.valid) {
+    return { success: false, error: validation.error || "Invalid coupon" };
+  }
+
+  if (validation.finalAmount > 0) {
+    return {
+      success: false,
+      error: `This coupon provides a ₹${validation.discountAmount} discount. Payable amount is ₹${validation.finalAmount}. Please proceed to payment.`,
+    };
+  }
+
+  return withTransaction(async (client) => {
+    // 1. Fetch application
+    const appRes = await client.query("SELECT * FROM public.applications WHERE id = $1 LIMIT 1", [applicationId]);
+    if (appRes.rows.length === 0) return { success: false, error: "Application not found" };
+    const app = appRes.rows[0];
+
+    // 2. Compute total tasks
+    let totalTasks = app.total_tasks;
+    if (app.domain === "fullstack" && app.duration === 6) totalTasks = 50;
+    else if (app.domain === "fullstack" && app.duration === 3) totalTasks = 25;
+    else if (app.duration === 6) totalTasks = 12;
+    else if (app.duration === 3) totalTasks = 10;
+    else if (app.duration === 2) totalTasks = 8;
+    else totalTasks = 5;
+
+    // 3. Update application
+    await client.query(`
+      UPDATE public.applications
+      SET plan_payment_status = 'free',
+          plan_type = 'premium',
+          total_tasks = $1,
+          agreed_fee = 0.00,
+          discount_amount = $2,
+          coupon_code = $3,
+          plan_payment_method = 'coupon_free',
+          plan_payment_id = CONCAT('FREE_COUPON_', $3),
+          plan_paid_at = NOW(),
+          status = 'approved',
+          updated_at = NOW()
+      WHERE id = $4
+    `, [totalTasks, validation.discountAmount, couponCode.trim().toUpperCase(), applicationId]);
+
+    // 4. Update coupon usage
+    await client.query(`
+      UPDATE public.coupons 
+      SET current_uses = current_uses + 1 
+      WHERE LOWER(code) = LOWER($1)
+    `, [couponCode.trim()]);
+
+    // 5. Record redemption
+    if (userId) {
+      const cRes = await client.query("SELECT id FROM public.coupons WHERE LOWER(code) = LOWER($1) LIMIT 1", [couponCode.trim()]);
+      if (cRes.rows.length > 0) {
+        await client.query(`
+          INSERT INTO public.coupon_redemptions (id, coupon_id, user_id, application_id, redeemed_at)
+          VALUES (UUID(), $1, $2, $3, NOW())
+        `, [cRes.rows[0].id, userId, applicationId]).catch(() => {});
+      }
+    }
+
+    return { success: true };
+  });
+}
+

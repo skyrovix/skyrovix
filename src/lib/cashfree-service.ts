@@ -235,7 +235,10 @@ export const createPaymentOrderServer = createServerFn({ method: "POST" })
         if (cRes.rows.length > 0) {
           const c = cRes.rows[0];
           const isExpired = c.expires_at && new Date(c.expires_at).getTime() < Date.now();
-          const applies = c.applies_to === "application" || c.applies_to === "both";
+          const applies =
+            c.applies_to === "premium_plan" ||
+            c.applies_to === "application" ||
+            c.applies_to === "both";
           if (!isExpired && applies) {
             if (
               c.discount_type === "free" ||

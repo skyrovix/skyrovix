@@ -147,6 +147,71 @@ export const resendStudentDocumentEmail = createServerFn({ method: "POST" })
     return resendStudentDocumentEmailServer(data);
   });
 
+// ══════════════════════════════════════════════
+// PREMIUM PLAN ADMIN FUNCTIONS
+// ══════════════════════════════════════════════
+
+export type {
+  AdminPremiumPaymentRecord,
+  AdminPremiumPaymentsResult,
+} from "./admin-service.server";
+
+export const getAdminPremiumPayments = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { getAdminPremiumPaymentsServer } = await import("@/lib/admin-service.server");
+    return getAdminPremiumPaymentsServer();
+  });
+
+export const updateAdminPremiumPayment = createServerFn({ method: "POST" })
+  .validator((d: any) => d as {
+    applicationId: string;
+    status: "paid" | "free" | "waived" | "pending";
+    paymentMethod?: string;
+    agreedFee?: number;
+    discountAmount?: number;
+    couponCode?: string;
+    referenceId?: string;
+    adminNotes?: string;
+  })
+  .handler(async ({ data }) => {
+    const { updateAdminPremiumPaymentServer } = await import("@/lib/admin-service.server");
+    return updateAdminPremiumPaymentServer(data);
+  });
+
+export const getAdminPremiumCoupons = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { getAdminPremiumCouponsServer } = await import("@/lib/admin-service.server");
+    return getAdminPremiumCouponsServer();
+  });
+
+export const createAdminPremiumCoupon = createServerFn({ method: "POST" })
+  .validator((d: any) => d as {
+    adminId: string;
+    code: string;
+    description?: string;
+    discountType: "fixed" | "percentage" | "free";
+    discountValue: number;
+    usageLimit?: number;
+    expiresAt?: string;
+    isActive?: boolean;
+  })
+  .handler(async ({ data }) => {
+    const { createAdminPremiumCouponServer } = await import("@/lib/admin-service.server");
+    return createAdminPremiumCouponServer(data);
+  });
+
+export const activateFreePremiumCoupon = createServerFn({ method: "POST" })
+  .validator((d: any) => d as {
+    applicationId: string;
+    couponCode: string;
+    userId?: string;
+  })
+  .handler(async ({ data }) => {
+    const { activateFreePremiumCouponServer } = await import("@/lib/admin-service.server");
+    return activateFreePremiumCouponServer(data);
+  });
+
+
 
 
 

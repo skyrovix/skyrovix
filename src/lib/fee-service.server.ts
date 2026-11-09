@@ -476,7 +476,7 @@ export async function validateCouponLogic(data: {
   userId?: string;
   applicationId?: string;
   domain?: string;
-  target?: "certificate" | "application";
+  target?: "certificate" | "application" | "premium_plan";
 }): Promise<CouponValidationResult> {
   const { code, userId, applicationId, domain, target = "certificate" } = data;
   if (!code || !code.trim()) {
@@ -500,7 +500,7 @@ export async function validateCouponLogic(data: {
   // Get current fee for target
   const feeRes = await dbQuery("SELECT * FROM public.fee_settings WHERE fee_type = $1", [target]);
   const feeRow = feeRes.rows[0];
-  const originalAmount = Number(feeRow?.amount ?? (target === "certificate" ? 100 : 0));
+  const originalAmount = Number(feeRow?.amount ?? (target === "certificate" ? 100 : target === "premium_plan" ? 200 : 0));
 
   const cleanCode = code.trim();
   const couponRes = await dbQuery("SELECT * FROM public.coupons WHERE LOWER(code) = LOWER($1)", [cleanCode]);
@@ -523,12 +523,13 @@ export async function validateCouponLogic(data: {
   }
 
   if (c.applies_to && c.applies_to !== "both" && c.applies_to !== target) {
+    const targetLabel = c.applies_to === "premium_plan" ? "Premium Plan" : c.applies_to;
     return {
       valid: false,
       discountAmount: 0,
       originalAmount,
       finalAmount: originalAmount,
-      error: `This coupon is only valid for ${c.applies_to} fees`,
+      error: `This coupon is only valid for ${targetLabel} fees`,
     };
   }
 
@@ -1343,7 +1344,7 @@ export async function createCouponAdmin(data: {
   description?: string;
   discountType: "percentage" | "fixed" | "free";
   discountValue: number;
-  appliesTo: "certificate" | "application" | "both";
+  appliesTo: "certificate" | "application" | "both" | "premium_plan";
   usageLimit: number;
   singleUsePerUser: boolean;
   expiresAt?: string | null;

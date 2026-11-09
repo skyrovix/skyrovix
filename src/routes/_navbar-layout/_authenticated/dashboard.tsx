@@ -574,7 +574,7 @@ function Dashboard() {
   const isPremium = Boolean(
     app &&
     app.plan_type?.trim().toLowerCase() === "premium" &&
-    (app.plan_payment_status === "paid" || app.plan_payment_status === "waived")
+    (app.plan_payment_status === "paid" || app.plan_payment_status === "waived" || app.plan_payment_status === "free")
   );
 
   const handleTriggerUpgrade = (targetApp?: any) => {
@@ -1239,7 +1239,7 @@ function Dashboard() {
 
         const daIsPremium = Boolean(
           da.plan_type?.trim().toLowerCase() === "premium" &&
-          (da.plan_payment_status === "paid" || da.plan_payment_status === "waived")
+          (da.plan_payment_status === "paid" || da.plan_payment_status === "waived" || da.plan_payment_status === "free")
         );
 
         let daCertPaymentState: CertPaymentState = "LOCKED";
@@ -2006,7 +2006,7 @@ function Dashboard() {
 
         const daIsPremium = Boolean(
           da.plan_type?.trim().toLowerCase() === "premium" &&
-          (da.plan_payment_status === "paid" || da.plan_payment_status === "waived")
+          (da.plan_payment_status === "paid" || da.plan_payment_status === "waived" || da.plan_payment_status === "free")
         );
 
         let daCertPaymentState: CertPaymentState = "LOCKED";

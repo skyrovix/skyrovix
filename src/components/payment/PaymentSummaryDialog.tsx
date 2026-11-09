@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -21,9 +21,13 @@ import {
   Sparkles,
   ArrowRight,
   Zap,
+  Tag,
+  Gift,
 } from "lucide-react";
 import { createPaymentOrderServer } from "@/lib/cashfree-service";
 import { launchCashfreeCheckout } from "@/lib/cashfree-client";
+import { validateCouponServer, claimFreeCouponCertificate } from "@/lib/fee-service";
+import { activateFreePremiumCoupon } from "@/lib/admin-service";
 
 export interface PaymentSummaryDialogProps {
   open: boolean;
@@ -60,9 +64,111 @@ export function PaymentSummaryDialog({
 }: PaymentSummaryDialogProps) {
   const [phone, setPhone] = useState(customerPhone || "");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(couponCode || null);
+  const [couponInput, setCouponInput] = useState("");
+  const [currentDiscount, setCurrentDiscount] = useState<number>(discountAmount || 0);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [isClaimingFree, setIsClaimingFree] = useState(false);
+
+  // Sync props if dialog opens with pre-set coupon
+  useEffect(() => {
+    if (open) {
+      if (couponCode) setAppliedCoupon(couponCode);
+      if (discountAmount) setCurrentDiscount(discountAmount);
+      if (customerPhone) setPhone(customerPhone);
+    }
+  }, [open, couponCode, discountAmount, customerPhone]);
 
   const cleanPhone = phone.replace(/[^0-9]/g, "").slice(-10);
-  const effectiveAmount = Math.max(0, amount - discountAmount);
+  const effectiveAmount = Math.max(0, amount - currentDiscount);
+
+  const handleApplyCoupon = async () => {
+    const codeToTest = couponInput.trim().toUpperCase();
+    if (!codeToTest) {
+      toast.error("Please enter a coupon code");
+      return;
+    }
+    setIsValidatingCoupon(true);
+    try {
+      const res = await validateCouponServer({
+        data: {
+          code: codeToTest,
+          userId: userId || undefined,
+          applicationId: applicationId || undefined,
+          target: productType === "premium_plan" ? "premium_plan" : productType === "certificate" ? "certificate" : "application",
+        },
+      });
+
+      if (res.valid) {
+        setAppliedCoupon(res.code || codeToTest);
+        setCurrentDiscount(res.discountAmount || 0);
+        toast.success(`Coupon "${res.code || codeToTest}" applied! You saved ₹${res.discountAmount}.`);
+        setCouponInput("");
+      } else {
+        toast.error(res.error || "Invalid or expired coupon code");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to validate coupon");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCurrentDiscount(0);
+    setCouponInput("");
+    toast.info("Coupon removed");
+  };
+
+  const handleClaimFree = async () => {
+    if (!applicationId) {
+      toast.error("Application ID missing. Please refresh and try again.");
+      return;
+    }
+
+    setIsClaimingFree(true);
+    const toastId = toast.loading("Activating 100% Free access...");
+
+    try {
+      if (productType === "premium_plan") {
+        const res = await activateFreePremiumCoupon({
+          data: {
+            applicationId,
+            couponCode: appliedCoupon || "PREMFREE",
+          },
+        });
+        if (res.success) {
+          toast.success("100% Free Premium Plan activated successfully!", { id: toastId });
+          onOpenChange(false);
+          onSuccess?.();
+        } else {
+          toast.error(res.error || "Failed to activate free coupon", { id: toastId });
+        }
+      } else if (productType === "certificate" && userId) {
+        const res = await claimFreeCouponCertificate({
+          data: {
+            userId,
+            applicationId,
+            couponCode: appliedCoupon || "FREE",
+          },
+        });
+        if (res.success) {
+          toast.success("Free certificate claimed successfully!", { id: toastId });
+          onOpenChange(false);
+          onSuccess?.();
+        } else {
+          toast.error((res as any).error || (res as any).message || "Failed to claim free certificate", { id: toastId });
+        }
+      } else {
+        toast.error("Free waiver activation is not supported for this product type.", { id: toastId });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to claim free access", { id: toastId });
+    } finally {
+      setIsClaimingFree(false);
+    }
+  };
 
   const handlePayNow = async () => {
     if (!cleanPhone || cleanPhone.length < 10) {
@@ -94,7 +200,7 @@ export function PaymentSummaryDialog({
           customerName: customerName.trim(),
           customerEmail: customerEmail.trim(),
           customerPhone: cleanPhone,
-          couponCode: couponCode || null,
+          couponCode: appliedCoupon || null,
           returnUrl: dynamicReturnUrl,
         },
       });
@@ -178,9 +284,9 @@ export function PaymentSummaryDialog({
                 ₹{effectiveAmount}
               </span>
             </div>
-            {discountAmount > 0 && (
+            {currentDiscount > 0 && (
               <span className="text-[10px] text-emerald-600 font-bold block">
-                Saved ₹{discountAmount}
+                Saved ₹{currentDiscount}
               </span>
             )}
           </div>
@@ -188,13 +294,70 @@ export function PaymentSummaryDialog({
 
         {/* Modal Body */}
         <div className="p-6 pt-4 space-y-4">
+          {/* Coupon / Promo Code Field */}
+          <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-foreground flex items-center gap-1.5 font-display">
+                <Tag className="size-3.5 text-[#f95c4b]" /> Have an Offer / Coupon Code?
+              </span>
+              {appliedCoupon && (
+                <span className="text-[10px] text-emerald-600 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                  Applied
+                </span>
+              )}
+            </div>
+
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between bg-emerald-500/10 dark:bg-emerald-950/20 border border-emerald-500/30 rounded-xl px-3 py-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                  <span className="font-semibold text-emerald-800 dark:text-emerald-300">
+                    <strong className="font-mono">{appliedCoupon}</strong> · Saved ₹{currentDiscount}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="text-[11px] font-bold text-red-500 hover:text-red-700 hover:underline cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleApplyCoupon();
+                    }
+                  }}
+                  placeholder="e.g. PREM50, PREM25, PREMFREE"
+                  className="h-9 rounded-xl font-mono text-xs uppercase tracking-wider bg-background"
+                  disabled={isValidatingCoupon || isProcessing}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleApplyCoupon}
+                  disabled={!couponInput.trim() || isValidatingCoupon || isProcessing}
+                  className="h-9 px-4 rounded-xl text-xs font-bold brand-gradient text-white shrink-0 shadow-sm"
+                >
+                  {isValidatingCoupon ? <Loader2 className="size-3.5 animate-spin" /> : "Apply"}
+                </Button>
+              </div>
+            )}
+          </div>
+
           {/* Mobile Number Input */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="checkout-mobile" className="text-xs font-bold text-foreground">
                 Mobile Number <span className="text-[#f95c4b]">*</span>
               </Label>
-              <span className="text-[10px] text-muted-foreground">For UPI &amp; Bank OTP</span>
+              <span className="text-[10px] text-muted-foreground">For Confirmation &amp; Access</span>
             </div>
 
             <div className="flex items-center rounded-2xl border border-border bg-muted/30 focus-within:border-[#f95c4b] focus-within:bg-background focus-within:ring-2 focus-within:ring-[#f95c4b]/20 transition-all overflow-hidden shadow-2xs">
@@ -211,7 +374,7 @@ export function PaymentSummaryDialog({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
                 className="border-0 bg-transparent h-11 text-xs sm:text-sm font-mono tracking-wider font-semibold focus-visible:ring-0 focus-visible:ring-offset-0 px-3.5 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal placeholder:text-muted-foreground/60"
-                disabled={isProcessing}
+                disabled={isProcessing || isClaimingFree}
               />
               {cleanPhone.length === 10 && (
                 <div className="pr-3.5 text-emerald-500 shrink-0">
@@ -221,53 +384,85 @@ export function PaymentSummaryDialog({
             </div>
           </div>
 
-          {/* Payment Methods Pill Row */}
-          <div className="rounded-2xl border border-border/70 bg-muted/20 p-3.5 space-y-2.5">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-bold text-muted-foreground uppercase tracking-wider text-[10px] font-display">
-                Supported Payment Modes
-              </span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px] flex items-center gap-1">
-                <CheckCircle2 className="size-3" /> 0% Gateway Fee
-              </span>
-            </div>
+          {effectiveAmount > 0 ? (
+            <>
+              {/* Payment Methods Pill Row */}
+              <div className="rounded-2xl border border-border/70 bg-muted/20 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-bold text-muted-foreground uppercase tracking-wider text-[10px] font-display">
+                    Supported Payment Modes
+                  </span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px] flex items-center gap-1">
+                    <CheckCircle2 className="size-3" /> 0% Gateway Fee
+                  </span>
+                </div>
 
-            <div className="flex items-center justify-between gap-1.5 text-[11px] text-foreground font-semibold flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
-                <Smartphone className="size-3 text-purple-600" /> UPI (GPay/PhonePe)
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
-                <CreditCard className="size-3 text-[#f95c4b]" /> Cards
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
-                <Building className="size-3 text-emerald-600" /> Net Banking
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
-                <Wallet className="size-3 text-amber-600" /> Wallets
-              </span>
-            </div>
-          </div>
+                <div className="flex items-center justify-between gap-1.5 text-[11px] text-foreground font-semibold flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
+                    <Smartphone className="size-3 text-purple-600" /> UPI (GPay/PhonePe)
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
+                    <CreditCard className="size-3 text-[#f95c4b]" /> Cards
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
+                    <Building className="size-3 text-emerald-600" /> Net Banking
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border/70 text-[10px] shadow-2xs">
+                    <Wallet className="size-3 text-amber-600" /> Wallets
+                  </span>
+                </div>
+              </div>
 
-          {/* CTA Pay Button */}
-          <Button
-            onClick={handlePayNow}
-            disabled={isProcessing || cleanPhone.length < 10}
-            className="w-full h-12 rounded-2xl brand-gradient hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-[#f95c4b]/25 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 border-0"
-          >
-            {isProcessing ? (
-              <span className="inline-flex items-center gap-2">
-                <Loader2 className="size-4 animate-spin" /> Connecting to Cashfree...
-              </span>
-            ) : cleanPhone.length < 10 ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
-                Enter Mobile Number to Pay ₹{effectiveAmount}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-2">
-                <Lock className="size-3.5" /> Pay ₹{effectiveAmount} via Cashfree <ArrowRight className="size-3.5" />
-              </span>
-            )}
-          </Button>
+              {/* CTA Pay Button */}
+              <Button
+                onClick={handlePayNow}
+                disabled={isProcessing || cleanPhone.length < 10}
+                className="w-full h-12 rounded-2xl brand-gradient hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-[#f95c4b]/25 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 border-0"
+              >
+                {isProcessing ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="size-4 animate-spin" /> Connecting to Cashfree...
+                  </span>
+                ) : cleanPhone.length < 10 ? (
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                    Enter Mobile Number to Pay ₹{effectiveAmount}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <Lock className="size-3.5" /> Pay ₹{effectiveAmount} via Cashfree <ArrowRight className="size-3.5" />
+                  </span>
+                )}
+              </Button>
+            </>
+          ) : (
+            /* 100% Free Waiver CTA Button */
+            <div className="space-y-2 pt-1">
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
+                <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-1.5">
+                  <Gift className="size-4 text-emerald-600" /> 100% Free Waiver Applied!
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  No payment required. Click below to activate your access instantly.
+                </p>
+              </div>
+
+              <Button
+                onClick={handleClaimFree}
+                disabled={isClaimingFree}
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-xl shadow-emerald-500/25 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 border-0"
+              >
+                {isClaimingFree ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="size-4 animate-spin" /> Activating Free Access...
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <Sparkles className="size-4 text-amber-300" /> Claim 100% Free Access Now <ArrowRight className="size-3.5" />
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
 
           {/* Security Guarantee Footer */}
           <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground text-center pt-0.5">
