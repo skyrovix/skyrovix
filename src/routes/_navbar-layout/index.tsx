@@ -175,16 +175,16 @@ function Landing() {
     <div className="w-full">
       <FAQJsonLd faqs={FAQ_DATA} />
       <BreadcrumbJsonLd items={[{ name: "Home", url: "https://skyrovix.online/" }]} />
-      {/* ─── MOBILE HERO: SECTION 1 (Value Proposition & Quick Apply) ─── */}
-      <section className="lg:hidden relative w-full pt-20 sm:pt-24 pb-8 px-4 overflow-hidden bg-gradient-to-b from-[#faf8f2] via-[#fff5f3]/80 to-[#faf8f2] dark:from-[#181619] dark:via-[#1e191d] dark:to-[#181619]">
+      {/* ─── MOBILE HERO (Clean Single Section, Full Viewport) ─── */}
+      <section className="lg:hidden relative w-full min-h-[100dvh] pt-20 sm:pt-24 pb-0 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#faf8f2] via-[#fff5f3]/80 to-[#faf8f2] dark:from-[#181619] dark:via-[#1e191d] dark:to-[#181619]">
         {/* Soft background ambient glow */}
         <div aria-hidden="true" className="pointer-events-none absolute -top-12 -right-12 size-64 rounded-full bg-[#f95c4b]/12 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute top-1/2 -left-16 size-60 rounded-full bg-[#ee9590]/15 blur-3xl" />
 
-        <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-start text-left">
+        <div className="relative z-10 w-full max-w-lg mx-auto px-4 flex flex-col items-start text-left flex-1 justify-center">
           {/* Internship Platform Badge */}
           <FadeUp delay={0.02} duration={0.5}>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/25 bg-gradient-to-r from-[#f95c4b]/10 via-[#ee9590]/10 to-[#f95c4b]/5 px-3 py-1.5 text-[10px] sm:text-[11px] font-extrabold text-[#f95c4b] dark:text-[#ee9590] shadow-2xs backdrop-blur-md">
+            <div className="mb-2.5 inline-flex items-center gap-2 rounded-full border border-[#f95c4b]/25 bg-gradient-to-r from-[#f95c4b]/10 via-[#ee9590]/10 to-[#f95c4b]/5 px-3 py-1.5 text-[10px] sm:text-[11px] font-extrabold text-[#f95c4b] dark:text-[#ee9590] shadow-2xs backdrop-blur-md">
               <span className="relative flex size-2 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f95c4b] opacity-75" />
                 <span className="relative inline-flex rounded-full size-2 bg-[#f95c4b]" />
@@ -212,14 +212,14 @@ function Landing() {
 
           {/* Sub-headline description */}
           <FadeUp delay={0.10} duration={0.6}>
-            <p className="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium">
+            <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed text-left font-medium">
               Skyrovix empowers students and aspiring engineers with hands-on capstone projects, 1-on-1 mentor guidance, and verified MSME credentials that accelerate your tech career.
             </p>
           </FadeUp>
 
           {/* Checklist items — 2x2 grid */}
           <FadeUp delay={0.14} duration={0.6} className="w-full">
-            <div className="mt-3.5 grid grid-cols-2 gap-2 w-full">
+            <div className="mt-3 grid grid-cols-2 gap-2 w-full">
               {[
                 { label: "Real-world Projects", icon: Code2, desc: "GitHub Tasks", color: "text-[#f95c4b]" },
                 { label: "Mentor Guidance", icon: Users, desc: "1-on-1 Review", color: "text-[#f95c4b] dark:text-[#ee9590]" },
@@ -228,7 +228,7 @@ function Landing() {
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-border/60 bg-white/90 dark:bg-[#201d22]/90 backdrop-blur-sm shadow-2xs min-w-0"
+                  className="flex items-center gap-2 px-2.5 py-1.5 sm:py-2 rounded-xl border border-border/60 bg-white/90 dark:bg-[#201d22]/90 backdrop-blur-sm shadow-2xs min-w-0"
                 >
                   <div className={`size-7 rounded-lg bg-[#f95c4b]/10 dark:bg-white/10 flex items-center justify-center ${item.color} shrink-0`}>
                     <item.icon className="size-3.5" />
@@ -244,7 +244,7 @@ function Landing() {
 
           {/* Buttons Row */}
           <FadeUp delay={0.18} duration={0.6} className="w-full">
-            <div className="mt-4 flex flex-row items-center gap-2.5 w-full">
+            <div className="mt-3 flex flex-row items-center gap-2.5 w-full">
               <Link to="/auth" search={{ redirect: undefined }} className="flex-1">
                 <Button size="default" className="w-full rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ea5342] text-white border-0 px-3 py-2.5 text-xs font-bold shadow-md shadow-[#f95c4b]/25 flex items-center justify-center gap-1.5 cursor-pointer">
                   Explore Internships <ArrowRight className="size-3.5" />
@@ -259,7 +259,7 @@ function Landing() {
             </div>
 
             {/* Social Proof & Rating */}
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground font-medium">
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground font-medium">
               <div className="flex -space-x-1.5 shrink-0 select-none">
                 <div className="size-6 rounded-full ring-2 ring-white dark:ring-[#181619] bg-gradient-to-tr from-amber-500 to-orange-500 text-white font-black text-[10px] grid place-items-center shadow-xs">
                   <span>H</span>
@@ -293,140 +293,33 @@ function Landing() {
 
           {/* Coupon Banner - Fixed wrap and legible on mobile */}
           <FadeUp delay={0.22} duration={0.6} className="w-full">
-            <div className="mt-3.5 p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-50/60 to-amber-500/5 dark:from-amber-500/10 dark:via-[#201d22]/90 dark:to-transparent border border-amber-500/30 w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 backdrop-blur-md shadow-2xs">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="size-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shrink-0 shadow-xs">
-                  <Sparkles className="size-4" />
+            <div className="mt-3 p-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-50/60 to-amber-500/5 dark:from-amber-500/10 dark:via-[#201d22]/90 dark:to-transparent border border-amber-500/30 w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 backdrop-blur-md shadow-2xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="size-7.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                  <Sparkles className="size-3.5" />
                 </div>
                 <div className="text-left min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300">FIRST100 COUPON</p>
-                    <span className="text-[8.5px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap inline-flex">Limited</span>
+                    <p className="text-[10.5px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300">FIRST100 COUPON</p>
+                    <span className="text-[8px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap inline-flex">Limited</span>
                   </div>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">First 100 students get 100% Free Virtual Internship!</p>
+                  <p className="text-[9.5px] text-slate-600 dark:text-slate-400 font-medium">First 100 students get 100% Free Virtual Internship!</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setApplyDomain(DOMAINS[0]?.slug)}
-                className="w-full sm:w-auto shrink-0 px-3 py-2 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[11px] font-extrabold shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+                className="w-full sm:w-auto shrink-0 px-3 py-1.5 rounded-xl bg-[#181619] hover:bg-[#f95c4b] dark:bg-[#f95c4b] text-white text-[10.5px] font-extrabold shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
               >
                 <span>Apply with FIRST100</span>
-                <ChevronRight className="size-3.5" />
+                <ChevronRight className="size-3" />
               </button>
             </div>
           </FadeUp>
         </div>
-      </section>
 
-      {/* ─── MOBILE HERO: SECTION 2 (Student Community Showcase & Stats) ─── */}
-      <section className="lg:hidden relative w-full pt-8 pb-4 px-4 overflow-hidden border-t border-slate-200/60 dark:border-white/10 bg-gradient-to-b from-[#faf8f2] via-white to-[#faf8f2] dark:from-[#181619] dark:via-[#161418] dark:to-[#181619]">
-        <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center text-center">
-
-          {/* Section 2 Header */}
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-white/5 px-3 py-1 text-[10px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider shadow-2xs backdrop-blur-md">
-            <GraduationCap className="size-3 text-[#f95c4b]" />
-            <span>STUDENT COMMUNITY & CREDENTIALS</span>
-          </div>
-
-          <h2 className="text-xl sm:text-2xl font-black text-[#181619] dark:text-white tracking-tight">
-            Real Projects. Verified Credentials.
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground font-medium max-w-xs">
-            Complete capstone projects, get mentor reviews, and earn MSME-recognized certificates.
-          </p>
-
-          {/* Student Team Image with Floating Badges */}
-          <div className="relative w-full max-w-[340px] sm:max-w-[400px] mx-auto mt-6 px-3 flex items-center justify-center">
-            <img
-              src={heroTeamImage}
-              alt="Skyrovix Interns"
-              className="relative z-10 w-full max-w-[300px] sm:max-w-[350px] h-auto object-contain select-none pointer-events-none drop-shadow-md"
-            />
-
-            {/* Real-world Projects badge — left */}
-            <div className="animate-float-badge-1 absolute top-[26%] left-0 sm:left-1 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20">
-              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
-                <Code2 className="size-3" />
-              </div>
-              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Real-world Projects</span>
-            </div>
-
-            {/* Industry Certificate badge — top */}
-            <div className="animate-float-badge-2 absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2.5 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20 whitespace-nowrap">
-              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
-                <GraduationCap className="size-3" />
-              </div>
-              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200">Industry Certificate</span>
-            </div>
-
-            {/* Offer Letter badge — right top */}
-            <div className="animate-float-badge-3 absolute top-[20%] right-0 sm:right-1 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20">
-              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
-                <FileText className="size-3" />
-              </div>
-              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Offer Letter</span>
-            </div>
-
-            {/* Task-based badge — right bottom */}
-            <div className="animate-float-badge-4 absolute bottom-[22%] right-0 sm:right-1 bg-white dark:bg-[#201d22] border border-[#e5e7eb] dark:border-white/10 rounded-xl px-2 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-1.5 z-20">
-              <div className="size-5 rounded-md bg-[#f95c4b]/10 flex items-center justify-center text-[#f95c4b]">
-                <Users className="size-3" />
-              </div>
-              <span className="text-[9px] sm:text-[10px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Task-based</span>
-            </div>
-          </div>
-
-          {/* Statistics Card — 2x2 grid on mobile */}
-          <div className="w-full max-w-md mx-auto mt-6 bg-white dark:bg-[#201d22] rounded-2xl border border-[#e5e7eb] dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.06)] grid grid-cols-2 overflow-hidden backdrop-blur-md">
-            {/* Students Enrolled */}
-            <div className="text-center flex flex-col items-center justify-center py-3 px-2 border-r border-b border-slate-100 dark:border-slate-800/80">
-              <div className="size-7 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mb-1">
-                <Users className="size-3.5" />
-              </div>
-              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
-                {stats?.studentsEnrolledDisplay || "1,077+"}
-              </div>
-              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Students Enrolled</div>
-            </div>
-
-            {/* Internship Domains */}
-            <div className="text-center flex flex-col items-center justify-center py-3 px-2 border-b border-slate-100 dark:border-slate-800/80">
-              <div className="size-7 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 mb-1">
-                <Briefcase className="size-3.5" />
-              </div>
-              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
-                {stats?.internshipDomainsDisplay || "25+"}
-              </div>
-              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Internship Domains</div>
-            </div>
-
-            {/* Projects Available */}
-            <div className="text-center flex flex-col items-center justify-center py-3 px-2 border-r border-slate-100 dark:border-slate-800/80">
-              <div className="size-7 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mb-1">
-                <Code2 className="size-3.5" />
-              </div>
-              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
-                {stats?.projectsAvailableDisplay || "175+"}
-              </div>
-              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Projects Available</div>
-            </div>
-
-            {/* Average Rating */}
-            <div className="text-center flex flex-col items-center justify-center py-3 px-2">
-              <div className="size-7 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 mb-1">
-                <Star className="size-3.5 fill-amber-500" />
-              </div>
-              <div className="text-sm font-extrabold text-[#181619] dark:text-white leading-tight">
-                {stats?.averageRating || "4.9/5"}
-              </div>
-              <div className="mt-0.5 text-[9.5px] text-muted-foreground font-bold leading-tight">Average Rating</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Continuous Running Letters Highlights Ticker on Mobile */}
-        <div className="mt-6 w-full">
+        {/* Continuous Running Letters Highlights Ticker on Mobile (Full Width at Bottom) */}
+        <div className="relative z-20 w-full shrink-0 mt-4">
           <HeroRunningTicker />
         </div>
       </section>
@@ -829,7 +722,7 @@ function Landing() {
 
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24 relative z-10">
+      <section id="how-it-works" className="border-y border-[#e5e7eb] dark:border-white/10 bg-[#faf8f2] dark:bg-[#181619] py-20 sm:py-24 relative z-10 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4">
           <Reveal>
             <div className="mx-auto mb-14 max-w-2xl text-center">
