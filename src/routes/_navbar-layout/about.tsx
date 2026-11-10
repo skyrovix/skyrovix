@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { BreadcrumbJsonLd, WebPageJsonLd } from "@/components/JsonLd";
 import { FounderStorySection } from "@/components/FounderStorySection";
-import msme from "@/assets/msme.png";
+import msme from "@/assets/msme.webp";
 
 export const Route = createFileRoute("/_navbar-layout/about")({
   head: () => ({

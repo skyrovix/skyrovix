@@ -50,11 +50,10 @@ import heroTeamImage from "@/assets/hero section team img.webp";
 import { HeroRunningLetters } from "@/components/HeroRunningLetters";
 import { HeroRunningTicker } from "@/components/HeroRunningTicker";
 
-import yrTechLogo from "@/assets/yr-tech logo.png";
-import vinixLogo from "@/assets/vinix.png";
-import msmeLogo from "@/assets/msme.png";
-import skyrovixLogo from "@/assets/logo.png";
-import skyrovixLogoWhite from "@/assets/sk-logo-white.png";
+import yrTechLogo from "@/assets/yr-tech.webp";
+import vinixLogo from "@/assets/vinix.webp";
+import skyrovixLogo from "@/assets/logo.webp";
+import skyrovixLogoWhite from "@/assets/sk-logo-white.webp";
 import { FlyingRocketAnimation } from "@/components/FlyingRocketAnimation";
 
 const COURSE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -245,7 +244,7 @@ function Landing() {
           {/* Buttons Row */}
           <FadeUp delay={0.18} duration={0.6} className="w-full">
             <div className="mt-3 flex flex-row items-center gap-2.5 w-full">
-              <Link to="/auth" search={{ redirect: undefined }} className="flex-1">
+              <Link to="/internship" className="flex-1">
                 <Button size="default" className="w-full rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ea5342] text-white border-0 px-3 py-2.5 text-xs font-bold shadow-md shadow-[#f95c4b]/25 flex items-center justify-center gap-1.5 cursor-pointer">
                   Explore Internships <ArrowRight className="size-3.5" />
                 </Button>
@@ -399,7 +398,7 @@ function Landing() {
                 {/* Buttons Row with smooth CSS hover & tap */}
                 <FadeUp delay={0.26} duration={0.65} className="w-full sm:w-auto">
                   <div className="mt-3.5 sm:mt-4 flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-                    <Link to="/auth" search={{ redirect: undefined }} className="block">
+                    <Link to="/internship" className="block">
                       <Button size="default" className="group rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ea5342] hover:opacity-95 text-white border-0 px-5 sm:px-6 py-2.5 sm:py-5 text-xs sm:text-sm font-bold shadow-lg shadow-[#f95c4b]/25 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0">
                         Explore Internships <ArrowRight className="ml-1.5 size-4 transition-transform duration-200 group-hover:translate-x-1" />
                       </Button>
@@ -765,21 +764,37 @@ function Landing() {
               <img
                 src={skyrovixLogo}
                 alt="Skyrovix IT Solutions"
+                width={48}
+                height={48}
+                loading="lazy"
+                decoding="async"
                 className="h-9 sm:h-12 w-auto object-contain transition-all duration-300 hover:scale-105 opacity-90 hover:opacity-100 dark:hidden"
               />
               <img
                 src={skyrovixLogoWhite}
                 alt="Skyrovix IT Solutions"
+                width={48}
+                height={48}
+                loading="lazy"
+                decoding="async"
                 className="h-9 sm:h-12 w-auto object-contain transition-all duration-300 hover:scale-105 opacity-90 hover:opacity-100 hidden dark:block"
               />
               <img
                 src={vinixLogo}
                 alt="Vinix Partner"
+                width={100}
+                height={44}
+                loading="lazy"
+                decoding="async"
                 className="h-8 sm:h-11 w-auto object-contain transition-all duration-300 hover:scale-105 opacity-90 hover:opacity-100 dark:brightness-110"
               />
               <img
                 src={yrTechLogo}
                 alt="YR Tech"
+                width={72}
+                height={48}
+                loading="lazy"
+                decoding="async"
                 className="h-9 sm:h-12 w-auto object-contain transition-all duration-300 hover:scale-105 opacity-90 hover:opacity-100 dark:brightness-110"
               />
             </div>
@@ -1108,13 +1123,13 @@ function MarqueeCard({ item }: { item: MarqueeItem }) {
               <Star key={i} size={13} fill={i < item.rating ? "#f59e0b" : "#e5e7eb"} color={i < item.rating ? "#f59e0b" : "#e5e7eb"} />
             ))}
           </div>
-          <span className="text-[10px] font-semibold text-green-600 bg-green-50 dark:bg-green-950/30 rounded-full px-2 py-0.5 border border-green-200/50 shrink-0">
+          <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 rounded-full px-2 py-0.5 border border-emerald-300/60 dark:border-emerald-800 shrink-0">
             ✓ Verified
           </span>
         </div>
 
         {/* Review text */}
-        <p className="flex-1 text-[13px] leading-[1.8] text-gray-500 dark:text-gray-400 relative z-10 line-clamp-4">
+        <p className="flex-1 text-[13px] leading-[1.8] text-slate-700 dark:text-slate-300 relative z-10 line-clamp-4">
           "{item.content}"
         </p>
 
@@ -1128,7 +1143,7 @@ function MarqueeCard({ item }: { item: MarqueeItem }) {
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-gray-900 dark:text-white text-[13px] leading-tight truncate">{item.name}</p>
-            <p className="text-[11px] text-muted-foreground/70 truncate mt-0.5">{item.role}</p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium truncate mt-0.5">{item.role}</p>
           </div>
         </div>
       </div>
@@ -1225,15 +1240,20 @@ function ReviewsMarquee() {
           {allItems.map((_, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => {
                 const el = scrollRef.current;
                 if (el) el.scrollTo({ left: el.clientWidth * i, behavior: "smooth" });
               }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === activeIdx ? "w-6 bg-[#f95c4b]" : "w-1.5 bg-gray-300 dark:bg-white/20"
-              }`}
+              className="min-h-[28px] min-w-[24px] inline-flex items-center justify-center p-1 cursor-pointer focus-visible:outline-none"
               aria-label={`Go to review ${i + 1}`}
-            />
+            >
+              <span
+                className={`h-1.5 rounded-full transition-all duration-300 block ${
+                  i === activeIdx ? "w-6 bg-[#f95c4b]" : "w-1.5 bg-gray-400 dark:bg-white/30"
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>
@@ -1287,13 +1307,13 @@ function MobileReviewCard({ item }: { item: MarqueeItem }) {
             <Star key={i} size={13} fill={i < item.rating ? "#f59e0b" : "#e5e7eb"} color={i < item.rating ? "#f59e0b" : "#e5e7eb"} />
           ))}
         </div>
-        <span className="text-[10px] font-semibold text-green-600 bg-green-50 dark:bg-green-950/30 rounded-full px-2 py-0.5 border border-green-200/50 shrink-0">
+        <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 rounded-full px-2 py-0.5 border border-emerald-300/60 dark:border-emerald-800 shrink-0">
           ✓ Verified
         </span>
       </div>
 
       {/* Review text */}
-      <p className="text-[13px] leading-[1.8] text-gray-500 dark:text-gray-400 mb-4 relative z-10 line-clamp-4">
+      <p className="text-[13px] leading-[1.8] text-slate-700 dark:text-slate-300 mb-4 relative z-10 line-clamp-4">
         "{item.content}"
       </p>
 
@@ -1307,7 +1327,7 @@ function MobileReviewCard({ item }: { item: MarqueeItem }) {
         </div>
         <div className="min-w-0">
           <p className="font-semibold text-gray-900 dark:text-white text-[13px] leading-tight">{item.name}</p>
-          <p className="text-[11px] text-muted-foreground/70 truncate mt-0.5">{item.role}</p>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium truncate mt-0.5">{item.role}</p>
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import skyrovixFullLogo from "@/assets/skyrovix-logo-transparent.png";
-import skyrovixWhiteLogo from "@/assets/skyrovix-logo-white.png";
-import skShortLogo from "@/assets/sk-logo-transparent.png";
-import skShortWhiteLogo from "@/assets/sk-logo-white.png";
+import skyrovixFullLogo from "@/assets/skyrovix-logo-transparent.webp";
+import skyrovixWhiteLogo from "@/assets/skyrovix-logo-white.webp";
+import skShortLogo from "@/assets/logo.webp";
+import skShortWhiteLogo from "@/assets/sk-logo-white.webp";
 
 export function Logo({
   variant = "default",
@@ -16,6 +16,9 @@ export function Logo({
   /** "default" renders dark charcoal with orange accents for light backgrounds (auto-switches to white in dark mode); "white" always renders white with orange accents */
   variant?: "default" | "white";
 }) {
+  const width = short ? 36 : 145;
+  const height = short ? 36 : 42;
+
   if (variant === "white") {
     const src = short ? skShortWhiteLogo : skyrovixWhiteLogo;
     return (
@@ -23,6 +26,9 @@ export function Logo({
         <img
           src={src}
           alt="Skyrovix"
+          width={width}
+          height={height}
+          decoding="async"
           className={className || (short ? "h-7.5 sm:h-8 w-auto object-contain shrink-0" : "h-9 sm:h-11 w-auto object-contain shrink-0")}
         />
       </div>
@@ -39,11 +45,17 @@ export function Logo({
       <img
         src={darkSrc}
         alt="Skyrovix"
+        width={width}
+        height={height}
+        decoding="async"
         className={cn(finalClass, "dark:hidden")}
       />
       <img
         src={whiteSrc}
         alt="Skyrovix"
+        width={width}
+        height={height}
+        decoding="async"
         className={cn(finalClass, "hidden dark:block")}
       />
     </div>

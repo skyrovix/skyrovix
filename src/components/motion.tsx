@@ -237,12 +237,11 @@ export function Reveal({
   return (
     <div
       ref={ref}
-      className={`will-change-[transform,opacity,filter] transition-all ${className}`}
+      className={`will-change-[transform,opacity] transition-opacity transition-transform ${className}`}
       style={{
         ...style,
         opacity: active ? 1 : 0,
-        transform: active ? "translateY(0)" : "translateY(32px)",
-        filter: active ? "blur(0px)" : "blur(3px)",
+        transform: active ? "translateY(0)" : "translateY(24px)",
         transitionDuration: `${duration}s`,
         transitionDelay: `${delay}s`,
         transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",

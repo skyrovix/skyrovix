@@ -35,7 +35,6 @@ import { CredentialDemoSection } from "@/components/admin/CredentialDemoSection"
 import { ResendDocumentEmailDialog } from "@/components/admin/ResendDocumentEmailDialog";
 import { AdvancedDocumentsAdminSection } from "@/components/admin/AdvancedDocumentsAdminSection";
 import { StudentKitsAdminSection } from "@/components/admin/StudentKitsAdminSection";
-import { OfferLetterDoc, CertificateDoc, downloadCertificate, downloadPdf, downloadPdfBlob } from "@/components/pdf-docs";
 import {
   getAdminStudents,
   getAdminCourses,
@@ -4313,6 +4312,7 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
     setDownloading(true);
     try {
       const JSZip = (await import("jszip")).default;
+      const { CertificateDoc, downloadPdfBlob } = await import("@/components/pdf-docs");
       const zip = new JSZip();
       for (const c of data) {
         const doc = CertificateDoc({
@@ -4503,13 +4503,15 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <button className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="Download PDF" onClick={() => {
-                      downloadCertificate({
-                        fullName: c.applications?.full_name ?? "Student",
-                        internId: c.applications?.intern_id ?? "",
-                        domain: getDomain(c.applications?.domain)?.name ?? c.applications?.domain ?? "",
-                        certId: c.certificate_id,
-                        issuedAt: c.issued_at,
-                        verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+                      import("@/components/pdf-docs").then(({ downloadCertificate }) => {
+                        downloadCertificate({
+                          fullName: c.applications?.full_name ?? "Student",
+                          internId: c.applications?.intern_id ?? "",
+                          domain: getDomain(c.applications?.domain)?.name ?? c.applications?.domain ?? "",
+                          certId: c.certificate_id,
+                          issuedAt: c.issued_at,
+                          verifyUrl: `${getPublicSiteUrl()}/verify-certificate`,
+                        });
                       });
                     }}><Download className="size-4" /></button>
                     <Link to="/verify-certificate" className="grid size-8 place-items-center rounded-lg hover:bg-accent/50" title="View Verification Page"><ExternalLink className="size-4" /></Link>

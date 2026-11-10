@@ -96,6 +96,11 @@ export default {
         headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.set("Pragma", "no-cache");
         headers.set("Expires", "0");
+        headers.set("X-Frame-Options", "SAMEORIGIN");
+        headers.set("X-Content-Type-Options", "nosniff");
+        headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+        headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+        headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
 
         if (url.hostname.includes("skyrovix.in") && normalized.status === 200) {
           const html = await normalized.text();

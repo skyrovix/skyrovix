@@ -150,14 +150,10 @@ export function FlyingRocketAnimation() {
           {/* Centered at (160, 160) and rotated 45 degrees so nose points to top-right */}
           <g transform="translate(160, 160) rotate(45)" filter="url(#rocketShadow)">
             {/* ─── EXHAUST SMOKE PUFFS (Drifting backwards from nozzle) ─── */}
-            <motion.circle
-              cx="0"
-              cy="95"
-              r="10"
-              fill="#f95c4b"
+            <motion.g
               animate={{
-                cy: [85, 145],
-                r: [6, 22],
+                y: [0, 50],
+                scale: [0.6, 2.0],
                 opacity: [0.45, 0],
               }}
               transition={{
@@ -165,15 +161,14 @@ export function FlyingRocketAnimation() {
                 repeat: Infinity,
                 ease: "easeOut",
               }}
-            />
-            <motion.circle
-              cx="-4"
-              cy="110"
-              r="12"
-              fill="#ee9590"
+              style={{ transformOrigin: "0px 95px" }}
+            >
+              <circle cx="0" cy="95" r="10" fill="#f95c4b" />
+            </motion.g>
+            <motion.g
               animate={{
-                cy: [90, 165],
-                r: [8, 26],
+                y: [0, 60],
+                scale: [0.65, 2.2],
                 opacity: [0.4, 0],
               }}
               transition={{
@@ -182,15 +177,14 @@ export function FlyingRocketAnimation() {
                 ease: "easeOut",
                 delay: 0.35,
               }}
-            />
-            <motion.circle
-              cx="5"
-              cy="125"
-              r="14"
-              fill="#ffaa40"
+              style={{ transformOrigin: "-4px 110px" }}
+            >
+              <circle cx="-4" cy="110" r="12" fill="#ee9590" />
+            </motion.g>
+            <motion.g
               animate={{
-                cy: [95, 185],
-                r: [10, 30],
+                y: [0, 70],
+                scale: [0.7, 2.4],
                 opacity: [0.35, 0],
               }}
               transition={{
@@ -199,7 +193,10 @@ export function FlyingRocketAnimation() {
                 ease: "easeOut",
                 delay: 0.7,
               }}
-            />
+              style={{ transformOrigin: "5px 125px" }}
+            >
+              <circle cx="5" cy="125" r="14" fill="#ffaa40" />
+            </motion.g>
 
             {/* ─── THRUSTER FLAME (Directly anchored to nozzle rim at Y = 56) ─── */}
             <motion.g

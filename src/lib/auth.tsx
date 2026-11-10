@@ -4,30 +4,9 @@ import { supabase, type User } from "@/lib/db-client";
 export type Role = "admin" | "user" | null;
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const s = localStorage.getItem("skyrovix_auth_session");
-      return s ? JSON.parse(s).user : null;
-    } catch { return null; }
-  });
-
-  const [role, setRole] = useState<Role>(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const s = localStorage.getItem("skyrovix_auth_session");
-      const u = s ? JSON.parse(s).user : null;
-      if (u?.email === "hariharan@skyrovix.com") return "admin";
-      return (u?.app_metadata?.role as Role) ?? (u ? "user" : null);
-    } catch { return null; }
-  });
-
-  const [loading, setLoading] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    try {
-      return !localStorage.getItem("skyrovix_auth_session");
-    } catch { return true; }
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<Role>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const loadRole = useCallback(async (u: User) => {
     if (u.email === "hariharan@skyrovix.com") {
@@ -40,6 +19,26 @@ export function useAuth() {
 
   useEffect(() => {
     let cancelled = false;
+
+    // Quick hydrate from cached session storage after initial mount
+    try {
+      const s = localStorage.getItem("skyrovix_auth_session");
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (parsed.user && !cancelled) {
+          setUser(parsed.user);
+          if (parsed.user.email === "hariharan@skyrovix.com") {
+            setRole("admin");
+          } else {
+            setRole((parsed.user.app_metadata?.role as Role) ?? "user");
+          }
+          setLoading(false);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
       const u = data.session?.user ?? null;
