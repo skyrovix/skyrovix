@@ -4,7 +4,8 @@ import { Footer } from "@/components/Footer";
 import { 
   ArrowLeft, FileSignature, ShieldCheck, UserCheck, 
   BookOpen, Briefcase, AlertCircle, CheckCircle2, 
-  Clock, Scale, HelpCircle, Mail, ArrowRight, Award, Lock
+  Clock, Scale, HelpCircle, Mail, ArrowRight, Award, Lock,
+  IndianRupee, Gift, Sparkles, Tag, Zap, CreditCard, Check
 } from "lucide-react";
 import { WebPageJsonLd, BreadcrumbJsonLd } from "@/components/JsonLd";
 import { AuroraBackground } from "@/components/AuroraBackground";
@@ -16,11 +17,11 @@ export const Route = createFileRoute("/terms")({
       { title: "Terms & Conditions — Skyrovix Internship & Course Platform" },
       { 
         name: "description", 
-        content: "Skyrovix terms of service. Review our comprehensive rules governing account usage, course access, internship program guidelines, and student responsibilities." 
+        content: "Skyrovix terms of service. Transparent rules covering 100% free internship applications, certificate verification fees, course access, and student responsibilities." 
       },
       { 
         name: "keywords", 
-        content: "skyrovix terms and conditions, account usage rules, course access terms, internship rules, student responsibilities, skyrovix terms of service" 
+        content: "skyrovix terms and conditions, free internship application, certificate fee policy, internship rules, student responsibilities, skyrovix terms of service, msme certificate verification" 
       },
       { name: "robots", content: "index, follow" },
       { property: "og:type", content: "website" },
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/terms")({
       { property: "og:title", content: "Terms & Conditions — Skyrovix" },
       { 
         property: "og:description", 
-        content: "Clear rules and standards governing accounts, course access, internship progression, and student conduct on Skyrovix." 
+        content: "Clear rules and standards governing 100% free applications, certificate issuance fees, courses, internships, and user conduct on Skyrovix." 
       },
       { property: "og:url", content: "https://skyrovix.online/terms" },
       { property: "og:image", content: "https://skyrovix.online/og-default.png" },
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/terms")({
       { name: "twitter:title", content: "Terms & Conditions — Skyrovix" },
       { 
         name: "twitter:description", 
-        content: "Review Skyrovix platform rules on account usage, courses, internships, and user conduct." 
+        content: "Review Skyrovix platform rules on 100% free applications, certificate fees, courses, and internships." 
       },
       { rel: "canonical", href: "https://skyrovix.online/terms" },
     ],
@@ -50,7 +51,7 @@ function TermsPage() {
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-foreground flex flex-col justify-between">
       <WebPageJsonLd
         title="Terms & Conditions — Skyrovix"
-        description="Skyrovix terms and conditions covering account usage, course access, internship rules, and user responsibilities."
+        description="Skyrovix terms and conditions covering 100% free applications, certificate fee policies, course access, internship rules, and user responsibilities."
         url="https://skyrovix.online/terms"
       />
       <BreadcrumbJsonLd
@@ -73,11 +74,11 @@ function TermsPage() {
                 Terms & <span className="brand-text">Conditions</span>
               </h1>
               <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                Please read these terms carefully before accessing our virtual internships or courses. They define your rights, learning privileges, and responsibilities as a student on Skyrovix.
+                Please read these terms carefully before accessing our virtual internships or courses. They define our 100% free application policy, certificate fee structure, learning privileges, and student responsibilities.
               </p>
               <div className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground font-medium bg-white/80 dark:bg-slate-900/80 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">
                 <Clock className="size-3.5 text-slate-500" />
-                <span>Last Updated: September 2026</span>
+                <span>Last Updated: November 2026</span>
               </div>
             </FadeUp>
           </div>
@@ -93,45 +94,55 @@ function TermsPage() {
           <ArrowLeft className="size-4" /> Back to Home
         </Link>
 
-        {/* 4 Pillars Summary Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 5 Pillars Summary Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-1.5">
             <div className="size-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center font-bold">
               <UserCheck className="size-4" />
             </div>
             <h2 className="text-sm font-bold text-slate-800 dark:text-white">Account Usage</h2>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Accurate profile information, non-transferable access, one student per account, and secure credentials.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-1.5">
-            <div className="size-9 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center font-bold">
-              <BookOpen className="size-4" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white">Course Access</h2>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Personal learning license, video lectures, code resources, quiz certifications, and strict anti-piracy protection.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-1.5">
-            <div className="size-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center font-bold">
-              <Briefcase className="size-4" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white">Internship Rules</h2>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Task-based virtual projects, sequential mentor approvals, revision support, and educational non-employment status.
+              Authentic profile data, non-transferable access, one student per account, and security.
             </p>
           </div>
 
           <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-1.5">
             <div className="size-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center font-bold">
+              <Gift className="size-4" />
+            </div>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white">100% Free Application</h2>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Zero registration charges, free official Offer Letter, and free access to project tasks.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-1.5">
+            <div className="size-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center font-bold">
+              <Award className="size-4" />
+            </div>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white">Certificate Fee</h2>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Nominal fee upon task completion for MSME verification, QR credentials, and LOR.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-1.5">
+            <div className="size-9 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center font-bold">
+              <Briefcase className="size-4" />
+            </div>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white">Internship Rules</h2>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Sequential task reviews, GitHub code verification, mentor feedback, and educational status.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-1.5 sm:col-span-2 lg:col-span-1">
+            <div className="size-9 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center font-bold">
               <ShieldCheck className="size-4" />
             </div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white">User Responsibilities</h2>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white">Student Conduct</h2>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Anti-plagiarism compliance, authentic payment UTR verification, professional conduct, and legal adherence.
+              Strict anti-plagiarism compliance, payment integrity, and ethical professional conduct.
             </p>
           </div>
         </div>
@@ -165,7 +176,7 @@ function TermsPage() {
                 <strong>One Student, One Account:</strong> Students are limited to one active user account. Creating duplicate accounts to circumvent task reviews or exploit promotions is prohibited.
               </li>
               <li>
-                <strong>Credential Confidentiality:</strong> You are responsible for maintaining the confidentiality of your login credentials. You must notify Skyrovix immediately at <a href="mailto:skyrovix@gmail.com" className="text-blue-600 font-semibold">skyrovix@gmail.com</a> if you suspect unauthorized access.
+                <strong>Credential Confidentiality:</strong> You are responsible for maintaining the confidentiality of your login credentials. You must notify Skyrovix immediately at <a href="mailto:skyrovix@gmail.com" className="text-blue-600 font-semibold hover:underline">skyrovix@gmail.com</a> if you suspect unauthorized access.
               </li>
               <li>
                 <strong>Account Suspension/Termination:</strong> Skyrovix reserves the right to suspend or permanently deactivate accounts that engage in fraudulent submissions, security tampering, payment forgery, or violation of these terms.
@@ -216,7 +227,7 @@ function TermsPage() {
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
                 3. Internship Rules & Progression Guidelines
               </h2>
-              <p className="text-xs text-muted-foreground">Requirements for task progression, mentor reviews, and completion certification</p>
+              <p className="text-xs text-muted-foreground">Requirements for task progression, mentor reviews, and completion workflow</p>
             </div>
           </div>
 
@@ -233,7 +244,7 @@ function TermsPage() {
                 <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 list-disc pl-4">
                   <li><strong>Task 0 (LinkedIn Announcement):</strong> Mandatory social verification task to confirm internship acceptance before domain projects unlock.</li>
                   <li><strong>Sequential Unlock:</strong> Tasks must be completed in order. Task N+1 unlocks only after Task N is evaluated and approved by an admin or mentor.</li>
-                  <li><strong>Submission Quality:</strong> Submissions must include working GitHub source code links and live hosted deployment links (e.g. Vercel, Netlify, Render).</li>
+                  <li><strong>Submission Quality:</strong> Submissions must include working GitHub repository links and live hosted deployment URLs (e.g. Vercel, Netlify, Render).</li>
                 </ul>
               </div>
 
@@ -242,9 +253,9 @@ function TermsPage() {
                   Review, Revisions & Completion
                 </h3>
                 <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 list-disc pl-4">
-                  <li><strong>Mentor Revisions:</strong> If a task does not meet specifications, mentors provide feedback for resubmission without penalty.</li>
-                  <li><strong>Completion Criteria:</strong> All required domain tasks (5 tasks for 1 month, 8 for 2 months, 10 for 3 months, 12 for 6 months) must be verified & passed.</li>
-                  <li><strong>Certificate Issuance:</strong> Completion certificates are generated only after all tasks are approved AND certificate fee payment is verified.</li>
+                  <li><strong>Mentor Revisions:</strong> If a task does not meet specifications, mentors provide constructive feedback for resubmission without penalty.</li>
+                  <li><strong>Completion Criteria:</strong> All required domain tasks (5 tasks for 1 month, 8 for 2 months, 10 for 3 months, 12 for 6 months, or 25/50 for Premium) must be verified and passed.</li>
+                  <li><strong>Certificate Eligibility:</strong> The official certificate issuance workflow is unlocked only after 100% of the required curriculum tasks have been successfully approved.</li>
                 </ul>
               </div>
             </div>
@@ -258,7 +269,205 @@ function TermsPage() {
           </div>
         </section>
 
-        {/* Section 4: User Responsibilities */}
+        {/* Section 4: DEDICATED FEE POLICY (Application Free, Certificate Fee, Premium Track & Waivers) */}
+        <section className="rounded-3xl border border-amber-300/80 dark:border-amber-800/60 bg-gradient-to-br from-amber-50/40 via-white to-orange-50/30 dark:from-amber-950/20 dark:via-slate-900 dark:to-orange-950/10 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+              <IndianRupee className="size-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                  4. Fee Policy: 100% Free Application &amp; Certification Structure
+                </h2>
+                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  Transparent
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Complete transparency regarding zero upfront application fees, nominal certificate processing, and premium tracks
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            {/* 4.1 100% Free Application Policy */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/70 border border-emerald-200/80 dark:border-emerald-800/60 shadow-xs space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
+                    <Gift className="size-4" />
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                    4.1 100% Free Internship Application Policy
+                  </h3>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                  Zero Upfront Cost (₹0)
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                Skyrovix believes every aspiring engineer and student should have unhindered access to high-quality project experience. Therefore, <strong>all internship applications across all domains are 100% FREE</strong>:
+              </p>
+
+              <ul className="text-xs sm:text-sm space-y-2 list-disc pl-5">
+                <li>
+                  <strong>No Registration or Application Charges:</strong> Students can register, browse all internship domains (Full Stack, Python, Java, Data Science, AI/ML, Cyber Security, Cloud, UI/UX, etc.), select their preferred duration (1, 2, 3, or 6 months), and submit their application with <strong>₹0 upfront fee</strong>.
+                </li>
+                <li>
+                  <strong>Free Official Offer Letter:</strong> Upon application submission and acceptance, an official Skyrovix Offer Letter and Student ID card are generated and issued to the student's dashboard completely free of charge.
+                </li>
+                <li>
+                  <strong>Free Curriculum &amp; Task Access:</strong> Enrolled students gain immediate access to all project task briefs, GitHub submission forms, curriculum guidance documents, and mentor code review without paying any registration fee.
+                </li>
+              </ul>
+            </div>
+
+            {/* 4.2 Certificate Processing & Verification Fee */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-xs space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                    <Award className="size-4" />
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                    4.2 Certificate Processing &amp; Verification Fee
+                  </h3>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  Upon Task Completion Only
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                To maintain the integrity, government compliance, and credibility of our credentials, an official <strong>Certificate Processing &amp; Verification Fee</strong> is charged only after a student completes all required domain tasks:
+              </p>
+
+              <div className="grid gap-3 sm:grid-cols-2 pt-1">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 space-y-1.5">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5 text-emerald-500" /> What the Fee Covers
+                  </h4>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                    <li>Government MSME Registered credential verification.</li>
+                    <li>Cryptographically signed Certificate of Completion with unique Certificate ID (e.g. <code>SK-CERT-XXXXX</code>).</li>
+                    <li>Permanent live QR code verification hosted on <code>skyrovix.online/verify</code>.</li>
+                    <li>Official Letter of Recommendation (LOR) &amp; Performance Evaluation Report signed by Founders.</li>
+                    <li>Secure lifetime cloud credential storage for resumes and LinkedIn.</li>
+                  </ul>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 space-y-1.5">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Clock className="size-3.5 text-blue-500" /> When It Is Charged
+                  </h4>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                    <li>The fee is <strong>never charged upfront</strong> during registration.</li>
+                    <li>Payment is unlocked only after 100% of project tasks are submitted, evaluated, and approved by mentors.</li>
+                    <li>Students who do not wish to claim a verified certificate are under no obligation to pay.</li>
+                    <li>Standard certificate fee is nominally configured on the platform (e.g. ₹99 or as displayed during checkout).</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* 4.3 100% Free Certificate Waivers & Coupon Redemptions */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/70 border border-purple-200/80 dark:border-purple-800/60 shadow-xs space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center font-bold">
+                    <Tag className="size-4" />
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                    4.3 100% Free Waivers &amp; Scholarship Coupons
+                  </h3>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                  Scholarships &amp; Offers
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                Skyrovix actively sponsors top-performing students and early cohort applicants through discount vouchers and 100% free waivers:
+              </p>
+
+              <ul className="text-xs sm:text-sm space-y-2 list-disc pl-5">
+                <li>
+                  <strong>100% Free Certificate Waivers:</strong> Eligible students holding official promotional coupons (such as <code>FIRST100</code>, <code>PREMFREE</code>, or merit-based admin grants) can claim their verified certificate package with <strong>zero payment (₹0)</strong>. Instant fulfillment is activated directly on the portal without requiring payment gateway processing.
+                </li>
+                <li>
+                  <strong>Discount Offers:</strong> Verified coupons (e.g. ₹50 OFF, ₹25 OFF, or percentage discounts) can be applied directly inside the checkout dialog, automatically deducting the discount from the total payable amount.
+                </li>
+                <li>
+                  <strong>Single-Use &amp; Validity:</strong> Coupons are subject to specified usage limits, expiration dates, and account restrictions as defined during issuance.
+                </li>
+              </ul>
+            </div>
+
+            {/* 4.4 Premium Plan (Full Stack Intensive & VIP Upgrade) */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/70 border border-amber-200/80 dark:border-amber-800/60 shadow-xs space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                    <Zap className="size-4 text-amber-500" />
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                    4.4 Premium Plan Upgrade (Full Stack Intensive)
+                  </h3>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  Optional VIP Track
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                For students seeking deep industry immersion, Skyrovix offers an optional <strong>Premium Plan Upgrade</strong> (standard fee of ₹200 or promotional discounted pricing):
+              </p>
+
+              <ul className="text-xs sm:text-sm space-y-2 list-disc pl-5">
+                <li>
+                  <strong>Advanced Capstone Track:</strong> Unlocks comprehensive sequential tracks featuring <strong>25 projects (3-Month track)</strong> or <strong>50 projects (6-Month track)</strong> with architecture reviews and production deployment standards.
+                </li>
+                <li>
+                  <strong>Priority Mentor Guidance &amp; Speed Reviews:</strong> Premium students receive expedited task reviews, priority 1-on-1 code feedback, and dedicated interview preparation resources.
+                </li>
+                <li>
+                  <strong>Included Certification:</strong> Students enrolled under the Premium Plan receive verified completion certification, LOR, and digital credentials with no additional certificate fee at completion.
+                </li>
+              </ul>
+            </div>
+
+            {/* 4.5 Payment Gateway & Non-Refundability */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-xs space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="size-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
+                  <CreditCard className="size-4" />
+                </div>
+                <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                  4.5 Payment Processing, Gateway Security &amp; Non-Refundability
+                </h3>
+              </div>
+
+              <ul className="text-xs sm:text-sm space-y-2 list-disc pl-5">
+                <li>
+                  <strong>Secure Payment Gateways:</strong> Online transactions are processed through RBI-authorized payment aggregator <strong>Cashfree Payments</strong> using 256-bit SSL encryption, supporting UPI (Google Pay, PhonePe, Paytm, BHIM), Debit/Credit Cards, and Net Banking.
+                </li>
+                <li>
+                  <strong>Manual UPI Verification:</strong> Students opting for direct UPI QR payment must enter their authentic bank UTR / Reference ID for manual admin verification within 12–24 hours.
+                </li>
+                <li>
+                  <strong>Non-Refundable Policy Upon Generation:</strong> Because official certificates, LORs, and verification QR codes are cryptographically generated, registered under Ministry of MSME guidelines, and permanently indexed in the public registry for employer verification, certificate fees are <strong>strictly non-refundable</strong> once generated.
+                </li>
+                <li>
+                  <strong>Duplicate Payment Guarantee:</strong> In the rare event that a bank network delay causes an accidental duplicate charge for the same student ID, <strong>100% of the duplicate amount is refunded immediately</strong> upon UTR submission to <a href="mailto:skyrovix@gmail.com" className="text-blue-600 font-semibold hover:underline">skyrovix@gmail.com</a>.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 5: User Responsibilities */}
         <section className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-5">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -266,7 +475,7 @@ function TermsPage() {
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-                4. User Responsibilities & Code of Conduct
+                5. User Responsibilities & Code of Conduct
               </h2>
               <p className="text-xs text-muted-foreground">Mandatory student obligations regarding integrity, payments, and platform conduct</p>
             </div>
@@ -317,7 +526,7 @@ function TermsPage() {
           </div>
         </section>
 
-        {/* Section 5: Limitation of Liability & Contact */}
+        {/* Section 6: Limitation of Liability & Contact */}
         <section className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-4">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center">
@@ -325,7 +534,7 @@ function TermsPage() {
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-                5. Limitation of Liability & Governing Law
+                6. Limitation of Liability & Governing Law
               </h2>
               <p className="text-xs text-muted-foreground">Legal jurisdiction and scope of platform warranty</p>
             </div>
@@ -341,16 +550,16 @@ function TermsPage() {
           </div>
         </section>
 
-        {/* Section 6: Support Callout */}
+        {/* Section 7: Support Callout */}
         <section className="rounded-3xl border border-blue-200 dark:border-blue-900 bg-gradient-to-br from-blue-50/60 via-white to-blue-50/30 dark:from-blue-950/30 dark:via-slate-900 dark:to-blue-950/10 p-6 sm:p-8 text-center space-y-4">
           <div className="mx-auto size-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md">
             <Mail className="size-6" />
           </div>
           <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-            Questions Regarding Our Terms?
+            Questions Regarding Our Terms &amp; Policies?
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
-            For legal inquiries, institutional partnerships, or clarifications regarding our internship and course terms, contact our support desk.
+            For questions regarding 100% free applications, certificate fee policies, scholarship waivers, or institutional partnerships, contact our support desk.
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
             <a
