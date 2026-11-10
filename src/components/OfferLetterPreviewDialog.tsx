@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Download,
-  FileText,
-  Loader2,
-  X,
-  Printer,
-  Copy,
-  Check,
-  CheckCircle2,
-} from "lucide-react";
+import { Download, FileText, Loader2, X, Printer, Copy, Check, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { durationConfig, getDomain } from "@/lib/constants";
 import { downloadOfferLetter } from "@/components/pdf-docs";
@@ -47,7 +38,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
   if (!app) return null;
 
   const domainObj = getDomain(app.domain);
-  const domainName = domainObj?.name ?? (app.domain.charAt(0).toUpperCase() + app.domain.slice(1));
+  const domainName = domainObj?.name ?? app.domain.charAt(0).toUpperCase() + app.domain.slice(1);
   const issuedDate = new Date(app.offer_issued_at || app.created_at);
   const dateStr = issuedDate.toLocaleDateString("en-IN", {
     day: "2-digit",
@@ -100,7 +91,6 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl w-[96vw] sm:w-[92vw] max-h-[94vh] flex flex-col p-0 overflow-hidden bg-slate-100 dark:bg-slate-950 border-border/70 shadow-2xl rounded-2xl sm:rounded-3xl [&>button:last-child]:hidden">
-        
         {/* Print Stylesheet for single-page paper printing */}
         <style>{`
           @media print {
@@ -145,7 +135,9 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 </span>
               </div>
               <DialogDescription className="text-[11px] text-muted-foreground truncate flex items-center gap-2 mt-0.5">
-                <span>Ref: <strong className="font-mono text-foreground">{app.intern_id}</strong></span>
+                <span>
+                  Ref: <strong className="font-mono text-foreground">{app.intern_id}</strong>
+                </span>
                 <span>•</span>
                 <span>Issued: {dateStr}</span>
               </DialogDescription>
@@ -160,7 +152,11 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
               onClick={handleCopyId}
               title="Copy Intern ID"
             >
-              {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+              {copied ? (
+                <Check className="size-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
               <span className="hidden md:inline">{copied ? "Copied" : "Copy ID"}</span>
             </Button>
 
@@ -216,11 +212,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-300">
               {/* Brand Information */}
               <div className="flex items-center gap-3">
-                <img
-                  src={logo}
-                  alt="Skyrovix Logo"
-                  className="size-11 sm:size-12 object-contain"
-                />
+                <img src={logo} alt="Skyrovix Logo" className="size-11 sm:size-12 object-contain" />
                 <div className="h-9 w-px bg-slate-300 mx-0.5" />
                 <div>
                   <h2 className="text-base sm:text-lg font-black tracking-wide text-[#181619] leading-tight">
@@ -246,9 +238,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">
                   ISSUE DATE
                 </div>
-                <div className="text-xs font-bold text-[#181619]">
-                  {dateStr}
-                </div>
+                <div className="text-xs font-bold text-[#181619]">{dateStr}</div>
               </div>
             </div>
 
@@ -257,9 +247,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
               <h1 className="text-lg sm:text-xl font-black tracking-wide uppercase text-[#181619]">
                 INTERNSHIP OFFER LETTER
               </h1>
-              <p className="text-xs font-bold text-[#f95c4b] mt-0.5">
-                Date: {dateStr}
-              </p>
+              <p className="text-xs font-bold text-[#f95c4b] mt-0.5">Date: {dateStr}</p>
             </div>
 
             {/* Greeting & Introductory Statement */}
@@ -269,12 +257,15 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
               </p>
               <p>
                 We are delighted to offer you the position of{" "}
-                <strong className="text-slate-900 font-bold">Virtual Intern – {domainName}</strong> at{" "}
-                <strong className="text-slate-900 font-bold">Skyrovix</strong> (accessible at{" "}
-                <strong className="text-slate-900 font-bold">skyrovix.in</strong>). After reviewing your application, technical aptitude, and enthusiasm, we are confident that your skills make you a valuable addition to our engineering cohort.
+                <strong className="text-slate-900 font-bold">Virtual Intern – {domainName}</strong>{" "}
+                at <strong className="text-slate-900 font-bold">Skyrovix</strong> (accessible at{" "}
+                <strong className="text-slate-900 font-bold">skyrovix.in</strong>). After reviewing
+                your application, technical aptitude, and enthusiasm, we are confident that your
+                skills make you a valuable addition to our engineering cohort.
               </p>
               <p>
-                Your virtual internship details, work deliverables, and engagement particulars are finalized as follows:
+                Your virtual internship details, work deliverables, and engagement particulars are
+                finalized as follows:
               </p>
             </div>
 
@@ -290,7 +281,9 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 </div>
                 <div className="grid grid-cols-12 px-3.5 py-1.5 bg-[#faf8f2]">
                   <span className="col-span-5 text-slate-600 font-medium">Intern ID</span>
-                  <span className="col-span-7 font-mono font-bold text-[#f95c4b]">{app.intern_id}</span>
+                  <span className="col-span-7 font-mono font-bold text-[#f95c4b]">
+                    {app.intern_id}
+                  </span>
                 </div>
                 <div className="grid grid-cols-12 px-3.5 py-1.5 bg-white">
                   <span className="col-span-5 text-slate-600 font-medium">Program Duration</span>
@@ -301,20 +294,32 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   <span className="col-span-7 font-bold text-slate-900">{dateStr}</span>
                 </div>
                 <div className="grid grid-cols-12 px-3.5 py-1.5 bg-white">
-                  <span className="col-span-5 text-slate-600 font-medium">Estimated Completion</span>
+                  <span className="col-span-5 text-slate-600 font-medium">
+                    Estimated Completion
+                  </span>
                   <span className="col-span-7 font-bold text-slate-900">{endDateStr}</span>
                 </div>
                 <div className="grid grid-cols-12 px-3.5 py-1.5 bg-[#faf8f2]">
-                  <span className="col-span-5 text-slate-600 font-medium">Stipend Specification</span>
-                  <span className="col-span-7 font-bold text-slate-900">Unpaid (Performance-Based Internship)</span>
+                  <span className="col-span-5 text-slate-600 font-medium">
+                    Stipend Specification
+                  </span>
+                  <span className="col-span-7 font-bold text-slate-900">
+                    Unpaid (Performance-Based Internship)
+                  </span>
                 </div>
                 <div className="grid grid-cols-12 px-3.5 py-1.5 bg-white">
                   <span className="col-span-5 text-slate-600 font-medium">Location & Model</span>
-                  <span className="col-span-7 font-bold text-slate-900">Remote / Virtual (Task-Based, Flexible Hours)</span>
+                  <span className="col-span-7 font-bold text-slate-900">
+                    Remote / Virtual (Task-Based, Flexible Hours)
+                  </span>
                 </div>
                 <div className="grid grid-cols-12 px-3.5 py-1.5 bg-[#faf8f2]">
-                  <span className="col-span-5 text-slate-600 font-medium">Official Domain Portal</span>
-                  <span className="col-span-7 font-mono font-bold text-[#181619]">https://skyrovix.in</span>
+                  <span className="col-span-5 text-slate-600 font-medium">
+                    Official Domain Portal
+                  </span>
+                  <span className="col-span-7 font-mono font-bold text-[#181619]">
+                    https://skyrovix.in
+                  </span>
                 </div>
               </div>
             </div>
@@ -327,19 +332,39 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
               </h3>
               <div className="space-y-1.5 text-xs text-slate-600 leading-snug">
                 <p>
-                  <strong className="text-slate-900 font-semibold">1. Task Execution & Milestones:</strong> You will work on production-grade tasks and project modules aligned with {domainName}. Timely submission of weekly progress updates and milestone deliverables via skyrovix.in is mandatory.
+                  <strong className="text-slate-900 font-semibold">
+                    1. Task Execution & Milestones:
+                  </strong>{" "}
+                  You will work on production-grade tasks and project modules aligned with{" "}
+                  {domainName}. Timely submission of weekly progress updates and milestone
+                  deliverables via skyrovix.in is mandatory.
                 </p>
                 <p>
-                  <strong className="text-slate-900 font-semibold">2. Code of Conduct & Integrity:</strong> Plagiarism, unauthorized code dissemination, or any form of professional misconduct will lead to immediate cancellation of your internship program.
+                  <strong className="text-slate-900 font-semibold">
+                    2. Code of Conduct & Integrity:
+                  </strong>{" "}
+                  Plagiarism, unauthorized code dissemination, or any form of professional
+                  misconduct will lead to immediate cancellation of your internship program.
                 </p>
                 <p>
-                  <strong className="text-slate-900 font-semibold">3. Confidentiality & Non-Disclosure:</strong> Any documentation, source code, architecture designs, or mock datasets shared during this program are strictly confidential and the intellectual property of Skyrovix.
+                  <strong className="text-slate-900 font-semibold">
+                    3. Confidentiality & Non-Disclosure:
+                  </strong>{" "}
+                  Any documentation, source code, architecture designs, or mock datasets shared
+                  during this program are strictly confidential and the intellectual property of
+                  Skyrovix.
                 </p>
                 <p>
-                  <strong className="text-slate-900 font-semibold">4. Mentorship & Continuous Evaluation:</strong> You will receive structured technical guidance and feedback throughout your tenure to foster industry-standard development capabilities.
+                  <strong className="text-slate-900 font-semibold">
+                    4. Mentorship & Continuous Evaluation:
+                  </strong>{" "}
+                  You will receive structured technical guidance and feedback throughout your tenure
+                  to foster industry-standard development capabilities.
                 </p>
                 <p>
-                  <strong className="text-slate-900 font-semibold">5. Certification:</strong> An official Certificate of Internship Completion will be issued only upon successful submission and mentor approval of all milestone tasks.
+                  <strong className="text-slate-900 font-semibold">5. Certification:</strong> An
+                  official Certificate of Internship Completion will be issued only upon successful
+                  submission and mentor approval of all milestone tasks.
                 </p>
               </div>
             </div>
@@ -351,13 +376,20 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 CERTIFICATE OF COMPLETION
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Upon successful completion of the internship tenure and fulfillment of all assigned tasks, you will receive an official Certificate of Internship from Skyrovix, verifiable on our official domain at <strong className="text-slate-900 font-mono font-medium">skyrovix.in/verify-certificate</strong>.
+                Upon successful completion of the internship tenure and fulfillment of all assigned
+                tasks, you will receive an official Certificate of Internship from Skyrovix,
+                verifiable on our official domain at{" "}
+                <strong className="text-slate-900 font-mono font-medium">
+                  skyrovix.in/verify-certificate
+                </strong>
+                .
               </p>
             </div>
 
             {/* Acceptance Closing Statement matching Reference */}
             <p className="text-xs text-slate-700 leading-relaxed mb-4">
-              Please return the signed copy of this letter as a token of your formal acceptance of this offer. We look forward to a mutually rewarding learning experience.
+              Please return the signed copy of this letter as a token of your formal acceptance of
+              this offer. We look forward to a mutually rewarding learning experience.
             </p>
 
             {/* Signatures & Seal Section: Hariharan S (Founder & CEO), Seal (Center), Maheshwaran S (Co-Founder) */}
@@ -370,15 +402,11 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   className="h-14 sm:h-16 object-contain mb-1"
                 />
                 <div className="w-40 sm:w-44 border-t-2 border-[#181619] mb-1" />
-                <span className="text-xs sm:text-[13px] font-bold text-[#181619]">
-                  Hariharan S
-                </span>
+                <span className="text-xs sm:text-[13px] font-bold text-[#181619]">Hariharan S</span>
                 <span className="text-[10px] font-bold text-[#f95c4b] uppercase tracking-wider">
                   Founder & CEO
                 </span>
-                <span className="text-[9px] text-slate-400">
-                  Skyrovix
-                </span>
+                <span className="text-[9px] text-slate-400">Skyrovix</span>
               </div>
 
               {/* Company Seal in Center */}
@@ -407,9 +435,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                 <span className="text-[10px] font-bold text-[#f95c4b] uppercase tracking-wider">
                   Co-Founder
                 </span>
-                <span className="text-[9px] text-slate-400">
-                  Skyrovix
-                </span>
+                <span className="text-[9px] text-slate-400">Skyrovix</span>
               </div>
             </div>
 
@@ -423,11 +449,7 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
                   className="h-10 sm:h-12 object-contain"
                   title="MSME Registered: UDYAM-TN-17-0076606"
                 />
-                <img
-                  src={vinix}
-                  alt="Vinix Partner"
-                  className="h-9 sm:h-10 object-contain"
-                />
+                <img src={vinix} alt="Vinix Partner" className="h-9 sm:h-10 object-contain" />
               </div>
 
               {/* Center: Legal entity & UDYAM */}
@@ -445,14 +467,9 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
 
               {/* Right: YR Tech Logo */}
               <div className="w-44 sm:w-52 flex justify-end">
-                <img
-                  src={yrTech}
-                  alt="YR Tech"
-                  className="h-9 sm:h-10 object-contain"
-                />
+                <img src={yrTech} alt="YR Tech" className="h-9 sm:h-10 object-contain" />
               </div>
             </div>
-
           </div>
         </div>
 
@@ -490,7 +507,6 @@ export function OfferLetterPreviewDialog({ app, open, onOpenChange }: Props) {
             </Button>
           </div>
         </div>
-
       </DialogContent>
     </Dialog>
   );

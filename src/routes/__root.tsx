@@ -167,13 +167,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "alternate", hrefLang: "en", href: SITE_URL },
       { rel: "alternate", hrefLang: "x-default", href: SITE_URL },
     ],
-    scripts: [
-      {
-        async: true,
-        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755024838228586",
-        crossOrigin: "anonymous",
-      },
-    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -185,35 +178,47 @@ function ExternalScripts() {
   const router = useRouter();
 
   useEffect(() => {
-    // 1. Google Tag Manager (gtag.js)
-    if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) {
-      const gtagScript = document.createElement("script");
-      gtagScript.src = "https://www.googletagmanager.com/gtag/js?id=G-FD15M64DX5";
-      gtagScript.async = true;
-      document.head.appendChild(gtagScript);
+    const loadDeferredScripts = () => {
+      // 1. Google Tag Manager (gtag.js)
+      if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) {
+        const gtagScript = document.createElement("script");
+        gtagScript.src = "https://www.googletagmanager.com/gtag/js?id=G-FD15M64DX5";
+        gtagScript.async = true;
+        document.head.appendChild(gtagScript);
 
-      const win = window as any;
-      win.dataLayer = win.dataLayer || [];
-      function gtag(...args: any[]) {
-        win.dataLayer.push(args);
+        const win = window as any;
+        win.dataLayer = win.dataLayer || [];
+        function gtag(...args: any[]) {
+          win.dataLayer.push(args);
+        }
+        win.gtag = gtag;
+        gtag("js", new Date());
+        gtag("config", "G-FD15M64DX5", {
+          page_path: window.location.pathname,
+        });
       }
-      win.gtag = gtag;
-      gtag("js", new Date());
-      gtag("config", "G-FD15M64DX5", {
-        page_path: window.location.pathname,
-      });
-    }
 
-    // 3. Microsoft Clarity
-    if (!document.querySelector('script[src*="clarity.ms"]')) {
-      (function(c: any, l: any, a: any, r: any, i: any, t?: any, y?: any) {
-        c[a] = c[a] || function() { (c[a].q = c[a].q || []).push(arguments); };
-        t = l.createElement(r);
-        t.async = 1;
-        t.src = "https://www.clarity.ms/tag/" + i;
-        y = l.getElementsByTagName(r)[0];
-        y.parentNode.insertBefore(t, y);
-      })(window, document, "clarity", "script", "xd0wqj67e6");
+      // 2. Microsoft Clarity
+      if (!document.querySelector('script[src*="clarity.ms"]')) {
+        (function(c: any, l: any, a: any, r: any, i: any, t?: any, y?: any) {
+          c[a] = c[a] || function() { (c[a].q = c[a].q || []).push(arguments); };
+          t = l.createElement(r);
+          t.async = 1;
+          t.src = "https://www.clarity.ms/tag/" + i;
+          y = l.getElementsByTagName(r)[0];
+          y.parentNode.insertBefore(t, y);
+        })(window, document, "clarity", "script", "xd0wqj67e6");
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      if ("requestIdleCallback" in window) {
+        const handle = (window as any).requestIdleCallback(loadDeferredScripts, { timeout: 3500 });
+        return () => (window as any).cancelIdleCallback?.(handle);
+      } else {
+        const timer = setTimeout(loadDeferredScripts, 2500);
+        return () => clearTimeout(timer);
+      }
     }
   }, []);
 

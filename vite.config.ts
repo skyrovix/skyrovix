@@ -20,7 +20,9 @@ export default defineConfig({
     tanstackStart({
       server: { entry: "server" },
     }),
-    nitro(),
+    nitro({
+      compressPublicAssets: true,
+    }),
     react(),
   ],
 });

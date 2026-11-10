@@ -1,11 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { getPublicFeeSettings, type PublicFeeSettings } from "@/lib/fee-service";
 import { getPublicPlatformStats, type PublicPlatformStats } from "@/lib/platform-stats";
 import { Button } from "@/components/ui/button";
-import { FounderProfileView } from "@/components/FounderProfileView";
 import { DOMAINS, COMPANY, DURATIONS, durationConfig, generateInternId } from "@/lib/constants";
-import { ApplicationFormDialog } from "@/components/ApplicationFormDialog";
 import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { useRecentReviews, computeStats } from "@/lib/reviews";
@@ -17,23 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FadeUp, Reveal, ScaleIn, FadeIn, MotionRiseIn, MotionStagger } from "@/components/motion";
-import { motion } from "framer-motion";
-import {
-  easings,
-  durations,
-  springs,
-  transitions,
-  fade,
-  slideUp,
-  scaleIn,
-  pop,
-  stagger,
-  brightChatCaret,
-  inViewRiseIn,
-  inViewFadeIn,
-  buttonHoverTap,
-  cardHoverElevation,
-} from "@/lib/symboolic.com-motion.framer";
 import {
   BookOpen, Layers, Monitor, Server, BarChart3, Brain, Palette,
   Code2, Shield, TrendingUp, ArrowRight, Award, FileCheck, Rocket,
@@ -54,7 +35,16 @@ import yrTechLogo from "@/assets/yr-tech.webp";
 import vinixLogo from "@/assets/vinix.webp";
 import skyrovixLogo from "@/assets/logo.webp";
 import skyrovixLogoWhite from "@/assets/sk-logo-white.webp";
-import { FlyingRocketAnimation } from "@/components/FlyingRocketAnimation";
+
+const FounderProfileView = lazy(() =>
+  import("@/components/FounderProfileView").then((m) => ({ default: m.FounderProfileView }))
+);
+const ApplicationFormDialog = lazy(() =>
+  import("@/components/ApplicationFormDialog").then((m) => ({ default: m.ApplicationFormDialog }))
+);
+const FlyingRocketAnimation = lazy(() =>
+  import("@/components/FlyingRocketAnimation").then((m) => ({ default: m.FlyingRocketAnimation }))
+);
 
 const COURSE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   BookOpen, Layers, Monitor, Server, BarChart3, Brain, Palette, Code2, Shield, TrendingUp,
@@ -88,6 +78,15 @@ export const Route = createFileRoute("/_navbar-layout/")({
     }
 
     return {
+      links: [
+        {
+          rel: "preload",
+          as: "image",
+          href: heroTeamImage,
+          type: "image/webp",
+          fetchPriority: "high",
+        },
+      ],
       meta: [
         { title: "Skyrovix | Virtual Internship with Certificate & Real Projects" },
         { name: "description", content: "Skyrovix is a virtual internship platform offering hands-on projects, offer letters, certificates, and mentor support in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX, and more." },
@@ -167,7 +166,11 @@ function Landing() {
   }, []);
 
   if (isFounder) {
-    return <FounderProfileView />;
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-[#faf8f2]" />}>
+        <FounderProfileView />
+      </Suspense>
+    );
   }
 
   return (
@@ -484,6 +487,11 @@ function Landing() {
                   <img
                     src={heroTeamImage}
                     alt="Skyrovix Interns"
+                    width={612}
+                    height={408}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="sync"
                     className="relative z-10 w-full max-w-[360px] sm:max-w-[460px] lg:max-w-[500px] xl:max-w-[540px] h-auto object-contain select-none pointer-events-none drop-shadow-sm"
                   />
 
@@ -672,7 +680,9 @@ function Landing() {
 
               {/* Right Column: Animated Flying Rocket */}
               <div className="lg:col-span-5 w-full flex items-center justify-center">
-                <FlyingRocketAnimation />
+                <Suspense fallback={<div className="h-48 w-48" />}>
+                  <FlyingRocketAnimation />
+                </Suspense>
               </div>
             </div>
           </div>
@@ -981,27 +991,19 @@ function Landing() {
                   </p>
 
                   <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-3">
-                    <motion.div
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={transitions.fast}
-                    >
+                    <div className="transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]">
                       <Button asChild size="lg" className="rounded-xl bg-[#f95c4b] text-white hover:bg-[#e04b3a] border-0 shadow-xl shadow-[#f95c4b]/30 font-bold h-12 px-8 transition-all duration-300 group cursor-pointer">
                         <Link to="/auth" search={{ redirect: undefined }}>
                           Apply now
                           <ArrowRight className="ml-1.5 size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                         </Link>
                       </Button>
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={transitions.fast}
-                    >
+                    </div>
+                    <div className="transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]">
                       <Button asChild size="lg" variant="outline" className="rounded-xl bg-white/5 border border-white/15 text-white/90 hover:bg-white/12 hover:text-white h-12 px-8 backdrop-blur-sm transition-all duration-300 cursor-pointer">
                         <Link to="/internship" search={{ apply: undefined }}>Explore Internships</Link>
                       </Button>
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* Trust line */}
@@ -1068,11 +1070,15 @@ function Landing() {
       </section>
 
       {/* ─── APPLY DIALOG ─── */}
-      <ApplicationFormDialog
-        open={!!applyDomain}
-        onOpenChange={(o) => { if (!o) setApplyDomain(null); }}
-        defaultDomain={applyDomain ?? undefined}
-      />
+      {applyDomain && (
+        <Suspense fallback={null}>
+          <ApplicationFormDialog
+            open={!!applyDomain}
+            onOpenChange={(o) => { if (!o) setApplyDomain(null); }}
+            defaultDomain={applyDomain ?? undefined}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
@@ -1331,49 +1337,5 @@ function MobileReviewCard({ item }: { item: MarqueeItem }) {
         </div>
       </div>
     </div>
-  );
-}
-
-
-
-function TypingText({ texts }: { texts: string[] }) {
-  const [index, setIndex] = useState(0);
-  const [display, setDisplay] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const current = texts[index];
-    let timer: ReturnType<typeof setTimeout>;
-
-    if (!isDeleting) {
-      if (display.length < current.length) {
-        timer = setTimeout(() => setDisplay(current.slice(0, display.length + 1)), 50);
-      } else {
-        timer = setTimeout(() => setIsDeleting(true), 2000);
-      }
-    } else {
-      if (display.length > 0) {
-        timer = setTimeout(() => setDisplay(display.slice(0, -1)), 25);
-      } else {
-        setIsDeleting(false);
-        setIndex((i) => (i + 1) % texts.length);
-      }
-    }
-
-    return () => clearTimeout(timer);
-  }, [display, isDeleting, index, texts]);
-
-  return (
-    <span className="font-semibold brand-text">
-      {display}
-      <motion.span
-        variants={brightChatCaret}
-        initial="initial"
-        animate="animate"
-        className="ml-0.5 inline-block"
-      >
-        |
-      </motion.span>
-    </span>
   );
 }
