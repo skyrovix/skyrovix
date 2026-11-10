@@ -5,8 +5,9 @@ import {
   ArrowLeft, FileSignature, ShieldCheck, UserCheck, 
   BookOpen, Briefcase, AlertCircle, CheckCircle2, 
   Clock, Scale, HelpCircle, Mail, ArrowRight, Award, Lock,
-  IndianRupee, Gift, Sparkles, Tag, Zap, CreditCard, Check
+  IndianRupee, Gift, Sparkles, Tag, Zap, CreditCard, Check, Crown
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { WebPageJsonLd, BreadcrumbJsonLd } from "@/components/JsonLd";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FadeUp } from "@/components/motion";
@@ -278,19 +279,129 @@ function TermsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-                  4. Fee Policy: 100% Free Application &amp; Certification Structure
+                  4. Fee Policy: Standard (₹100) &amp; Premium (₹200) Plan Pricing Structure
                 </h2>
                 <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Transparent
+                  Transparent Pricing
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Complete transparency regarding zero upfront application fees, nominal certificate processing, and premium tracks
+                Complete transparency regarding 100% free application, Standard Plan (₹100 certificate fee), and Premium Plan (₹200 all-inclusive)
               </p>
             </div>
           </div>
 
-          <div className="space-y-5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div className="space-y-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            {/* ── Official Plan Pricing Comparison Grid ── */}
+            <div className="grid gap-4 sm:grid-cols-2 pt-1">
+              {/* Standard Plan Card */}
+              <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Standard Internship Plan
+                  </Badge>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                    Free Application (₹0)
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">Standard Track</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Self-paced practical domain internship for all students</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800 space-y-1.5">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Application &amp; Registration:</span>
+                    <span className="text-sm font-extrabold text-emerald-600">₹0 (100% FREE)</span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Official Offer Letter &amp; ID:</span>
+                    <span className="text-xs font-extrabold text-emerald-600">₹0 (FREE)</span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Task Access &amp; Mentor Reviews:</span>
+                    <span className="text-xs font-extrabold text-emerald-600">₹0 (FREE)</span>
+                  </div>
+                  <div className="border-t border-border/50 pt-1 flex items-baseline justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Certificate &amp; LOR Fee:</span>
+                    <span className="text-base font-black text-slate-900 dark:text-white">₹100 (At Completion)</span>
+                  </div>
+                  <div className="text-[10px] text-muted-foreground text-right italic">
+                    *₹0 (100% Free) with FIRST100 or Scholarship Coupon
+                  </div>
+                </div>
+
+                <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                    <span><strong>No Upfront Charges:</strong> Start working on your tasks immediately for free.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                    <span><strong>Standard Tasks:</strong> 5 (1M), 8 (2M), 10 (3M), or 12 (6M) projects.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                    <span><strong>Payable Only If Passed:</strong> ₹100 certificate fee is charged only after mentor approves all tasks.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Premium Plan Card */}
+              <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/5 via-white to-orange-500/5 dark:from-amber-950/20 dark:via-slate-900 dark:to-orange-950/10 p-5 shadow-sm space-y-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-orange-500 text-white text-[9px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-wider shadow-xs">
+                  VIP INTENSIVE
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-amber-500 text-white text-xs font-bold border-0">
+                    👑 Premium Internship Plan
+                  </Badge>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                    Premium Track <Crown className="size-4 text-amber-500" />
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Advanced full-stack capstone track with priority 1-on-1 mentorship</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1.5">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Application &amp; Registration:</span>
+                    <span className="text-sm font-extrabold text-emerald-600">₹0 (100% FREE)</span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Premium Plan Upgrade:</span>
+                    <span className="text-base font-black text-amber-600 dark:text-amber-400">₹200 (One-Time)</span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Certificate Fee at End:</span>
+                    <span className="text-xs font-extrabold text-emerald-600">₹0 (Included in ₹200)</span>
+                  </div>
+                  <div className="border-t border-amber-500/20 pt-1 text-[10px] text-muted-foreground text-right italic">
+                    *₹150 with PREM50 · ₹175 with PREM25 · ₹0 with PREMFREE
+                  </div>
+                </div>
+
+                <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="size-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    <span><strong>All-Inclusive ₹200 Price:</strong> Zero additional certificate fees upon completion.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="size-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    <span><strong>Intensive Tasks:</strong> 25 Projects (3-Month track) or 50 Projects (6-Month track).</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="size-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    <span><strong>VIP Mentorship:</strong> Priority queue, 1-on-1 guidance &amp; architecture review.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
             {/* 4.1 100% Free Application Policy */}
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/70 border border-emerald-200/80 dark:border-emerald-800/60 shadow-xs space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -366,7 +477,7 @@ function TermsPage() {
                     <li>The fee is <strong>never charged upfront</strong> during registration.</li>
                     <li>Payment is unlocked only after 100% of project tasks are submitted, evaluated, and approved by mentors.</li>
                     <li>Students who do not wish to claim a verified certificate are under no obligation to pay.</li>
-                    <li>Standard certificate fee is nominally configured on the platform (e.g. ₹99 or as displayed during checkout).</li>
+                    <li>Standard certificate fee is nominally fixed at <strong>₹100</strong> (inclusive of verification, cloud hosting, and MSME compliance), which can be waived to <strong>₹0 (100% Free)</strong> with valid scholarship coupons.</li>
                   </ul>
                 </div>
               </div>
@@ -413,19 +524,22 @@ function TermsPage() {
                     <Zap className="size-4 text-amber-500" />
                   </div>
                   <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                    4.4 Premium Plan Upgrade (Full Stack Intensive)
+                    4.4 Premium Plan Upgrade (Full Stack Intensive — ₹200)
                   </h3>
                 </div>
                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                  Optional VIP Track
+                  Fixed ₹200 Price
                 </span>
               </div>
 
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                For students seeking deep industry immersion, Skyrovix offers an optional <strong>Premium Plan Upgrade</strong> (standard fee of ₹200 or promotional discounted pricing):
+                For students seeking deep industry immersion, Skyrovix offers an optional <strong>Premium Plan Upgrade</strong> at a fixed price of <strong>₹200</strong> (one-time payment, all-inclusive with zero extra fees at completion):
               </p>
 
               <ul className="text-xs sm:text-sm space-y-2 list-disc pl-5">
+                <li>
+                  <strong>All-Inclusive Fixed Fee:</strong> The ₹200 fee covers the entire program from start to finish, including curriculum, priority reviews, verified MSME certificate, LOR, and digital credentials with <strong>no separate certificate fee at the end</strong>.
+                </li>
                 <li>
                   <strong>Advanced Capstone Track:</strong> Unlocks comprehensive sequential tracks featuring <strong>25 projects (3-Month track)</strong> or <strong>50 projects (6-Month track)</strong> with architecture reviews and production deployment standards.
                 </li>
@@ -433,7 +547,7 @@ function TermsPage() {
                   <strong>Priority Mentor Guidance &amp; Speed Reviews:</strong> Premium students receive expedited task reviews, priority 1-on-1 code feedback, and dedicated interview preparation resources.
                 </li>
                 <li>
-                  <strong>Included Certification:</strong> Students enrolled under the Premium Plan receive verified completion certification, LOR, and digital credentials with no additional certificate fee at completion.
+                  <strong>Exclusive Offer Coupons:</strong> Students can apply Premium-specific discount coupons during payment, such as <code>PREM50</code> (Flat ₹50 OFF &rarr; ₹150 payable), <code>PREM25</code> (Flat ₹25 OFF &rarr; ₹175 payable), or <code>PREMFREE</code> (100% Free Waiver &rarr; ₹0 payable).
                 </li>
               </ul>
             </div>
