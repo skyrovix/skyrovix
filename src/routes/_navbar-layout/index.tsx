@@ -3,26 +3,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { getPublicFeeSettings, type PublicFeeSettings } from "@/lib/fee-service";
 import { getPublicPlatformStats, type PublicPlatformStats } from "@/lib/platform-stats";
 import { Button } from "@/components/ui/button";
-import { DOMAINS, COMPANY, DURATIONS, durationConfig, generateInternId } from "@/lib/constants";
-import { supabase } from "@/lib/db-client";
+import { DOMAINS } from "@/lib/constants";
 import { useAuth } from "@/lib/auth";
-import { useRecentReviews, computeStats } from "@/lib/reviews";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { toast } from "sonner";
+import { useRecentReviews } from "@/lib/reviews";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { AuroraBackground } from "@/components/AuroraBackground";
-import { FadeUp, Reveal, ScaleIn, FadeIn, MotionRiseIn, MotionStagger } from "@/components/motion";
+import { FadeUp, Reveal } from "@/components/motion";
 import {
   BookOpen, Layers, Monitor, Server, BarChart3, Brain, Palette,
   Code2, Shield, TrendingUp, ArrowRight, Award, FileCheck, Rocket,
-  ShieldCheck, GraduationCap, IndianRupee, HelpCircle, Trophy,
-  Sparkles, ChevronRight, CheckCircle2, Quote, Star,
-  ArrowUpRight, Globe, Zap, Users, Target, HeartHandshake,
-  Clock, MessageSquare, Briefcase, Laptop, Building2,
-  Loader2, Play, FileText, Cloud, LayoutGrid,
+  ShieldCheck, GraduationCap, IndianRupee, Sparkles, ChevronRight, CheckCircle2,
+  Star, Globe, Users, Clock, MessageSquare, Briefcase, Play, FileText, Cloud, LayoutGrid,
 } from "lucide-react";
 import { MobileFloatingIcons } from "@/components/MobileFloatingIcons";
 import { FAQJsonLd, BreadcrumbJsonLd } from "@/components/JsonLd";

@@ -202,11 +202,11 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
       </div>
 
       {/* Mode Switcher Tabs */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-muted/40 border border-border/50 w-fit">
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-muted/40 border border-border/50 max-w-full overflow-x-auto scrollbar-none">
         <button
           type="button"
           onClick={() => setPaymentView("cashfree")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             paymentView === "cashfree"
               ? "bg-[#181619] text-white shadow-md shadow-[#181619]/10"
               : "text-muted-foreground hover:text-foreground"
@@ -217,7 +217,7 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
         <button
           type="button"
           onClick={() => setPaymentView("manual")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             paymentView === "manual"
               ? "bg-[#181619] text-white shadow-md shadow-[#181619]/10"
               : "text-muted-foreground hover:text-foreground"
@@ -318,7 +318,7 @@ export function PaymentVerificationSection({ adminId }: PaymentVerificationSecti
       <Card className="rounded-2xl border-border/50 shadow-sm bg-card/80 backdrop-blur-sm overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
+            <table className="w-full min-w-[850px] text-xs text-left">
               <thead className="bg-muted/30 text-muted-foreground font-semibold border-b border-border/30">
                 <tr>
                   <th className="py-3.5 px-4">Student</th>

@@ -302,7 +302,7 @@ export function CouponManagementSection({ adminId }: CouponManagementSectionProp
       <Card className="rounded-2xl border-border/50 shadow-sm bg-card/80 backdrop-blur-sm overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
+            <table className="w-full min-w-[750px] text-xs text-left">
               <thead className="bg-muted/30 text-muted-foreground font-semibold border-b border-border/30">
                 <tr>
                   <th className="py-3.5 px-4">Coupon Code</th>

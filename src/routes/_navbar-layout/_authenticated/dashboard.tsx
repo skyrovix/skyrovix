@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
-import { ApplicationFormDialog } from "@/components/ApplicationFormDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { INDIA_STATES, STATE_DISTRICTS } from "@/lib/india-locations";
@@ -29,9 +28,7 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { IDCard } from "@/components/IDCard";
 import { TasksSection } from "@/components/TasksSection";
-import { OfferLetterDoc, CertificateDoc, IDCardDoc, downloadCertificate, downloadIDCard, downloadOfferLetter, downloadPdf } from "@/components/pdf-docs";
-import { OfferLetterPreviewDialog } from "@/components/OfferLetterPreviewDialog";
-import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/CertificatePreviewDialog";
+import type { CertificatePreviewData } from "@/components/CertificatePreviewDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Copy, Download, FileText, CheckCircle2, Clock, XCircle, X, Upload, Award,
@@ -44,8 +41,37 @@ import {
   Share2, HelpCircle, Package, Instagram, Crown, Menu, Gift,
 } from "lucide-react";
 import { StudentDashboardSidebar } from "@/components/dashboard/StudentDashboardSidebar";
-import { MyDocumentsSection } from "@/components/dashboard/MyDocumentsSection";
-import { StudentKitDashboardView } from "@/components/dashboard/StudentKitDashboardView";
+
+// Lazy-loaded subcomponents for lightweight initial route chunk
+const ApplicationFormDialog = lazy(() =>
+  import("@/components/ApplicationFormDialog").then((m) => ({ default: m.ApplicationFormDialog }))
+);
+const OfferLetterPreviewDialog = lazy(() =>
+  import("@/components/OfferLetterPreviewDialog").then((m) => ({ default: m.OfferLetterPreviewDialog }))
+);
+const CertificatePreviewDialog = lazy(() =>
+  import("@/components/CertificatePreviewDialog").then((m) => ({ default: m.CertificatePreviewDialog }))
+);
+const MyDocumentsSection = lazy(() =>
+  import("@/components/dashboard/MyDocumentsSection").then((m) => ({ default: m.MyDocumentsSection }))
+);
+const StudentKitDashboardView = lazy(() =>
+  import("@/components/dashboard/StudentKitDashboardView").then((m) => ({ default: m.StudentKitDashboardView }))
+);
+
+// Dynamic PDF downloaders — loads @react-pdf/renderer on-demand only when student clicks download
+const downloadOfferLetter = async (args: { fullName: string; internId: string; domain: string; issuedAt: string; duration?: number }) => {
+  const { downloadOfferLetter: fn } = await import("@/components/pdf-docs");
+  return fn(args);
+};
+const downloadCertificate = async (args: { fullName: string; internId: string; certId: string; domain: string; issuedAt: string; duration?: number; verifyUrl?: string }) => {
+  const { downloadCertificate: fn } = await import("@/components/pdf-docs");
+  return fn(args);
+};
+const downloadIDCard = async (args: { fullName: string; internId: string; domain: string; issuedAt: string; photoUrl?: string | null; email?: string | null; validUpto?: string | null; qrUrl?: string }) => {
+  const { downloadIDCard: fn } = await import("@/components/pdf-docs");
+  return fn(args);
+};
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -1934,16 +1960,18 @@ function Dashboard() {
     if (active === "documents") {
       return (
         <div className="space-y-6">
-          <MyDocumentsSection
-            app={app}
-            user={user}
-            onNavigateToTasks={() => navigate({ search: { tab: "tasks" } as any })}
-            onUpgradeToPremium={
-              isPremiumPlanGlobalEnabled && app?.domain === "fullstack"
-                ? () => handleTriggerUpgrade(app)
-                : undefined
-            }
-          />
+          <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2"><Loader2 className="size-4 animate-spin" /> Loading documents...</div>}>
+            <MyDocumentsSection
+              app={app}
+              user={user}
+              onNavigateToTasks={() => navigate({ search: { tab: "tasks" } as any })}
+              onUpgradeToPremium={
+                isPremiumPlanGlobalEnabled && app?.domain === "fullstack"
+                  ? () => handleTriggerUpgrade(app)
+                  : undefined
+              }
+            />
+          </Suspense>
         </div>
       );
     }
@@ -1951,15 +1979,17 @@ function Dashboard() {
     if (active === "student-kit") {
       return (
         <div className="space-y-6">
-          <StudentKitDashboardView
-            app={app}
-            isPremium={isPremium}
-            onUpgradeToPremium={
-              isPremiumPlanGlobalEnabled && app?.domain === "fullstack"
-                ? () => handleTriggerUpgrade(app)
-                : undefined
-            }
-          />
+          <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2"><Loader2 className="size-4 animate-spin" /> Loading student kit...</div>}>
+            <StudentKitDashboardView
+              app={app}
+              isPremium={isPremium}
+              onUpgradeToPremium={
+                isPremiumPlanGlobalEnabled && app?.domain === "fullstack"
+                  ? () => handleTriggerUpgrade(app)
+                  : undefined
+              }
+            />
+          </Suspense>
         </div>
       );
     }
@@ -2987,22 +3017,30 @@ function Dashboard() {
       </div>
 
       {/* Offer Letter Interactive Preview Dialog */}
-      <OfferLetterPreviewDialog
-        app={previewOfferApp}
-        open={!!previewOfferApp}
-        onOpenChange={(open) => {
-          if (!open) setPreviewOfferApp(null);
-        }}
-      />
+      {previewOfferApp && (
+        <Suspense fallback={null}>
+          <OfferLetterPreviewDialog
+            app={previewOfferApp}
+            open={!!previewOfferApp}
+            onOpenChange={(open) => {
+              if (!open) setPreviewOfferApp(null);
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Official Certificate Interactive Preview Dialog */}
-      <CertificatePreviewDialog
-        data={previewCertData}
-        open={!!previewCertData}
-        onOpenChange={(open) => {
-          if (!open) setPreviewCertData(null);
-        }}
-      />
+      {previewCertData && (
+        <Suspense fallback={null}>
+          <CertificatePreviewDialog
+            data={previewCertData}
+            open={!!previewCertData}
+            onOpenChange={(open) => {
+              if (!open) setPreviewCertData(null);
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Cashfree Payment for Upgrading to Premium */}
       {upgradePayment && (
@@ -4269,12 +4307,14 @@ function CertificateSection({ cert, app, compact }: any) {
       <div className="mt-4 space-y-2">
         {app && (
           <Button size="sm" className="w-full brand-gradient text-white border-0 rounded-xl h-9"
-            onClick={() => downloadPdf(
-              <CertificateDoc fullName={app.full_name} internId={app.intern_id} domain={domain?.name ?? app.domain}
-                certId={cert.certificate_id} issuedAt={cert.issued_at}
-                verifyUrl={`${getPublicSiteUrl()}/verify-certificate`} />,
-              `Certificate_${cert.certificate_id}.pdf`
-            )}>
+            onClick={() => downloadCertificate({
+              fullName: app.full_name,
+              internId: app.intern_id,
+              domain: domain?.name ?? app.domain,
+              certId: cert.certificate_id,
+              issuedAt: cert.issued_at,
+              verifyUrl: `${getPublicSiteUrl()}/verify-certificate`
+            })}>
             <Download className="mr-1.5 size-4" /> Download PDF
           </Button>
         )}
@@ -4380,11 +4420,15 @@ function WelcomeDashboard({ user, onCreated }: { user: any; onCreated: () => voi
         </div>
       </div>
 
-      <ApplicationFormDialog
-        open={showApplyDialog}
-        onOpenChange={setShowApplyDialog}
-        onSuccess={onCreated}
-      />
+      {showApplyDialog && (
+        <Suspense fallback={null}>
+          <ApplicationFormDialog
+            open={showApplyDialog}
+            onOpenChange={setShowApplyDialog}
+            onSuccess={onCreated}
+          />
+        </Suspense>
+      )}
 
       {/* Quick action tiles */}
       <div className="grid gap-4 sm:grid-cols-2">

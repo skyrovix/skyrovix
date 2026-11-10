@@ -504,7 +504,7 @@ export function StudentKitsAdminSection() {
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-border/50">
-            <Table>
+            <Table className="min-w-[700px]">
               <TableHeader className="bg-slate-50 dark:bg-[#201d22]">
                 <TableRow>
                   <TableHead className="text-xs font-bold">Student Name</TableHead>

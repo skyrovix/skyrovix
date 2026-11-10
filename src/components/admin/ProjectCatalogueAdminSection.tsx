@@ -223,7 +223,7 @@ export function ProjectCatalogueAdminSection() {
 
       {/* Table list */}
       <div className="overflow-x-auto rounded-2xl border border-border/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[650px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground bg-muted/20">
               <th className="px-4 py-3 text-left">Project Title</th>

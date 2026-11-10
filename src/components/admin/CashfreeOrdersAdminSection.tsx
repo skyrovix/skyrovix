@@ -216,7 +216,7 @@ export function CashfreeOrdersAdminSection({ adminId }: CashfreeOrdersAdminSecti
       {/* Orders Table */}
       <Card className="rounded-2xl border-border/50 shadow-sm bg-card/80 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[850px] text-left text-xs">
             <thead className="bg-muted/40 border-b border-border/50 text-muted-foreground uppercase tracking-wider text-[10px] font-bold">
               <tr>
                 <th className="p-4">Order ID</th>

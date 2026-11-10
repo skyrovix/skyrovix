@@ -390,28 +390,28 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
         </div>
 
         {/* Tab Switcher & Refresh */}
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-xl bg-card border border-border/80 p-1 shadow-xs">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <div className="flex rounded-xl bg-card border border-border/80 p-1 shadow-xs max-w-full overflow-x-auto scrollbar-none">
             <button
               onClick={() => setActiveTab("payments")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === "payments"
                   ? "bg-amber-500 text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <IndianRupee className="size-3.5" />
+              <IndianRupee className="size-3.5 shrink-0" />
               <span>Payments &amp; Students ({records.length})</span>
             </button>
             <button
               onClick={() => setActiveTab("coupons")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === "coupons"
                   ? "bg-amber-500 text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Tag className="size-3.5" />
+              <Tag className="size-3.5 shrink-0" />
               <span>Offers &amp; Coupons ({couponsData?.length || 0})</span>
             </button>
           </div>
@@ -424,7 +424,7 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
               refetchCoupons();
               toast.success("Refreshed Premium Plan data");
             }}
-            className="rounded-xl h-9 text-xs border-border/80 gap-1.5 cursor-pointer hover:bg-accent"
+            className="rounded-xl h-9 text-xs border-border/80 gap-1.5 cursor-pointer hover:bg-accent shrink-0"
           >
             <RefreshCw className={`size-3.5 ${fetchingPayments ? "animate-spin text-amber-500" : ""}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -433,7 +433,7 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
       </div>
 
       {/* ── KPI Metrics Row ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {/* Total Students */}
         <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-1">
@@ -504,11 +504,11 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
           <div className="flex flex-col gap-3">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
               {/* Track selector */}
-              <div className="flex items-center gap-1 rounded-xl bg-card border border-border/80 p-1 shrink-0 shadow-2xs">
+              <div className="flex items-center gap-1 rounded-xl bg-card border border-border/80 p-1 shadow-2xs overflow-x-auto max-w-full scrollbar-none">
                 <button
                   type="button"
                   onClick={() => setTrackFilter("all")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
                     trackFilter === "all" ? "bg-amber-500 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -517,7 +517,7 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
                 <button
                   type="button"
                   onClick={() => setTrackFilter("fullstack")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
                     trackFilter === "fullstack" ? "bg-amber-500 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -526,11 +526,11 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
                 <button
                   type="button"
                   onClick={() => setTrackFilter("premium")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1 whitespace-nowrap ${
                     trackFilter === "premium" ? "bg-amber-500 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <Crown className="size-3" /> Premium Active ({records.filter((r) => r.plan_type === "premium" || r.plan_payment_status === "paid" || r.plan_payment_status === "free" || r.plan_payment_status === "waived").length})
+                  <Crown className="size-3 shrink-0" /> Premium Active ({records.filter((r) => r.plan_type === "premium" || r.plan_payment_status === "paid" || r.plan_payment_status === "free" || r.plan_payment_status === "waived").length})
                 </button>
               </div>
 
@@ -547,7 +547,7 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
             </div>
 
             {/* Status Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 max-w-full scrollbar-none">
               {[
                 { id: "all", label: "All Status", count: records.length },
                 { id: "cashfree", label: "Gateway Paid", count: stats.cashfreePaid },
@@ -559,7 +559,7 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
                 <button
                   key={f.id}
                   onClick={() => setCategoryFilter(f.id as any)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
                     categoryFilter === f.id
                       ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
                       : "bg-muted/60 text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -573,8 +573,8 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
           </div>
 
           {/* Table Container */}
-          <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card shadow-xs">
-            <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card shadow-xs -mx-1 sm:mx-0">
+            <table className="w-full min-w-[850px] text-left text-sm">
               <thead className="border-b border-border/80 bg-muted/40 text-[11px] font-black uppercase tracking-wider text-muted-foreground select-none">
                 <tr>
                   <th className="px-4 py-3">Student &amp; Domain</th>
@@ -888,7 +888,7 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
           </div>
 
           {/* Active Premium Coupons Table */}
-          <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card shadow-xs">
+          <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card shadow-xs -mx-1 sm:mx-0">
             <div className="p-4 border-b border-border/80 flex items-center justify-between">
               <div>
                 <h4 className="font-bold text-sm text-foreground">Active Premium Plan Coupons &amp; Offers</h4>
@@ -896,12 +896,12 @@ export function PremiumPlanAdminSection({ adminId }: PremiumPlanAdminSectionProp
                   These codes are exclusively valid when students upgrade to the Premium Plan.
                 </p>
               </div>
-              <Badge variant="outline" className="text-xs font-semibold">
+              <Badge variant="outline" className="text-xs font-semibold shrink-0">
                 {couponsData?.length || 0} Coupons
               </Badge>
             </div>
 
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[750px] text-left text-sm">
               <thead className="border-b border-border/80 bg-muted/40 text-[11px] font-black uppercase tracking-wider text-muted-foreground select-none">
                 <tr>
                   <th className="px-4 py-3">Coupon Code</th>

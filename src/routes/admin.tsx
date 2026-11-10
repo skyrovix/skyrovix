@@ -302,8 +302,8 @@ function AdminPanel() {
   });
 
   return (
-    <div className="h-dvh bg-[#faf8f2] text-[#181619]">
-      <div className="flex h-dvh bg-[#faf8f2] text-[#181619]">
+    <div className="h-dvh w-full max-w-full overflow-hidden bg-[#faf8f2] text-[#181619]">
+      <div className="flex h-dvh w-full max-w-full overflow-hidden bg-[#faf8f2] text-[#181619]">
         
         {/* ─── Mobile Overlay ─── */}
         {mobileOpen && (
@@ -384,11 +384,11 @@ function AdminPanel() {
         </aside>
 
         {/* ─── Main Area ─── */}
-        <div className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${sidebarOpen ? "lg:pl-64" : "lg:pl-16"}`}>
+        <div className={`flex min-w-0 max-w-full flex-1 flex-col overflow-hidden transition-all duration-300 ${sidebarOpen ? "lg:pl-64" : "lg:pl-16"}`}>
           {/* ─── Top Navbar ─── */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-slate-100 bg-white/95 px-6 backdrop-blur-md dark:bg-[#0F172A]/90 dark:border-slate-800">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setMobileOpen(true)} className="lg:hidden grid size-9 place-items-center rounded-lg border border-border hover:bg-accent/50">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-2 sm:gap-4 border-b border-slate-100 bg-white/95 px-3 sm:px-6 backdrop-blur-md dark:bg-[#0F172A]/90 dark:border-slate-800">
+            <div className="flex items-center gap-3 min-w-0">
+              <button onClick={() => setMobileOpen(true)} className="lg:hidden grid size-9 place-items-center rounded-lg border border-border hover:bg-accent/50 shrink-0">
                 <Menu className="size-4" />
               </button>
               <div className="relative hidden sm:block">
@@ -404,7 +404,7 @@ function AdminPanel() {
                 </div>
               </div>
               {/* System Health Badges */}
-              <div className="hidden md:flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50/50 px-2.5 py-1 text-[10px] font-medium text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-950/20 dark:text-emerald-400">
+              <div className="hidden md:flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50/50 px-2.5 py-1 text-[10px] font-medium text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-950/20 dark:text-emerald-400 shrink-0">
                 <span className="relative flex size-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
@@ -413,11 +413,11 @@ function AdminPanel() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500/20 shrink-0"
                     aria-label="View notifications"
                   >
                     <Bell className="size-4" />
@@ -446,8 +446,8 @@ function AdminPanel() {
                   />
                 </DropdownMenuContent>
               </DropdownMenu>
-              <div className="ml-2 flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer">
-                <div className="grid size-8 place-items-center rounded-full brand-gradient text-white font-bold text-xs font-display shadow-sm shadow-[#f95c4b]/20">
+              <div className="ml-1 sm:ml-2 flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer">
+                <div className="grid size-8 place-items-center rounded-full brand-gradient text-white font-bold text-xs font-display shadow-sm shadow-[#f95c4b]/20 shrink-0">
                   {user?.email?.charAt(0).toUpperCase() ?? "H"}
                 </div>
                 <div className="hidden sm:flex flex-col text-left">
@@ -460,7 +460,7 @@ function AdminPanel() {
           </header>
 
           {/* ─── Page Content ─── */}
-          <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-6 lg:p-8 w-full max-w-full">
             {/* Search results */}
             {searchQuery && (
               <div className="mb-6 rounded-2xl border border-border/60 bg-white/60 p-4 backdrop-blur dark:bg-white/5">
@@ -749,7 +749,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
       </div>
 
       {/* 4 Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Students */}
         <div className="rounded-2xl border border-slate-100 bg-white p-4 sm:p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between transition hover:shadow-md">
           <div className="space-y-1 sm:space-y-1.5">
@@ -816,12 +816,12 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
       </div>
 
       {/* Main 2-Column Split */}
-      <div className="hidden sm:grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Left Side (2 Columns width) */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* Recent Task Submissions */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Recent Task Submissions</h3>
               <button 
@@ -832,8 +832,8 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+            <div className="overflow-x-auto -mx-1 sm:mx-0">
+              <table className="w-full min-w-[550px] text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 text-left font-semibold text-slate-400 dark:border-slate-800">
                     <th className="pb-3 pr-2">Student</th>
@@ -895,7 +895,7 @@ function DashboardSection({ greeting, overview, onNavigate, onlineCount = 0, liv
           </div>
 
           {/* Charts Row */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
             
             {/* Donut Chart Status */}
             <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -1383,7 +1383,7 @@ function ApplicationsSection() {
             ))}
           </div>
 
-          <div className="flex items-center gap-1 rounded-xl bg-muted/50 p-1">
+          <div className="flex flex-wrap items-center gap-1 rounded-xl bg-muted/50 p-1">
             {(["all", "standard", "premium"] as const).map((p) => (
               <button
                 key={p}
@@ -1582,8 +1582,8 @@ function ApplicationsSection() {
         </Portal>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 -mx-1 sm:mx-0">
+        <table className="w-full min-w-[850px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <th className="px-4 py-3 text-left">Student</th>
@@ -3192,8 +3192,8 @@ function PaymentsSection() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 -mx-1 sm:mx-0">
+        <table className="w-full min-w-[850px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <th className="px-4 py-3 text-left">Student</th>
@@ -3897,8 +3897,8 @@ function VerificationSection() {
       {reviewedApps && reviewedApps.length > 0 && (
         <div className="mt-6">
           <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Reviewed ({reviewedApps.length})</h3>
-          <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 -mx-1 sm:mx-0">
+            <table className="w-full min-w-[650px] text-sm">
               <thead>
                 <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                   <th className="px-4 py-3 text-left">Student</th>
@@ -4397,8 +4397,8 @@ function CertificatesSection({ onOpenDemo }: { onOpenDemo?: () => void }) {
           </Button>
         </div>
       )}
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 -mx-1 sm:mx-0">
+        <table className="w-full min-w-[850px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <th className="px-4 py-3 text-left">Certificate ID</th>
@@ -4796,8 +4796,8 @@ function StudentsSection() {
       </div>
 
       {/* Students Table */}
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm -mx-1 sm:mx-0">
+        <table className="w-full min-w-[850px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground bg-muted/20">
               <th className="px-4 py-3 text-left">Student User</th>
@@ -6406,8 +6406,8 @@ function EmailLogsSection() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 -mx-1 sm:mx-0">
+        <table className="w-full min-w-[850px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <th className="px-4 py-3 text-left">Student</th>
@@ -6563,8 +6563,8 @@ function LoginHistorySection() {
         <Input placeholder="Search by name, email, ID, IP, city..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 w-full sm:w-72 max-w-full rounded-xl border-border/60" />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 -mx-1 sm:mx-0">
+        <table className="w-full min-w-[850px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <th className="px-4 py-3 text-left">Student</th>
@@ -6904,7 +6904,7 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
                 <p className="py-8 text-center text-sm text-muted-foreground">No payment records found.</p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/40">
-                  <table className="w-full text-sm">
+                  <table className="w-full min-w-[500px] text-sm">
                     <thead><tr className="border-b border-border/30 text-xs uppercase text-muted-foreground">
                       <th className="px-3 py-2 text-left">Amount</th>
                       <th className="px-3 py-2 text-left">Status</th>
@@ -6942,7 +6942,7 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
                 <p className="py-8 text-center text-sm text-muted-foreground">No task submissions found.</p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/40">
-                  <table className="w-full text-sm">
+                  <table className="w-full min-w-[500px] text-sm">
                     <thead><tr className="border-b border-border/30 text-xs uppercase text-muted-foreground">
                       <th className="px-3 py-2 text-left">Task</th>
                       <th className="px-3 py-2 text-left">Status</th>
@@ -6978,7 +6978,7 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
                 <p className="py-8 text-center text-sm text-muted-foreground">No certificates issued yet.</p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/40">
-                  <table className="w-full text-sm">
+                  <table className="w-full min-w-[500px] text-sm">
                     <thead><tr className="border-b border-border/30 text-xs uppercase text-muted-foreground">
                       <th className="px-3 py-2 text-left">Type</th>
                       <th className="px-3 py-2 text-left">Cert ID</th>
@@ -7008,7 +7008,7 @@ function StudentDetailModal({ student, onClose }: { student: any; onClose: () =>
                 <p className="py-8 text-center text-sm text-muted-foreground">No login sessions recorded.</p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/40">
-                  <table className="w-full text-sm">
+                  <table className="w-full min-w-[650px] text-sm">
                     <thead><tr className="border-b border-border/30 text-xs uppercase text-muted-foreground">
                       <th className="px-3 py-2 text-left">Status</th>
                       <th className="px-3 py-2 text-left">Device</th>
@@ -7460,8 +7460,8 @@ function CoursesSection() {
       </div>
 
       {/* Courses Table */}
-      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border/50 bg-white/60 backdrop-blur dark:bg-[#1E293B]/60 shadow-sm -mx-1 sm:mx-0">
+        <table className="w-full min-w-[850px] text-sm">
           <thead>
             <tr className="border-b border-border/50 text-xs uppercase text-muted-foreground bg-muted/20">
               <th className="px-4 py-3 text-left">Course Track</th>
@@ -7736,7 +7736,7 @@ function CourseStudentsModal({
 
           {/* Students Table */}
           <div className="overflow-x-auto rounded-xl border border-border/40">
-            <table className="w-full text-xs">
+            <table className="w-full min-w-[700px] text-xs">
               <thead>
                 <tr className="border-b border-border/30 bg-muted/30 uppercase text-muted-foreground font-semibold">
                   <th className="px-3 py-2.5 text-left">Student</th>
@@ -8264,8 +8264,8 @@ function DomainsSection() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white/70 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900">
-        <table className="w-full text-xs text-left border-collapse">
+      <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white/70 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900 -mx-1 sm:mx-0">
+        <table className="w-full min-w-[650px] text-xs text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-500 font-semibold dark:border-slate-800 dark:bg-slate-800/30">
               <th className="p-4">Name</th>
@@ -8589,8 +8589,8 @@ function TasksSection() {
             </Button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white/70 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900">
-            <table className="w-full text-xs text-left border-collapse">
+          <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white/70 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900 -mx-1 sm:mx-0">
+            <table className="w-full min-w-[600px] text-xs text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-500 font-semibold dark:border-slate-800 dark:bg-slate-800/30">
                   <th className="p-4 w-24">Task #</th>
