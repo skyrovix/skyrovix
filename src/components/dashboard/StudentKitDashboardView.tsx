@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Gift,
@@ -31,6 +31,7 @@ import {
   BookMarked,
   Library,
   ArrowRight,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,7 @@ export function StudentKitDashboardView({
   onUpgradeToPremium,
 }: StudentKitDashboardViewProps) {
   const qc = useQueryClient();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Navigation & selection state
   const [selectedBook, setSelectedBook] = useState<StudentKitItem | null>(null);
@@ -75,6 +77,44 @@ export function StudentKitDashboardView({
   const [selectedKitForUnlock, setSelectedKitForUnlock] = useState<StudentKitItem | null>(null);
   const [coverZoomOpen, setCoverZoomOpen] = useState(false);
   const [isProcessingUnlock, setIsProcessingUnlock] = useState(false);
+
+  // Smooth scroll to top whenever user opens a book or goes back to catalog
+  const scrollToTop = () => {
+    if (typeof window !== "undefined") {
+      try {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+      if (containerRef.current) {
+        try {
+          containerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch {
+          // fallback
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    scrollToTop();
+  }, [selectedBook]);
+
+  const handleSelectBook = (kit: StudentKitItem) => {
+    setSelectedBook(kit);
+    scrollToTop();
+    setTimeout(() => {
+      scrollToTop();
+    }, 40);
+  };
+
+  const handleBackToCatalog = () => {
+    setSelectedBook(null);
+    scrollToTop();
+    setTimeout(() => {
+      scrollToTop();
+    }, 40);
+  };
 
   // Fetch Kits
   const { data, isLoading } = useQuery({
@@ -248,8 +288,14 @@ export function StudentKitDashboardView({
     kitForPreview || activeBook || allKits[0] || defaultKit;
   const bookForCoverZoom = activeBook || allKits[0] || defaultKit;
 
+  // Regular actual price is Rs. 299
+  const REGULAR_PRICE = 299;
+
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full min-w-0">
+    <div
+      ref={containerRef}
+      className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full min-w-0"
+    >
       {/* ═══════════════════════════════════════════════════════════════════
           VIEW 1: BOOK DETAIL PAGE (When a book is clicked/selected)
          ═══════════════════════════════════════════════════════════════════ */}
@@ -260,7 +306,7 @@ export function StudentKitDashboardView({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setSelectedBook(null)}
+              onClick={handleBackToCatalog}
               className="gap-2 text-xs font-bold rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 shadow-2xs"
             >
               <ArrowLeft className="size-4 text-[#f95c4b]" />
@@ -268,7 +314,13 @@ export function StudentKitDashboardView({
             </Button>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="hidden sm:inline">Student Kit Library</span>
+              <button
+                type="button"
+                onClick={handleBackToCatalog}
+                className="hover:underline cursor-pointer hidden sm:inline"
+              >
+                Student Kit Library
+              </button>
               <span className="hidden sm:inline">&rsaquo;</span>
               <span className="font-bold text-[#181619] dark:text-white truncate max-w-[200px] sm:max-w-xs">
                 {activeBook.title}
@@ -373,8 +425,12 @@ export function StudentKitDashboardView({
                           Unlocked & Ready to Download
                         </Badge>
                       ) : (
-                        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs font-black px-2.5 py-1">
-                          Standard Plan: ₹{activeBook.price}
+                        <Badge className="bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30 text-xs font-black px-2.5 py-1 flex items-center gap-1.5">
+                          <Sparkles className="size-3 text-amber-500" />
+                          <span>Special Offer: ₹{activeBook.price}</span>
+                          <span className="line-through text-muted-foreground font-semibold text-[11px]">
+                            ₹{REGULAR_PRICE}
+                          </span>
                         </Badge>
                       )}
                     </div>
@@ -448,11 +504,11 @@ export function StudentKitDashboardView({
                     </div>
                   </div>
 
-                  {/* ─── ACTION & ACCESS CONTROL PANEL ─── */}
+                  {/* ─── ACTION & ACCESS CONTROL PANEL (OFFER PRICING) ─── */}
                   <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 dark:from-[#201d22] dark:via-[#252028] dark:to-[#201d22] border-2 border-[#f95c4b]/20 shadow-md space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
-                        <div className="flex items-baseline gap-2.5">
+                        <div className="flex items-baseline gap-2.5 flex-wrap">
                           <span className="text-2xl sm:text-3xl font-black text-[#181619] dark:text-white tracking-tight">
                             {isPremiumUser
                               ? "FREE"
@@ -461,22 +517,22 @@ export function StudentKitDashboardView({
                               : `₹${activeBook.price}`}
                           </span>
                           {!isPremiumUser && !activeBook.is_unlocked && (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs text-muted-foreground line-through font-bold">
-                                ₹499.00
+                                ₹{REGULAR_PRICE}.00
                               </span>
-                              <span className="text-[10.5px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
-                                96% Subsidized
+                              <span className="text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                                Special Offer &bull; Save ₹{REGULAR_PRICE - (activeBook.price || 20)}
                               </span>
                             </div>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground font-medium mt-1">
                           {isPremiumUser
-                            ? "✨ Included with your Full Stack Premium Internship plan."
+                            ? "✨ Included 100% free with your Full Stack Premium Internship plan."
                             : activeBook.is_unlocked
                             ? "✓ Verified purchase for this application. Download anytime."
-                            : "Nominal download fee for Standard Plan students. Free for Premium Track."}
+                            : `Actual book price is ₹${REGULAR_PRICE}.00. Exclusive student offer price is just ₹${activeBook.price}.00 (Free for Premium Track).`}
                         </p>
                       </div>
 
@@ -509,7 +565,7 @@ export function StudentKitDashboardView({
                             className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-6 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
                           >
                             <Lock className="size-4" />
-                            Unlock & Download Kit (₹{activeBook.price})
+                            Claim Offer & Unlock Kit (₹{activeBook.price})
                           </Button>
                         )}
                       </div>
@@ -581,7 +637,9 @@ export function StudentKitDashboardView({
                 </div>
               ) : (
                 <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span>Standard Track students can unlock individual books for ₹20 each, or</span>
+                  <span className="font-medium">
+                    Special student offer price: <strong className="text-[#f95c4b] font-bold">₹10 &ndash; ₹20</strong> (Actual Price <span className="line-through">₹299</span>). Or,
+                  </span>
                   {onUpgradeToPremium && (
                     <button
                       type="button"
@@ -671,7 +729,7 @@ export function StudentKitDashboardView({
                 return (
                   <div
                     key={kit.id}
-                    onClick={() => setSelectedBook(kit)}
+                    onClick={() => handleSelectBook(kit)}
                     className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/70 hover:border-[#f95c4b]/50 bg-white dark:bg-[#181619] shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
                   >
                     {/* Top Cover Section with Visual Depth */}
@@ -710,8 +768,9 @@ export function StudentKitDashboardView({
                             Free
                           </Badge>
                         ) : (
-                          <Badge className="bg-amber-500/90 text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm">
-                            ₹{kit.price}
+                          <Badge className="brand-gradient text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm flex items-center gap-1">
+                            <span className="line-through text-white/70 text-[9px]">₹{REGULAR_PRICE}</span>
+                            <span>₹{kit.price} Offer</span>
                           </Badge>
                         )}
                       </div>
@@ -738,6 +797,20 @@ export function StudentKitDashboardView({
                         </p>
                       </div>
 
+                      {/* Offer Price Highlight Strip */}
+                      {!isKitUnlocked && !isPremiumUser && (
+                        <div className="flex items-center justify-between text-xs bg-orange-50/70 dark:bg-orange-950/20 px-3 py-1.5 rounded-xl border border-orange-200/50 dark:border-orange-900/30">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Offer:</span>
+                            <span className="text-sm font-black text-[#f95c4b]">₹{kit.price}</span>
+                            <span className="text-xs text-muted-foreground line-through font-semibold">₹{REGULAR_PRICE}</span>
+                          </div>
+                          <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
+                            {Math.round(((REGULAR_PRICE - (kit.price || 20)) / REGULAR_PRICE) * 100)}% OFF
+                          </span>
+                        </div>
+                      )}
+
                       {/* Specs Row */}
                       <div className="pt-2 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/50">
                         <span className="flex items-center gap-1 font-semibold">
@@ -761,7 +834,7 @@ export function StudentKitDashboardView({
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedBook(kit);
+                          handleSelectBook(kit);
                         }}
                         className="flex-1 rounded-xl text-xs font-bold brand-gradient text-white shadow-xs hover:opacity-95 gap-1.5 h-10 cursor-pointer"
                       >
@@ -793,7 +866,7 @@ export function StudentKitDashboardView({
                             setUnlockModalOpen(true);
                           }}
                           className="rounded-xl text-xs font-bold border-border/80 h-10 px-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
-                          title={`Unlock for ₹${kit.price}`}
+                          title={`Special Offer: ₹${kit.price} (Regular ₹${REGULAR_PRICE})`}
                         >
                           <Lock className="size-4 text-amber-500" />
                         </Button>
@@ -921,12 +994,12 @@ export function StudentKitDashboardView({
         </DialogContent>
       </Dialog>
 
-      {/* ─── UNLOCK PAYMENT MODAL (STANDARD PLAN ₹20) ─── */}
+      {/* ─── UNLOCK PAYMENT MODAL (SPECIAL STUDENT OFFER ₹10 / ₹20) ─── */}
       <Dialog open={unlockModalOpen} onOpenChange={setUnlockModalOpen}>
         <DialogContent className="max-w-md p-6 rounded-3xl border border-border/70 bg-white dark:bg-[#181619]">
           <DialogHeader className="text-left space-y-2">
             <div className="size-12 rounded-2xl brand-gradient flex items-center justify-center text-white mb-1 shadow-md shadow-[#f95c4b]/20">
-              <Gift className="size-6" />
+              <Tag className="size-6" />
             </div>
             <DialogTitle className="font-display font-black text-xl text-[#181619] dark:text-white">
               Unlock {bookForUnlockModal.title}
@@ -934,7 +1007,7 @@ export function StudentKitDashboardView({
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
               {isPremiumUser
                 ? "As a Premium Track intern, this book is 100% complimentary for you!"
-                : "Standard Plan nominal download fee to access full developer kit, capstone blueprints & code templates."}
+                : `Actual price is ₹${REGULAR_PRICE}.00. You get this book at the exclusive student offer price of ₹${bookForUnlockModal.price || 20}.00.`}
             </DialogDescription>
           </DialogHeader>
 
@@ -943,26 +1016,32 @@ export function StudentKitDashboardView({
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#201d22] border border-border/60 space-y-2 text-xs">
               <div className="flex justify-between text-muted-foreground">
                 <span>
-                  {bookForUnlockModal.title} (
-                  {bookForUnlockModal.edition || "Full Guide"})
+                  {bookForUnlockModal.title} (Actual Price)
                 </span>
-                <span>₹499.00</span>
+                <span className="line-through font-semibold">₹{REGULAR_PRICE}.00</span>
               </div>
               <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
-                <span>Skyrovix Student Education Subsidy</span>
+                <span>Skyrovix Student Subsidy Discount</span>
                 <span>
                   {isPremiumUser
-                    ? "-₹499.00"
-                    : `-₹${499 - (bookForUnlockModal.price || 20)}.00`}
+                    ? `-₹${REGULAR_PRICE}.00 (100% OFF)`
+                    : `-₹${REGULAR_PRICE - (bookForUnlockModal.price || 20)}.00 (Offer Applied)`}
                 </span>
               </div>
               <div className="pt-2 border-t border-border/60 flex justify-between font-black text-sm text-[#181619] dark:text-white">
-                <span>Total Payable Amount</span>
-                <span className="text-[#f95c4b] text-base">
-                  {isPremiumUser
-                    ? "₹0.00 (FREE)"
-                    : `₹${bookForUnlockModal.price}.00`}
-                </span>
+                <span>Special Offer Price Payable</span>
+                <div className="flex items-center gap-2">
+                  {!isPremiumUser && (
+                    <span className="text-xs text-muted-foreground line-through font-bold">
+                      ₹{REGULAR_PRICE}
+                    </span>
+                  )}
+                  <span className="text-[#f95c4b] text-base font-black">
+                    {isPremiumUser
+                      ? "₹0.00 (FREE)"
+                      : `₹${bookForUnlockModal.price || 20}.00`}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -1005,7 +1084,7 @@ export function StudentKitDashboardView({
               ) : isPremiumUser ? (
                 "Claim Free Kit Now"
               ) : (
-                `Complete Payment (₹${bookForUnlockModal.price})`
+                `Pay Offer Price (₹${bookForUnlockModal.price || 20})`
               )}
             </Button>
           </DialogFooter>
