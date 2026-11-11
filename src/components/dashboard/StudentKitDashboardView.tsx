@@ -51,8 +51,16 @@ import {
   type StudentKitItem,
 } from "@/lib/student-kit-service";
 
+interface ApplicationLike {
+  id?: string;
+  user_id?: string;
+  plan_type?: string | null;
+  domain?: string | null;
+  [key: string]: unknown;
+}
+
 interface StudentKitDashboardViewProps {
-  app: any;
+  app: ApplicationLike | null | undefined;
   isPremium: boolean;
   onUpgradeToPremium?: () => void;
 }
@@ -128,50 +136,40 @@ export function StudentKitDashboardView({
       }),
   });
 
-  const isPremiumUser = Boolean(
-    data?.isPremiumUser || isPremium || app?.plan_type === "premium"
-  );
-
-  // Fallback kit if database is empty
-  const defaultKit: StudentKitItem = {
-    id: "sk-kit-webdev-10",
-    title: "Web Development Student Kit",
-    edition: "Edition 1.0 (2026 Release)",
-    description:
-      "From complete beginner to job-ready full stack developer. Complete learning resources, roadmap, cheat sheets, code templates & development tools.",
-    pdf_url: "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf",
-    cover_image_url: "/student-kit-cover.jpg",
-    price: 20,
-    is_free_for_premium: true,
-    is_active: true,
-    domain: "Web Development",
-    downloads_count: 0,
-    is_unlocked: isPremiumUser,
-    unlock_reason: isPremiumUser ? "premium" : "locked",
-    can_download: isPremiumUser,
-  };
-
-  const rawKits: StudentKitItem[] =
-    data?.kits && data.kits.length > 0 ? data.kits : [defaultKit];
+  const isPremiumUser = Boolean(data?.isPremiumUser || isPremium || app?.plan_type === "premium");
 
   // Map kits with updated unlock status
   const allKits: StudentKitItem[] = useMemo(() => {
-    return rawKits.map((kit) => {
-      const unlocked = Boolean(
-        kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
-      );
+    const defaultKit: StudentKitItem = {
+      id: "sk-kit-webdev-10",
+      title: "Web Development Student Kit",
+      edition: "Edition 1.0 (2026 Release)",
+      description:
+        "From complete beginner to job-ready full stack developer. Complete learning resources, roadmap, cheat sheets, code templates & development tools.",
+      pdf_url: "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf",
+      cover_image_url: "/student-kit-cover.jpg",
+      price: 20,
+      is_free_for_premium: true,
+      is_active: true,
+      domain: "Web Development",
+      downloads_count: 0,
+      is_unlocked: isPremiumUser,
+      unlock_reason: isPremiumUser ? "premium" : "locked",
+      can_download: isPremiumUser,
+    };
+
+    const sourceKits = data?.kits && data.kits.length > 0 ? data.kits : [defaultKit];
+
+    return sourceKits.map((kit) => {
+      const unlocked = Boolean(kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium));
       return {
         ...kit,
         is_unlocked: unlocked,
         can_download: unlocked,
-        unlock_reason: unlocked
-          ? isPremiumUser
-            ? "premium"
-            : "purchased"
-          : "locked",
+        unlock_reason: unlocked ? (isPremiumUser ? "premium" : "purchased") : "locked",
       };
     });
-  }, [rawKits, isPremiumUser]);
+  }, [data?.kits, isPremiumUser]);
 
   // Keep selectedBook synchronized with allKits data
   const activeBook = useMemo(() => {
@@ -181,9 +179,7 @@ export function StudentKitDashboardView({
 
   // Available domain categories
   const domains = useMemo(() => {
-    const list = Array.from(
-      new Set(allKits.map((k) => k.domain).filter(Boolean))
-    ) as string[];
+    const list = Array.from(new Set(allKits.map((k) => k.domain).filter(Boolean))) as string[];
     return ["all", ...list];
   }, [allKits]);
 
@@ -193,14 +189,11 @@ export function StudentKitDashboardView({
       const matchesSearch =
         searchQuery.trim() === "" ||
         kit.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (kit.description &&
-          kit.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (kit.edition &&
-          kit.edition.toLowerCase().includes(searchQuery.toLowerCase()));
+        (kit.description && kit.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (kit.edition && kit.edition.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesDomain =
-        selectedDomain === "all" ||
-        kit.domain?.toLowerCase() === selectedDomain.toLowerCase();
+        selectedDomain === "all" || kit.domain?.toLowerCase() === selectedDomain.toLowerCase();
 
       return matchesSearch && matchesDomain;
     });
@@ -210,10 +203,7 @@ export function StudentKitDashboardView({
   const unlockMutation = useMutation({
     mutationFn: async (kitId: string) => {
       const targetKit =
-        allKits.find((k) => k.id === kitId) ||
-        selectedKitForUnlock ||
-        activeBook ||
-        allKits[0];
+        allKits.find((k) => k.id === kitId) || selectedKitForUnlock || activeBook || allKits[0];
       return unlockStudentKitFn({
         data: {
           kitId,
@@ -231,7 +221,7 @@ export function StudentKitDashboardView({
       // Update local state if activeBook is open
       if (selectedBook) {
         setSelectedBook((prev) =>
-          prev ? { ...prev, is_unlocked: true, can_download: true } : null
+          prev ? { ...prev, is_unlocked: true, can_download: true } : null,
         );
       }
       // Instant download trigger if URL returned
@@ -239,8 +229,9 @@ export function StudentKitDashboardView({
         window.open(res.downloadUrl, "_blank");
       }
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to unlock student kit.");
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : "Failed to unlock student kit.";
+      toast.error(msg);
     },
     onSettled: () => {
       setIsProcessingUnlock(false);
@@ -248,16 +239,13 @@ export function StudentKitDashboardView({
   });
 
   const handleDownload = (kit: StudentKitItem) => {
-    const kitUnlocked = Boolean(
-      kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
-    );
+    const kitUnlocked = Boolean(kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium));
     if (kitUnlocked) {
       toast.success(`Downloading ${kit.title}...`);
       const link = document.createElement("a");
       link.href = kit.pdf_url;
       const cleanFileName =
-        (kit.title || "Skyrovix_Student_Kit").replace(/[^a-zA-Z0-9_-]/g, "_") +
-        ".pdf";
+        (kit.title || "Skyrovix_Student_Kit").replace(/[^a-zA-Z0-9_-]/g, "_") + ".pdf";
       link.download = cleanFileName;
       link.target = "_blank";
       document.body.appendChild(link);
@@ -270,9 +258,7 @@ export function StudentKitDashboardView({
   };
 
   const handleOpenPreview = (kit: StudentKitItem) => {
-    const kitUnlocked = Boolean(
-      kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
-    );
+    const kitUnlocked = Boolean(kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium));
     if (kitUnlocked) {
       setKitForPreview(kit);
       setPreviewOpen(true);
@@ -282,20 +268,33 @@ export function StudentKitDashboardView({
     }
   };
 
-  const bookForUnlockModal =
-    selectedKitForUnlock || activeBook || allKits[0] || defaultKit;
-  const bookForPreviewModal =
-    kitForPreview || activeBook || allKits[0] || defaultKit;
-  const bookForCoverZoom = activeBook || allKits[0] || defaultKit;
+  const fallbackBook: StudentKitItem = allKits[0] || {
+    id: "sk-kit-webdev-10",
+    title: "Web Development Student Kit",
+    edition: "Edition 1.0 (2026 Release)",
+    description:
+      "From complete beginner to job-ready full stack developer. Complete learning resources, roadmap, cheat sheets, code templates & development tools.",
+    pdf_url: "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf",
+    cover_image_url: "/student-kit-cover.jpg",
+    price: 20,
+    is_free_for_premium: true,
+    is_active: true,
+    domain: "Web Development",
+    downloads_count: 0,
+    is_unlocked: isPremiumUser,
+    unlock_reason: isPremiumUser ? "premium" : "locked",
+    can_download: isPremiumUser,
+  };
+
+  const bookForUnlockModal = selectedKitForUnlock || activeBook || fallbackBook;
+  const bookForPreviewModal = kitForPreview || activeBook || fallbackBook;
+  const bookForCoverZoom = activeBook || fallbackBook;
 
   // Regular actual price is Rs. 299
   const REGULAR_PRICE = 299;
 
   return (
-    <div
-      ref={containerRef}
-      className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full min-w-0"
-    >
+    <div ref={containerRef} className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full min-w-0">
       {/* ═══════════════════════════════════════════════════════════════════
           VIEW 1: BOOK DETAIL PAGE (When a book is clicked/selected)
          ═══════════════════════════════════════════════════════════════════ */}
@@ -345,14 +344,11 @@ export function StudentKitDashboardView({
                     {/* Main 3D Artwork Frame */}
                     <div className="relative rounded-2xl overflow-hidden border border-border/70 dark:border-white/10 bg-slate-900 shadow-2xl shadow-slate-900/25 transition-transform duration-300 group-hover:scale-[1.015]">
                       <img
-                        src={
-                          activeBook.cover_image_url || "/student-kit-cover.jpg"
-                        }
+                        src={activeBook.cover_image_url || "/student-kit-cover.jpg"}
                         alt={activeBook.title}
                         className="w-full h-auto object-cover select-none block max-h-[480px]"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/student-kit-cover.jpg";
+                          (e.target as HTMLImageElement).src = "/student-kit-cover.jpg";
                         }}
                       />
 
@@ -513,8 +509,8 @@ export function StudentKitDashboardView({
                             {isPremiumUser
                               ? "FREE"
                               : activeBook.is_unlocked
-                              ? "UNLOCKED"
-                              : `₹${activeBook.price}`}
+                                ? "UNLOCKED"
+                                : `₹${activeBook.price}`}
                           </span>
                           {!isPremiumUser && !activeBook.is_unlocked && (
                             <div className="flex items-center gap-2 flex-wrap">
@@ -522,7 +518,8 @@ export function StudentKitDashboardView({
                                 ₹{REGULAR_PRICE}.00
                               </span>
                               <span className="text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                                Special Offer &bull; Save ₹{REGULAR_PRICE - (activeBook.price || 20)}
+                                Special Offer &bull; Save ₹
+                                {REGULAR_PRICE - (activeBook.price || 20)}
                               </span>
                             </div>
                           )}
@@ -531,8 +528,8 @@ export function StudentKitDashboardView({
                           {isPremiumUser
                             ? "✨ Included 100% free with your Full Stack Premium Internship plan."
                             : activeBook.is_unlocked
-                            ? "✓ Verified purchase for this application. Download anytime."
-                            : `Actual book price is ₹${REGULAR_PRICE}.00. Exclusive student offer price is just ₹${activeBook.price}.00 (Free for Premium Track).`}
+                              ? "✓ Verified purchase for this application. Download anytime."
+                              : `Actual book price is ₹${REGULAR_PRICE}.00. Exclusive student offer price is just ₹${activeBook.price}.00 (Free for Premium Track).`}
                         </p>
                       </div>
 
@@ -626,19 +623,26 @@ export function StudentKitDashboardView({
                 Skyrovix Learning Kits & Books
               </h1>
               <p className="text-sm text-muted-foreground max-w-2xl font-medium">
-                Comprehensive, production-ready developer books, capstone code blueprints, and cheat sheets designed to accelerate your technical skills. Select any book to inspect curriculum, preview online, and download.
+                Comprehensive, production-ready developer books, capstone code blueprints, and cheat
+                sheets designed to accelerate your technical skills. Select any book to inspect
+                curriculum, preview online, and download.
               </p>
 
               {/* Premium Plan Banner */}
               {isPremiumUser ? (
                 <div className="pt-2 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="size-4 shrink-0" />
-                  <span>Your Premium Internship Track gives you 100% complimentary, lifetime access to every kit below.</span>
+                  <span>
+                    Your Premium Internship Track gives you 100% complimentary, lifetime access to
+                    every kit below.
+                  </span>
                 </div>
               ) : (
                 <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <span className="font-medium">
-                    Special student offer price: <strong className="text-[#f95c4b] font-bold">₹10 &ndash; ₹20</strong> (Actual Price <span className="line-through">₹299</span>). Or,
+                    Special student offer price:{" "}
+                    <strong className="text-[#f95c4b] font-bold">₹10 &ndash; ₹20</strong> (Actual
+                    Price <span className="line-through">₹299</span>). Or,
                   </span>
                   {onUpgradeToPremium && (
                     <button
@@ -701,11 +705,10 @@ export function StudentKitDashboardView({
           {filteredKits.length === 0 ? (
             <div className="p-12 text-center rounded-3xl border border-dashed border-border/80 bg-white/50 dark:bg-black/10 space-y-3">
               <BookOpen className="size-10 text-muted-foreground/60 mx-auto" />
-              <h3 className="font-display font-bold text-base text-foreground">
-                No Books Found
-              </h3>
+              <h3 className="font-display font-bold text-base text-foreground">No Books Found</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                No student kit matching &ldquo;{searchQuery}&rdquo;. Try another keyword or clear the search filter.
+                No student kit matching &ldquo;{searchQuery}&rdquo;. Try another keyword or clear
+                the search filter.
               </p>
               <Button
                 variant="outline"
@@ -723,7 +726,7 @@ export function StudentKitDashboardView({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredKits.map((kit) => {
                 const isKitUnlocked = Boolean(
-                  kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
+                  kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium),
                 );
 
                 return (
@@ -743,8 +746,7 @@ export function StudentKitDashboardView({
                         alt={kit.title}
                         className="h-full w-auto max-w-[85%] object-contain rounded-lg shadow-xl shadow-black/50 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/student-kit-cover.jpg";
+                          (e.target as HTMLImageElement).src = "/student-kit-cover.jpg";
                         }}
                       />
 
@@ -769,7 +771,9 @@ export function StudentKitDashboardView({
                           </Badge>
                         ) : (
                           <Badge className="brand-gradient text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm flex items-center gap-1">
-                            <span className="line-through text-white/70 text-[9px]">₹{REGULAR_PRICE}</span>
+                            <span className="line-through text-white/70 text-[9px]">
+                              ₹{REGULAR_PRICE}
+                            </span>
                             <span>₹{kit.price} Offer</span>
                           </Badge>
                         )}
@@ -801,12 +805,19 @@ export function StudentKitDashboardView({
                       {!isKitUnlocked && !isPremiumUser && (
                         <div className="flex items-center justify-between text-xs bg-orange-50/70 dark:bg-orange-950/20 px-3 py-1.5 rounded-xl border border-orange-200/50 dark:border-orange-900/30">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Offer:</span>
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                              Offer:
+                            </span>
                             <span className="text-sm font-black text-[#f95c4b]">₹{kit.price}</span>
-                            <span className="text-xs text-muted-foreground line-through font-semibold">₹{REGULAR_PRICE}</span>
+                            <span className="text-xs text-muted-foreground line-through font-semibold">
+                              ₹{REGULAR_PRICE}
+                            </span>
                           </div>
                           <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
-                            {Math.round(((REGULAR_PRICE - (kit.price || 20)) / REGULAR_PRICE) * 100)}% OFF
+                            {Math.round(
+                              ((REGULAR_PRICE - (kit.price || 20)) / REGULAR_PRICE) * 100,
+                            )}
+                            % OFF
                           </span>
                         </div>
                       )}
@@ -1015,9 +1026,7 @@ export function StudentKitDashboardView({
             {/* Price Breakdown */}
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#201d22] border border-border/60 space-y-2 text-xs">
               <div className="flex justify-between text-muted-foreground">
-                <span>
-                  {bookForUnlockModal.title} (Actual Price)
-                </span>
+                <span>{bookForUnlockModal.title} (Actual Price)</span>
                 <span className="line-through font-semibold">₹{REGULAR_PRICE}.00</span>
               </div>
               <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -1037,9 +1046,7 @@ export function StudentKitDashboardView({
                     </span>
                   )}
                   <span className="text-[#f95c4b] text-base font-black">
-                    {isPremiumUser
-                      ? "₹0.00 (FREE)"
-                      : `₹${bookForUnlockModal.price || 20}.00`}
+                    {isPremiumUser ? "₹0.00 (FREE)" : `₹${bookForUnlockModal.price || 20}.00`}
                   </span>
                 </div>
               </div>
@@ -1079,13 +1086,11 @@ export function StudentKitDashboardView({
               disabled={isProcessingUnlock || unlockMutation.isPending}
               className="rounded-xl brand-gradient text-white text-xs font-bold h-11 px-5 shadow-md shadow-[#f95c4b]/20 cursor-pointer hover:opacity-95"
             >
-              {isProcessingUnlock || unlockMutation.isPending ? (
-                "Unlocking Kit..."
-              ) : isPremiumUser ? (
-                "Claim Free Kit Now"
-              ) : (
-                `Pay Offer Price (₹${bookForUnlockModal.price || 20})`
-              )}
+              {isProcessingUnlock || unlockMutation.isPending
+                ? "Unlocking Kit..."
+                : isPremiumUser
+                  ? "Claim Free Kit Now"
+                  : `Pay Offer Price (₹${bookForUnlockModal.price || 20})`}
             </Button>
           </DialogFooter>
         </DialogContent>
