@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Gift,
@@ -26,9 +26,15 @@ import {
   Maximize2,
   Smartphone,
   Globe2,
+  ArrowLeft,
+  Search,
+  BookMarked,
+  Library,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -56,9 +62,17 @@ export function StudentKitDashboardView({
   onUpgradeToPremium,
 }: StudentKitDashboardViewProps) {
   const qc = useQueryClient();
-  const [selectedKit, setSelectedKit] = useState<StudentKitItem | null>(null);
+
+  // Navigation & selection state
+  const [selectedBook, setSelectedBook] = useState<StudentKitItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDomain, setSelectedDomain] = useState<string>("all");
+
+  // Dialog states
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [kitForPreview, setKitForPreview] = useState<StudentKitItem | null>(null);
   const [unlockModalOpen, setUnlockModalOpen] = useState(false);
+  const [selectedKitForUnlock, setSelectedKitForUnlock] = useState<StudentKitItem | null>(null);
   const [coverZoomOpen, setCoverZoomOpen] = useState(false);
   const [isProcessingUnlock, setIsProcessingUnlock] = useState(false);
 
@@ -74,11 +88,12 @@ export function StudentKitDashboardView({
       }),
   });
 
-  const kits = data?.kits || [];
-  const isPremiumUser = Boolean(data?.isPremiumUser || isPremium || app?.plan_type === "premium");
+  const isPremiumUser = Boolean(
+    data?.isPremiumUser || isPremium || app?.plan_type === "premium"
+  );
 
-  // Primary kit (Web Development Student Kit)
-  const primaryKit: StudentKitItem = kits[0] || {
+  // Fallback kit if database is empty
+  const defaultKit: StudentKitItem = {
     id: "sk-kit-webdev-10",
     title: "Web Development Student Kit",
     edition: "Edition 1.0 (2026 Release)",
@@ -87,22 +102,84 @@ export function StudentKitDashboardView({
     pdf_url: "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf",
     cover_image_url: "/student-kit-cover.jpg",
     price: 20,
+    is_free_for_premium: true,
+    is_active: true,
+    domain: "Web Development",
+    downloads_count: 0,
     is_unlocked: isPremiumUser,
     unlock_reason: isPremiumUser ? "premium" : "locked",
     can_download: isPremiumUser,
   };
 
-  const isUnlocked = Boolean(primaryKit.is_unlocked || isPremiumUser);
+  const rawKits: StudentKitItem[] =
+    data?.kits && data.kits.length > 0 ? data.kits : [defaultKit];
+
+  // Map kits with updated unlock status
+  const allKits: StudentKitItem[] = useMemo(() => {
+    return rawKits.map((kit) => {
+      const unlocked = Boolean(
+        kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
+      );
+      return {
+        ...kit,
+        is_unlocked: unlocked,
+        can_download: unlocked,
+        unlock_reason: unlocked
+          ? isPremiumUser
+            ? "premium"
+            : "purchased"
+          : "locked",
+      };
+    });
+  }, [rawKits, isPremiumUser]);
+
+  // Keep selectedBook synchronized with allKits data
+  const activeBook = useMemo(() => {
+    if (!selectedBook) return null;
+    return allKits.find((k) => k.id === selectedBook.id) || selectedBook;
+  }, [selectedBook, allKits]);
+
+  // Available domain categories
+  const domains = useMemo(() => {
+    const list = Array.from(
+      new Set(allKits.map((k) => k.domain).filter(Boolean))
+    ) as string[];
+    return ["all", ...list];
+  }, [allKits]);
+
+  // Filtered kits based on search & domain
+  const filteredKits = useMemo(() => {
+    return allKits.filter((kit) => {
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        kit.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (kit.description &&
+          kit.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (kit.edition &&
+          kit.edition.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesDomain =
+        selectedDomain === "all" ||
+        kit.domain?.toLowerCase() === selectedDomain.toLowerCase();
+
+      return matchesSearch && matchesDomain;
+    });
+  }, [allKits, searchQuery, selectedDomain]);
 
   // Unlock mutation
   const unlockMutation = useMutation({
     mutationFn: async (kitId: string) => {
+      const targetKit =
+        allKits.find((k) => k.id === kitId) ||
+        selectedKitForUnlock ||
+        activeBook ||
+        allKits[0];
       return unlockStudentKitFn({
         data: {
           kitId,
           applicationId: app?.id,
           userId: app?.user_id,
-          amount: isPremiumUser ? 0 : primaryKit.price || 20,
+          amount: isPremiumUser ? 0 : targetKit?.price || 20,
           paymentId: isPremiumUser ? "FREE_PREMIUM_PLAN" : `PAY_${Date.now()}`,
         },
       });
@@ -111,8 +188,16 @@ export function StudentKitDashboardView({
       toast.success(res.message || "Student kit unlocked successfully!");
       setUnlockModalOpen(false);
       qc.invalidateQueries({ queryKey: ["student-kits"] });
-      // Trigger instant download
-      window.open(res.downloadUrl, "_blank");
+      // Update local state if activeBook is open
+      if (selectedBook) {
+        setSelectedBook((prev) =>
+          prev ? { ...prev, is_unlocked: true, can_download: true } : null
+        );
+      }
+      // Instant download trigger if URL returned
+      if (res.downloadUrl) {
+        window.open(res.downloadUrl, "_blank");
+      }
     },
     onError: (err: any) => {
       toast.error(err.message || "Failed to unlock student kit.");
@@ -123,262 +208,604 @@ export function StudentKitDashboardView({
   });
 
   const handleDownload = (kit: StudentKitItem) => {
-    if (kit.is_unlocked || isPremiumUser) {
-      toast.success("Downloading Student Kit PDF...");
+    const kitUnlocked = Boolean(
+      kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
+    );
+    if (kitUnlocked) {
+      toast.success(`Downloading ${kit.title}...`);
       const link = document.createElement("a");
       link.href = kit.pdf_url;
-      link.download = "SKYROVIX_Complete_Web_Development_Student_Kit.pdf";
+      const cleanFileName =
+        (kit.title || "Skyrovix_Student_Kit").replace(/[^a-zA-Z0-9_-]/g, "_") +
+        ".pdf";
+      link.download = cleanFileName;
       link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } else {
-      setSelectedKit(kit);
+      setSelectedKitForUnlock(kit);
       setUnlockModalOpen(true);
     }
   };
 
   const handleOpenPreview = (kit: StudentKitItem) => {
-    if (kit.is_unlocked || isPremiumUser) {
-      setSelectedKit(kit);
+    const kitUnlocked = Boolean(
+      kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
+    );
+    if (kitUnlocked) {
+      setKitForPreview(kit);
       setPreviewOpen(true);
     } else {
-      setSelectedKit(kit);
+      setSelectedKitForUnlock(kit);
       setUnlockModalOpen(true);
     }
   };
 
+  const bookForUnlockModal =
+    selectedKitForUnlock || activeBook || allKits[0] || defaultKit;
+  const bookForPreviewModal =
+    kitForPreview || activeBook || allKits[0] || defaultKit;
+  const bookForCoverZoom = activeBook || allKits[0] || defaultKit;
+
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
-      {/* ─── LUXURY SHOWCASE HERO CONTAINER ─── */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-b from-white via-[#faf7f2] to-white dark:from-[#181619] dark:via-[#1e1b21] dark:to-[#181619] shadow-xl shadow-orange-500/5">
-        {/* Ambient Top Glow Mesh */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-orange-400/10 via-[#f95c4b]/5 to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-amber-400/10 via-orange-400/5 to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full min-w-0">
+      {/* ═══════════════════════════════════════════════════════════════════
+          VIEW 1: BOOK DETAIL PAGE (When a book is clicked/selected)
+         ═══════════════════════════════════════════════════════════════════ */}
+      {activeBook ? (
+        <div className="space-y-6 animate-in fade-in-50 duration-200">
+          {/* Back Navigation Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-border/60">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedBook(null)}
+              className="gap-2 text-xs font-bold rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 shadow-2xs"
+            >
+              <ArrowLeft className="size-4 text-[#f95c4b]" />
+              <span>Back to All Books ({allKits.length})</span>
+            </Button>
 
-        <div className="relative z-10 p-5 sm:p-8 lg:p-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-            
-            {/* ─── LEFT: 3D BOOK & BUDDY ARTWORK SHOWCASE ─── */}
-            <div className="lg:col-span-5 flex flex-col items-center">
-              <div className="relative group w-full max-w-[460px]">
-                {/* Ambient Soft Glow Behind Book */}
-                <div className="absolute -inset-2 bg-gradient-to-tr from-[#f95c4b]/20 via-amber-500/15 to-orange-400/20 rounded-3xl blur-2xl opacity-60 group-hover:opacity-90 transition duration-500 -z-10" />
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="hidden sm:inline">Student Kit Library</span>
+              <span className="hidden sm:inline">&rsaquo;</span>
+              <span className="font-bold text-[#181619] dark:text-white truncate max-w-[200px] sm:max-w-xs">
+                {activeBook.title}
+              </span>
+            </div>
+          </div>
 
-                {/* Main 3D Artwork Frame */}
-                <div className="relative rounded-2xl overflow-hidden border border-border/70 dark:border-white/10 bg-slate-900 shadow-2xl shadow-slate-900/25 transition-transform duration-300 group-hover:scale-[1.015]">
-                  <img
-                    src={primaryKit.cover_image_url || "/student-kit-cover.jpg"}
-                    alt="Skyrovix Web Development Student Kit Cover"
-                    className="w-full h-auto object-cover select-none block"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/student-kit-cover.jpg";
-                    }}
-                  />
+          {/* Luxury Showcase Container for Selected Book */}
+          <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-b from-white via-[#faf7f2] to-white dark:from-[#181619] dark:via-[#1e1b21] dark:to-[#181619] shadow-xl shadow-orange-500/5">
+            {/* Ambient Glows */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-orange-400/10 via-[#f95c4b]/5 to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-amber-400/10 via-orange-400/5 to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
 
-                  {/* Corner Zoom Trigger */}
-                  <button
-                    type="button"
-                    onClick={() => setCoverZoomOpen(true)}
-                    className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md flex items-center gap-1.5 text-xs font-bold"
-                    title="Zoom Full Artwork"
-                  >
-                    <Maximize2 className="size-3.5" />
-                    <span>View Cover</span>
-                  </button>
+            <div className="relative z-10 p-5 sm:p-8 lg:p-10">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+                {/* ─── LEFT: 3D BOOK ARTWORK SHOWCASE ─── */}
+                <div className="lg:col-span-5 flex flex-col items-center">
+                  <div className="relative group w-full max-w-[420px]">
+                    {/* Ambient Glow */}
+                    <div className="absolute -inset-2 bg-gradient-to-tr from-[#f95c4b]/20 via-amber-500/15 to-orange-400/20 rounded-3xl blur-2xl opacity-60 group-hover:opacity-90 transition duration-500 -z-10" />
+
+                    {/* Main 3D Artwork Frame */}
+                    <div className="relative rounded-2xl overflow-hidden border border-border/70 dark:border-white/10 bg-slate-900 shadow-2xl shadow-slate-900/25 transition-transform duration-300 group-hover:scale-[1.015]">
+                      <img
+                        src={
+                          activeBook.cover_image_url || "/student-kit-cover.jpg"
+                        }
+                        alt={activeBook.title}
+                        className="w-full h-auto object-cover select-none block max-h-[480px]"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "/student-kit-cover.jpg";
+                        }}
+                      />
+
+                      {/* Corner Zoom Trigger */}
+                      <button
+                        type="button"
+                        onClick={() => setCoverZoomOpen(true)}
+                        className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/70 hover:bg-black/90 text-white backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md flex items-center gap-1.5 text-xs font-bold"
+                        title="Zoom Full Artwork"
+                      >
+                        <Maximize2 className="size-3.5" />
+                        <span>View Cover</span>
+                      </button>
+                    </div>
+
+                    {/* Specifications Bar */}
+                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-border/60 backdrop-blur-xs">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                          Format
+                        </p>
+                        <p className="text-xs font-black text-[#181619] dark:text-white mt-0.5">
+                          High-Res PDF
+                        </p>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-border/60 backdrop-blur-xs">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                          Domain
+                        </p>
+                        <p className="text-xs font-black text-[#181619] dark:text-white mt-0.5 truncate">
+                          {activeBook.domain || "Full Stack"}
+                        </p>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-border/60 backdrop-blur-xs">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                          Edition
+                        </p>
+                        <p className="text-xs font-black text-[#f95c4b] mt-0.5 truncate">
+                          {activeBook.edition || "2026 Edition"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Sub-Artwork Specifications Bar */}
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                  <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-border/60 backdrop-blur-xs">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Format</p>
-                    <p className="text-xs font-black text-[#181619] dark:text-white mt-0.5">High-Res PDF</p>
+                {/* ─── RIGHT: BOOK DETAILS & ACTIONS ─── */}
+                <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+                  {/* Top Badges & Title */}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="brand-gradient text-white border-0 text-xs font-black px-3 py-1 shadow-xs tracking-wide">
+                        <Gift className="mr-1.5 size-3.5 inline" />
+                        OFFICIAL STUDENT KIT
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-xs font-bold border-border/80 bg-white/70 dark:bg-black/30"
+                      >
+                        {activeBook.edition || "Edition 1.0"}
+                      </Badge>
+
+                      {isPremiumUser ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
+                          <Crown className="mr-1.5 size-3.5 inline text-amber-500" />
+                          100% Free with Premium Track
+                        </Badge>
+                      ) : activeBook.is_unlocked ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
+                          <CheckCircle2 className="mr-1.5 size-3.5 inline" />
+                          Unlocked & Ready to Download
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs font-black px-2.5 py-1">
+                          Standard Plan: ₹{activeBook.price}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <h1 className="font-display text-2xl sm:text-4xl font-black text-[#181619] dark:text-white tracking-tight leading-tight">
+                      {activeBook.title}
+                    </h1>
+
+                    <p className="text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl whitespace-pre-line">
+                      {activeBook.description ||
+                        "Official Skyrovix educational companion containing structured learning roadmaps, capstone blueprints, cheat sheets, and practical engineering guides."}
+                    </p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-border/60 backdrop-blur-xs">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Volume</p>
-                    <p className="text-xs font-black text-[#181619] dark:text-white mt-0.5">120+ Pages</p>
+
+                  {/* Specs Pills Ribbon */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
+                      <div className="size-8 rounded-lg bg-orange-500/10 text-[#f95c4b] flex items-center justify-center shrink-0">
+                        <BookOpen className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+                          Curriculum
+                        </p>
+                        <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">
+                          Full Guide
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
+                      <div className="size-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                        <Laptop className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+                          Projects
+                        </p>
+                        <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">
+                          Capstones
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
+                      <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <Code2 className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+                          Domain
+                        </p>
+                        <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">
+                          {activeBook.domain || "Practical"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
+                      <div className="size-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+                          Access
+                        </p>
+                        <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">
+                          Lifetime
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-border/60 backdrop-blur-xs">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Edition</p>
-                    <p className="text-xs font-black text-[#f95c4b] mt-0.5">2026 Release</p>
+
+                  {/* ─── ACTION & ACCESS CONTROL PANEL ─── */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 dark:from-[#201d22] dark:via-[#252028] dark:to-[#201d22] border-2 border-[#f95c4b]/20 shadow-md space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-baseline gap-2.5">
+                          <span className="text-2xl sm:text-3xl font-black text-[#181619] dark:text-white tracking-tight">
+                            {isPremiumUser
+                              ? "FREE"
+                              : activeBook.is_unlocked
+                              ? "UNLOCKED"
+                              : `₹${activeBook.price}`}
+                          </span>
+                          {!isPremiumUser && !activeBook.is_unlocked && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs text-muted-foreground line-through font-bold">
+                                ₹499.00
+                              </span>
+                              <span className="text-[10.5px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
+                                96% Subsidized
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground font-medium mt-1">
+                          {isPremiumUser
+                            ? "✨ Included with your Full Stack Premium Internship plan."
+                            : activeBook.is_unlocked
+                            ? "✓ Verified purchase for this application. Download anytime."
+                            : "Nominal download fee for Standard Plan students. Free for Premium Track."}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+                        {activeBook.is_unlocked || isPremiumUser ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              onClick={() => handleOpenPreview(activeBook)}
+                              className="rounded-xl border-border/80 text-xs font-bold gap-2 h-11 px-4 cursor-pointer hover:bg-white dark:hover:bg-white/10 shadow-2xs"
+                            >
+                              <Eye className="size-4 text-[#f95c4b]" />
+                              Preview Online
+                            </Button>
+                            <Button
+                              onClick={() => handleDownload(activeBook)}
+                              className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-5 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
+                            >
+                              <Download className="size-4" />
+                              Download PDF Kit
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              setSelectedKitForUnlock(activeBook);
+                              setUnlockModalOpen(true);
+                            }}
+                            className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-6 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
+                          >
+                            <Lock className="size-4" />
+                            Unlock & Download Kit (₹{activeBook.price})
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Standard Student Upgrade Hint */}
+                    {!isPremiumUser && !activeBook.is_unlocked && (
+                      <div className="pt-3 border-t border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-2 font-medium">
+                          <Sparkles className="size-3.5 text-amber-500 shrink-0" />
+                          Premium interns get all Student Kits + LOR + 7 Certificates for ₹0.
+                        </span>
+                        {onUpgradeToPremium && (
+                          <button
+                            type="button"
+                            onClick={onUpgradeToPremium}
+                            className="font-extrabold text-[#f95c4b] hover:underline cursor-pointer whitespace-nowrap self-start sm:self-auto flex items-center gap-1"
+                          >
+                            Upgrade to Premium Track &rarr;
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* ─── RIGHT: KIT DETAILS & ACCESS CONTROL ─── */}
-            <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
-              
-              {/* Top Badges & Title */}
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="brand-gradient text-white border-0 text-xs font-black px-3 py-1 shadow-xs tracking-wide">
-                    <Gift className="mr-1.5 size-3.5 inline" />
-                    OFFICIAL STUDENT KIT
+          </div>
+        </div>
+      ) : (
+        /* ═══════════════════════════════════════════════════════════════════
+            VIEW 2: CATALOG LIST VIEW (Grid of All Student Kit Books)
+           ═══════════════════════════════════════════════════════════════════ */
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-purple-500/5 p-6 sm:p-8">
+            <div className="relative z-10 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="brand-gradient text-white border-0 text-xs font-black px-3 py-1 shadow-xs tracking-wide">
+                  <Library className="mr-1.5 size-3.5 inline" />
+                  STUDENT KIT & BOOKS LIBRARY
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="text-xs font-bold border-border/80 bg-white/70 dark:bg-black/30"
+                >
+                  {allKits.length} {allKits.length === 1 ? "Book" : "Books"} Available
+                </Badge>
+                {isPremiumUser && (
+                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
+                    <Crown className="mr-1.5 size-3.5 inline text-amber-500" />
+                    All Books Free for Premium
                   </Badge>
-                  <Badge variant="outline" className="text-xs font-bold border-border/80 bg-white/70 dark:bg-black/30">
-                    Edition 1.0 (2026)
-                  </Badge>
+                )}
+              </div>
 
-                  {isPremiumUser ? (
-                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
-                      <Crown className="mr-1.5 size-3.5 inline text-amber-500" />
-                      100% Free with Premium Track
-                    </Badge>
-                  ) : isUnlocked ? (
-                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
-                      <CheckCircle2 className="mr-1.5 size-3.5 inline" />
-                      Unlocked & Ready to Download
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs font-black px-2.5 py-1">
-                      Standard Plan: ₹{primaryKit.price}
-                    </Badge>
+              <h1 className="font-display text-2xl sm:text-4xl font-black text-[#181619] dark:text-white tracking-tight">
+                Skyrovix Learning Kits & Books
+              </h1>
+              <p className="text-sm text-muted-foreground max-w-2xl font-medium">
+                Comprehensive, production-ready developer books, capstone code blueprints, and cheat sheets designed to accelerate your technical skills. Select any book to inspect curriculum, preview online, and download.
+              </p>
+
+              {/* Premium Plan Banner */}
+              {isPremiumUser ? (
+                <div className="pt-2 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="size-4 shrink-0" />
+                  <span>Your Premium Internship Track gives you 100% complimentary, lifetime access to every kit below.</span>
+                </div>
+              ) : (
+                <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span>Standard Track students can unlock individual books for ₹20 each, or</span>
+                  {onUpgradeToPremium && (
+                    <button
+                      type="button"
+                      onClick={onUpgradeToPremium}
+                      className="font-extrabold text-[#f95c4b] hover:underline cursor-pointer"
+                    >
+                      Upgrade to Premium for all-inclusive access &rarr;
+                    </button>
                   )}
                 </div>
+              )}
+            </div>
+          </div>
 
-                <h1 className="font-display text-2xl sm:text-4xl font-black text-[#181619] dark:text-white tracking-tight leading-tight">
-                  Web Development Student Kit
-                </h1>
+          {/* Search & Domain Filter Toolbar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-2 bg-white dark:bg-[#181619] rounded-2xl border border-border/70 shadow-2xs">
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Search books by title, topic, or keyword..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10 rounded-xl bg-slate-50/70 dark:bg-black/20 border-border/60 text-xs sm:text-sm"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground font-bold"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-                <p className="text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl">
-                  From complete beginner to job-ready full stack engineer. Your official Skyrovix companion containing structured learning roadmaps, capstone blueprints, 10+ cheat sheets, and industry interview toolkits.
-                </p>
+            {/* Category / Domain Chips */}
+            {domains.length > 2 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                {domains.map((dom) => (
+                  <button
+                    key={dom}
+                    type="button"
+                    onClick={() => setSelectedDomain(dom)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer whitespace-nowrap ${
+                      selectedDomain === dom
+                        ? "brand-gradient text-white shadow-xs"
+                        : "bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {dom === "all" ? "All Domains" : dom}
+                  </button>
+                ))}
               </div>
+            )}
+          </div>
 
-              {/* Quick Spec Pills Ribbon */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
-                  <div className="size-8 rounded-lg bg-orange-500/10 text-[#f95c4b] flex items-center justify-center shrink-0">
-                    <BookOpen className="size-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold uppercase">Curriculum</p>
-                    <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">120+ Pages</p>
-                  </div>
-                </div>
+          {/* Catalog Grid */}
+          {filteredKits.length === 0 ? (
+            <div className="p-12 text-center rounded-3xl border border-dashed border-border/80 bg-white/50 dark:bg-black/10 space-y-3">
+              <BookOpen className="size-10 text-muted-foreground/60 mx-auto" />
+              <h3 className="font-display font-bold text-base text-foreground">
+                No Books Found
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                No student kit matching &ldquo;{searchQuery}&rdquo;. Try another keyword or clear the search filter.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedDomain("all");
+                }}
+                className="rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Clear Search
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredKits.map((kit) => {
+                const isKitUnlocked = Boolean(
+                  kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium)
+                );
 
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
-                  <div className="size-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                    <Laptop className="size-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold uppercase">Projects</p>
-                    <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">5 Capstones</p>
-                  </div>
-                </div>
+                return (
+                  <div
+                    key={kit.id}
+                    onClick={() => setSelectedBook(kit)}
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/70 hover:border-[#f95c4b]/50 bg-white dark:bg-[#181619] shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                  >
+                    {/* Top Cover Section with Visual Depth */}
+                    <div className="relative w-full aspect-[16/11] bg-gradient-to-br from-slate-900 via-slate-800 to-[#181619] overflow-hidden flex items-center justify-center p-4">
+                      {/* Background Ambient Glow */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
 
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
-                  <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                    <Code2 className="size-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold uppercase">Stack</p>
-                    <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">React & Node</p>
-                  </div>
-                </div>
+                      {/* Cover Thumbnail */}
+                      <img
+                        src={kit.cover_image_url || "/student-kit-cover.jpg"}
+                        alt={kit.title}
+                        className="h-full w-auto max-w-[85%] object-contain rounded-lg shadow-xl shadow-black/50 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "/student-kit-cover.jpg";
+                        }}
+                      />
 
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-[#201d22] border border-border/60 shadow-2xs">
-                  <div className="size-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="size-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold uppercase">Access</p>
-                    <p className="text-xs font-extrabold text-[#181619] dark:text-white truncate">Lifetime</p>
-                  </div>
-                </div>
-              </div>
+                      {/* Top Badges */}
+                      <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
+                        <Badge
+                          variant="secondary"
+                          className="bg-black/60 backdrop-blur-md text-white border border-white/20 text-[10px] font-bold px-2 py-0.5"
+                        >
+                          {kit.edition || "Edition 1.0"}
+                        </Badge>
 
-              {/* ─── ACTION & ACCESS CONTROL PANEL ─── */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 dark:from-[#201d22] dark:via-[#252028] dark:to-[#201d22] border-2 border-[#f95c4b]/20 shadow-md space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-baseline gap-2.5">
-                      <span className="text-2xl sm:text-3xl font-black text-[#181619] dark:text-white tracking-tight">
-                        {isPremiumUser ? "FREE" : isUnlocked ? "UNLOCKED" : `₹${primaryKit.price}`}
-                      </span>
-                      {!isPremiumUser && !isUnlocked && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground line-through font-bold">
-                            ₹499.00
-                          </span>
-                          <span className="text-[10.5px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
-                            96% Subsidized
+                        {isKitUnlocked ? (
+                          <Badge className="bg-emerald-500/90 text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm">
+                            <CheckCircle2 className="size-3 mr-1 inline" />
+                            Unlocked
+                          </Badge>
+                        ) : isPremiumUser ? (
+                          <Badge className="bg-emerald-500/90 text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm">
+                            <Crown className="size-3 mr-1 inline text-amber-300" />
+                            Free
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-amber-500/90 text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm">
+                            ₹{kit.price}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Domain Badge at Bottom-Left of Cover */}
+                      {kit.domain && (
+                        <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/90 bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10">
+                            {kit.domain}
                           </span>
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium mt-1">
-                      {isPremiumUser
-                        ? "✨ Complimentarily unlocked for your Full Stack Premium Internship plan."
-                        : isUnlocked
-                        ? "✓ Verified purchase for this internship application. Download anytime."
-                        : "Nominal download fee for Standard Plan students. Free for Premium Track."}
-                    </p>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
-                    {isUnlocked ? (
-                      <>
+                    {/* Book Info Section */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                      <div className="space-y-2">
+                        <h3 className="font-display font-black text-lg text-[#181619] dark:text-white line-clamp-2 leading-snug group-hover:text-[#f95c4b] transition-colors">
+                          {kit.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                          {kit.description ||
+                            "Complete structured curriculum, code templates, blueprints and cheat sheets for this technology stack."}
+                        </p>
+                      </div>
+
+                      {/* Specs Row */}
+                      <div className="pt-2 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/50">
+                        <span className="flex items-center gap-1 font-semibold">
+                          <FileText className="size-3.5 text-[#f95c4b]" />
+                          PDF eBook
+                        </span>
+                        <span className="flex items-center gap-1 font-semibold">
+                          <ShieldCheck className="size-3.5 text-emerald-500" />
+                          Verified
+                        </span>
+                        <span className="flex items-center gap-1 font-semibold">
+                          <Smartphone className="size-3.5 text-blue-500" />
+                          Cross-Device
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="p-4 pt-0 flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedBook(kit);
+                        }}
+                        className="flex-1 rounded-xl text-xs font-bold brand-gradient text-white shadow-xs hover:opacity-95 gap-1.5 h-10 cursor-pointer"
+                      >
+                        <BookOpen className="size-3.5" />
+                        <span>Open Book</span>
+                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                      </Button>
+
+                      {isKitUnlocked ? (
                         <Button
+                          size="sm"
                           variant="outline"
-                          onClick={() => handleOpenPreview(primaryKit)}
-                          className="rounded-xl border-border/80 text-xs font-bold gap-2 h-11 px-4 cursor-pointer hover:bg-white dark:hover:bg-white/10 shadow-2xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(kit);
+                          }}
+                          className="rounded-xl text-xs font-bold border-border/80 h-10 px-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                          title="Direct PDF Download"
                         >
-                          <Eye className="size-4 text-[#f95c4b]" />
-                          Preview Online
+                          <Download className="size-4 text-[#f95c4b]" />
                         </Button>
+                      ) : (
                         <Button
-                          onClick={() => handleDownload(primaryKit)}
-                          className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-5 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
-                        >
-                          <Download className="size-4" />
-                          Download PDF Kit
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          onClick={() => {
-                            setSelectedKit(primaryKit);
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedKitForUnlock(kit);
                             setUnlockModalOpen(true);
                           }}
-                          className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-6 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
+                          className="rounded-xl text-xs font-bold border-border/80 h-10 px-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                          title={`Unlock for ₹${kit.price}`}
                         >
-                          <Lock className="size-4" />
-                          Unlock & Download Kit (₹{primaryKit.price})
+                          <Lock className="size-4 text-amber-500" />
                         </Button>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-
-                {/* Standard Student Upgrade Hint */}
-                {!isPremiumUser && !isUnlocked && (
-                  <div className="pt-3 border-t border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-2 font-medium">
-                      <Sparkles className="size-3.5 text-amber-500 shrink-0" />
-                      Premium interns get the Student Kit + LOR + 7 Certificates for ₹0.
-                    </span>
-                    {onUpgradeToPremium && (
-                      <button
-                        type="button"
-                        onClick={onUpgradeToPremium}
-                        className="font-extrabold text-[#f95c4b] hover:underline cursor-pointer whitespace-nowrap self-start sm:self-auto flex items-center gap-1"
-                      >
-                        Upgrade to Premium Track &rarr;
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
+                );
+              })}
             </div>
-
-          </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* ─── TRUST & ACCREDITATION RIBBON ─── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-2">
@@ -387,8 +814,12 @@ export function StudentKitDashboardView({
             <ShieldCheck className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-[#181619] dark:text-white">Govt MSME Registered</p>
-            <p className="text-[11px] text-muted-foreground font-medium">Official Skyrovix Educational Asset</p>
+            <p className="text-xs font-extrabold text-[#181619] dark:text-white">
+              Govt MSME Registered
+            </p>
+            <p className="text-[11px] text-muted-foreground font-medium">
+              Official Skyrovix Educational Asset
+            </p>
           </div>
         </div>
 
@@ -397,8 +828,12 @@ export function StudentKitDashboardView({
             <Zap className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-[#181619] dark:text-white">Instant Unlocked Delivery</p>
-            <p className="text-[11px] text-muted-foreground font-medium">Immediate PDF & browser access</p>
+            <p className="text-xs font-extrabold text-[#181619] dark:text-white">
+              Instant Unlocked Delivery
+            </p>
+            <p className="text-[11px] text-muted-foreground font-medium">
+              Immediate PDF & browser access
+            </p>
           </div>
         </div>
 
@@ -407,8 +842,12 @@ export function StudentKitDashboardView({
             <Smartphone className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-[#181619] dark:text-white">Cross-Device Optimized</p>
-            <p className="text-[11px] text-muted-foreground font-medium">Read on Laptop, Tablet & Phone</p>
+            <p className="text-xs font-extrabold text-[#181619] dark:text-white">
+              Cross-Device Optimized
+            </p>
+            <p className="text-[11px] text-muted-foreground font-medium">
+              Read on Laptop, Tablet & Phone
+            </p>
           </div>
         </div>
 
@@ -417,8 +856,12 @@ export function StudentKitDashboardView({
             <FileCheck className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-[#181619] dark:text-white">Lifetime Revisions</p>
-            <p className="text-[11px] text-muted-foreground font-medium">Free updates as tech evolves</p>
+            <p className="text-xs font-extrabold text-[#181619] dark:text-white">
+              Lifetime Revisions
+            </p>
+            <p className="text-[11px] text-muted-foreground font-medium">
+              Free updates as tech evolves
+            </p>
           </div>
         </div>
       </div>
@@ -429,12 +872,12 @@ export function StudentKitDashboardView({
           <DialogHeader className="pb-2">
             <DialogTitle className="text-sm font-bold text-white flex items-center gap-2">
               <BookOpen className="size-4 text-[#f95c4b]" />
-              Skyrovix Web Development Student Kit Cover Artwork
+              {bookForCoverZoom.title} &mdash; Cover Artwork
             </DialogTitle>
           </DialogHeader>
-          <div className="rounded-2xl overflow-hidden border border-white/10 bg-black">
+          <div className="rounded-2xl overflow-hidden border border-white/10 bg-black flex items-center justify-center">
             <img
-              src={primaryKit.cover_image_url || "/student-kit-cover.jpg"}
+              src={bookForCoverZoom.cover_image_url || "/student-kit-cover.jpg"}
               alt="High-Res Cover Artwork"
               className="w-full h-auto object-contain max-h-[75vh]"
             />
@@ -449,16 +892,17 @@ export function StudentKitDashboardView({
             <div>
               <DialogTitle className="font-display font-black text-lg text-[#181619] dark:text-white flex items-center gap-2">
                 <BookOpen className="size-5 text-[#f95c4b]" />
-                {selectedKit?.title || "Web Development Student Kit"}
+                {bookForPreviewModal.title}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Skyrovix Official Student Learning Companion — {selectedKit?.edition || "Edition 1.0 (2026)"}
+                Skyrovix Official Student Learning Companion &mdash;{" "}
+                {bookForPreviewModal.edition || "Edition 1.0 (2026)"}
               </DialogDescription>
             </div>
             <div className="flex items-center gap-2 pr-6">
               <Button
                 size="sm"
-                onClick={() => selectedKit && handleDownload(selectedKit)}
+                onClick={() => handleDownload(bookForPreviewModal)}
                 className="brand-gradient text-white text-xs font-bold rounded-xl gap-1.5 shadow-sm hover:opacity-95 cursor-pointer"
               >
                 <Download className="size-3.5" /> Download PDF
@@ -469,7 +913,7 @@ export function StudentKitDashboardView({
           {/* Embedded PDF Viewer */}
           <div className="flex-1 w-full rounded-2xl overflow-hidden border border-border/60 bg-slate-900 mt-2 shadow-inner">
             <iframe
-              src={`${selectedKit?.pdf_url || "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf"}#toolbar=1`}
+              src={`${bookForPreviewModal.pdf_url}#toolbar=1`}
               title="Student Kit PDF Viewer"
               className="w-full h-full border-0"
             />
@@ -485,11 +929,11 @@ export function StudentKitDashboardView({
               <Gift className="size-6" />
             </div>
             <DialogTitle className="font-display font-black text-xl text-[#181619] dark:text-white">
-              Unlock Web Development Student Kit
+              Unlock {bookForUnlockModal.title}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
               {isPremiumUser
-                ? "As a Premium Track intern, this kit is 100% complimentary for you!"
+                ? "As a Premium Track intern, this book is 100% complimentary for you!"
                 : "Standard Plan nominal download fee to access full developer kit, capstone blueprints & code templates."}
             </DialogDescription>
           </DialogHeader>
@@ -498,17 +942,26 @@ export function StudentKitDashboardView({
             {/* Price Breakdown */}
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#201d22] border border-border/60 space-y-2 text-xs">
               <div className="flex justify-between text-muted-foreground">
-                <span>Student Kit Edition 1.0 (Full 120+ Pages)</span>
+                <span>
+                  {bookForUnlockModal.title} (
+                  {bookForUnlockModal.edition || "Full Guide"})
+                </span>
                 <span>₹499.00</span>
               </div>
               <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
                 <span>Skyrovix Student Education Subsidy</span>
-                <span>{isPremiumUser ? "-₹499.00" : "-₹479.00"}</span>
+                <span>
+                  {isPremiumUser
+                    ? "-₹499.00"
+                    : `-₹${499 - (bookForUnlockModal.price || 20)}.00`}
+                </span>
               </div>
               <div className="pt-2 border-t border-border/60 flex justify-between font-black text-sm text-[#181619] dark:text-white">
                 <span>Total Payable Amount</span>
                 <span className="text-[#f95c4b] text-base">
-                  {isPremiumUser ? "₹0.00 (FREE)" : `₹${primaryKit.price}.00`}
+                  {isPremiumUser
+                    ? "₹0.00 (FREE)"
+                    : `₹${bookForUnlockModal.price}.00`}
                 </span>
               </div>
             </div>
@@ -517,11 +970,11 @@ export function StudentKitDashboardView({
             <ul className="text-xs space-y-2 text-muted-foreground font-medium pl-1">
               <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                Complete HTML, CSS, JS, React & Node.js cheat sheets
+                Complete technical roadmap, cheat sheets & architecture diagrams
               </li>
               <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                5 Production-grade capstone project blueprints
+                Industry capstone project blueprints & sample code
               </li>
               <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
@@ -542,7 +995,7 @@ export function StudentKitDashboardView({
             <Button
               onClick={() => {
                 setIsProcessingUnlock(true);
-                unlockMutation.mutate(selectedKit?.id || primaryKit.id);
+                unlockMutation.mutate(bookForUnlockModal.id);
               }}
               disabled={isProcessingUnlock || unlockMutation.isPending}
               className="rounded-xl brand-gradient text-white text-xs font-bold h-11 px-5 shadow-md shadow-[#f95c4b]/20 cursor-pointer hover:opacity-95"
@@ -552,7 +1005,7 @@ export function StudentKitDashboardView({
               ) : isPremiumUser ? (
                 "Claim Free Kit Now"
               ) : (
-                `Complete Payment (₹${primaryKit.price})`
+                `Complete Payment (₹${bookForUnlockModal.price})`
               )}
             </Button>
           </DialogFooter>
