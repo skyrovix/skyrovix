@@ -1,8 +1,28 @@
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
-import { dbQuery } from "./db.server";
+import { dbQuery, getDbPool } from "./db.server";
 import { checkIsAdmin } from "./fee-service.server";
+
+let studentKitsMigrated = false;
+export async function ensureStudentKitsColumns() {
+  if (studentKitsMigrated) return;
+  try {
+    const pool = getDbPool();
+    const [cols]: any = await pool.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'student_kits' AND COLUMN_NAME = 'is_free_for_standard'`
+    );
+    if (!cols || cols.length === 0) {
+      await pool.query(
+        "ALTER TABLE student_kits ADD COLUMN is_free_for_standard TINYINT(1) NOT NULL DEFAULT 0 AFTER price"
+      );
+      console.log("[db] Added column is_free_for_standard to student_kits");
+    }
+    studentKitsMigrated = true;
+  } catch (err: any) {
+    console.warn("[db] ensureStudentKitsColumns notice:", err?.message);
+  }
+}
 
 export interface StudentKitItem {
   id: string;
@@ -63,6 +83,7 @@ export async function getStudentKitsDataServer(
   applicationId?: string,
   userId?: string
 ): Promise<StudentKitsSummary> {
+  await ensureStudentKitsColumns();
   let isPremiumUser = false;
   let activePlan = "standard";
 
@@ -152,6 +173,7 @@ export async function unlockStudentKitServer(data: {
   amount?: number;
   paymentMethod?: string;
 }): Promise<{ success: boolean; downloadUrl: string; message: string }> {
+  await ensureStudentKitsColumns();
   const { kitId, applicationId, userId, paymentId, amount } = data;
 
   // 1. Fetch the kit
@@ -224,6 +246,7 @@ export async function unlockStudentKitServer(data: {
  * Fetch all student kits and unlock history for Admin
  */
 export async function getAdminStudentKitsServer(): Promise<AdminStudentKitsData> {
+  await ensureStudentKitsColumns();
   const [kitsRes, purchasesRes] = await Promise.all([
     dbQuery(`SELECT * FROM public.student_kits ORDER BY created_at DESC`),
     dbQuery(`
@@ -298,6 +321,7 @@ export async function saveAdminStudentKitServer(kitData: {
   domain?: string;
   edition?: string;
 }): Promise<StudentKitItem> {
+  await ensureStudentKitsColumns();
   const title = (kitData.title || "").trim();
   if (!title) throw new Error("Student kit title is required.");
 
@@ -372,22 +396,41 @@ export async function updateAdminStudentKitsGlobalPolicyServer(data: {
   freeForStandard?: boolean;
   freeForPremium?: boolean;
 }): Promise<{ success: boolean; message: string }> {
-  if (data.freeForStandard !== undefined && data.freeForPremium !== undefined) {
-    await dbQuery(
-      `UPDATE public.student_kits SET is_free_for_standard = $1, is_free_for_premium = $2`,
-      [data.freeForStandard ? 1 : 0, data.freeForPremium ? 1 : 0]
-    );
-  } else if (data.freeForStandard !== undefined) {
-    await dbQuery(
-      `UPDATE public.student_kits SET is_free_for_standard = $1`,
-      [data.freeForStandard ? 1 : 0]
-    );
-  } else if (data.freeForPremium !== undefined) {
-    await dbQuery(
-      `UPDATE public.student_kits SET is_free_for_premium = $1`,
-      [data.freeForPremium ? 1 : 0]
-    );
+  await ensureStudentKitsColumns();
+
+  const runUpdate = async () => {
+    if (data.freeForStandard !== undefined && data.freeForPremium !== undefined) {
+      await dbQuery(
+        `UPDATE public.student_kits SET is_free_for_standard = $1, is_free_for_premium = $2`,
+        [data.freeForStandard ? 1 : 0, data.freeForPremium ? 1 : 0]
+      );
+    } else if (data.freeForStandard !== undefined) {
+      await dbQuery(
+        `UPDATE public.student_kits SET is_free_for_standard = $1`,
+        [data.freeForStandard ? 1 : 0]
+      );
+    } else if (data.freeForPremium !== undefined) {
+      await dbQuery(
+        `UPDATE public.student_kits SET is_free_for_premium = $1`,
+        [data.freeForPremium ? 1 : 0]
+      );
+    }
+  };
+
+  try {
+    await runUpdate();
+  } catch (err: any) {
+    if (String(err?.message || "").includes("is_free_for_standard")) {
+      const pool = getDbPool();
+      await pool.query(
+        "ALTER TABLE student_kits ADD COLUMN is_free_for_standard TINYINT(1) NOT NULL DEFAULT 0 AFTER price"
+      ).catch(() => {});
+      await runUpdate();
+    } else {
+      throw err;
+    }
   }
+
   return { success: true, message: "Student kit global access policy updated successfully." };
 }
 

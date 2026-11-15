@@ -396,6 +396,27 @@ export async function dbQuery<T = any>(
       rowCount: (result as any)?.affectedRows || 0,
     };
   } catch (err: any) {
+    if (String(err?.message || "").includes("is_free_for_standard")) {
+      try {
+        await pool.query(
+          "ALTER TABLE student_kits ADD COLUMN is_free_for_standard TINYINT(1) NOT NULL DEFAULT 0 AFTER price"
+        );
+        const [result] = await pool.query(prepared.sql, prepared.params);
+        if (Array.isArray(result)) {
+          return {
+            rows: result as T[],
+            rowCount: result.length,
+          };
+        }
+        return {
+          rows: [] as T[],
+          rowCount: (result as any)?.affectedRows || 0,
+        };
+      } catch (retryErr: any) {
+        console.warn("[dbQuery] auto-migration of is_free_for_standard failed:", retryErr?.message);
+      }
+    }
+
     if (trySwitchLocalPort(err)) {
       const retryPool = getDbPool();
       const [result] = await retryPool.query(prepared.sql, prepared.params);
