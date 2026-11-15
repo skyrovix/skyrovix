@@ -4506,6 +4506,19 @@ export const LINKEDIN_TASK: TaskData = {
   outcome: "Build your professional brand on LinkedIn and showcase your internship journey with your network.",
 };
 
+export const LINKEDIN_CERTIFICATE_LOR_TASK: TaskData = {
+  taskNumber: 999,
+  title: "Share Your Certificate on LinkedIn & Claim LOR",
+  description: "Celebrate completing your internship! Post your verified Skyrovix Certificate on LinkedIn, tag @Skyrovix, and submit the post link to claim your official Letter of Recommendation (LOR).",
+  features: [
+    "View or download your verified Certificate from the Certificates tab",
+    "Share your internship journey and certificate on LinkedIn with a professional post",
+    "Tag @Skyrovix and mention #SkyrovixInternship #Skyrovix",
+    "Paste your public LinkedIn post URL here to receive your official LOR in your email and dashboard",
+  ],
+  outcome: "Official Letter of Recommendation (LOR) automatically delivered to your registered email and unlocked for instant download.",
+};
+
 const DOMAIN_TASK_ALIASES: Record<string, string> = {
   generativeai: "genai",
   promptengineering: "genai",

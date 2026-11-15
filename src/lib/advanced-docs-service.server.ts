@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { dbQuery } from "./db.server";
+import { getDomain } from "./constants";
 import type { AdvancedDocType, AdvancedDocMetadata, AdvancedDocData } from "@/components/advanced-pdf-docs";
 
 export const ADVANCED_DOC_DOMAINS = ["fullstack", "mernstack", "meanstack"] as const;
@@ -14,11 +15,13 @@ export function normalizeDomain(domain?: string | null): string {
 }
 
 export function isAdvancedDocDomain(domain?: string | null): boolean {
-  const norm = normalizeDomain(domain);
-  return norm === "fullstack" || norm === "mernstack" || norm === "meanstack";
+  return true; // Supported across all internship tracks in Skyrovix
 }
 
 export function getFullDomainName(slugOrName?: string | null): string {
+  if (!slugOrName) return "Full Stack Development";
+  const domainObj = getDomain(slugOrName);
+  if (domainObj?.name) return domainObj.name;
   const norm = normalizeDomain(slugOrName);
   if (norm === "fullstack") return "Full Stack Development";
   if (norm === "mernstack") return "MERN Stack Development";
@@ -243,15 +246,12 @@ export async function getStudentAdvancedDocsDataServer(
     } else {
       // Evaluate based on rules
       if (def.type === "lor") {
-        if (planType !== "premium") {
-          status = "not_eligible";
-          statusReason = "Letter of Recommendation is exclusively available for Premium Internship scholars.";
-        } else if (!isCompleted) {
+        if (!isCompleted) {
           status = "locked";
-          statusReason = "Complete and verify all internship tasks to unlock your Letter of Recommendation.";
+          statusReason = "Complete and verify all internship project tasks to unlock your Letter of Recommendation.";
         } else {
           status = "eligible";
-          statusReason = "Unlocked! You can submit a generation request for admin verification.";
+          statusReason = "Unlocked! Share your verified Certificate on LinkedIn in Tasks to claim your official LOR.";
         }
       } else {
         // High performer documents (both Standard and Premium)
@@ -647,10 +647,6 @@ export async function adminGenerateDocumentServer(input: {
   const app = appQuery.rows[0];
   const domainNorm = normalizeDomain(app.domain);
 
-  if (!isAdvancedDocDomain(domainNorm)) {
-    throw new Error("Document generation is only permitted for Full Stack, MERN Stack, and MEAN Stack domains.");
-  }
-
   const planType = app.plan_type?.trim().toLowerCase() === "premium" ? "premium" : "standard";
   const durationMonths = Number(app.duration) || 1;
 
@@ -670,11 +666,9 @@ export async function adminGenerateDocumentServer(input: {
     throw new Error("Internship is not completed yet. All tasks must be approved before issuing advanced documents.");
   }
 
-  // Check LOR Policy
+  // Check Document Policy
   if (documentType === "lor") {
-    if (planType !== "premium") {
-      throw new Error("Policy Violation: Standard plan students are not eligible for a Letter of Recommendation.");
-    }
+    // Letter of Recommendation is open to all plans upon completing the internship
   } else {
     // Other 5 documents require high performer status
     const evalQuery = await dbQuery(
@@ -861,6 +855,225 @@ export async function getDocumentDataByIdServer(documentId: string): Promise<Adv
     issuedAt: row.issue_date || row.created_at,
     verifyUrl,
     metadata: meta,
+  };
+}
+
+/**
+ * Fetch the issued Letter of Recommendation (LOR) document for a student application.
+ */
+export async function getStudentLorDocServer(applicationId: string): Promise<AdvancedDocData | null> {
+  const docQuery = await dbQuery(
+    `SELECT d.*, a.intern_id, a.duration, a.full_name as app_full_name, a.domain as app_domain, a.plan_type as app_plan_type
+     FROM internship_documents d
+     LEFT JOIN applications a ON a.id = d.application_id
+     WHERE d.application_id = $1 AND d.document_type = 'lor'
+     LIMIT 1`,
+    [applicationId]
+  );
+
+  if (!docQuery.rows || docQuery.rows.length === 0) {
+    return null;
+  }
+
+  const row = docQuery.rows[0];
+  const domainNorm = normalizeDomain(row.domain || row.app_domain);
+  const domainName = getFullDomainName(domainNorm);
+
+  let meta: AdvancedDocMetadata = {};
+  if (row.metadata) {
+    try {
+      meta = typeof row.metadata === "string" ? JSON.parse(row.metadata) : row.metadata;
+    } catch {
+      meta = {};
+    }
+  }
+
+  return {
+    documentId: row.document_id,
+    documentType: "lor",
+    fullName: row.student_name || row.app_full_name || "Scholar",
+    internId: row.intern_id || "SKX-INTERN",
+    domain: domainNorm,
+    domainName,
+    planType: (row.plan_type || row.app_plan_type) === "premium" ? "premium" : "standard",
+    durationMonths: Number(row.duration) || 1,
+    issuedAt: row.issue_date || row.created_at,
+    verifyUrl: `https://skyrovix.online/verify/${row.document_id}`,
+    metadata: meta,
+  };
+}
+
+/**
+ * Handle student submitting their verified Certificate on LinkedIn to claim official LOR.
+ * Automatically approves submission, generates LOR for all plans, and sends email with PDF.
+ */
+export async function submitCertificateLinkedInPostAndClaimLorServer(input: {
+  applicationId: string;
+  userId?: string;
+  linkedinUrl: string;
+  notes?: string;
+}): Promise<{
+  success: boolean;
+  documentId: string;
+  documentRecord: any;
+  message: string;
+  lorData: AdvancedDocData;
+}> {
+  const { applicationId, userId, linkedinUrl, notes } = input;
+  if (!applicationId || !linkedinUrl?.trim()) {
+    throw new Error("Application ID and LinkedIn Post URL are required.");
+  }
+
+  const rawUrl = linkedinUrl.trim();
+  const normalizedUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+  try {
+    new URL(normalizedUrl);
+  } catch {
+    throw new Error("Please enter a valid LinkedIn URL.");
+  }
+
+  // 1. Fetch application
+  const appQuery = await dbQuery(
+    `SELECT id, user_id, full_name, email, domain, intern_id, plan_type, duration, status, all_tasks_verified, total_tasks, certificate_generated
+     FROM applications
+     WHERE id = $1
+     LIMIT 1`,
+    [applicationId]
+  );
+  if (!appQuery.rows || appQuery.rows.length === 0) {
+    throw new Error("Application not found.");
+  }
+  const app = appQuery.rows[0];
+  const domainNorm = app.domain || "fullstack";
+  const domainName = getFullDomainName(domainNorm);
+  const planType: "standard" | "premium" =
+    app.plan_type?.trim().toLowerCase() === "premium" ? "premium" : "standard";
+  const durationMonths = Number(app.duration) || 1;
+
+  // 2. Upsert submission for task 999 (LinkedIn Certificate Post)
+  const taskId = `${domainNorm}-lor`;
+  const existingSubQuery = await dbQuery(
+    `SELECT id FROM submissions WHERE application_id = $1 AND (task_number = 999 OR task_id = $2) LIMIT 1`,
+    [applicationId, taskId]
+  );
+  const existingSub = existingSubQuery.rows?.[0];
+  const subNotes = notes
+    ? `[LinkedIn Certificate Post]\n${notes}`
+    : "Submitted LinkedIn certificate post link for official LOR issuance.";
+
+  if (existingSub) {
+    await dbQuery(
+      `UPDATE submissions
+       SET deployed_url = $1, notes = $2, status = 'approved', reviewed_at = NOW(), task_number = 999, task_title = 'Share Your Certificate on LinkedIn & Claim LOR'
+       WHERE id = $3`,
+      [normalizedUrl, subNotes, existingSub.id]
+    );
+  } else {
+    const subId = crypto.randomUUID();
+    await dbQuery(
+      `INSERT INTO submissions
+         (id, application_id, student_id, task_id, task_number, task_title, domain, deployed_url, notes, status, submitted_at, reviewed_at)
+       VALUES
+         ($1, $2, $3, $4, 999, 'Share Your Certificate on LinkedIn & Claim LOR', $5, $6, $7, 'approved', NOW(), NOW())`,
+      [subId, applicationId, userId || app.user_id, taskId, domainNorm, normalizedUrl, subNotes]
+    );
+  }
+
+  // 3. Check or generate LOR in internship_documents
+  const existingDocQuery = await dbQuery(
+    `SELECT id, document_id, issue_date, verification_hash, metadata
+     FROM internship_documents
+     WHERE application_id = $1 AND document_type = 'lor'
+     LIMIT 1`,
+    [applicationId]
+  );
+  const existingDoc = existingDocQuery.rows?.[0] || null;
+  const docId = existingDoc ? existingDoc.document_id : generateAdvancedDocId("lor");
+  const verificationHash =
+    existingDoc?.verification_hash || crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+
+  const lorMetadata: AdvancedDocMetadata = {
+    mentorRemarks:
+      "Demonstrated outstanding engineering diligence, project delivery, and active professional engagement throughout the virtual internship.",
+    finalRating: "A+ (Outstanding)",
+    codeQuality: 9.6,
+    technicalSkills: 9.7,
+    problemSolving: 9.6,
+    teamwork: 9.5,
+    projectPerformance: 9.8,
+  };
+
+  const docDbId = existingDoc ? existingDoc.id : crypto.randomUUID();
+  await dbQuery(
+    `INSERT INTO internship_documents
+       (id, document_id, application_id, user_id, document_type, title, student_name, domain, plan_type, issue_date, status, verification_hash, metadata, created_by, created_at, updated_at)
+     VALUES
+       ($1, $2, $3, $4, 'lor', 'Letter of Recommendation (LOR)', $5, $6, $7, NOW(), 'issued', $8, $9, 'system:linkedin_claim', NOW(), NOW())
+     ON DUPLICATE KEY UPDATE
+       verification_hash = VALUES(verification_hash),
+       metadata = VALUES(metadata),
+       status = 'issued',
+       updated_at = NOW()`,
+    [
+      docDbId,
+      docId,
+      applicationId,
+      userId || app.user_id,
+      app.full_name,
+      domainNorm,
+      planType,
+      verificationHash,
+      JSON.stringify(lorMetadata),
+    ]
+  );
+
+  // 4. Send LOR Email with attached PDF
+  const verifyUrl = `https://skyrovix.online/verify/${docId}`;
+  const lorPayload: AdvancedDocData = {
+    documentId: docId,
+    documentType: "lor",
+    fullName: app.full_name || "Student Scholar",
+    internId: app.intern_id || "SKX-INTERN",
+    domain: domainNorm,
+    domainName,
+    planType,
+    durationMonths,
+    issuedAt: new Date().toISOString(),
+    verifyUrl,
+    metadata: lorMetadata,
+  };
+
+  if (app.email) {
+    try {
+      const { sendEmailDirect } = await import("./email-service.server");
+      await sendEmailDirect({
+        to: app.email,
+        studentName: app.full_name,
+        studentId: app.intern_id,
+        documentType: "letter_of_recommendation",
+        subject: `Skyrovix Letter of Recommendation (LOR) - ${app.full_name} (${app.intern_id})`,
+        body: `Dear ${app.full_name},\n\nCongratulations on completing your internship and sharing your verified certificate on LinkedIn!\n\nAs promised, attached is your official Letter of Recommendation (LOR) signed by Skyrovix IT Solutions leadership (Govt MSME Registered).\n\nYou can also verify and download this credential at any time using your public verification link:\n${verifyUrl}\n\nWe wish you great success in your career!\n\nWarm regards,\nSkyrovix IT Solutions Team`,
+        referenceId: docId,
+        advancedDocData: lorPayload,
+      });
+    } catch (emailErr) {
+      console.warn("[submitCertificateLinkedInPostAndClaimLorServer] Email sending warning:", emailErr);
+    }
+  }
+
+  return {
+    success: true,
+    documentId: docId,
+    documentRecord: {
+      id: docDbId,
+      document_id: docId,
+      issue_date: new Date().toISOString(),
+      verification_hash: verificationHash,
+      metadata: lorMetadata,
+      status: "issued",
+    },
+    lorData: lorPayload,
+    message: `🎉 Congratulations! Your Letter of Recommendation (LOR) has been issued and sent to ${app.email || "your email"}!`,
   };
 }
 

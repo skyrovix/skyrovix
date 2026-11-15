@@ -105,3 +105,33 @@ export const getDocumentDataByIdFn = createServerFn({ method: "POST" })
     return getDocumentDataByIdServer(data.documentId);
   });
 
+/**
+ * Fetch the issued LOR document for a student application.
+ */
+export const getStudentLorDocFn = createServerFn({ method: "POST" })
+  .validator((d: { applicationId: string }) => d)
+  .handler(async ({ data }) => {
+    const { getStudentLorDocServer } = await import("./advanced-docs-service.server");
+    return getStudentLorDocServer(data.applicationId);
+  });
+
+/**
+ * Student submits their Certificate on LinkedIn to claim official LOR.
+ */
+export const submitCertificateLinkedInPostAndClaimLorFn = createServerFn({ method: "POST" })
+  .validator(
+    (d: {
+      applicationId: string;
+      userId?: string;
+      linkedinUrl: string;
+      notes?: string;
+    }) => d
+  )
+  .handler(async ({ data }) => {
+    const { submitCertificateLinkedInPostAndClaimLorServer } = await import(
+      "./advanced-docs-service.server"
+    );
+    return submitCertificateLinkedInPostAndClaimLorServer(data);
+  });
+
+

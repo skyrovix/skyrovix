@@ -10,7 +10,9 @@ import {
 import { supabase } from "@/lib/db-client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { getDomainTasks, getTasksByDuration, LINKEDIN_TASK } from "@/lib/tasks-data";
+import { getDomainTasks, getTasksByDuration, LINKEDIN_TASK, LINKEDIN_CERTIFICATE_LOR_TASK } from "@/lib/tasks-data";
+import { submitCertificateLinkedInPostAndClaimLorFn, getStudentLorDocFn } from "@/lib/advanced-docs-service";
+import { downloadAdvancedDocPdf, type AdvancedDocData } from "@/components/advanced-pdf-docs";
 import {
   Lock,
   Search,
@@ -39,6 +41,9 @@ import {
   Award,
   CreditCard,
   Send,
+  Crown,
+  Download,
+  Eye,
 } from "lucide-react";
 
 const TECH_KEYWORDS = ["react", "node", "mongodb", "database", "auth", "responsive", "deploy", "api", "jwt", "tailwind", "crud", "linkedin", "network", "post", "share", "python", "javascript", "typescript", "css", "html", "github", "docker", "aws", "firebase", "sql", "graphql", "next", "express", "redux", "figma"];
@@ -227,6 +232,11 @@ export function TasksSection({
   certFeeAmount = 100,
   onOpenCertPayment,
   isPremiumPlanEnabled = true,
+  hasCertificate = false,
+  certificate,
+  app,
+  lorDoc,
+  onPreviewLor,
   onChange,
 }: {
   domainSlug: string;
@@ -246,6 +256,11 @@ export function TasksSection({
   certFeeAmount?: number;
   onOpenCertPayment?: () => void;
   isPremiumPlanEnabled?: boolean;
+  hasCertificate?: boolean;
+  certificate?: any;
+  app?: any;
+  lorDoc?: any;
+  onPreviewLor?: (data: AdvancedDocData) => void;
   onChange: () => void;
 }) {
   const [search, setSearch] = useState("");
@@ -454,6 +469,13 @@ export function TasksSection({
           s.task_title?.toLowerCase().includes("linkedin") ||
           s.task_title?.toLowerCase().includes("offer letter")
         )) return true;
+        if (taskNumber === 999 && (
+          s.task_id === `${domainSlug}-lor` ||
+          s.task_id === "999" ||
+          Number(s.task_number) === 999 ||
+          s.task_title?.toLowerCase().includes("claim lor") ||
+          s.task_title?.toLowerCase().includes("recommendation")
+        )) return true;
         if (taskNumber !== undefined && Number(s.task_number) === taskNumber) return true;
         if (taskTitle && s.task_title && s.task_title.toLowerCase().trim() === taskTitle.toLowerCase().trim()) return true;
         return false;
@@ -522,8 +544,40 @@ export function TasksSection({
       };
     });
 
-    return [linkedinMeta, ...domainTasks];
-  }, [allTasks, rawSubmissions, taskIdMap, domainSlug, isAppFeeLocked, submissionStatus, startDate, duration]);
+    const allDomainTasksApproved = domainTasks.length > 0 && domainTasks.every((t) => t.status === "completed");
+    const isLorIssued = Boolean(
+      lorDoc?.status === "issued" ||
+      lorDoc?.documentId ||
+      lorDoc?.documentType === "lor"
+    );
+
+    const lorId = taskIdMap[999] ?? `${domainSlug}-lor`;
+    const lorSub = getLatestSub(lorId, 999, LINKEDIN_CERTIFICATE_LOR_TASK.title);
+    const lorDue = computeDueDate(allTasks.length + 1, startDate, duration ?? 1, allTasks.length || 5);
+    const lorStatus: TaskStatus = (isLorIssued || lorSub?.status === "approved") ? "completed" : getTaskStatus(lorSub, lorDue);
+
+    const isLorUnlocked = Boolean(hasCertificate || allDomainTasksApproved);
+    const isLorLocked = isAppFeeLocked || !isLorUnlocked;
+    const lorLockReason = isAppFeeLocked
+      ? "Your internship tasks will unlock after your application fee payment is verified by the admin."
+      : !isLorUnlocked
+      ? "Complete all previous domain tasks and unlock your Internship Certificate first to claim your LOR."
+      : undefined;
+
+    const certLorMeta = {
+      ...LINKEDIN_CERTIFICATE_LOR_TASK,
+      id: lorId,
+      submission: lorSub,
+      dueDate: lorDue,
+      status: lorStatus,
+      remaining: daysRemaining(lorDue),
+      isLocked: isLorLocked,
+      lockReason: lorLockReason,
+      isLorTask: true,
+    };
+
+    return [linkedinMeta, ...domainTasks, certLorMeta];
+  }, [allTasks, rawSubmissions, taskIdMap, domainSlug, isAppFeeLocked, submissionStatus, startDate, duration, hasCertificate, lorDoc]);
 
   const stats = useMemo(() => {
     const completed = tasksWithMeta.filter((t) => t.status === "completed").length;
@@ -815,13 +869,15 @@ export function TasksSection({
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((task) => (
-              <TaskCard
+            <TaskCard
               key={task.id}
-              task={task}
+              task={task as any}
               domain={domainData}
               appId={appId}
               tasksReady={tasksReady}
               submissionStatus={submissionStatus}
+              lorDoc={lorDoc}
+              onPreviewLor={onPreviewLor}
               onSubmitted={() => {
                 handleChange();
                 if (task.submission?.status !== "approved") {
@@ -863,6 +919,7 @@ function TaskSubmitDialog({
     title: string;
     description: string;
     submission: Submission | undefined;
+    isLorTask?: boolean;
   };
   domain: { slug: string; name: string; icon: string; color: string } | undefined;
   appId: string;
@@ -877,6 +934,53 @@ function TaskSubmitDialog({
     const form = e.currentTarget;
     try {
       if (!user) return toast.error("You must be logged in");
+
+      if (task.taskNumber === 999) {
+        setLoading(true);
+        const fd = new FormData(form);
+        const raw = String(fd.get("deployed_url") || "").trim();
+        const notes = String(fd.get("notes") || "").trim();
+        if (!raw) {
+          setLoading(false);
+          return toast.error("Please enter your LinkedIn Certificate post URL");
+        }
+        const normalized = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+        try {
+          new URL(normalized);
+        } catch {
+          setLoading(false);
+          return toast.error("Please enter a valid LinkedIn post URL");
+        }
+
+        try {
+          const res = await submitCertificateLinkedInPostAndClaimLorFn({
+            data: {
+              applicationId: appId,
+              userId: user.id,
+              linkedinUrl: normalized,
+              notes: notes || undefined,
+            },
+          });
+
+          if (res.lorData) {
+            try {
+              await downloadAdvancedDocPdf(res.lorData);
+            } catch (pdfErr) {
+              console.warn("Auto-download LOR PDF warning:", pdfErr);
+            }
+          }
+
+          setLoading(false);
+          toast.success(res.message || "🎉 Letter of Recommendation (LOR) issued and sent to your email!");
+          onOpenChange(false);
+          onSubmitted();
+          return;
+        } catch (lorErr: any) {
+          setLoading(false);
+          return toast.error(lorErr?.message || "Failed to submit and claim LOR");
+        }
+      }
+
       let taskId = task.id;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(taskId)) {
@@ -1094,7 +1198,11 @@ function TaskSubmitDialog({
             <X className="size-4" />
           </button>
           <div className="flex items-center gap-3 relative z-10">
-            {task.taskNumber === 0 ? (
+            {task.taskNumber === 999 ? (
+              <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shrink-0 text-white">
+                <Crown className="size-5" />
+              </div>
+            ) : task.taskNumber === 0 ? (
               <div className="flex size-10 items-center justify-center rounded-xl bg-[#0077b5] shadow-lg shrink-0">
                 <Linkedin className="size-5" />
               </div>
@@ -1104,8 +1212,8 @@ function TaskSubmitDialog({
               </div>
             )}
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-200 mb-0.5">
-                {task.taskNumber === 0 ? "LinkedIn Task" : `Task ${task.taskNumber}`}
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-300 mb-0.5">
+                {task.taskNumber === 999 ? "Final Milestone • Claim LOR" : task.taskNumber === 0 ? "LinkedIn Task" : `Task ${task.taskNumber}`}
                 {submission?.status === "rejected" && " — Revision"}
               </p>
               <h2 className="text-base font-extrabold leading-snug">{task.title}</h2>
@@ -1130,7 +1238,67 @@ function TaskSubmitDialog({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          {task.taskNumber === 0 ? (
+          {task.taskNumber === 999 ? (
+            /* LinkedIn Certificate Post -> LOR Claim Task */
+            <div className="space-y-4">
+              <div className="rounded-xl border border-amber-300/60 bg-amber-50/80 dark:bg-amber-950/20 p-3.5 text-xs text-amber-900 dark:text-amber-200 space-y-1.5 leading-relaxed">
+                <div className="flex items-center gap-1.5 font-bold text-amber-950 dark:text-amber-100">
+                  <Sparkles className="size-4 text-amber-600 shrink-0" />
+                  <span>Claim Official Letter of Recommendation (LOR)</span>
+                </div>
+                <p>
+                  1. View or download your verified Certificate from the <strong>Certificates</strong> tab.
+                </p>
+                <p>
+                  2. Share your Certificate on LinkedIn with a short reflection on your internship journey. Tag <strong>@Skyrovix</strong> and add <strong>#SkyrovixInternship</strong>.
+                </p>
+                <p>
+                  3. Paste your public post URL below. Upon submission, your official signed LOR will be <strong>automatically sent to your email with PDF attached</strong> and <strong>downloaded instantly</strong>.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold flex items-center gap-1.5">
+                  <Link2 className="size-3.5 text-amber-600" /> LinkedIn Certificate Post URL
+                </Label>
+                <Input
+                  name="deployed_url"
+                  type="text"
+                  placeholder="https://linkedin.com/posts/..."
+                  className="h-10 rounded-xl text-sm"
+                  defaultValue={submission?.deployed_url ?? ""}
+                  required
+                />
+                <p className="text-[11px] text-muted-foreground">Paste the public link to your LinkedIn post sharing your Certificate.</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold flex items-center gap-1.5">
+                  <BookOpen className="size-3.5 text-primary" /> Key Reflections / Notes
+                  <span className="text-xs font-normal text-muted-foreground ml-1">(optional)</span>
+                </Label>
+                <Textarea
+                  name="notes"
+                  rows={2}
+                  placeholder="Summarize your key takeaways, favorite project, or career goals..."
+                  className="rounded-xl text-sm resize-none"
+                  defaultValue={submission?.notes ?? ""}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-600 to-primary hover:opacity-95 text-white border-0 shadow-lg shadow-amber-500/25 transition-all cursor-pointer"
+              >
+                {loading ? (
+                  <><Loader2 className="mr-2 size-4 animate-spin" /> Issuing LOR & Sending Email…</>
+                ) : (
+                  <><Award className="mr-2 size-4" /> Claim LOR & Send to Email</>
+                )}
+              </Button>
+            </div>
+          ) : task.taskNumber === 0 ? (
             /* LinkedIn Task */
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold flex items-center gap-1.5">
@@ -1239,6 +1407,8 @@ function TaskCard({
   appId,
   tasksReady,
   submissionStatus,
+  lorDoc,
+  onPreviewLor,
   onSubmitted,
 }: {
   task: {
@@ -1254,11 +1424,14 @@ function TaskCard({
     remaining: number;
     isLocked?: boolean;
     lockReason?: string;
+    isLorTask?: boolean;
   };
   domain: { slug: string; name: string; icon: string; color: string } | undefined;
   appId: string;
   tasksReady: boolean;
   submissionStatus?: string;
+  lorDoc?: any;
+  onPreviewLor?: (data: AdvancedDocData) => void;
   onSubmitted: () => void;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -1266,6 +1439,7 @@ function TaskCard({
   const [showHistory, setShowHistory] = useState(false);
   const { submission, status, dueDate, remaining, isLocked, lockReason } = task;
   const isOverdue = status === "overdue";
+  const isLor = task.taskNumber === 999;
 
   const loadHistory = async () => {
     if (!submission) return;
@@ -1277,7 +1451,17 @@ function TaskCard({
     setShowHistory(true);
   };
 
-  const borderColor = isOverdue ? "#EF4444" : status === "completed" ? "#16A34A" : status === "ongoing" ? "#2563EB" : "#D97706";
+  const borderColor = isLor
+    ? status === "completed"
+      ? "#10B981"
+      : "#F59E0B"
+    : isOverdue
+    ? "#EF4444"
+    : status === "completed"
+    ? "#16A34A"
+    : status === "ongoing"
+    ? "#2563EB"
+    : "#D97706";
 
   return (
     <>
@@ -1297,7 +1481,12 @@ function TaskCard({
       >
         {/* Header Info: Task Badge & Status Pill */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          {task.taskNumber === 0 ? (
+          {task.taskNumber === 999 ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-xs shadow-xs shrink-0">
+              <Crown className="size-3.5 text-amber-500" />
+              <span>FINAL TASK</span>
+            </div>
+          ) : task.taskNumber === 0 ? (
             <div className="flex size-9 items-center justify-center rounded-xl bg-[#0077b5] text-white shadow-sm shrink-0">
               <Linkedin className="size-4" />
             </div>
@@ -1366,7 +1555,46 @@ function TaskCard({
 
         {/* Action Area / Footer */}
         <div className="border-t border-border/40 p-5 mt-4">
-          {status === "completed" ? (
+          {isLor && status === "completed" ? (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-amber-500/15 border border-amber-500/30 py-2.5 px-2 text-xs font-bold text-amber-900 dark:text-amber-300 text-center">
+                <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                <span>Official LOR Issued & Emailed! 🎓</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {onPreviewLor && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-xs h-9 rounded-xl border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-950/20 font-semibold cursor-pointer"
+                    onClick={async () => {
+                      const doc = lorDoc || (await getStudentLorDocFn({ data: { applicationId: appId } }));
+                      if (doc) onPreviewLor(doc);
+                      else toast.error("Could not load LOR data");
+                    }}
+                  >
+                    <Eye className="mr-1.5 size-3.5 text-amber-600" /> Preview LOR
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  className={`w-full text-xs h-9 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold shadow-sm cursor-pointer ${!onPreviewLor ? "col-span-2" : ""}`}
+                  onClick={async () => {
+                    try {
+                      const doc = lorDoc || (await getStudentLorDocFn({ data: { applicationId: appId } }));
+                      if (!doc) throw new Error("LOR document not found");
+                      await downloadAdvancedDocPdf(doc);
+                      toast.success("LOR PDF downloaded successfully!");
+                    } catch (err: any) {
+                      toast.error(err?.message || "Failed to download LOR");
+                    }
+                  }}
+                >
+                  <Download className="mr-1.5 size-3.5" /> Download LOR
+                </Button>
+              </div>
+            </div>
+          ) : status === "completed" ? (
             <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2.5 text-xs font-bold text-emerald-700">
               <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
               <span>Admin Verified & Passed!</span>
@@ -1375,6 +1603,15 @@ function TaskCard({
             <div className="flex items-center justify-center gap-2 rounded-xl bg-muted/40 border border-border/40 py-3 px-3 text-xs text-muted-foreground font-medium text-center">
               <Lock className="size-4 shrink-0 text-muted-foreground" />
               <span>{lockReason || "Task is locked."}</span>
+            </div>
+          ) : isLor ? (
+            <div className="space-y-2">
+              <Button
+                onClick={() => setDialogOpen(true)}
+                className="w-full text-xs font-bold h-10 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-primary hover:opacity-95 text-white shadow-md shadow-amber-500/25 transition-all cursor-pointer"
+              >
+                <Award className="mr-1.5 size-4" /> Share Certificate & Claim LOR
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">

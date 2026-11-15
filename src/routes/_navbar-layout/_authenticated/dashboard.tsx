@@ -58,6 +58,11 @@ const MyDocumentsSection = lazy(() =>
 const StudentKitDashboardView = lazy(() =>
   import("@/components/dashboard/StudentKitDashboardView").then((m) => ({ default: m.StudentKitDashboardView }))
 );
+const AdvancedDocPreviewDialog = lazy(() =>
+  import("@/components/AdvancedDocPreviewDialog").then((m) => ({ default: m.AdvancedDocPreviewDialog }))
+);
+import { getStudentLorDocFn } from "@/lib/advanced-docs-service";
+import { downloadAdvancedDocPdf, type AdvancedDocData } from "@/components/advanced-pdf-docs";
 
 // Dynamic PDF downloaders — loads @react-pdf/renderer on-demand only when student clicks download
 const downloadOfferLetter = async (args: { fullName: string; internId: string; domain: string; issuedAt: string; duration?: number }) => {
@@ -596,6 +601,22 @@ function Dashboard() {
   const certTriggered = useRef(false);
   const [upgradePayment, setUpgradePayment] = useState<any | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [previewAdvancedDoc, setPreviewAdvancedDoc] = useState<AdvancedDocData | null>(null);
+  const [showAdvancedDocPreview, setShowAdvancedDocPreview] = useState(false);
+
+  const { data: lorDoc, refetch: refetchLorDoc } = useQuery({
+    queryKey: ["student-lor-doc", app?.id],
+    queryFn: () => (app?.id ? getStudentLorDocFn({ data: { applicationId: app.id } }) : Promise.resolve(null)),
+    enabled: Boolean(app?.id),
+    refetchInterval: 3_000,
+  });
+
+  const { data: daLorDoc, refetch: refetchDaLorDoc } = useQuery({
+    queryKey: ["student-lor-doc", detailView?.type === "app" ? detailView.id : null],
+    queryFn: () => (detailView?.type === "app" && detailView.id ? getStudentLorDocFn({ data: { applicationId: detailView.id } }) : Promise.resolve(null)),
+    enabled: Boolean(detailView?.type === "app" && detailView.id),
+    refetchInterval: 3_000,
+  });
 
   const isPremium = Boolean(
     app &&
@@ -1216,6 +1237,14 @@ function Dashboard() {
             isAppFeeRequired={isAppFeeRequired}
             appFeeAmount={appFeeAmount}
             appFeePayment={appPayment}
+            hasCertificate={Boolean(cert || app.certificate_generated)}
+            certificate={cert}
+            app={app}
+            lorDoc={lorDoc}
+            onPreviewLor={(data) => {
+              setPreviewAdvancedDoc(data);
+              setShowAdvancedDocPreview(true);
+            }}
             isCertPaymentRequired={certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED"}
             certFeeAmount={app.plan_type === "premium" ? (Number(app.plan_fee) || premiumPlanAmount) : certFeeAmount}
             onOpenCertPayment={() => handleOpenCertPayment(app)}
@@ -1228,6 +1257,7 @@ function Dashboard() {
             onChange={() => {
               qc.invalidateQueries({ queryKey: ["all-submissions"] });
               qc.invalidateQueries({ queryKey: ["my-applications"] });
+              refetchLorDoc();
             }}
           />
         </div>
@@ -1427,7 +1457,18 @@ function Dashboard() {
               {/* UTR Invoice scan section if tasks done but verification pending */}
               <div className="space-y-6">
                 {daCert ? (
-                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} onViewCertificate={handleViewCertificate} />
+                  <UnlockedCertificateCard
+                    app={da}
+                    cert={daCert}
+                    domain={dd}
+                    lorDoc={daLorDoc}
+                    onViewCertificate={handleViewCertificate}
+                    onPreviewLor={(data: AdvancedDocData) => {
+                      setPreviewAdvancedDoc(data);
+                      setShowAdvancedDocPreview(true);
+                    }}
+                    onNavigateTasks={() => navigate({ search: { tab: "tasks" } as any })}
+                  />
                 ) : (
                   <LockedCertificateCard
                     app={da}
@@ -1465,6 +1506,14 @@ function Dashboard() {
                   isAppFeeRequired={daIsAppFeeRequired}
                   appFeeAmount={appFeeAmount}
                   appFeePayment={daAppPayment}
+                  hasCertificate={Boolean(daCert || da.certificate_generated)}
+                  certificate={daCert}
+                  app={da}
+                  lorDoc={daLorDoc}
+                  onPreviewLor={(data) => {
+                    setPreviewAdvancedDoc(data);
+                    setShowAdvancedDocPreview(true);
+                  }}
                   isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
                   certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
                   onOpenCertPayment={() => handleOpenCertPayment(da)}
@@ -1477,6 +1526,7 @@ function Dashboard() {
                   onChange={() => {
                     qc.invalidateQueries({ queryKey: ["all-submissions"] });
                     qc.invalidateQueries({ queryKey: ["my-applications"] });
+                    refetchDaLorDoc();
                   }}
                 />
               </div>
@@ -1757,6 +1807,14 @@ function Dashboard() {
               isAppFeeRequired={isAppFeeRequired}
               appFeeAmount={appFeeAmount}
               appFeePayment={appPayment}
+              hasCertificate={Boolean(cert || app.certificate_generated)}
+              certificate={cert}
+              app={app}
+              lorDoc={lorDoc}
+              onPreviewLor={(data) => {
+                setPreviewAdvancedDoc(data);
+                setShowAdvancedDocPreview(true);
+              }}
               isCertPaymentRequired={certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED"}
               certFeeAmount={app.plan_type === "premium" ? (Number(app.plan_fee) || premiumPlanAmount) : certFeeAmount}
               onOpenCertPayment={() => handleOpenCertPayment(app)}
@@ -1769,6 +1827,7 @@ function Dashboard() {
               onChange={() => {
                 qc.invalidateQueries({ queryKey: ["all-submissions"] });
                 qc.invalidateQueries({ queryKey: ["my-applications"] });
+                refetchLorDoc();
               }}
             />
           </div>
@@ -1941,7 +2000,18 @@ function Dashboard() {
       return (
         <div className="space-y-6">
           <DashboardHero badge="Certificates" title="Your Certificates" description="View and download your verified internship certificates." icon={Award} />
-          <UnlockedCertificateCard app={app} cert={cert} domain={domain} onViewCertificate={handleViewCertificate} />
+          <UnlockedCertificateCard
+            app={app}
+            cert={cert}
+            domain={domain}
+            lorDoc={lorDoc}
+            onViewCertificate={handleViewCertificate}
+            onPreviewLor={(data: AdvancedDocData) => {
+              setPreviewAdvancedDoc(data);
+              setShowAdvancedDocPreview(true);
+            }}
+            onNavigateTasks={() => navigate({ search: { tab: "tasks" } as any })}
+          />
           
           {/* Details Overview */}
           <div className="rounded-3xl border border-border/40 bg-white/60 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-white/5 space-y-4">
@@ -2178,7 +2248,18 @@ function Dashboard() {
               </div>
               <div className="space-y-6">
                 {daCert ? (
-                  <UnlockedCertificateCard app={da} cert={daCert} domain={dd} onViewCertificate={handleViewCertificate} />
+                  <UnlockedCertificateCard
+                    app={da}
+                    cert={daCert}
+                    domain={dd}
+                    lorDoc={daLorDoc}
+                    onViewCertificate={handleViewCertificate}
+                    onPreviewLor={(data: AdvancedDocData) => {
+                      setPreviewAdvancedDoc(data);
+                      setShowAdvancedDocPreview(true);
+                    }}
+                    onNavigateTasks={() => navigate({ search: { tab: "tasks" } as any })}
+                  />
                 ) : (
                   <LockedCertificateCard
                     app={da}
@@ -2216,6 +2297,14 @@ function Dashboard() {
                   isAppFeeRequired={daIsAppFeeRequired}
                   appFeeAmount={appFeeAmount}
                   appFeePayment={daAppPayment}
+                  hasCertificate={Boolean(daCert || da.certificate_generated)}
+                  certificate={daCert}
+                  app={da}
+                  lorDoc={daLorDoc}
+                  onPreviewLor={(data) => {
+                    setPreviewAdvancedDoc(data);
+                    setShowAdvancedDocPreview(true);
+                  }}
                   isCertPaymentRequired={daCertPaymentState === "PAYMENT_REQUIRED" || daCertPaymentState === "RESUBMISSION_REQUIRED" || daCertPaymentState === "REJECTED"}
                   certFeeAmount={da.plan_type === "premium" ? (Number(da.plan_fee) || premiumPlanAmount) : certFeeAmount}
                   onOpenCertPayment={() => handleOpenCertPayment(da)}
@@ -2228,6 +2317,7 @@ function Dashboard() {
                   onChange={() => {
                     qc.invalidateQueries({ queryKey: ["all-submissions"] });
                     qc.invalidateQueries({ queryKey: ["my-applications"] });
+                    refetchDaLorDoc();
                   }}
                 />
               </div>
@@ -3037,6 +3127,20 @@ function Dashboard() {
             open={!!previewCertData}
             onOpenChange={(open) => {
               if (!open) setPreviewCertData(null);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Official LOR Interactive Preview Dialog */}
+      {showAdvancedDocPreview && (
+        <Suspense fallback={null}>
+          <AdvancedDocPreviewDialog
+            data={previewAdvancedDoc}
+            open={showAdvancedDocPreview}
+            onOpenChange={(open) => {
+              setShowAdvancedDocPreview(open);
+              if (!open) setPreviewAdvancedDoc(null);
             }}
           />
         </Suspense>
@@ -3888,7 +3992,15 @@ function TimelineSection({ steps, currentStep, onNavigateCertificates }: { steps
 
 // ─── CERTIFICATES ───
 
-function UnlockedCertificateCard({ app, cert, domain, onViewCertificate }: any) {
+function UnlockedCertificateCard({
+  app,
+  cert,
+  domain,
+  lorDoc,
+  onViewCertificate,
+  onPreviewLor,
+  onNavigateTasks,
+}: any) {
   if (!cert) return null;
   const issuedDate = cert.issued_at
     ? new Date(cert.issued_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
@@ -3931,6 +4043,94 @@ function UnlockedCertificateCard({ app, cert, domain, onViewCertificate }: any) 
             <Button asChild size="sm" variant="outline" className="rounded-2xl border-border/60 h-10 px-6 font-semibold gap-1.5 bg-white/40 cursor-pointer">
               <Link to="/verify-certificate"><ExternalLink className="size-4" /> Verify Certificate</Link>
             </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Official Letter of Recommendation (LOR) Section */}
+      <div className="relative overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-50/60 via-white to-amber-100/30 p-6 backdrop-blur-xl dark:bg-slate-900/60 dark:border-amber-500/20 shadow-md">
+        <div className="absolute -right-20 -top-20 size-64 rounded-full bg-amber-500/15 blur-[80px] pointer-events-none" />
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-xl shadow-amber-500/25 ring-2 ring-amber-500/30 shrink-0">
+            <Crown className="size-9" />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            {lorDoc ? (
+              <>
+                <Badge className="bg-amber-600 text-white text-[10px] rounded-lg px-2.5 py-1 mb-2 border-0">
+                  <CheckCircle2 className="mr-1 size-3" /> OFFICIAL LOR ISSUED & VERIFIED
+                </Badge>
+                <h2 className="text-lg font-bold font-display text-foreground">
+                  Letter of Recommendation (LOR)
+                </h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Issued to <span className="font-semibold text-foreground">{app?.full_name}</span> with official MSME verification signature and performance rating.
+                </p>
+                <p className="text-[9px] font-mono text-muted-foreground mt-1.5">
+                  Document ID: <strong className="text-amber-600 font-bold">{lorDoc.documentId}</strong>
+                </p>
+              </>
+            ) : (
+              <>
+                <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[10px] rounded-lg px-2.5 py-1 mb-2 border-0">
+                  <Sparkles className="mr-1 size-3" /> ALL PLANS ELIGIBLE (STANDARD & PREMIUM)
+                </Badge>
+                <h2 className="text-lg font-bold font-display text-foreground">
+                  Claim Your Official Letter of Recommendation (LOR) 🎓
+                </h2>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Share your verified Certificate on LinkedIn, tag @Skyrovix with #SkyrovixInternship, and submit your post URL in the Quest Log to automatically receive your verified LOR in your email and dashboard!
+                </p>
+              </>
+            )}
+          </div>
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full md:w-auto">
+            {lorDoc ? (
+              <>
+                {onPreviewLor && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-2xl border-amber-600/40 h-10 px-6 font-bold gap-1.5 bg-white hover:bg-[#faf8f2] text-slate-900 cursor-pointer shadow-xs"
+                    onClick={() => onPreviewLor(lorDoc)}
+                  >
+                    <Eye className="size-4 text-[#b45309]" /> Preview LOR
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0 rounded-2xl h-10 px-6 font-semibold shadow-md gap-1.5 cursor-pointer"
+                  onClick={async () => {
+                    try {
+                      await downloadAdvancedDocPdf(lorDoc);
+                      toast.success("LOR PDF downloaded successfully!");
+                    } catch (err: any) {
+                      toast.error(err?.message || "Failed to download LOR");
+                    }
+                  }}
+                >
+                  <Download className="size-4" /> Download LOR (PDF)
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="rounded-2xl border-border/60 h-10 px-6 font-semibold gap-1.5 bg-white/40 cursor-pointer"
+                >
+                  <Link to="/verify-certificate">
+                    <ExternalLink className="size-4" /> Verify Document
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-amber-500 via-amber-600 to-primary text-white border-0 rounded-2xl h-10 px-6 font-bold shadow-md gap-1.5 cursor-pointer"
+                onClick={onNavigateTasks}
+              >
+                <Linkedin className="size-4" /> Share on LinkedIn & Claim LOR
+              </Button>
+            )}
           </div>
         </div>
       </div>
