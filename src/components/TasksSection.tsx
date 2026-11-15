@@ -545,6 +545,8 @@ export function TasksSection({
     });
 
     const allDomainTasksApproved = domainTasks.length > 0 && domainTasks.every((t) => t.status === "completed");
+    const isAllRequiredTasksDone = Boolean(linkedinDone && allDomainTasksApproved);
+
     const isLorIssued = Boolean(
       lorDoc?.status === "issued" ||
       lorDoc?.documentId ||
@@ -555,14 +557,28 @@ export function TasksSection({
     const lorSub = getLatestSub(lorId, 999, LINKEDIN_CERTIFICATE_LOR_TASK.title);
     const lorDue = computeDueDate(allTasks.length + 1, startDate, duration ?? 1, allTasks.length || 5);
     const lorStatus: TaskStatus = (isLorIssued || lorSub?.status === "approved") ? "completed" : getTaskStatus(lorSub, lorDue);
+    const isLorDone = lorStatus === "completed";
 
-    const isLorUnlocked = Boolean(hasCertificate || allDomainTasksApproved);
-    const isLorLocked = isAppFeeLocked || !isLorUnlocked;
-    const lorLockReason = isAppFeeLocked
-      ? "Your internship tasks will unlock after your application fee payment is verified by the admin."
-      : !isLorUnlocked
-      ? "Complete all previous domain tasks and unlock your Internship Certificate first to claim your LOR."
-      : undefined;
+    // Sequential Unlock Flow:
+    // 1. All required previous tasks completed & admin approved (Task 0 + all domain tasks)
+    // 2. Certificate fee paid (if required) & verified Certificate is actually issued/generated
+    // 3. ONLY THEN unlock Task 999 to submit LinkedIn post and claim LOR
+    const isCertificateIssued = Boolean(hasCertificate);
+    const isLorUnlocked = Boolean(isLorDone || (isAllRequiredTasksDone && isCertificateIssued));
+    const isLorLocked = isLorDone ? false : (isAppFeeLocked || !isLorUnlocked);
+
+    let lorLockReason = "";
+    if (!isLorDone) {
+      if (isAppFeeLocked) {
+        lorLockReason = "Your internship tasks will unlock after your application fee payment is verified by the admin.";
+      } else if (!isAllRequiredTasksDone) {
+        lorLockReason = "Complete all previous domain tasks and get admin approval first.";
+      } else if (isCertPaymentRequired) {
+        lorLockReason = "Pay certificate fee to unlock your Certificate first.";
+      } else if (!isCertificateIssued) {
+        lorLockReason = "Generate and issue your verified Internship Certificate first to unlock this LOR task.";
+      }
+    }
 
     const certLorMeta = {
       ...LINKEDIN_CERTIFICATE_LOR_TASK,
@@ -577,7 +593,7 @@ export function TasksSection({
     };
 
     return [linkedinMeta, ...domainTasks, certLorMeta];
-  }, [allTasks, rawSubmissions, taskIdMap, domainSlug, isAppFeeLocked, submissionStatus, startDate, duration, hasCertificate, lorDoc]);
+  }, [allTasks, rawSubmissions, taskIdMap, domainSlug, isAppFeeLocked, submissionStatus, startDate, duration, hasCertificate, lorDoc, isCertPaymentRequired]);
 
   const stats = useMemo(() => {
     const completed = tasksWithMeta.filter((t) => t.status === "completed").length;
@@ -878,6 +894,10 @@ export function TasksSection({
               submissionStatus={submissionStatus}
               lorDoc={lorDoc}
               onPreviewLor={onPreviewLor}
+              isCertPaymentRequired={isCertPaymentRequired}
+              certFeeAmount={certFeeAmount}
+              onOpenCertPayment={onOpenCertPayment}
+              onNavigateCertificates={onNavigateCertificates}
               onSubmitted={() => {
                 handleChange();
                 if (task.submission?.status !== "approved") {
@@ -1409,6 +1429,10 @@ function TaskCard({
   submissionStatus,
   lorDoc,
   onPreviewLor,
+  isCertPaymentRequired,
+  certFeeAmount,
+  onOpenCertPayment,
+  onNavigateCertificates,
   onSubmitted,
 }: {
   task: {
@@ -1432,6 +1456,10 @@ function TaskCard({
   submissionStatus?: string;
   lorDoc?: any;
   onPreviewLor?: (data: AdvancedDocData) => void;
+  isCertPaymentRequired?: boolean;
+  certFeeAmount?: number;
+  onOpenCertPayment?: () => void;
+  onNavigateCertificates?: () => void;
   onSubmitted: () => void;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -1598,6 +1626,28 @@ function TaskCard({
             <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2.5 text-xs font-bold text-emerald-700">
               <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
               <span>Admin Verified & Passed!</span>
+            </div>
+          ) : isLor && isLocked ? (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/25 py-3 px-3 text-xs text-amber-900 dark:text-amber-300 font-medium text-center">
+                <Lock className="size-4 shrink-0 text-amber-600" />
+                <span>{lockReason || "Complete all tasks & issue your verified Certificate first to claim your LOR."}</span>
+              </div>
+              {isCertPaymentRequired && onOpenCertPayment ? (
+                <Button
+                  onClick={onOpenCertPayment}
+                  className="w-full text-xs font-bold h-10 rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ee9590] hover:opacity-95 text-white shadow-md shadow-[#f95c4b]/20 cursor-pointer"
+                >
+                  <CreditCard className="mr-1.5 size-4" /> Pay Certificate Fee (₹{certFeeAmount})
+                </Button>
+              ) : onNavigateCertificates ? (
+                <Button
+                  onClick={onNavigateCertificates}
+                  className="w-full text-xs font-bold h-10 rounded-xl brand-gradient hover:opacity-95 text-white shadow-md cursor-pointer"
+                >
+                  <Award className="mr-1.5 size-4" /> Go to Certificates Tab
+                </Button>
+              ) : null}
             </div>
           ) : isLocked ? (
             <div className="flex items-center justify-center gap-2 rounded-xl bg-muted/40 border border-border/40 py-3 px-3 text-xs text-muted-foreground font-medium text-center">

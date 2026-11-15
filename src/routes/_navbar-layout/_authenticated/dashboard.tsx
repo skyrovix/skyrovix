@@ -541,41 +541,64 @@ function Dashboard() {
   const domain = app ? getDomain(app.domain) : null;
   const internLimit = getAppTaskLimit(app?.domain, app?.duration, app?.total_tasks, app?.plan_type);
   const internTotal = internLimit > 0 ? internLimit : (internTasks?.length ?? 0);
-  const internApproved = internSubmissions?.filter((s: any) => s.status === "approved").length ?? 0;
-  const internPending = internSubmissions?.filter((s: any) => s.status === "pending").length ?? 0;
+
+  // Check approved domain tasks by matching task id from DB, task number, or domain-taskNumber slug
+  const isDomainTaskApproved = (task: { id: string; task_number: number }) => {
+    return Boolean(
+      internSubmissions?.some((s: any) => {
+        if (s.status !== "approved") return false;
+        const sId = String(s.task_id ?? "");
+        return (
+          sId === String(task.id) ||
+          sId === String(task.task_number) ||
+          sId === `${app?.domain}-${task.task_number}`
+        );
+      })
+    );
+  };
+
+  const approvedDomainCount = useMemo(() => {
+    if (!internTasks || internTasks.length === 0) {
+      return (
+        internSubmissions?.filter((s: any) => {
+          if (s.status !== "approved") return false;
+          const sId = String(s.task_id ?? "").toLowerCase();
+          return !sId.includes("linkedin") && !sId.includes("lor") && sId !== "0" && sId !== "999";
+        }).length ?? 0
+      );
+    }
+    return internTasks.filter(isDomainTaskApproved).length;
+  }, [internTasks, internSubmissions, app?.domain]);
+
+  const allDomainTasksApproved = Boolean(
+    internTasks &&
+    internTasks.length > 0 &&
+    internTasks.every(isDomainTaskApproved)
+  );
+
+  // Track approved status for Task 0 (LinkedIn Profile)
+  const isLinkedinDone = Boolean(
+    internSubmissions?.some((s: any) => {
+      if (s.status !== "approved") return false;
+      const sId = String(s.task_id ?? "").toLowerCase();
+      const sTitle = String(s.task_title ?? "").toLowerCase();
+      return (
+        sId === "0" ||
+        sId === `${app?.domain}-0` ||
+        sId === "29bfaac4-e233-47de-9dd9-59b7cb8b9a52" ||
+        sId.includes("linkedin") ||
+        sId.includes("offer-letter") ||
+        sTitle.includes("linkedin") ||
+        sTitle.includes("offer letter")
+      );
+    })
+  );
+
+  const isAllRequiredTasksDone = Boolean(isLinkedinDone && allDomainTasksApproved);
+
+  const internApproved = approvedDomainCount;
+  const internPending = Math.max(0, internTotal - approvedDomainCount);
   const internCompleted = internApproved;
-
-  // Auto-complete internships and sync all_tasks_verified when tasks are approved
-  useEffect(() => {
-    if (!appsList || !allAppSubmissions) return;
-    (async () => {
-      for (const a of appsList) {
-        if (a.status === "pending") continue;
-        try {
-          const aSubs = allAppSubmissions.filter((s: any) => s.application_id === a.id);
-          const aApproved = aSubs.filter((s: any) => s.status === "approved").length;
-          const limit = getAppTaskLimit(a.domain, a.duration, a.total_tasks, a.plan_type);
-          const aCert = allAppCerts?.find((c: any) => c.application_id === a.id);
-
-          if (aApproved >= limit && limit > 0 && (!a.all_tasks_verified || !a.certificate_payment_unlocked)) {
-            const { error: updErr } = await (supabase.from("applications") as any).update({
-              all_tasks_verified: true,
-              certificate_payment_unlocked: true,
-              submission_status: "approved",
-              ...(aCert ? { status: "completed", completed_at: new Date().toISOString() } : {}),
-            }).eq("id", a.id);
-            if (!updErr) qc.invalidateQueries({ queryKey: ["my-applications"] });
-          } else if (aApproved >= limit && aCert && a.status !== "completed") {
-            const { error: updErr } = await (supabase.from("applications") as any).update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", a.id);
-            if (updErr) { console.error("Auto-complete update failed:", updErr); continue; }
-            qc.invalidateQueries({ queryKey: ["my-applications"] });
-          }
-        } catch (err) {
-          console.error("Auto-complete error:", err);
-        }
-      }
-    })();
-  }, [appsList, allAppSubmissions, allAppCerts, qc]);
 
   const searchParams = Route.useSearch();
   const rawTab = searchParams.tab ?? "overview";
@@ -651,11 +674,13 @@ function Dashboard() {
   const submissionStatus = app?.submission_status ?? "in_progress";
   const requiredTasks = Number(app?.total_tasks) || 5;
   const isTasksCompleted = Boolean(
-    app && (
+    app &&
+    isAllRequiredTasksDone &&
+    (
       Boolean(app.all_tasks_verified) ||
       Boolean(app.certificate_payment_unlocked) ||
       app.status === "completed" ||
-      (internTotal > 0 && internApproved >= internTotal)
+      allDomainTasksApproved
     )
   );
 
@@ -718,9 +743,18 @@ function Dashboard() {
   ];
   const currentStep = timelineSteps.findIndex((s) => !s.done);
 
-  // Certificate Payment Popup Dialog states
+  // Certificate Payment Popup & Unlock Modal states
+  const [showCertUnlockModal, setShowCertUnlockModal] = useState(true);
+  const [certUnlockDismissed, setCertUnlockDismissed] = useState(false);
   const [showCertPaymentPopup, setShowCertPaymentPopup] = useState(false);
-  const certPopupTriggeredRef = useRef(false);
+
+  const isCertUnlockEligible = Boolean(
+    app &&
+    isTasksCompleted &&
+    !isCertPaymentVerified &&
+    (certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED") &&
+    certFeeAmount > 0
+  );
 
   const handleOpenCertPayment = (targetApp?: any) => {
     const chosenApp =
@@ -731,28 +765,12 @@ function Dashboard() {
     setShowCertPaymentPopup(true);
   };
 
-  // Auto-show popup when user completes all tasks and certificate payment is required
+  // Auto-show celebratory popup when tasks are completed and certificate payment is required
   useEffect(() => {
-    if (
-      app &&
-      isTasksCompleted &&
-      !isCertPaymentVerified &&
-      (certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED") &&
-      certFeeAmount > 0
-    ) {
-      const key = `skyrovix_cert_popup_shown_${app.id}`;
-      const alreadyShown = sessionStorage.getItem(key);
-      if (!alreadyShown && !certPopupTriggeredRef.current) {
-        certPopupTriggeredRef.current = true;
-        sessionStorage.setItem(key, "true");
-        const timer = setTimeout(() => {
-          setCertPaymentApp(app);
-          setShowCertPaymentPopup(true);
-        }, 600);
-        return () => clearTimeout(timer);
-      }
+    if (isCertUnlockEligible && !certUnlockDismissed) {
+      setShowCertUnlockModal(true);
     }
-  }, [app?.id, isTasksCompleted, isCertPaymentVerified, certPaymentState, certFeeAmount]);
+  }, [isCertUnlockEligible, certUnlockDismissed]);
 
   // New Domain Application Form states
   const [newDomain, setNewDomain] = useState("");
@@ -928,7 +946,7 @@ function Dashboard() {
         } else {
           toast.success("Application submitted successfully! Your Offer Letter has been sent to your registered email address.", { duration: 8000 });
         }
-        navigate({ search: { tab: "tasks" } as any });
+        navigate({ search: { tab: "overview" } as any });
       }
 
       // Reset form
@@ -1122,7 +1140,10 @@ function Dashboard() {
         <AnimatedSection>
           <WelcomeDashboard
             user={user}
-            onCreated={() => qc.invalidateQueries()}
+            onCreated={() => {
+              qc.invalidateQueries();
+              navigate({ search: { tab: "overview" } as any });
+            }}
           />
         </AnimatedSection>
       );
@@ -1755,44 +1776,26 @@ function Dashboard() {
           <StatsCards internApproved={internApproved} internPending={internPending} durationLimit={internTotal} cert={cert} payment={payment} onNavigateCertificates={() => navigate({ search: { tab: "certificates" } as any })} onNavigateTasks={() => navigate({ search: { tab: "tasks" } as any })} />
           
           {/* Stepper progress timeline */}
-          <TimelineSection steps={timelineSteps} currentStep={currentStep} />
-
-          {/* Certificate Payment Action Banner when all tasks are complete */}
-          {isTasksCompleted && !isCertPaymentVerified && (certPaymentState === "PAYMENT_REQUIRED" || certPaymentState === "RESUBMISSION_REQUIRED" || certPaymentState === "REJECTED") && (
-            <div className="rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-r from-[#f95c4b]/10 via-[#ee9590]/10 to-amber-500/5 p-6 sm:p-7 shadow-lg backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="size-13 rounded-2xl brand-gradient text-white flex items-center justify-center shadow-lg shadow-[#f95c4b]/25 shrink-0">
-                  <Award className="size-7" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge className="bg-emerald-600 text-white text-[10px] font-bold">🎉 ALL TASKS VERIFIED</Badge>
-                    <span className="text-xs font-bold text-muted-foreground">Action Required</span>
-                  </div>
-                  <h3 className="text-base sm:text-lg font-black text-[#181619]">
-                    Pay Certificate Fee to Unlock Your Certificate
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
-                    Congratulations! All your internship tasks have been approved by the mentor. Complete the certificate fee payment of ₹{certFeeAmount} to immediately generate and download your verified credential.
-                  </p>
-                </div>
-              </div>
-              <Button
-                type="button"
-                onClick={() => handleOpenCertPayment(app)}
-                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-gradient-to-r from-[#f95c4b] to-[#ee9590] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-[#f95c4b]/25 shrink-0 gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
-              >
-                <CreditCard className="size-4" /> Pay ₹{certFeeAmount} Now
-              </Button>
-            </div>
-          )}
+          <TimelineSection steps={timelineSteps} currentStep={currentStep} onNavigateCertificates={() => navigate({ search: { tab: "certificates" } as any })} />
 
           {/* Quest Log: Active Tasks grid list */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
                 <ListChecks className="size-5 text-primary" /> Quest Log
               </h2>
+              {isCertUnlockEligible && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setCertUnlockDismissed(false);
+                    setShowCertUnlockModal(true);
+                  }}
+                  className="rounded-xl brand-gradient text-white text-xs font-bold gap-1.5 h-8.5 px-3.5 shadow-xs cursor-pointer hover:opacity-95 transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  <Award className="size-3.5" /> Unlock Certificate (₹{certFeeAmount})
+                </Button>
+              )}
             </div>
             <TasksSection
               domainSlug={app.domain}
@@ -3167,6 +3170,110 @@ function Dashboard() {
             navigate({ search: { tab: "tasks" } as any });
           }}
         />
+      )}
+
+      {/* ─── CERTIFICATE UNLOCK POPUP MODAL (SCREEN-OVERLAY CELEBRATION) ─── */}
+      {isCertUnlockEligible && (
+        <Dialog
+          open={Boolean(showCertUnlockModal && !certUnlockDismissed)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCertUnlockDismissed(true);
+              setShowCertUnlockModal(false);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md md:max-w-lg p-0 overflow-hidden rounded-3xl border border-[#f95c4b]/30 shadow-2xl bg-white dark:bg-[#181619] z-[70]">
+            {/* Top celebratory header */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#f95c4b]/15 via-[#ee9590]/10 to-amber-500/10 p-6 sm:p-7 text-center border-b border-border/40">
+              <div className="absolute -top-12 -right-12 size-40 rounded-full bg-[#f95c4b]/20 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 size-40 rounded-full bg-amber-500/15 blur-2xl pointer-events-none" />
+
+              {/* Glowing Trophy / Badge Icon */}
+              <div className="relative mx-auto mb-3.5 size-18 rounded-2xl brand-gradient text-white flex items-center justify-center shadow-xl shadow-[#f95c4b]/30">
+                <Award className="size-9 text-white" />
+                <div className="absolute -top-1.5 -right-1.5 size-6 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow-md">
+                  <Sparkles className="size-3.5" />
+                </div>
+              </div>
+
+              {/* Status Badges */}
+              <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white text-[11px] font-black px-3 py-1 rounded-full shadow-xs">
+                  🎉 ALL TASKS VERIFIED
+                </Badge>
+                <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                  Action Required
+                </Badge>
+              </div>
+
+              <DialogTitle className="text-xl sm:text-2xl font-black text-[#181619] dark:text-white tracking-tight">
+                Pay Certificate Fee to Unlock Your Certificate
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
+                Congratulations! All your internship tasks for <strong className="text-foreground font-semibold">{domain?.name ?? app?.domain}</strong> have been approved by the mentor. Complete the certificate fee payment of <strong className="text-[#f95c4b] font-black">₹{certFeeAmount}</strong> to immediately generate and download your verified credential.
+              </DialogDescription>
+            </div>
+
+            {/* Modal Body: What unlocks */}
+            <div className="p-5 sm:p-6 space-y-4">
+              <div className="rounded-2xl border border-border/60 bg-muted/30 p-3.5 sm:p-4 space-y-2.5">
+                <p className="text-[11px] uppercase tracking-wider font-extrabold text-muted-foreground">What Unlocks Instantly:</p>
+                <div className="grid gap-2 text-xs text-foreground/90">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span><strong>Official Verified Certificate:</strong> Digital credential with unique Certificate ID & dynamic QR code.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span><strong>Unlock LOR Milestone:</strong> Unlocks your final LinkedIn post submission to claim your official Letter of Recommendation.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span><strong>Public Verification Link:</strong> Lifetime authenticity check at <span className="text-[#f95c4b] font-medium">skyrovix.online/verify</span>.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price Box */}
+              <div className="rounded-2xl border border-[#f95c4b]/30 bg-gradient-to-r from-[#f95c4b]/10 via-[#ee9590]/5 to-transparent p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-foreground">Certificate Issuance Fee</p>
+                  <p className="text-[11px] text-muted-foreground">One-time processing & digital verification</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-[#f95c4b]">₹{certFeeAmount}</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-1">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setCertUnlockDismissed(true);
+                    setShowCertUnlockModal(false);
+                    handleOpenCertPayment(app);
+                  }}
+                  className="w-full h-12 rounded-2xl brand-gradient hover:opacity-95 text-white font-extrabold text-sm shadow-lg shadow-[#f95c4b]/25 gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-95"
+                >
+                  <CreditCard className="size-4" /> Pay ₹{certFeeAmount} Now & Unlock Certificate
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setCertUnlockDismissed(true);
+                    setShowCertUnlockModal(false);
+                  }}
+                  className="w-full h-9 rounded-xl text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  I'll complete this later
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Certificate Payment Popup Dialog (Auto-triggered when all tasks completed) */}

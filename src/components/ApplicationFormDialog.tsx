@@ -333,7 +333,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
       }
 
       reset();
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard", search: { tab: "overview" } as any });
     } catch (err) {
       const msg = (err as any)?.message || (err as any)?.error_description || "Something went wrong.";
       toast.error(msg);
@@ -823,7 +823,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
           if (!op) {
             setPendingPayment(null);
             reset();
-            navigate({ to: "/dashboard" });
+            navigate({ to: "/dashboard", search: { tab: "overview" } as any });
           }
         }}
         productType={pendingPayment.productType || "premium_plan"}
@@ -841,7 +841,7 @@ export function ApplicationFormDialog({ open, onOpenChange, defaultDomain, onSuc
           reset();
           onSuccess?.();
           toast.success("Payment verified! Welcome to Skyrovix Virtual Internship.");
-          navigate({ to: "/dashboard" });
+          navigate({ to: "/dashboard", search: { tab: "overview" } as any });
         }}
       />
     )}

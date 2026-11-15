@@ -394,7 +394,7 @@ function DomainsPage() {
         return;
       }
 
-      navigate({ to: "/dashboard", search: {} as any });
+      navigate({ to: "/dashboard", search: { tab: "overview" } as any });
 
     } catch (err) {
       const msg = (err as any)?.message || (err as any)?.error_description || "Something went wrong.";
@@ -1011,7 +1011,7 @@ function DomainsPage() {
           open={pendingPayment.open}
           onOpenChange={(o) => {
             setPendingPayment((p) => (p ? { ...p, open: o } : null));
-            if (!o) navigate({ to: "/dashboard" });
+            if (!o) navigate({ to: "/dashboard", search: { tab: "overview" } as any });
           }}
           productType={pendingPayment.productType || "premium_plan"}
           productService={pendingPayment.productService}
@@ -1025,7 +1025,7 @@ function DomainsPage() {
           customerPhone={pendingPayment.customerPhone}
           onSuccess={() => {
             toast.success("Payment verified! Welcome to Skyrovix Virtual Internship.");
-            navigate({ to: "/dashboard" });
+            navigate({ to: "/dashboard", search: { tab: "overview" } as any });
           }}
         />
       )}
@@ -1035,7 +1035,7 @@ function DomainsPage() {
           open={paymentDialogOpen}
           onOpenChange={(o) => {
             setPaymentDialogOpen(o);
-            if (!o) navigate({ to: "/dashboard" });
+            if (!o) navigate({ to: "/dashboard", search: { tab: "overview" } as any });
           }}
           title="Application Fee Payment"
           description={`Please complete the ₹${feeSettings.applicationFee.amount} application fee payment to proceed with admin verification.`}
@@ -1050,7 +1050,7 @@ function DomainsPage() {
           customerEmail={user?.email || ""}
           customerPhone={phone}
           onSuccess={() => {
-            navigate({ to: "/dashboard" });
+            navigate({ to: "/dashboard", search: { tab: "overview" } as any });
           }}
         />
       )}

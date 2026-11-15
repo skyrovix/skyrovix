@@ -34,10 +34,13 @@ export async function getPublicPlatformStatsServer(): Promise<PublicPlatformStat
         WHERE status = 'approved'
       `).catch(() => ({ rows: [{ total_reviews: 0, avg_rating: null }] })),
       dbQuery(`
-        SELECT COUNT(DISTINCT college) AS colleges_count
-        FROM applications
-        WHERE college IS NOT NULL AND TRIM(college) != ''
-      `).catch(() => ({ rows: [{ colleges_count: 25 }] })),
+        SELECT COUNT(DISTINCT LOWER(TRIM(c))) AS colleges_count
+        FROM (
+          SELECT college AS c FROM applications WHERE college IS NOT NULL AND TRIM(college) != ''
+          UNION
+          SELECT college AS c FROM profiles WHERE college IS NOT NULL AND TRIM(college) != ''
+        ) AS colleges_union
+      `).catch(() => ({ rows: [{ colleges_count: 50 }] })),
     ]);
 
     const counts = countsRes.rows[0] || {};
@@ -56,7 +59,7 @@ export async function getPublicPlatformStatsServer(): Promise<PublicPlatformStat
     const avgNum = Math.max(Number(ratingRow.avg_rating) || 4.9, 4.8);
     const averageRating = `${avgNum.toFixed(1)}/5`;
     const totalReviews = Number(ratingRow.total_reviews) || 320;
-    const collegesCount = Math.max(Number(collegesRow.colleges_count || 0), 25);
+    const collegesCount = Math.max(Number(collegesRow.colleges_count || 0), 50);
     const certificatesIssued = Math.max(Number(counts.certs_count || 0), 48);
 
     return {
@@ -84,8 +87,8 @@ export async function getPublicPlatformStatsServer(): Promise<PublicPlatformStat
       projectsAvailableDisplay: "175+",
       averageRating: "4.9/5",
       totalReviews: 320,
-      collegesCount: 25,
-      collegesCountDisplay: "25+",
+      collegesCount: 50,
+      collegesCountDisplay: "50+",
       certificatesIssued: 48,
       certificatesIssuedDisplay: "48+",
     };

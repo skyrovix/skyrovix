@@ -125,8 +125,9 @@ function Landing() {
   const { data: stats } = useQuery<PublicPlatformStats>({
     queryKey: ["platform-stats"],
     queryFn: () => getPublicPlatformStats(),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 2,
+    refetchInterval: 1000 * 60 * 5,
+    refetchOnWindowFocus: true,
   });
 
   const certFee = feeSettings?.certificateFee?.amount ?? 100;
@@ -706,7 +707,7 @@ function Landing() {
                     { value: stats?.internshipDomainsDisplay || "25+", label: "Domains", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50/50 dark:bg-violet-950/20" },
                     { value: stats?.projectsAvailableDisplay || "175+", label: "Projects", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
                     { value: "100%", label: "Online", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
-                    { value: `₹${certFee}`, label: "Cert fee", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
+                    { value: stats?.collegesCountDisplay || "50+", label: "Colleges", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
                   ].map((s) => (
                     <div
                       key={s.label}
