@@ -149,6 +149,7 @@ export function StudentKitDashboardView({
       pdf_url: "/SKYROVIX_Complete_Web_Development_Student_Kit.pdf",
       cover_image_url: "/student-kit-cover.jpg",
       price: 20,
+      is_free_for_standard: false,
       is_free_for_premium: true,
       is_active: true,
       domain: "Web Development",
@@ -161,12 +162,21 @@ export function StudentKitDashboardView({
     const sourceKits = data?.kits && data.kits.length > 0 ? data.kits : [defaultKit];
 
     return sourceKits.map((kit) => {
-      const unlocked = Boolean(kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium));
+      const isFreeForStandard = Boolean(kit.is_free_for_standard);
+      const isFreeForPremium = Boolean(kit.is_free_for_premium);
+      const isFreeForThisUser = isPremiumUser ? isFreeForPremium : isFreeForStandard;
+      const isPurchased = Boolean(kit.is_unlocked && !isFreeForThisUser);
+      const unlocked = Boolean(kit.is_unlocked || isFreeForThisUser);
+
       return {
         ...kit,
+        is_free_for_standard: isFreeForStandard,
+        is_free_for_premium: isFreeForPremium,
         is_unlocked: unlocked,
         can_download: unlocked,
-        unlock_reason: unlocked ? (isPremiumUser ? "premium" : "purchased") : "locked",
+        unlock_reason: unlocked
+          ? (isFreeForThisUser ? (isPremiumUser ? "premium" : "standard") : "purchased")
+          : "locked",
       };
     });
   }, [data?.kits, isPremiumUser]);
@@ -204,13 +214,16 @@ export function StudentKitDashboardView({
     mutationFn: async (kitId: string) => {
       const targetKit =
         allKits.find((k) => k.id === kitId) || selectedKitForUnlock || activeBook || allKits[0];
+      const isFree = isPremiumUser
+        ? Boolean(targetKit?.is_free_for_premium)
+        : Boolean(targetKit?.is_free_for_standard);
       return unlockStudentKitFn({
         data: {
           kitId,
           applicationId: app?.id,
           userId: app?.user_id,
-          amount: isPremiumUser ? 0 : targetKit?.price || 20,
-          paymentId: isPremiumUser ? "FREE_PREMIUM_PLAN" : `PAY_${Date.now()}`,
+          amount: isFree ? 0 : targetKit?.price || 20,
+          paymentId: isPremiumUser ? "FREE_PREMIUM_PLAN" : isFree ? "FREE_STANDARD_PLAN" : `PAY_${Date.now()}`,
         },
       });
     },
@@ -239,7 +252,10 @@ export function StudentKitDashboardView({
   });
 
   const handleDownload = (kit: StudentKitItem) => {
-    const kitUnlocked = Boolean(kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium));
+    const isFree = isPremiumUser
+      ? Boolean(kit.is_free_for_premium)
+      : Boolean(kit.is_free_for_standard);
+    const kitUnlocked = Boolean(kit.is_unlocked || isFree);
     if (kitUnlocked) {
       toast.success(`Downloading ${kit.title}...`);
       const link = document.createElement("a");
@@ -258,7 +274,10 @@ export function StudentKitDashboardView({
   };
 
   const handleOpenPreview = (kit: StudentKitItem) => {
-    const kitUnlocked = Boolean(kit.is_unlocked || (isPremiumUser && kit.is_free_for_premium));
+    const isFree = isPremiumUser
+      ? Boolean(kit.is_free_for_premium)
+      : Boolean(kit.is_free_for_standard);
+    const kitUnlocked = Boolean(kit.is_unlocked || isFree);
     if (kitUnlocked) {
       setKitForPreview(kit);
       setPreviewOpen(true);
@@ -410,10 +429,15 @@ export function StudentKitDashboardView({
                         {activeBook.edition || "Edition 1.0"}
                       </Badge>
 
-                      {isPremiumUser ? (
+                      {isPremiumUser && activeBook.is_free_for_premium ? (
                         <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
                           <Crown className="mr-1.5 size-3.5 inline text-amber-500" />
                           100% Free with Premium Track
+                        </Badge>
+                      ) : !isPremiumUser && activeBook.is_free_for_standard ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
+                          <CheckCircle2 className="mr-1.5 size-3.5 inline text-emerald-500" />
+                          100% Free for Standard Track
                         </Badge>
                       ) : activeBook.is_unlocked ? (
                         <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-black px-2.5 py-1">
@@ -503,69 +527,82 @@ export function StudentKitDashboardView({
                   {/* ─── ACTION & ACCESS CONTROL PANEL (OFFER PRICING) ─── */}
                   <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 dark:from-[#201d22] dark:via-[#252028] dark:to-[#201d22] border-2 border-[#f95c4b]/20 shadow-md space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div>
-                        <div className="flex items-baseline gap-2.5 flex-wrap">
-                          <span className="text-2xl sm:text-3xl font-black text-[#181619] dark:text-white tracking-tight">
-                            {isPremiumUser
-                              ? "FREE"
-                              : activeBook.is_unlocked
-                                ? "UNLOCKED"
-                                : `₹${activeBook.price}`}
-                          </span>
-                          {!isPremiumUser && !activeBook.is_unlocked && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs text-muted-foreground line-through font-bold">
-                                ₹{REGULAR_PRICE}.00
-                              </span>
-                              <span className="text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                                Special Offer &bull; Save ₹
-                                {REGULAR_PRICE - (activeBook.price || 20)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground font-medium mt-1">
-                          {isPremiumUser
-                            ? "✨ Included 100% free with your Full Stack Premium Internship plan."
-                            : activeBook.is_unlocked
-                              ? "✓ Verified purchase for this application. Download anytime."
-                              : `Actual book price is ₹${REGULAR_PRICE}.00. Exclusive student offer price is just ₹${activeBook.price}.00 (Free for Premium Track).`}
-                        </p>
-                      </div>
+                      {(() => {
+                        const isFreeForThisUser = isPremiumUser
+                          ? Boolean(activeBook.is_free_for_premium)
+                          : Boolean(activeBook.is_free_for_standard);
+                        const isUnlockedOrFree = Boolean(activeBook.is_unlocked || isFreeForThisUser);
 
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
-                        {activeBook.is_unlocked || isPremiumUser ? (
+                        return (
                           <>
-                            <Button
-                              variant="outline"
-                              onClick={() => handleOpenPreview(activeBook)}
-                              className="rounded-xl border-border/80 text-xs font-bold gap-2 h-11 px-4 cursor-pointer hover:bg-white dark:hover:bg-white/10 shadow-2xs"
-                            >
-                              <Eye className="size-4 text-[#f95c4b]" />
-                              Preview Online
-                            </Button>
-                            <Button
-                              onClick={() => handleDownload(activeBook)}
-                              className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-5 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
-                            >
-                              <Download className="size-4" />
-                              Download PDF Kit
-                            </Button>
+                            <div>
+                              <div className="flex items-baseline gap-2.5 flex-wrap">
+                                <span className="text-2xl sm:text-3xl font-black text-[#181619] dark:text-white tracking-tight">
+                                  {isFreeForThisUser
+                                    ? "FREE"
+                                    : activeBook.is_unlocked
+                                      ? "UNLOCKED"
+                                      : `₹${activeBook.price}`}
+                                </span>
+                                {!isUnlockedOrFree && (
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs text-muted-foreground line-through font-bold">
+                                      ₹{REGULAR_PRICE}.00
+                                    </span>
+                                    <span className="text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                                      Special Offer &bull; Save ₹
+                                      {REGULAR_PRICE - (activeBook.price || 20)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground font-medium mt-1">
+                                {isPremiumUser && activeBook.is_free_for_premium
+                                  ? "✨ Included 100% free with your Full Stack Premium Internship plan."
+                                  : !isPremiumUser && activeBook.is_free_for_standard
+                                    ? "✨ Unlocked 100% free for Standard Internship students by Admin."
+                                    : activeBook.is_unlocked
+                                      ? "✓ Verified purchase for this application. Download anytime."
+                                      : `Actual book price is ₹${REGULAR_PRICE}.00. Exclusive student offer price is just ₹${activeBook.price}.00.`}
+                              </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+                              {isUnlockedOrFree ? (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => handleOpenPreview(activeBook)}
+                                    className="rounded-xl border-border/80 text-xs font-bold gap-2 h-11 px-4 cursor-pointer hover:bg-white dark:hover:bg-white/10 shadow-2xs"
+                                  >
+                                    <Eye className="size-4 text-[#f95c4b]" />
+                                    Preview Online
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleDownload(activeBook)}
+                                    className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-5 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
+                                  >
+                                    <Download className="size-4" />
+                                    Download PDF Kit
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button
+                                  onClick={() => {
+                                    setSelectedKitForUnlock(activeBook);
+                                    setUnlockModalOpen(true);
+                                  }}
+                                  className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-6 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
+                                >
+                                  <Lock className="size-4" />
+                                  Claim Offer & Unlock Kit (₹{activeBook.price})
+                                </Button>
+                              )}
+                            </div>
                           </>
-                        ) : (
-                          <Button
-                            onClick={() => {
-                              setSelectedKitForUnlock(activeBook);
-                              setUnlockModalOpen(true);
-                            }}
-                            className="rounded-xl brand-gradient text-white text-xs font-extrabold gap-2 h-11 px-6 shadow-lg shadow-[#f95c4b]/25 cursor-pointer hover:opacity-95 hover:scale-[1.02] active:scale-95 transition-all"
-                          >
-                            <Lock className="size-4" />
-                            Claim Offer & Unlock Kit (₹{activeBook.price})
-                          </Button>
-                        )}
-                      </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Standard Student Upgrade Hint */}
@@ -762,12 +799,11 @@ export function StudentKitDashboardView({
                         {isKitUnlocked ? (
                           <Badge className="bg-emerald-500/90 text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm">
                             <CheckCircle2 className="size-3 mr-1 inline" />
-                            Unlocked
-                          </Badge>
-                        ) : isPremiumUser ? (
-                          <Badge className="bg-emerald-500/90 text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm">
-                            <Crown className="size-3 mr-1 inline text-amber-300" />
-                            Free
+                            {isPremiumUser && kit.is_free_for_premium
+                              ? "Free (Premium)"
+                              : !isPremiumUser && kit.is_free_for_standard
+                                ? "Free (Standard)"
+                                : "Unlocked"}
                           </Badge>
                         ) : (
                           <Badge className="brand-gradient text-white text-[10px] font-black px-2.5 py-0.5 shadow-sm flex items-center gap-1">
@@ -802,7 +838,7 @@ export function StudentKitDashboardView({
                       </div>
 
                       {/* Offer Price Highlight Strip */}
-                      {!isKitUnlocked && !isPremiumUser && (
+                      {!isKitUnlocked && (
                         <div className="flex items-center justify-between text-xs bg-orange-50/70 dark:bg-orange-950/20 px-3 py-1.5 rounded-xl border border-orange-200/50 dark:border-orange-900/30">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[10px] uppercase font-bold text-muted-foreground">
@@ -1005,94 +1041,106 @@ export function StudentKitDashboardView({
         </DialogContent>
       </Dialog>
 
-      {/* ─── UNLOCK PAYMENT MODAL (SPECIAL STUDENT OFFER ₹10 / ₹20) ─── */}
+      {/* ─── UNLOCK PAYMENT MODAL (ADMIN CONTROLLED FREE OR OFFER PRICE) ─── */}
       <Dialog open={unlockModalOpen} onOpenChange={setUnlockModalOpen}>
         <DialogContent className="max-w-md p-6 rounded-3xl border border-border/70 bg-white dark:bg-[#181619]">
-          <DialogHeader className="text-left space-y-2">
-            <div className="size-12 rounded-2xl brand-gradient flex items-center justify-center text-white mb-1 shadow-md shadow-[#f95c4b]/20">
-              <Tag className="size-6" />
-            </div>
-            <DialogTitle className="font-display font-black text-xl text-[#181619] dark:text-white">
-              Unlock {bookForUnlockModal.title}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              {isPremiumUser
-                ? "As a Premium Track intern, this book is 100% complimentary for you!"
-                : `Actual price is ₹${REGULAR_PRICE}.00. You get this book at the exclusive student offer price of ₹${bookForUnlockModal.price || 20}.00.`}
-            </DialogDescription>
-          </DialogHeader>
+          {(() => {
+            const isFreeForThisUser = isPremiumUser
+              ? Boolean(bookForUnlockModal.is_free_for_premium)
+              : Boolean(bookForUnlockModal.is_free_for_standard);
 
-          <div className="my-4 space-y-3.5">
-            {/* Price Breakdown */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#201d22] border border-border/60 space-y-2 text-xs">
-              <div className="flex justify-between text-muted-foreground">
-                <span>{bookForUnlockModal.title} (Actual Price)</span>
-                <span className="line-through font-semibold">₹{REGULAR_PRICE}.00</span>
-              </div>
-              <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
-                <span>Skyrovix Student Subsidy Discount</span>
-                <span>
-                  {isPremiumUser
-                    ? `-₹${REGULAR_PRICE}.00 (100% OFF)`
-                    : `-₹${REGULAR_PRICE - (bookForUnlockModal.price || 20)}.00 (Offer Applied)`}
-                </span>
-              </div>
-              <div className="pt-2 border-t border-border/60 flex justify-between font-black text-sm text-[#181619] dark:text-white">
-                <span>Special Offer Price Payable</span>
-                <div className="flex items-center gap-2">
-                  {!isPremiumUser && (
-                    <span className="text-xs text-muted-foreground line-through font-bold">
-                      ₹{REGULAR_PRICE}
-                    </span>
-                  )}
-                  <span className="text-[#f95c4b] text-base font-black">
-                    {isPremiumUser ? "₹0.00 (FREE)" : `₹${bookForUnlockModal.price || 20}.00`}
-                  </span>
+            return (
+              <>
+                <DialogHeader className="text-left space-y-2">
+                  <div className="size-12 rounded-2xl brand-gradient flex items-center justify-center text-white mb-1 shadow-md shadow-[#f95c4b]/20">
+                    <Tag className="size-6" />
+                  </div>
+                  <DialogTitle className="font-display font-black text-xl text-[#181619] dark:text-white">
+                    Unlock {bookForUnlockModal.title}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                    {isFreeForThisUser
+                      ? isPremiumUser
+                        ? "As a Premium Track intern, this book is 100% complimentary for you!"
+                        : "As a Standard Track intern, this book is unlocked 100% free for you by Admin!"
+                      : `Actual price is ₹${REGULAR_PRICE}.00. You get this book at the exclusive student offer price of ₹${bookForUnlockModal.price || 20}.00.`}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="my-4 space-y-3.5">
+                  {/* Price Breakdown */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#201d22] border border-border/60 space-y-2 text-xs">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>{bookForUnlockModal.title} (Actual Price)</span>
+                      <span className="line-through font-semibold">₹{REGULAR_PRICE}.00</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
+                      <span>Skyrovix Student Subsidy Discount</span>
+                      <span>
+                        {isFreeForThisUser
+                          ? `-₹${REGULAR_PRICE}.00 (100% OFF)`
+                          : `-₹${REGULAR_PRICE - (bookForUnlockModal.price || 20)}.00 (Offer Applied)`}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-border/60 flex justify-between font-black text-sm text-[#181619] dark:text-white">
+                      <span>Special Offer Price Payable</span>
+                      <div className="flex items-center gap-2">
+                        {!isFreeForThisUser && (
+                          <span className="text-xs text-muted-foreground line-through font-bold">
+                            ₹{REGULAR_PRICE}
+                          </span>
+                        )}
+                        <span className="text-[#f95c4b] text-base font-black">
+                          {isFreeForThisUser ? "₹0.00 (FREE)" : `₹${bookForUnlockModal.price || 20}.00`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Included highlights */}
+                  <ul className="text-xs space-y-2 text-muted-foreground font-medium pl-1">
+                    <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                      <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                      Complete technical roadmap, cheat sheets & architecture diagrams
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                      <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                      Industry capstone project blueprints & sample code
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                      <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                      Lifetime download access & continuous updates
+                    </li>
+                  </ul>
                 </div>
-              </div>
-            </div>
 
-            {/* Included highlights */}
-            <ul className="text-xs space-y-2 text-muted-foreground font-medium pl-1">
-              <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                Complete technical roadmap, cheat sheets & architecture diagrams
-              </li>
-              <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                Industry capstone project blueprints & sample code
-              </li>
-              <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                Lifetime download access & continuous updates
-              </li>
-            </ul>
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setUnlockModalOpen(false)}
-              disabled={isProcessingUnlock}
-              className="rounded-xl text-xs font-bold h-11 cursor-pointer"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                setIsProcessingUnlock(true);
-                unlockMutation.mutate(bookForUnlockModal.id);
-              }}
-              disabled={isProcessingUnlock || unlockMutation.isPending}
-              className="rounded-xl brand-gradient text-white text-xs font-bold h-11 px-5 shadow-md shadow-[#f95c4b]/20 cursor-pointer hover:opacity-95"
-            >
-              {isProcessingUnlock || unlockMutation.isPending
-                ? "Unlocking Kit..."
-                : isPremiumUser
-                  ? "Claim Free Kit Now"
-                  : `Pay Offer Price (₹${bookForUnlockModal.price || 20})`}
-            </Button>
-          </DialogFooter>
+                <DialogFooter className="gap-2 sm:gap-0 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setUnlockModalOpen(false)}
+                    disabled={isProcessingUnlock}
+                    className="rounded-xl text-xs font-bold h-11 cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsProcessingUnlock(true);
+                      unlockMutation.mutate(bookForUnlockModal.id);
+                    }}
+                    disabled={isProcessingUnlock || unlockMutation.isPending}
+                    className="rounded-xl brand-gradient text-white text-xs font-bold h-11 px-5 shadow-md shadow-[#f95c4b]/20 cursor-pointer hover:opacity-95"
+                  >
+                    {isProcessingUnlock || unlockMutation.isPending
+                      ? "Unlocking Kit..."
+                      : isFreeForThisUser
+                        ? "Claim Free Kit Now"
+                        : `Pay Offer Price (₹${bookForUnlockModal.price || 20})`}
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>

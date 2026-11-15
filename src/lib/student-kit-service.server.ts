@@ -11,6 +11,7 @@ export interface StudentKitItem {
   pdf_url: string;
   cover_image_url: string | null;
   price: number;
+  is_free_for_standard?: boolean;
   is_free_for_premium: boolean;
   is_active: boolean;
   domain: string | null;
@@ -19,7 +20,7 @@ export interface StudentKitItem {
   created_at?: string;
   updated_at?: string;
   is_unlocked?: boolean;
-  unlock_reason?: "premium" | "purchased" | "locked";
+  unlock_reason?: "premium" | "standard" | "purchased" | "locked";
   can_download?: boolean;
 }
 
@@ -108,7 +109,9 @@ export async function getStudentKitsDataServer(
   }
 
   const kits: StudentKitItem[] = kitsRes.rows.map((k: any) => {
-    const isFreeForThisUser = isPremiumUser && Boolean(k.is_free_for_premium);
+    const isFreeForStandard = Boolean(k.is_free_for_standard);
+    const isFreeForPremium = Boolean(k.is_free_for_premium);
+    const isFreeForThisUser = isPremiumUser ? isFreeForPremium : isFreeForStandard;
     const isPurchased = userPurchases.has(k.id);
     const isUnlocked = isFreeForThisUser || isPurchased;
 
@@ -119,13 +122,14 @@ export async function getStudentKitsDataServer(
       pdf_url: String(k.pdf_url),
       cover_image_url: k.cover_image_url ? String(k.cover_image_url) : "/student-kit-cover.jpg",
       price: Number(k.price ?? 20),
-      is_free_for_premium: Boolean(k.is_free_for_premium),
+      is_free_for_standard: isFreeForStandard,
+      is_free_for_premium: isFreeForPremium,
       is_active: Boolean(k.is_active),
       domain: k.domain ? String(k.domain) : "all",
       edition: k.edition ? String(k.edition) : "Edition 1.0",
       downloads_count: Number(k.downloads_count ?? 0),
       is_unlocked: isUnlocked,
-      unlock_reason: isFreeForThisUser ? "premium" : isPurchased ? "purchased" : "locked",
+      unlock_reason: isFreeForThisUser ? (isPremiumUser ? "premium" : "standard") : isPurchased ? "purchased" : "locked",
       can_download: isUnlocked,
     };
   });
@@ -175,7 +179,10 @@ export async function unlockStudentKitServer(data: {
   }
 
   const isPremium = planType === "premium";
-  const amountToRecord = isPremium ? 0.0 : Number(amount ?? kit.price ?? 20);
+  const isFreeForStudent =
+    (isPremium && Boolean(kit.is_free_for_premium)) ||
+    (!isPremium && Boolean(kit.is_free_for_standard));
+  const amountToRecord = isFreeForStudent ? 0.0 : Number(amount ?? kit.price ?? 20);
 
   // 3. Record purchase in student_kit_purchases
   const purchaseId = `sk-p-${crypto.randomUUID()}`;
@@ -192,7 +199,7 @@ export async function unlockStudentKitServer(data: {
       studentName,
       planType,
       amountToRecord,
-      paymentId || (isPremium ? "FREE_PREMIUM_PLAN" : `PAY_${Date.now()}`),
+      paymentId || (isPremium ? "FREE_PREMIUM_PLAN" : isFreeForStudent ? "FREE_STANDARD_PLAN" : `PAY_${Date.now()}`),
     ]
   );
 
@@ -207,6 +214,8 @@ export async function unlockStudentKitServer(data: {
     downloadUrl: kit.pdf_url,
     message: isPremium
       ? "Student Kit unlocked for free with your Premium Plan!"
+      : isFreeForStudent
+      ? "Student Kit unlocked for free with your Standard Plan!"
       : "Student Kit successfully unlocked!",
   };
 }
@@ -233,6 +242,7 @@ export async function getAdminStudentKitsServer(): Promise<AdminStudentKitsData>
     pdf_url: String(k.pdf_url),
     cover_image_url: k.cover_image_url ? String(k.cover_image_url) : "/student-kit-cover.jpg",
     price: Number(k.price ?? 20),
+    is_free_for_standard: Boolean(k.is_free_for_standard),
     is_free_for_premium: Boolean(k.is_free_for_premium),
     is_active: Boolean(k.is_active),
     domain: k.domain ? String(k.domain) : "all",
@@ -282,6 +292,7 @@ export async function saveAdminStudentKitServer(kitData: {
   pdf_url: string;
   cover_image_url?: string;
   price: number;
+  is_free_for_standard?: boolean;
   is_free_for_premium?: boolean;
   is_active?: boolean;
   domain?: string;
@@ -298,6 +309,7 @@ export async function saveAdminStudentKitServer(kitData: {
   const description = (kitData.description || "").trim();
   const domain = (kitData.domain || "all").trim();
   const edition = (kitData.edition || "Edition 1.0").trim();
+  const isFreeForStandard = kitData.is_free_for_standard ? 1 : 0;
   const isFreeForPremium = kitData.is_free_for_premium !== false ? 1 : 0;
   const isActive = kitData.is_active !== false ? 1 : 0;
 
@@ -306,15 +318,16 @@ export async function saveAdminStudentKitServer(kitData: {
     await dbQuery(
       `UPDATE public.student_kits
        SET title = $1, description = $2, pdf_url = $3, cover_image_url = $4,
-           price = $5, is_free_for_premium = $6, is_active = $7, domain = $8,
-           edition = $9, updated_at = NOW()
-       WHERE id = $10`,
+           price = $5, is_free_for_standard = $6, is_free_for_premium = $7, is_active = $8, domain = $9,
+           edition = $10, updated_at = NOW()
+       WHERE id = $11`,
       [
         title,
         description,
         pdfUrl,
         coverImageUrl,
         price,
+        isFreeForStandard,
         isFreeForPremium,
         isActive,
         domain,
@@ -330,8 +343,8 @@ export async function saveAdminStudentKitServer(kitData: {
     const id = `sk-kit-${crypto.randomUUID().slice(0, 8)}`;
     await dbQuery(
       `INSERT INTO public.student_kits
-       (id, title, description, pdf_url, cover_image_url, price, is_free_for_premium, is_active, domain, edition, downloads_count)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0)`,
+       (id, title, description, pdf_url, cover_image_url, price, is_free_for_standard, is_free_for_premium, is_active, domain, edition, downloads_count)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 0)`,
       [
         id,
         title,
@@ -339,6 +352,7 @@ export async function saveAdminStudentKitServer(kitData: {
         pdfUrl,
         coverImageUrl,
         price,
+        isFreeForStandard,
         isFreeForPremium,
         isActive,
         domain,
@@ -349,6 +363,32 @@ export async function saveAdminStudentKitServer(kitData: {
     const res = await dbQuery(`SELECT * FROM public.student_kits WHERE id = $1`, [id]);
     return res.rows[0];
   }
+}
+
+/**
+ * Bulk update Student Kits Global Access Policy (Admin only)
+ */
+export async function updateAdminStudentKitsGlobalPolicyServer(data: {
+  freeForStandard?: boolean;
+  freeForPremium?: boolean;
+}): Promise<{ success: boolean; message: string }> {
+  if (data.freeForStandard !== undefined && data.freeForPremium !== undefined) {
+    await dbQuery(
+      `UPDATE public.student_kits SET is_free_for_standard = $1, is_free_for_premium = $2`,
+      [data.freeForStandard ? 1 : 0, data.freeForPremium ? 1 : 0]
+    );
+  } else if (data.freeForStandard !== undefined) {
+    await dbQuery(
+      `UPDATE public.student_kits SET is_free_for_standard = $1`,
+      [data.freeForStandard ? 1 : 0]
+    );
+  } else if (data.freeForPremium !== undefined) {
+    await dbQuery(
+      `UPDATE public.student_kits SET is_free_for_premium = $1`,
+      [data.freeForPremium ? 1 : 0]
+    );
+  }
+  return { success: true, message: "Student kit global access policy updated successfully." };
 }
 
 /**

@@ -64,6 +64,7 @@ export const saveAdminStudentKitFn = createServerFn({ method: "POST" })
       pdf_url: string;
       cover_image_url?: string;
       price: number;
+      is_free_for_standard?: boolean;
       is_free_for_premium?: boolean;
       is_active?: boolean;
       domain?: string;
@@ -73,6 +74,21 @@ export const saveAdminStudentKitFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { saveAdminStudentKitServer } = await import("./student-kit-service.server");
     return saveAdminStudentKitServer(data);
+  });
+
+/**
+ * Update Global Access Policy for Student Kits (Admin only)
+ */
+export const updateAdminStudentKitsGlobalPolicyFn = createServerFn({ method: "POST" })
+  .validator(
+    (d: {
+      freeForStandard?: boolean;
+      freeForPremium?: boolean;
+    }) => d
+  )
+  .handler(async ({ data }) => {
+    const { updateAdminStudentKitsGlobalPolicyServer } = await import("./student-kit-service.server");
+    return updateAdminStudentKitsGlobalPolicyServer(data);
   });
 
 /**

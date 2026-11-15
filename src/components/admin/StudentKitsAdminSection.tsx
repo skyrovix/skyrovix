@@ -50,6 +50,7 @@ import {
   saveAdminStudentKitFn,
   deleteAdminStudentKitFn,
   uploadStudentKitAssetFn,
+  updateAdminStudentKitsGlobalPolicyFn,
   type StudentKitItem,
   type StudentKitPurchaseItem,
 } from "@/lib/student-kit-service";
@@ -67,6 +68,7 @@ export function StudentKitsAdminSection() {
   const [formDescription, setFormDescription] = useState("");
   const [formPdfUrl, setFormPdfUrl] = useState("/SKYROVIX_Complete_Web_Development_Student_Kit.pdf");
   const [formCoverImageUrl, setFormCoverImageUrl] = useState("/student-kit-cover.jpg");
+  const [formIsFreeForStandard, setFormIsFreeForStandard] = useState(false);
   const [formIsFreeForPremium, setFormIsFreeForPremium] = useState(true);
   const [formIsActive, setFormIsActive] = useState(true);
   const [formDomain, setFormDomain] = useState("all");
@@ -101,6 +103,7 @@ export function StudentKitsAdminSection() {
     );
     setFormPdfUrl("/SKYROVIX_Complete_Web_Development_Student_Kit.pdf");
     setFormCoverImageUrl("/student-kit-cover.jpg");
+    setFormIsFreeForStandard(false);
     setFormIsFreeForPremium(true);
     setFormIsActive(true);
     setFormDomain("all");
@@ -116,7 +119,8 @@ export function StudentKitsAdminSection() {
     setFormDescription(kit.description || "");
     setFormPdfUrl(kit.pdf_url);
     setFormCoverImageUrl(kit.cover_image_url || "/student-kit-cover.jpg");
-    setFormIsFreeForPremium(kit.is_free_for_premium);
+    setFormIsFreeForStandard(Boolean(kit.is_free_for_standard));
+    setFormIsFreeForPremium(kit.is_free_for_premium !== false);
     setFormIsActive(kit.is_active);
     setFormDomain(kit.domain || "all");
     setDialogOpen(true);
@@ -134,6 +138,7 @@ export function StudentKitsAdminSection() {
           description: formDescription,
           pdf_url: formPdfUrl,
           cover_image_url: formCoverImageUrl,
+          is_free_for_standard: formIsFreeForStandard,
           is_free_for_premium: formIsFreeForPremium,
           is_active: formIsActive,
           domain: formDomain,
@@ -152,6 +157,21 @@ export function StudentKitsAdminSection() {
     },
     onError: (err: any) => {
       toast.error(err.message || "Failed to save student kit.");
+    },
+  });
+
+  // Global Access Policy Mutation
+  const globalPolicyMutation = useMutation({
+    mutationFn: async (vars: { freeForStandard?: boolean; freeForPremium?: boolean }) => {
+      return updateAdminStudentKitsGlobalPolicyFn({ data: vars });
+    },
+    onSuccess: (res) => {
+      toast.success(res.message || "Global policy updated!");
+      qc.invalidateQueries({ queryKey: ["admin-student-kits"] });
+      qc.invalidateQueries({ queryKey: ["student-kits"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to update policy.");
     },
   });
 
@@ -292,58 +312,129 @@ export function StudentKitsAdminSection() {
       </div>
 
       {/* ─── STATS CARDS ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-            Total Kits
-          </p>
-          <p className="text-2xl font-black text-[#181619] dark:text-white mt-1">
-            {stats.totalKits}
-          </p>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <span className="size-2 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              {stats.activeKits} Active
-            </span>
-          </div>
-        </div>
+      {(() => {
+        const allFreeForStandard = kits.length > 0 && kits.every((k) => k.is_free_for_standard);
+        const allFreeForPremium = kits.length > 0 && kits.every((k) => k.is_free_for_premium);
+        const standardFreeCount = kits.filter((k) => k.is_free_for_standard).length;
+        const premiumFreeCount = kits.filter((k) => k.is_free_for_premium).length;
 
-        <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-            Standard Plan Price
-          </p>
-          <p className="text-2xl font-black text-[#f95c4b] mt-1">
-            ₹{kits[0]?.price ?? 20}
-          </p>
-          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">
-            Default Nominal Fee
-          </p>
-        </div>
+        return (
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Total Kits
+                </p>
+                <p className="text-2xl font-black text-[#181619] dark:text-white mt-1">
+                  {stats.totalKits}
+                </p>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="size-2 rounded-full bg-emerald-500" />
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    {stats.activeKits} Active
+                  </span>
+                </div>
+              </div>
 
-        <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-            Premium Plan Rule
-          </p>
-          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-            FREE (₹0)
-          </p>
-          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">
-            100% Free with Premium
-          </p>
-        </div>
+              <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Standard Plan Access
+                </p>
+                <p className="text-2xl font-black text-[#f95c4b] mt-1">
+                  {allFreeForStandard ? "100% FREE" : standardFreeCount > 0 ? `${standardFreeCount}/${kits.length} FREE` : `₹${kits[0]?.price ?? 20}`}
+                </p>
+                <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">
+                  {allFreeForStandard ? "All kits free for Standard" : standardFreeCount > 0 ? "Mix of free & paid kits" : "Default ₹20 student fee"}
+                </p>
+              </div>
 
-        <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-            Total Downloads / Unlocks
-          </p>
-          <p className="text-2xl font-black text-[#181619] dark:text-white mt-1">
-            {stats.totalDownloads}
-          </p>
-          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">
-            {stats.totalPurchases} purchases (₹{stats.totalRevenue})
-          </p>
-        </div>
-      </div>
+              <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Premium Plan Access
+                </p>
+                <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                  {allFreeForPremium ? "100% FREE" : premiumFreeCount > 0 ? `${premiumFreeCount}/${kits.length} FREE` : "Charged"}
+                </p>
+                <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">
+                  {allFreeForPremium ? "100% Free with Premium" : "Admin customized access"}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border/70 bg-white dark:bg-[#181619] shadow-2xs">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Total Downloads / Unlocks
+                </p>
+                <p className="text-2xl font-black text-[#181619] dark:text-white mt-1">
+                  {stats.totalDownloads}
+                </p>
+                <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">
+                  {stats.totalPurchases} purchases (₹{stats.totalRevenue})
+                </p>
+              </div>
+            </div>
+
+            {/* ─── GLOBAL ACCESS POLICY BAR (ADMIN CONTROLS BOTH) ─── */}
+            <div className="p-4 sm:p-5 rounded-3xl border border-[#f95c4b]/30 bg-gradient-to-r from-orange-50/70 via-amber-50/40 to-white dark:from-[#201d22] dark:via-[#252028] dark:to-[#181619] shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="size-4 text-[#f95c4b]" />
+                    <h3 className="text-sm font-black text-[#181619] dark:text-white uppercase tracking-wider">
+                      Student Kit Access Control (Both Options)
+                    </h3>
+                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-black">
+                      Admin Controlled
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Toggle free access for <strong>Standard Students</strong> and <strong>Premium Students</strong> across all kits instantly, or click &ldquo;Edit&rdquo; on any kit for individual settings.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Option 1: Standard Plan Free Toggle */}
+                  <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-[#181619] border border-border/70 shadow-2xs">
+                    <div>
+                      <p className="text-xs font-bold text-[#181619] dark:text-white flex items-center gap-1">
+                        🎓 Free for Standard
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-medium">
+                        {allFreeForStandard ? "Active for all kits" : standardFreeCount > 0 ? `${standardFreeCount} kits free` : "Paid (₹20 default)"}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={allFreeForStandard}
+                      disabled={globalPolicyMutation.isPending}
+                      onCheckedChange={(checked) => {
+                        globalPolicyMutation.mutate({ freeForStandard: checked });
+                      }}
+                    />
+                  </div>
+
+                  {/* Option 2: Premium Plan Free Toggle */}
+                  <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-[#181619] border border-border/70 shadow-2xs">
+                    <div>
+                      <p className="text-xs font-bold text-[#181619] dark:text-white flex items-center gap-1">
+                        👑 Free for Premium
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-medium">
+                        {allFreeForPremium ? "Active for all kits" : premiumFreeCount > 0 ? `${premiumFreeCount} kits free` : "Charged to premium"}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={allFreeForPremium}
+                      disabled={globalPolicyMutation.isPending}
+                      onCheckedChange={(checked) => {
+                        globalPolicyMutation.mutate({ freeForPremium: checked });
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
 
       {/* ─── KITS LIST (CARDS) ─── */}
       <div className="space-y-3">
@@ -388,8 +479,8 @@ export function StudentKitsAdminSection() {
                 {/* Kit Details */}
                 <div className="flex-1 flex flex-col justify-between min-w-0">
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-mono text-[10px] text-muted-foreground mr-1">
                         {kit.id}
                       </span>
                       {kit.is_active ? (
@@ -401,9 +492,22 @@ export function StudentKitsAdminSection() {
                           Inactive
                         </Badge>
                       )}
-                      {kit.is_free_for_premium && (
+                      {kit.is_free_for_standard ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-black">
+                          🎓 Free for Standard
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-amber-500/40 text-amber-800 dark:text-amber-300 text-[10px] font-bold">
+                          Standard: ₹{kit.price}
+                        </Badge>
+                      )}
+                      {kit.is_free_for_premium ? (
                         <Badge className="bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[10px] font-black">
                           👑 Free for Premium
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground text-[10px] font-bold">
+                          Premium: ₹{kit.price}
                         </Badge>
                       )}
                     </div>
@@ -417,8 +521,20 @@ export function StudentKitsAdminSection() {
                     </p>
 
                     <div className="mt-2.5 flex items-center gap-3 text-xs">
-                      <span className="font-black text-[#f95c4b] text-sm">
-                        ₹{kit.price} <span className="text-[10px] text-muted-foreground font-medium">Standard</span>
+                      <span className="font-black text-sm">
+                        {kit.is_free_for_standard ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-black">FREE <span className="text-[10px] text-muted-foreground font-medium">Standard</span></span>
+                        ) : (
+                          <span className="text-[#f95c4b] font-black">₹{kit.price} <span className="text-[10px] text-muted-foreground font-medium">Standard</span></span>
+                        )}
+                      </span>
+                      <span className="text-muted-foreground/30">•</span>
+                      <span className="font-black text-sm">
+                        {kit.is_free_for_premium ? (
+                          <span className="text-purple-600 dark:text-purple-400 font-black">FREE <span className="text-[10px] text-muted-foreground font-medium">Premium</span></span>
+                        ) : (
+                          <span className="text-muted-foreground font-bold">₹{kit.price} <span className="text-[10px] text-muted-foreground font-medium">Premium</span></span>
+                        )}
                       </span>
                       <span className="text-muted-foreground/30">•</span>
                       <span className="text-muted-foreground font-semibold text-[11px]">
@@ -587,41 +703,89 @@ export function StudentKitsAdminSection() {
               </div>
             </div>
 
-            {/* Price & Free for Premium */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-[#201d22] border border-border/60">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Standard Plan Price (₹) *</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
-                    ₹
-                  </span>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={formPrice}
-                    onChange={(e) => setFormPrice(Number(e.target.value))}
-                    className="pl-7 rounded-xl text-xs h-9 border-border/70 font-bold"
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  Fee paid by standard plan students to download the kit (e.g. ₹20).
+            {/* Access & Pricing for Both Standard and Premium */}
+            <div className="space-y-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#201d22] border border-border/70">
+              <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                <p className="text-xs font-black uppercase tracking-wider text-[#181619] dark:text-white flex items-center gap-1.5">
+                  <ShieldCheck className="size-4 text-[#f95c4b]" />
+                  Plan Access & Pricing Control
                 </p>
+                <span className="text-[10px] font-bold text-muted-foreground">Admin Configurable</span>
               </div>
 
-              <div className="flex flex-col justify-between pt-1">
-                <Label className="text-xs font-bold mb-1">Free for Premium Plan?</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Switch
-                    checked={formIsFreeForPremium}
-                    onCheckedChange={setFormIsFreeForPremium}
-                  />
-                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    {formIsFreeForPremium ? "Yes (100% Free)" : "No (Charged to all)"}
-                  </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Standard Plan Access */}
+                <div className="p-3 rounded-xl border border-border/60 bg-white dark:bg-[#181619] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-[#181619] dark:text-white flex items-center gap-1">
+                        🎓 Standard Plan
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formIsFreeForStandard ? "Free for standard students" : "Paid by standard students"}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formIsFreeForStandard}
+                      onCheckedChange={setFormIsFreeForStandard}
+                    />
+                  </div>
+
+                  {formIsFreeForStandard ? (
+                    <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="size-3.5 shrink-0" />
+                      <span>100% Free (₹0) for Standard Track</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-semibold text-muted-foreground">Standard Plan Price (₹) *</Label>
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">₹</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={formPrice}
+                          onChange={(e) => setFormPrice(Number(e.target.value))}
+                          className="pl-6 h-8 text-xs font-bold rounded-lg border-border/70"
+                          placeholder="20"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Fee paid by standard plan students to download the kit (e.g. ₹20).
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Premium plan students get this kit for ₹0.
-                </p>
+
+                {/* Premium Plan Access */}
+                <div className="p-3 rounded-xl border border-border/60 bg-white dark:bg-[#181619] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-[#181619] dark:text-white flex items-center gap-1">
+                        👑 Premium Plan
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formIsFreeForPremium ? "Free for premium students" : "Charged to premium students"}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formIsFreeForPremium}
+                      onCheckedChange={setFormIsFreeForPremium}
+                    />
+                  </div>
+
+                  {formIsFreeForPremium ? (
+                    <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="size-3.5 shrink-0" />
+                      <span>100% Free (₹0) with Premium Plan</span>
+                    </div>
+                  ) : (
+                    <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5">
+                      <AlertCircle className="size-3.5 shrink-0" />
+                      <span>Standard fee (₹{formPrice || 20}) applies</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

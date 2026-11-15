@@ -154,6 +154,7 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
     await ensureCol("applications", "certificate_payment_status", "VARCHAR(50) DEFAULT 'pending'");
     await ensureCol("applications", "verification_offer_sent_at", "DATETIME NULL");
     await ensureCol("applications", "verification_offer_coupon", "VARCHAR(100) NULL");
+    await ensureCol("student_kits", "is_free_for_standard", "TINYINT(1) NOT NULL DEFAULT 0");
 
     const tablesToCheck = [
       "payments",
@@ -291,6 +292,7 @@ async function ensureSchemaMigrated(pool: mysql.Pool) {
         pdf_url VARCHAR(500) NOT NULL,
         cover_image_url VARCHAR(500) NULL,
         price DECIMAL(10,2) NOT NULL DEFAULT 20.00,
+        is_free_for_standard TINYINT(1) NOT NULL DEFAULT 0,
         is_free_for_premium TINYINT(1) NOT NULL DEFAULT 1,
         is_active TINYINT(1) NOT NULL DEFAULT 1,
         domain VARCHAR(100) NULL DEFAULT 'all',
