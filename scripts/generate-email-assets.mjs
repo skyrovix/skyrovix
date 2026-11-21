@@ -6,6 +6,7 @@ const outPath = path.resolve("src/lib/email-assets.ts");
 
 const images = [
   { key: "logo", file: "sk-logo-transparent.png", mime: "image/png" },
+  { key: "logoWhite", file: "sk-logo-white.png", mime: "image/png" },
   { key: "topNavLogo", file: "top nav bar logo.png", mime: "image/png" },
   { key: "seal", file: "seal-transparent.png", mime: "image/png" },
   { key: "msme", file: "msme-transparent.png", mime: "image/png" },

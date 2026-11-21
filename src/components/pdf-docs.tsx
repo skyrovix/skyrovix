@@ -5,6 +5,7 @@ import { COMPANY, durationConfig, getPublicSiteUrl } from "@/lib/constants";
 import { EMAIL_ASSETS } from "@/lib/email-assets";
 
 const logoImg = EMAIL_ASSETS?.logo || "";
+const logoWhiteImg = EMAIL_ASSETS?.logoWhite || "";
 const topNavLogoImg = EMAIL_ASSETS?.topNavLogo || "";
 const sealImg = EMAIL_ASSETS?.seal || "";
 const msmeImg = EMAIL_ASSETS?.msme || "";
@@ -27,6 +28,7 @@ const C = {
 
 export type ImageAssets = {
   logo?: string;
+  logoWhite?: string;
   seal?: string;
   msme?: string;
   sigFounder?: string;
@@ -1089,8 +1091,8 @@ const idCardS = StyleSheet.create({
     gap: 6,
   },
   logo: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     objectFit: "contain",
   },
   brandName: {
@@ -1345,7 +1347,7 @@ export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, emai
             <View style={idCardS.lanyardSlot} />
             <View style={idCardS.logoRow}>
               <View style={idCardS.logoBox}>
-                <Image style={idCardS.logo} src={logoImg} />
+                <Image style={idCardS.logo} src={logoWhiteImg || logoImg} />
                 <View>
                   <Text style={idCardS.brandName}>SKYROVIX</Text>
                   <Text style={idCardS.brandSubtitle}>Skill Development & Future Tech</Text>
