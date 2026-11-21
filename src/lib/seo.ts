@@ -382,6 +382,7 @@ export const STRUCTURED_DATA_ORG = {
     name: "India",
   },
   sameAs: [
+    "https://www.youtube.com/@skyrovix",
     "https://www.linkedin.com/company/skyrovix/",
     "https://www.instagram.com/skyrovix?igsh=ZXY2ZXdxZTM5czNr",
     "https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f",

@@ -55,6 +55,7 @@ export function OrganizationJsonLd() {
           availableLanguage: "English",
         },
         sameAs: [
+          "https://www.youtube.com/@skyrovix",
           "https://www.linkedin.com/company/skyrovix/",
           "https://www.instagram.com/skyrovix?igsh=ZXY2ZXdxZTM5czNr",
           "https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f",
@@ -260,6 +261,7 @@ export function LocalBusinessJsonLd() {
         openingHours: "Mo-Su 09:00-21:00",
         priceRange: "₹",
         sameAs: [
+          "https://www.youtube.com/@skyrovix",
           "https://www.linkedin.com/company/skyrovix/",
           "https://www.instagram.com/skyrovix?igsh=ZXY2ZXdxZTM5czNr",
         ],

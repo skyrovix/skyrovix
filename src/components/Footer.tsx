@@ -58,6 +58,7 @@ export function Footer() {
             {/* Social Icons */}
             <div className="flex items-center gap-2.5 pt-1">
               {[
+                { label: "Skyrovix on YouTube", icon: Youtube, href: "https://www.youtube.com/@skyrovix" },
                 { label: "Skyrovix on LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/company/skyrovix/" },
                 { label: "Skyrovix on GitHub", icon: Github, href: "https://github.com/hariharan1022/skyrovix" },
                 { label: "Skyrovix on Instagram", icon: Instagram, href: "https://www.instagram.com/skyrovix?igsh=ZXY2ZXdxZTM5czNr" },
