@@ -131,25 +131,26 @@ function Landing() {
   });
 
   const certFee = feeSettings?.certificateFee?.amount ?? 100;
+  const premiumFee = feeSettings?.premiumPlan?.amount ?? 200;
 
   const steps = useMemo(() => [
-    { icon: Rocket, title: "Apply", desc: "Pick a domain and submit your details." },
+    { icon: Rocket, title: "Apply", desc: "Pick a domain, duration, and track plan." },
     { icon: FileCheck, title: "Offer + ID", desc: "Instant offer letter & digital ID card." },
-    { icon: GraduationCap, title: "5 Tasks", desc: "Build real, portfolio-grade projects." },
-    { icon: IndianRupee, title: "Payment", desc: `Pay ₹${certFee} certification fee via UPI/Cashfree.` },
+    { icon: GraduationCap, title: "Duration Tasks", desc: "5 to 12+ real projects matched to your duration (1–6 months)." },
+    { icon: IndianRupee, title: "Plan Payment", desc: `Pay certification fee as per chosen plan (Standard ₹${certFee} / Premium ₹${premiumFee}) via UPI/Cashfree.` },
     { icon: Award, title: "Certificate", desc: "Verified certificate with QR code." },
-  ], [certFee]);
+  ], [certFee, premiumFee]);
 
   const faqItems = useMemo(() => [
-    { q: "What is the Skyrovix internship program?", a: "It is a task-based virtual internship where you complete 5 real-world projects in your chosen domain. You get an instant offer letter, digital ID card, mentor reviews, and a verified certificate with QR code upon completion." },
-    { q: "Is there any application fee?", a: `No. Applying and receiving the offer letter and ID card is completely free. A ₹${certFee} certification fee is payable only after completing all 5 tasks, just before the certificate is issued.` },
-    { q: "How long does the internship take?", a: "The internship is self-paced. Most students complete it in 2–4 weeks, but you can finish faster or take more time depending on your schedule." },
+    { q: "What is the Skyrovix internship program?", a: "It is a task-based virtual internship where you complete practical projects in your chosen domain tailored to your duration (5, 8, 10, or 12+ tasks). You get an instant offer letter, digital ID card, mentor reviews, and a verified certificate with QR code upon completion." },
+    { q: "Is there any application fee?", a: `No. Applying and receiving the offer letter and ID card is completely free. The certification fee is payable according to your chosen plan (Standard ₹${certFee} / Premium ₹${premiumFee}) only after completing all duration tasks, just before the certificate is issued.` },
+    { q: "How long does the internship take?", a: "The internship is self-paced. Durations range from 1, 2, 3, to 6 months. Most students complete their tasks in 2–4 weeks, but you can finish faster or take more time depending on your schedule." },
     { q: "What domains are available?", a: "We offer 25+ domains including Full Stack Development, Frontend, Backend, Data Science, AI & ML, UI/UX Design, Python, Java, Cyber Security, Digital Marketing, and many more." },
     { q: "Will I get an offer letter and ID card?", a: "Yes. Immediately after applying, you receive an instant offer letter and a digital ID card with your name, domain, intern ID, and a QR code." },
     { q: "Is the certificate verifiable?", a: "Yes. Every certificate has a unique ID and QR code. Employers can verify its authenticity on our Verify Certificate page." },
     { q: "Who reviews my task submissions?", a: "Each task is reviewed by our mentor team. You'll receive feedback and can resubmit if needed. A task is marked approved once it meets the required standards." },
-    { q: "Do I get a certificate if I don't complete all tasks?", a: `The certificate is issued only after you complete and get approval on all 5 tasks and pay the ₹${certFee} certification fee.` },
-  ], [certFee]);
+    { q: "Do I get a certificate if I don't complete all tasks?", a: `The certificate is issued only after you complete and get approval on all required duration tasks and pay the certification fee as per your chosen plan.` },
+  ], [certFee, premiumFee]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -824,7 +825,7 @@ function Landing() {
               { icon: Clock, title: "Self-Paced", desc: "Learn on your schedule. Finish in 2 weeks or take 2 months — it's up to you.", bg: "bg-amber-50/80 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400" },
               { icon: Award, title: "Verified Certificate", desc: "Every certificate has a unique ID and QR code. Share it with recruiters instantly.", bg: "bg-purple-50/80 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400" },
               { icon: ShieldCheck, title: "MSME Registered", desc: "Issued by a registered IT company. Adds real weight to your resume and LinkedIn.", bg: "bg-red-50/80 dark:bg-red-950/20 text-red-600 dark:text-red-400" },
-              { icon: IndianRupee, title: "No Hidden Fees", desc: `Apply and start for free. Pay only ₹${certFee} at certification — no strings attached.`, bg: "bg-blue-50/80 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400" },
+              { icon: IndianRupee, title: "No Hidden Fees", desc: `Apply and start for free. Pay only nominal fee (from ₹${certFee}) as per your plan at certification — no strings attached.`, bg: "bg-blue-50/80 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400" },
             ].map((b) => (
               <div
                 key={b.title}
@@ -972,7 +973,7 @@ function Landing() {
                 <div className="flex-1 text-center lg:text-left">
                   <div className="hidden sm:inline-flex items-center gap-2 rounded-full bg-white/8 px-4 py-1.5 text-xs font-medium text-white/70 border border-white/10 mb-5 backdrop-blur-sm">
                     <span className="size-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    No application fee — pay only ₹{certFee} at certification
+                    No application fee — pay only certification fee as per plan at completion
                   </div>
 
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-[1.15] text-white">
@@ -982,7 +983,7 @@ function Landing() {
                   </h2>
 
                   <p className="mt-4 text-sm sm:text-base text-white/60 max-w-lg leading-relaxed">
-                    Get your offer letter and ID card instantly. Complete 5 real-world tasks, get mentor feedback, and earn a verified certificate.
+                    Get your offer letter and ID card instantly. Complete practical duration tasks (5–12+ projects), get mentor feedback, and earn a verified certificate.
                   </p>
 
                   <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-3">
