@@ -110,7 +110,7 @@ export function ProjectCompletionCert({
               </View>
               <View style={{ flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
                 <Text>Completed: {date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</Text>
-                <Text>Verify at: www.skyrovix.online</Text>
+                <Text>Verify at: www.skyrovix.in</Text>
               </View>
             </View>
           </View>
@@ -198,7 +198,7 @@ export function ProjectAwardCert({
               </View>
               <View style={{ flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
                 <Text>Issued: {date.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</Text>
-                <Text>Verify at: www.skyrovix.online</Text>
+                <Text>Verify at: www.skyrovix.in</Text>
               </View>
             </View>
           </View>

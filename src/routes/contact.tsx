@@ -28,8 +28,8 @@ export const Route = createFileRoute("/contact")({
       { property: "og:site_name", content: "Skyrovix" },
       { property: "og:title", content: "Contact Skyrovix — Get in Touch" },
       { property: "og:description", content: "Contact Skyrovix for internship support, certificate queries, and general inquiries. Response within 1–2 business days." },
-      { property: "og:url", content: "https://skyrovix.online/contact" },
-      { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+      { property: "og:url", content: "https://skyrovix.in/contact" },
+      { property: "og:image", content: "https://skyrovix.in/og-default.png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "Contact Skyrovix — Virtual Internship Platform" },
@@ -39,9 +39,9 @@ export const Route = createFileRoute("/contact")({
       { name: "twitter:site", content: "@skyrovix" },
       { name: "twitter:title", content: "Contact Skyrovix — Get in Touch" },
       { name: "twitter:description", content: "Contact Skyrovix for internship support, applications, certificates, and general inquiries." },
-      { name: "twitter:image", content: "https://skyrovix.online/og-default.png" },
+      { name: "twitter:image", content: "https://skyrovix.in/og-default.png" },
       { name: "twitter:image:alt", content: "Contact Skyrovix — Virtual Internship Platform" },
-      { rel: "canonical", href: "https://skyrovix.online/contact" },
+      { rel: "canonical", href: "https://skyrovix.in/contact" },
     ],
   }),
   component: ContactPage,
@@ -61,7 +61,7 @@ const ITEMS: ContactInfoItem[] = [
     icon: Globe,
     label: "Websites",
     links: [
-      { label: "www.skyrovix.online", href: "https://www.skyrovix.online" },
+      { label: "www.skyrovix.in", href: "https://www.skyrovix.in" },
       { label: "www.skyrovix.in", href: "https://www.skyrovix.in" },
     ],
   },
@@ -76,14 +76,14 @@ function ContactPage() {
       <LocalBusinessJsonLd />
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online/" },
-          { name: "Contact", url: "https://skyrovix.online/contact" },
+          { name: "Home", url: "https://skyrovix.in/" },
+          { name: "Contact", url: "https://skyrovix.in/contact" },
         ]}
       />
       <WebPageJsonLd
         title="Contact Skyrovix — Get Internship Support"
         description="Have questions about Skyrovix internships? Contact our team for support with applications, payments, certificates, and general inquiries."
-        url="https://skyrovix.online/contact"
+        url="https://skyrovix.in/contact"
       />
       <Navbar />
       <AuroraBackground>

@@ -11,10 +11,10 @@ import { type ReactNode, useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
-import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/JsonLd";
+import { OrganizationJsonLd, WebsiteJsonLd, LeadershipJsonLd } from "@/components/JsonLd";
 import { MotionConfig } from "framer-motion";
 
-const SITE_URL = "https://skyrovix.online";
+const SITE_URL = "https://skyrovix.in";
 
 function NotFoundComponent() {
   return (
@@ -252,6 +252,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <OrganizationJsonLd />
+        <LeadershipJsonLd />
         <WebsiteJsonLd />
         <div className="w-full">
           {children}

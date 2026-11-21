@@ -30,8 +30,8 @@ export const Route = createFileRoute("/privacy")({
         property: "og:description", 
         content: "Complete transparency on how Skyrovix collects, uses, and safeguards student data during virtual internships and courses." 
       },
-      { property: "og:url", content: "https://skyrovix.online/privacy" },
-      { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+      { property: "og:url", content: "https://skyrovix.in/privacy" },
+      { property: "og:image", content: "https://skyrovix.in/og-default.png" },
       { property: "og:locale", content: "en_IN" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Privacy Policy — Skyrovix" },
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/privacy")({
         name: "twitter:description", 
         content: "Learn how student personal information, task submissions, and certificates are safeguarded at Skyrovix." 
       },
-      { rel: "canonical", href: "https://skyrovix.online/privacy" },
+      { rel: "canonical", href: "https://skyrovix.in/privacy" },
     ],
   }),
   component: PrivacyPage,
@@ -51,12 +51,12 @@ function PrivacyPage() {
       <WebPageJsonLd
         title="Privacy Policy — Skyrovix"
         description="Skyrovix privacy policy explaining how student data is collected, used, and stored."
-        url="https://skyrovix.online/privacy"
+        url="https://skyrovix.in/privacy"
       />
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online" },
-          { name: "Privacy Policy", url: "https://skyrovix.online/privacy" },
+          { name: "Home", url: "https://skyrovix.in" },
+          { name: "Privacy Policy", url: "https://skyrovix.in/privacy" },
         ]}
       />
       <Navbar />

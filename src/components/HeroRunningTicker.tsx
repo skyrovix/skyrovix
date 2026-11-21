@@ -306,12 +306,12 @@ export function HeroRunningTicker() {
                 </a>
                 <span>•</span>
                 <a
-                  href="https://skyrovix.online"
+                  href="https://skyrovix.in"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#f95c4b] hover:underline inline-flex items-center gap-1 font-semibold"
                 >
-                  www.skyrovix.online <ExternalLink className="size-2.5" />
+                  www.skyrovix.in <ExternalLink className="size-2.5" />
                 </a>
               </div>
               <p className="text-[10px] leading-relaxed text-muted-foreground/80">

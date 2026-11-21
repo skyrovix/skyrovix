@@ -1,259 +1,274 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <!-- ─── Core Pages ─── -->
+  <!-- â”€â”€â”€ Core Pages â”€â”€â”€ -->
   <url>
-    <loc>https://skyrovix.online/</loc>
+    <loc>https://skyrovix.in/</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/about</loc>
-    <lastmod>2026-07-23</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://skyrovix.in/about</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains</loc>
+    <loc>https://skyrovix.in/founder</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://skyrovix.in/internship</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <url>
+    <loc>https://skyrovix.in/domains</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/contact</loc>
+    <loc>https://skyrovix.in/contact</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/verify-certificate</loc>
+    <loc>https://skyrovix.in/verify-certificate</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/privacy</loc>
+    <loc>https://skyrovix.in/privacy</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/terms</loc>
+    <loc>https://skyrovix.in/terms</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
-  <!-- ─── Internship Domain Pages ─── -->
+  <!-- â”€â”€â”€ Internship Domain Pages â”€â”€â”€ -->
   <url>
-    <loc>https://skyrovix.online/domains/fullstack</loc>
+    <loc>https://skyrovix.in/domains/fullstack</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/frontend</loc>
+    <loc>https://skyrovix.in/domains/frontend</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/backend</loc>
+    <loc>https://skyrovix.in/domains/backend</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/datascience</loc>
+    <loc>https://skyrovix.in/domains/datascience</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/aiml</loc>
+    <loc>https://skyrovix.in/domains/aiml</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/uiux</loc>
+    <loc>https://skyrovix.in/domains/uiux</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/python</loc>
+    <loc>https://skyrovix.in/domains/python</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/java</loc>
+    <loc>https://skyrovix.in/domains/java</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/cybersecurity</loc>
+    <loc>https://skyrovix.in/domains/cybersecurity</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/digitalmarketing</loc>
+    <loc>https://skyrovix.in/domains/digitalmarketing</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/cprogramming</loc>
+    <loc>https://skyrovix.in/domains/cprogramming</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/cppprogramming</loc>
+    <loc>https://skyrovix.in/domains/cppprogramming</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/mernstack</loc>
+    <loc>https://skyrovix.in/domains/mernstack</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/meanstack</loc>
+    <loc>https://skyrovix.in/domains/meanstack</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/dataanalytics</loc>
+    <loc>https://skyrovix.in/domains/dataanalytics</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/machinelearning</loc>
+    <loc>https://skyrovix.in/domains/machinelearning</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/deeplearning</loc>
+    <loc>https://skyrovix.in/domains/deeplearning</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/generativeai</loc>
+    <loc>https://skyrovix.in/domains/generativeai</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/promptengineering</loc>
+    <loc>https://skyrovix.in/domains/promptengineering</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/cloudcomputing</loc>
+    <loc>https://skyrovix.in/domains/cloudcomputing</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/ethicalhacking</loc>
+    <loc>https://skyrovix.in/domains/ethicalhacking</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/androiddevelopment</loc>
+    <loc>https://skyrovix.in/domains/androiddevelopment</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/flutterdevelopment</loc>
+    <loc>https://skyrovix.in/domains/flutterdevelopment</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/reactnative</loc>
+    <loc>https://skyrovix.in/domains/reactnative</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/graphicdesign</loc>
+    <loc>https://skyrovix.in/domains/graphicdesign</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/motiongraphics</loc>
+    <loc>https://skyrovix.in/domains/motiongraphics</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/videoediting</loc>
+    <loc>https://skyrovix.in/domains/videoediting</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/animation</loc>
+    <loc>https://skyrovix.in/domains/animation</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
 
   <url>
-    <loc>https://skyrovix.online/domains/threeddesign</loc>
+    <loc>https://skyrovix.in/domains/threeddesign</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 </urlset>
+

@@ -30,8 +30,8 @@ export const Route = createFileRoute("/refund")({
         property: "og:description", 
         content: "Transparent refund and cancellation policy for Skyrovix courses and virtual internship programs." 
       },
-      { property: "og:url", content: "https://skyrovix.online/refund" },
-      { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+      { property: "og:url", content: "https://skyrovix.in/refund" },
+      { property: "og:image", content: "https://skyrovix.in/og-default.png" },
       { property: "og:locale", content: "en_IN" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Refund & Cancellation Policy — Skyrovix" },
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/refund")({
         name: "twitter:description", 
         content: "Learn about Skyrovix refund rules for courses and internship verification fees." 
       },
-      { rel: "canonical", href: "https://skyrovix.online/refund" },
+      { rel: "canonical", href: "https://skyrovix.in/refund" },
     ],
   }),
   component: RefundPage,
@@ -51,12 +51,12 @@ function RefundPage() {
       <WebPageJsonLd
         title="Refund & Cancellation Policy — Skyrovix"
         description="Skyrovix refund and cancellation policy covering course refunds, cancellation windows, internship fee rules, and processing timelines."
-        url="https://skyrovix.online/refund"
+        url="https://skyrovix.in/refund"
       />
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online" },
-          { name: "Refund Policy", url: "https://skyrovix.online/refund" },
+          { name: "Home", url: "https://skyrovix.in" },
+          { name: "Refund Policy", url: "https://skyrovix.in/refund" },
         ]}
       />
       <Navbar />

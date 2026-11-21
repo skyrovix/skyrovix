@@ -1412,7 +1412,7 @@ export function IDCardDoc({ fullName, internId, domain, issuedAt, photoUrl, emai
 
           {/* 6. Corporate Dark Navy Footer */}
           <View style={idCardS.footer}>
-            <Text style={idCardS.footerLink}>skyrovix.online</Text>
+            <Text style={idCardS.footerLink}>skyrovix.in</Text>
             <Text style={idCardS.footerMotto}>Empower · Innovate</Text>
           </View>
 

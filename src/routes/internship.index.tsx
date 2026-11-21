@@ -36,8 +36,8 @@ export const Route = createFileRoute("/internship/")({
       { property: "og:site_name", content: "Skyrovix" },
       { property: "og:title", content: "Apply for Virtual Internship — Skyrovix" },
       { property: "og:description", content: "Apply for a virtual internship in 25+ domains. Get an instant offer letter, digital ID card, complete tasks, earn a QR-verified certificate. Nominal certification fee." },
-      { property: "og:url", content: "https://skyrovix.online/internship" },
-      { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+      { property: "og:url", content: "https://skyrovix.in/internship" },
+      { property: "og:image", content: "https://skyrovix.in/og-default.png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "Apply for Virtual Internship — Skyrovix" },
@@ -47,9 +47,9 @@ export const Route = createFileRoute("/internship/")({
       { name: "twitter:site", content: "@skyrovix" },
       { name: "twitter:title", content: "Apply for Virtual Internship — Skyrovix" },
       { name: "twitter:description", content: "Apply for a virtual internship in Full Stack, AI/ML, Data Science, UI/UX and more. Get instant offer letter and verified certificate." },
-      { name: "twitter:image", content: "https://skyrovix.online/og-default.png" },
+      { name: "twitter:image", content: "https://skyrovix.in/og-default.png" },
       { name: "twitter:image:alt", content: "Apply for Virtual Internship — Skyrovix" },
-      { rel: "canonical", href: "https://skyrovix.online/internship" },
+      { rel: "canonical", href: "https://skyrovix.in/internship" },
     ],
   }),
   validateSearch: (search: Record<string, unknown>): { apply?: string } => ({
@@ -410,14 +410,14 @@ function DomainsPage() {
     <div className="w-full">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online/" },
-          { name: "Apply for Internship", url: "https://skyrovix.online/internship" },
+          { name: "Home", url: "https://skyrovix.in/" },
+          { name: "Apply for Internship", url: "https://skyrovix.in/internship" },
         ]}
       />
       <WebPageJsonLd
         title="Apply for Virtual Internship — Select Domain & Start Today | Skyrovix"
         description="Apply for a virtual internship at Skyrovix. Select your domain and duration, fill the form, and get an instant offer letter."
-        url="https://skyrovix.online/internship"
+        url="https://skyrovix.in/internship"
       />
       <Navbar />
       <AuroraBackground className="overflow-visible">

@@ -3230,7 +3230,7 @@ function Dashboard() {
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="size-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>Public Verification Link:</strong> Lifetime authenticity check at <span className="text-[#f95c4b] font-medium">skyrovix.online/verify</span>.</span>
+                    <span><strong>Public Verification Link:</strong> Lifetime authenticity check at <span className="text-[#f95c4b] font-medium">skyrovix.in/verify</span>.</span>
                   </div>
                 </div>
               </div>

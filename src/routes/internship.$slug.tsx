@@ -75,7 +75,7 @@ export const Route = createFileRoute("/internship/$slug")({
     const d = getDomain(params.slug);
     const name = d?.name ?? "Domain";
     const desc = d?.description ?? "Skyrovix internship domain.";
-    const canonicalUrl = `https://skyrovix.online/internship/${params.slug}`;
+    const canonicalUrl = `https://skyrovix.in/internship/${params.slug}`;
     // Domain-specific keywords from map, fallback to generic pattern
     const domainKws = DOMAIN_KEYWORDS[params.slug] ?? [];
     const genericKws = [
@@ -105,7 +105,7 @@ export const Route = createFileRoute("/internship/$slug")({
         { property: "og:title", content: `${name} Internship | Virtual Internship with Certificate & Real Projects | Skyrovix` },
         { property: "og:description", content: `${desc} Get an instant offer letter, digital ID card, and earn a QR-verified certificate after completing real-world tasks. Apply in minutes.` },
         { property: "og:url", content: canonicalUrl },
-        { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+        { property: "og:image", content: "https://skyrovix.in/og-default.png" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: `${name} Virtual Internship with Certificate — Skyrovix` },
@@ -115,7 +115,7 @@ export const Route = createFileRoute("/internship/$slug")({
         { name: "twitter:site", content: "@skyrovix" },
         { name: "twitter:title", content: `${name} Internship | Virtual Internship with Certificate | Skyrovix` },
         { name: "twitter:description", content: `${desc} Get an offer letter, digital ID card & QR-verified certificate. 100% work from home.` },
-        { name: "twitter:image", content: "https://skyrovix.online/og-default.png" },
+        { name: "twitter:image", content: "https://skyrovix.in/og-default.png" },
         { name: "twitter:image:alt", content: `${name} Virtual Internship Certificate — Skyrovix` },
         { rel: "canonical", href: canonicalUrl },
       ],
@@ -221,13 +221,13 @@ function InternshipDetailsPage() {
       <CourseJsonLd
         name={`${domain.name} Internship`}
         description={detail.longDescription || domain.description || ""}
-        url={`https://skyrovix.online/internship/${slug}`}
+        url={`https://skyrovix.in/internship/${slug}`}
       />
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online/" },
-          { name: "Internship Domains", url: "https://skyrovix.online/internship" },
-          { name: `${domain.name} Internship`, url: `https://skyrovix.online/internship/${slug}` },
+          { name: "Home", url: "https://skyrovix.in/" },
+          { name: "Internship Domains", url: "https://skyrovix.in/internship" },
+          { name: `${domain.name} Internship`, url: `https://skyrovix.in/internship/${slug}` },
         ]}
       />
       <Navbar />

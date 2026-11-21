@@ -21,14 +21,14 @@ export const Route = createFileRoute("/reviews")({
       { property: "og:site_name", content: "Skyrovix" },
       { property: "og:title", content: "Student Reviews — Skyrovix" },
       { property: "og:description", content: "Read real reviews from students who completed Skyrovix virtual internships." },
-      { property: "og:url", content: "https://skyrovix.online/reviews" },
-      { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+      { property: "og:url", content: "https://skyrovix.in/reviews" },
+      { property: "og:image", content: "https://skyrovix.in/og-default.png" },
       { property: "og:locale", content: "en_IN" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Student Reviews — Skyrovix" },
       { name: "twitter:description", content: "Read real reviews from students who completed Skyrovix virtual internships." },
-      { name: "twitter:image", content: "https://skyrovix.online/og-default.png" },
-      { rel: "canonical", href: "https://skyrovix.online/reviews" },
+      { name: "twitter:image", content: "https://skyrovix.in/og-default.png" },
+      { rel: "canonical", href: "https://skyrovix.in/reviews" },
     ],
   }),
   component: ReviewsPage,
@@ -200,14 +200,14 @@ function ReviewsPage() {
     <div className="w-full">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online/" },
-          { name: "Student Reviews", url: "https://skyrovix.online/reviews" },
+          { name: "Home", url: "https://skyrovix.in/" },
+          { name: "Student Reviews", url: "https://skyrovix.in/reviews" },
         ]}
       />
       <WebPageJsonLd
         title="Student Reviews — Skyrovix Internship Platform"
         description="Read real reviews from students who completed Skyrovix virtual internships."
-        url="https://skyrovix.online/reviews"
+        url="https://skyrovix.in/reviews"
       />
       <Navbar variant="public" />
 

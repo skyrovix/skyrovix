@@ -47,26 +47,26 @@ const COURSE_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
 export const Route = createFileRoute("/_navbar-layout/")({
   head: () => {
     const isFounderSubdomain = typeof window !== "undefined" && (
-      window.location.hostname === "founder.skyrovix.online" ||
+      window.location.hostname === "founder.skyrovix.in" ||
       window.location.search.includes("founder=true")
     );
 
     if (isFounderSubdomain) {
       return {
         meta: [
-          { title: "Hariharan S | Founder & CEO of Skyrovix | Executive Profile" },
-          { name: "description", content: "Hariharan S is the Founder and CEO of Skyrovix IT Solutions, leading virtual skill development, MSME-registered internships, and code-sandbox learning ecosystems." },
-          { name: "keywords", content: "Hariharan S, Skyrovix Founder, Hariharan Skyrovix, Hariharan S CEO, virtual internship founder, India skill development leadership, Skyrovix CEO profile" },
+          { title: "Hariharan S & Maheshwaran S | Founder & Co-Founder of Skyrovix | Leadership Profile" },
+          { name: "description", content: "Hariharan S (Founder & CEO) and Maheshwaran S (Co-Founder & Lead Architect) of Skyrovix (skyrovix.in), leading virtual skill development, MSME-registered internships, and code-sandbox learning ecosystems." },
+          { name: "keywords", content: "Hariharan S, Maheshwaran S, Skyrovix Founder, Skyrovix Co-Founder, Hariharan Skyrovix, Maheshwaran Skyrovix, Hariharan S CEO, virtual internship founder, India skill development leadership, Skyrovix CEO profile" },
           { name: "robots", content: "index, follow" },
           { property: "og:type", content: "profile" },
-          { property: "og:title", content: "Hariharan S — Founder & CEO of Skyrovix" },
-          { property: "og:description", content: "Leading the next generation of project-based virtual learning programs for students in India." },
-          { property: "og:url", content: "https://founder.skyrovix.online" },
-          { property: "og:image", content: "https://skyrovix.online/founder.jpeg" },
+          { property: "og:title", content: "Hariharan S & Maheshwaran S — Founder & Co-Founder of Skyrovix" },
+          { property: "og:description", content: "Leading the next generation of project-based virtual learning programs for students in India at skyrovix.in." },
+          { property: "og:url", content: "https://skyrovix.in/founder" },
+          { property: "og:image", content: "https://skyrovix.in/founder.jpeg" },
           { name: "twitter:card", content: "summary_large_image" },
-          { name: "twitter:title", content: "Hariharan S — Founder & CEO of Skyrovix" },
-          { name: "twitter:description", content: "Leading the next generation of project-based virtual learning programs for students in India." },
-          { rel: "canonical", href: "https://founder.skyrovix.online" },
+          { name: "twitter:title", content: "Hariharan S & Maheshwaran S — Founder & Co-Founder of Skyrovix" },
+          { name: "twitter:description", content: "Leading the next generation of project-based virtual learning programs for students in India at skyrovix.in." },
+          { rel: "canonical", href: "https://skyrovix.in/founder" },
         ],
       };
     }
@@ -82,27 +82,27 @@ export const Route = createFileRoute("/_navbar-layout/")({
         },
       ],
       meta: [
-        { title: "Skyrovix | Virtual Internship with Certificate & Real Projects" },
-        { name: "description", content: "Skyrovix is a virtual internship platform offering hands-on projects, offer letters, certificates, and mentor support in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX, and more." },
-        { name: "keywords", content: "Skyrovix Internship, Skyrovix Virtual Internship, Skyrovix IT Solutions Internship, online internship India, virtual internship with certificate, remote internship for students, project based internship, full stack development internship, Python internship, Java internship, AI internship, machine learning internship, data science internship, cyber security internship, cloud computing internship, React internship, MERN stack internship, UI UX internship, graphic design internship, internship with offer letter, internship with certificate, internship with real projects, internship for college students, engineering internship, computer science internship, free internship, work from home internship, summer internship 2026, internship program India, best virtual internship for engineering students, online internship with certificate and offer letter, internship with QR verified certificate, internship for CSE students, internship for IT students, web development internship India" },
+        { title: "Skyrovix | Virtual Internship with Certificate & Real Projects (skyrovix.in)" },
+        { name: "description", content: "Skyrovix (skyrovix.in) is an MSME-registered virtual internship platform founded by Hariharan S and co-founded by Maheshwaran S, offering hands-on projects, instant offer letters, digital ID cards, and QR-verified certificates in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX, and 25+ domains." },
+        { name: "keywords", content: "Skyrovix, skyrovix.in, Hariharan S, Maheshwaran S, Skyrovix Founder, Skyrovix Co-Founder, Skyrovix Internship, Skyrovix Virtual Internship, Skyrovix IT Solutions Internship, online internship India, virtual internship with certificate, remote internship for students, project based internship, full stack development internship, Python internship, Java internship, AI internship, machine learning internship, data science internship, cyber security internship, cloud computing internship, React internship, MERN stack internship, UI UX internship, graphic design internship, internship with offer letter, internship with certificate, internship with real projects, internship for college students, engineering internship, computer science internship, free internship, work from home internship, summer internship 2026, internship program India, best virtual internship for engineering students, online internship with certificate and offer letter, internship with QR verified certificate, internship for CSE students, internship for IT students, web development internship India" },
         { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "Skyrovix" },
-        { property: "og:title", content: "Skyrovix: Virtual Internship with Certificate & Real Projects | Skyrovix" },
-        { property: "og:description", content: "Skyrovix is a virtual internship platform with hands-on projects, offer letters, and certificates in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX & more." },
-        { property: "og:url", content: "https://skyrovix.online/" },
-        { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+        { property: "og:title", content: "Skyrovix: Virtual Internship with Certificate & Real Projects | skyrovix.in" },
+        { property: "og:description", content: "Skyrovix (skyrovix.in) is an MSME-registered virtual internship platform with hands-on projects, offer letters, and certificates in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX & more." },
+        { property: "og:url", content: "https://skyrovix.in/" },
+        { property: "og:image", content: "https://skyrovix.in/og-default.png" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: "Skyrovix Virtual Internship with Certificate & Real Projects" },
         { property: "og:locale", content: "en_IN" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:site", content: "@skyrovix" },
-        { name: "twitter:title", content: "Skyrovix: Virtual Internship with Certificate & Real Projects | Skyrovix" },
-        { name: "twitter:description", content: "Skyrovix virtual internship platform — hands-on projects, offer letters, and certificates in Full Stack, AI, Python, Data Science, Cyber Security & more." },
-        { name: "twitter:image", content: "https://skyrovix.online/og-default.png" },
+        { name: "twitter:title", content: "Skyrovix: Virtual Internship with Certificate & Real Projects | skyrovix.in" },
+        { name: "twitter:description", content: "Skyrovix (skyrovix.in) virtual internship platform — hands-on projects, offer letters, and certificates in Full Stack, AI, Python, Data Science, Cyber Security & more." },
+        { name: "twitter:image", content: "https://skyrovix.in/og-default.png" },
         { name: "twitter:image:alt", content: "Skyrovix Virtual Internship with Certificate & Real Projects" },
-        { rel: "canonical", href: "https://skyrovix.online/" },
+        { rel: "canonical", href: "https://skyrovix.in/" },
       ],
     };
   },
@@ -155,7 +155,7 @@ function Landing() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsFounder(
-        window.location.hostname === "founder.skyrovix.online" ||
+        window.location.hostname === "founder.skyrovix.in" ||
         window.location.search.includes("founder=true")
       );
     }
@@ -172,7 +172,7 @@ function Landing() {
   return (
     <div className="w-full">
       <FAQJsonLd faqs={FAQ_DATA} />
-      <BreadcrumbJsonLd items={[{ name: "Home", url: "https://skyrovix.online/" }]} />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "https://skyrovix.in/" }]} />
       {/* ─── MOBILE HERO (Clean Single Section, Full Viewport) ─── */}
       <section className="lg:hidden relative w-full min-h-[100dvh] pt-20 sm:pt-24 pb-0 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#faf8f2] via-[#fff5f3]/80 to-[#faf8f2] dark:from-[#181619] dark:via-[#1e191d] dark:to-[#181619]">
         {/* Soft background ambient glow */}

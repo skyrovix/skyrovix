@@ -3,16 +3,16 @@ export const COMPANY = {
   shortName: "Skyrovix",
   tagline: "Empowering Future Innovators",
   email: "skyrovix@gmail.com",
-  website: "www.skyrovix.online",
+  website: "www.skyrovix.in",
   websiteIn: "www.skyrovix.in",
-  websites: ["www.skyrovix.online", "www.skyrovix.in"],
+  websites: ["www.skyrovix.in"],
   youtube: "https://www.youtube.com/@skyrovix",
   founder: { 
     name: "Hariharan S", 
     title: "Founder & CEO",
     linkedin: "https://www.linkedin.com/in/hariharan-s-92b566381",
   },
-  cofounder: { name: "Maheshwaran S", title: "Co-Founder" },
+  cofounder: { name: "Maheshwaran S", title: "Co-Founder & Lead Architect" },
 };
 
 export const SITE_URL = "https://skyrovix.in";

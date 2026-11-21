@@ -183,7 +183,7 @@ export function IDCard({ internId, fullName, domain, photoUrl, issuedAt, email, 
       <div className="bg-[#061a33] px-4 py-2 flex items-center justify-between text-[10px] text-white">
         <div className="flex items-center gap-1.5 text-blue-200 font-medium">
           <Globe className="size-3 text-blue-300" />
-          <span>skyrovix.online</span>
+          <span>skyrovix.in</span>
         </div>
         <div className="text-slate-300 text-[9px] font-semibold tracking-wider uppercase">
           Empower · Innovate

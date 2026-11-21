@@ -7,32 +7,34 @@ import {
   Flame, BookOpen, UserCheck, TrendingUp, Laptop, 
   Code, GraduationCap, Briefcase, RefreshCw, Layers
 } from "lucide-react";
-import { BreadcrumbJsonLd, WebPageJsonLd } from "@/components/JsonLd";
+import { BreadcrumbJsonLd, WebPageJsonLd, LeadershipJsonLd } from "@/components/JsonLd";
 import { FounderStorySection } from "@/components/FounderStorySection";
 import msme from "@/assets/msme.webp";
+import cofounderPhoto from "@/assets/co founder.jpeg";
+import { COMPANY } from "@/lib/constants";
 
 export const Route = createFileRoute("/_navbar-layout/about")({
   head: () => ({
     meta: [
-      { title: "About Skyrovix | Transforming Students Through Real-World Learning and Internships" },
+      { title: "About Skyrovix | Transforming Students Through Real-World Learning & Internships" },
       { 
         name: "description", 
-        content: "Learn about Skyrovix — a virtual internship and training platform focused on helping students develop practical skills, gain project-based experience, and prepare for future career opportunities." 
+        content: "Learn about Skyrovix (skyrovix.in) — an MSME-registered virtual internship platform founded by Hariharan S and co-founded by Maheshwaran S, helping students develop practical skills, build portfolios, and earn verified credentials." 
       },
       { 
         name: "keywords", 
-        content: "about skyrovix, skyrovix virtual internship, student training platform, practical learning, project based learning, technical skills, career readiness, MSME registered training, virtual internship India" 
+        content: "about skyrovix, skyrovix.in, Hariharan S, Maheshwaran S, Skyrovix Founder, Skyrovix Co-Founder, skyrovix virtual internship, student training platform, practical learning, project based learning, technical skills, career readiness, MSME registered training, UDYAM-TN-17-0076606, virtual internship India" 
       },
-      { name: "robots", content: "index, follow" },
+      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Skyrovix" },
       { property: "og:title", content: "About Skyrovix — Transforming Students Through Real-World Learning" },
       { 
         property: "og:description", 
-        content: "Skyrovix is a virtual internship and training platform helping students build portfolios, develop skills, and prepare for meaningful careers." 
+        content: "Skyrovix (skyrovix.in) is an MSME-registered virtual internship platform founded by Hariharan S and co-founded by Maheshwaran S, helping students build portfolios, develop skills, and prepare for meaningful careers." 
       },
-      { property: "og:url", content: "https://skyrovix.online/about" },
-      { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+      { property: "og:url", content: "https://skyrovix.in/about" },
+      { property: "og:image", content: "https://skyrovix.in/og-default.png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "About Skyrovix — Virtual Internship Platform" },
@@ -43,11 +45,11 @@ export const Route = createFileRoute("/_navbar-layout/about")({
       { name: "twitter:title", content: "About Skyrovix — Transforming Students Through Real-World Learning" },
       { 
         name: "twitter:description", 
-        content: "Skyrovix is a virtual internship and training platform helping students build portfolios, develop skills, and prepare for meaningful careers." 
+        content: "Skyrovix (skyrovix.in) is an MSME-registered virtual internship platform founded by Hariharan S and co-founded by Maheshwaran S, helping students build portfolios and gain verified skills." 
       },
-      { name: "twitter:image", content: "https://skyrovix.online/og-default.png" },
+      { name: "twitter:image", content: "https://skyrovix.in/og-default.png" },
       { name: "twitter:image:alt", content: "About Skyrovix — Virtual Internship Platform" },
-      { rel: "canonical", href: "https://skyrovix.online/about" },
+      { rel: "canonical", href: "https://skyrovix.in/about" },
     ],
   }),
   component: AboutPage,
@@ -58,14 +60,15 @@ function AboutPage() {
     <div className="min-h-screen">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online/" },
-          { name: "About Skyrovix", url: "https://skyrovix.online/about" },
+          { name: "Home", url: "https://skyrovix.in/" },
+          { name: "About Skyrovix", url: "https://skyrovix.in/about" },
         ]}
       />
+      <LeadershipJsonLd />
       <WebPageJsonLd
         title="About Skyrovix — Transforming Students Through Real-World Learning and Internships"
-        description="Skyrovix is a virtual internship and training platform focused on helping students develop practical skills, gain project-based experience, and prepare for future career opportunities."
-        url="https://skyrovix.online/about"
+        description="Skyrovix is an MSME-registered virtual internship and training platform founded by Hariharan S and co-founded by Maheshwaran S, focused on helping students develop practical skills, gain project-based experience, and prepare for future career opportunities."
+        url="https://skyrovix.in/about"
       />
 
       {/* ─────────────────────────────────────────────────────────────
@@ -381,9 +384,45 @@ function AboutPage() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          04. FOUNDER STORY (NO CHANGE CURRENT - FULL COMPONENT)
+          04. FOUNDER STORY & CO-FOUNDER LEADERSHIP
       ───────────────────────────────────────────────────────────── */}
       <FounderStorySection />
+
+      {/* ── Co-Founder & Technical Architecture Leadership (SEO / AEO / GEO) ── */}
+      <section className="py-10 sm:py-14 bg-white dark:bg-[#141316] border-b border-[#e5e7eb] dark:border-white/10">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 bg-slate-50/70 dark:bg-[#1b191e]/80 p-6 sm:p-8 backdrop-blur-md shadow-xs">
+            <div className="grid md:grid-cols-12 gap-6 items-center">
+              <div className="md:col-span-3 flex justify-center">
+                <div className="relative rounded-2xl overflow-hidden size-28 sm:size-32 border-2 border-slate-200 dark:border-white/10 shadow-md">
+                  <img src={cofounderPhoto} alt="Maheshwaran S — Co-Founder & Lead Architect" className="size-full object-cover grayscale" />
+                </div>
+              </div>
+              <div className="md:col-span-6 space-y-2 text-center md:text-left">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  Co-Founder &amp; Technical Leadership
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                  Maheshwaran S
+                </h3>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                  Co-Founder &amp; Lead Architect, Skyrovix
+                </p>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Driving server infrastructure, secure automated code evaluation pipelines, and database architecture on <strong>skyrovix.in</strong> to ensure students receive seamless project testing and verified credentials.
+                </p>
+              </div>
+              <div className="md:col-span-3 flex justify-center md:justify-end">
+                <Link to="/founder">
+                  <span className="inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2.5 text-xs font-bold hover:bg-[#f95c4b] dark:hover:bg-[#f95c4b] dark:hover:text-white transition-all shadow-sm">
+                    Executive Profile <ArrowRight className="size-3.5" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ─────────────────────────────────────────────────────────────
           05. OUR CORE VALUES

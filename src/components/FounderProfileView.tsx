@@ -109,7 +109,7 @@ export function FounderProfileView() {
                 <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition">
                   <Github className="size-4" />
                 </a>
-                <a href="https://skyrovix.online" target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                <a href="https://skyrovix.in" target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Skyrovix Official Website">
                   <Globe className="size-4" />
                 </a>
               </div>
@@ -255,7 +255,7 @@ export function FounderProfileView() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Globe className="size-4 text-violet-400" />
-                    <span>{COMPANY.website}</span>
+                    <span>www.skyrovix.in</span>
                   </div>
                 </div>
               </div>
@@ -320,7 +320,7 @@ export function FounderProfileView() {
       {/* Footer */}
       <footer className="py-8 text-center text-xs text-slate-600 border-t border-slate-900/80 bg-slate-950">
         <p>&copy; {new Date().getFullYear()} Skyrovix IT Solutions. All rights reserved.</p>
-        <p className="mt-1 text-[10px] text-slate-700">MSME Udyam Registration: UDYAM-TN-20-XXXXXXX</p>
+        <p className="mt-1 text-[10px] text-slate-700">MSME Udyam Registration: UDYAM-TN-17-0076606 · Official Platform: skyrovix.in</p>
       </footer>
 
     </div>

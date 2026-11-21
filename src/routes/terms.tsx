@@ -32,8 +32,8 @@ export const Route = createFileRoute("/terms")({
         property: "og:description", 
         content: "Clear rules and standards governing 100% free applications, certificate issuance fees, courses, internships, and user conduct on Skyrovix." 
       },
-      { property: "og:url", content: "https://skyrovix.online/terms" },
-      { property: "og:image", content: "https://skyrovix.online/og-default.png" },
+      { property: "og:url", content: "https://skyrovix.in/terms" },
+      { property: "og:image", content: "https://skyrovix.in/og-default.png" },
       { property: "og:locale", content: "en_IN" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Terms & Conditions — Skyrovix" },
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/terms")({
         name: "twitter:description", 
         content: "Review Skyrovix platform rules on 100% free applications, certificate fees, courses, and internships." 
       },
-      { rel: "canonical", href: "https://skyrovix.online/terms" },
+      { rel: "canonical", href: "https://skyrovix.in/terms" },
     ],
   }),
   component: TermsPage,
@@ -53,12 +53,12 @@ function TermsPage() {
       <WebPageJsonLd
         title="Terms & Conditions — Skyrovix"
         description="Skyrovix terms and conditions covering 100% free applications, certificate fee policies, course access, internship rules, and user responsibilities."
-        url="https://skyrovix.online/terms"
+        url="https://skyrovix.in/terms"
       />
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://skyrovix.online" },
-          { name: "Terms & Conditions", url: "https://skyrovix.online/terms" },
+          { name: "Home", url: "https://skyrovix.in" },
+          { name: "Terms & Conditions", url: "https://skyrovix.in/terms" },
         ]}
       />
       <Navbar />
@@ -463,7 +463,7 @@ function TermsPage() {
                   <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
                     <li>Government MSME Registered credential verification.</li>
                     <li>Cryptographically signed Certificate of Completion with unique Certificate ID (e.g. <code>SK-CERT-XXXXX</code>).</li>
-                    <li>Permanent live QR code verification hosted on <code>skyrovix.online/verify</code>.</li>
+                    <li>Permanent live QR code verification hosted on <code>skyrovix.in/verify</code>.</li>
                     <li>Official Letter of Recommendation (LOR) &amp; Performance Evaluation Report signed by Founders.</li>
                     <li>Secure lifetime cloud credential storage for resumes and LinkedIn.</li>
                   </ul>

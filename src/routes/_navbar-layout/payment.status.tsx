@@ -100,8 +100,8 @@ function PaymentStatusPage() {
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", url: "https://www.skyrovix.online/" },
-          { name: "Payment Status", url: "https://www.skyrovix.online/payment/status" },
+          { name: "Home", url: "https://www.skyrovix.in/" },
+          { name: "Payment Status", url: "https://www.skyrovix.in/payment/status" },
         ]}
       />
 

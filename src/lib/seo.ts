@@ -1,16 +1,30 @@
 import { COMPANY, DOMAINS } from "./constants";
 
-export const SITE_URL = "https://skyrovix.online";
+export const SITE_URL = "https://skyrovix.in";
 export const SITE_NAME = "Skyrovix";
 export const SITE_TITLE = "Skyrovix | Virtual Internship with Certificate & Real Projects";
 export const SITE_DESCRIPTION =
-  "Skyrovix is a virtual internship platform offering hands-on projects, offer letters, certificates, and mentor support in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX, and more.";
+  "Skyrovix (skyrovix.in) is an MSME-registered virtual internship platform founded by Hariharan S and co-founded by Maheshwaran S, offering hands-on projects, instant offer letters, digital ID cards, mentor support, and QR-verified certificates in Full Stack, AI, Python, Data Science, Cyber Security, Cloud, UI/UX, and 25+ domains.";
 
 // ─── Primary Keywords ───────────────────────────────────────────────────────
 export const PRIMARY_KEYWORDS = [
+  "Skyrovix",
+  "skyrovix.in",
   "Skyrovix Internship",
   "Skyrovix Virtual Internship",
   "Skyrovix IT Solutions Internship",
+  "Hariharan S",
+  "Hariharan S Skyrovix",
+  "Hariharan Skyrovix Founder",
+  "Hariharan S CEO",
+  "Maheshwaran S",
+  "Maheshwaran S Skyrovix",
+  "Maheshwaran S Co-Founder",
+  "Maheshwaran Skyrovix",
+  "Skyrovix Founder",
+  "Skyrovix Co-Founder",
+  "Skyrovix Founder and Co-Founder",
+  "Skyrovix leadership team",
   "online internship India",
   "virtual internship with certificate",
   "remote internship for students",
@@ -38,10 +52,20 @@ export const PRIMARY_KEYWORDS = [
   "work from home internship",
   "summer internship 2026",
   "internship program India",
+  "MSME registered internship India",
+  "UDYAM-TN-17-0076606",
 ];
 
 // ─── Long-Tail Keywords ──────────────────────────────────────────────────────
 export const LONG_TAIL_KEYWORDS = [
+  "Hariharan S Founder CEO Skyrovix IT Solutions",
+  "Maheshwaran S Co-Founder Lead Architect Skyrovix",
+  "who is the founder of skyrovix",
+  "who is the co founder of skyrovix",
+  "skyrovix.in official website",
+  "skyrovix.in virtual internship application",
+  "skyrovix.in offer letter download",
+  "skyrovix.in verify certificate",
   "best virtual internship for engineering students",
   "online internship with certificate and offer letter",
   "full stack internship with real projects",
@@ -311,69 +335,94 @@ export const DOMAIN_KEYWORDS: Record<string, string[]> = {
 // ─── FAQ Data ─────────────────────────────────────────────────────────────────
 export const FAQ_DATA = [
   {
+    question: "Who is the founder of Skyrovix?",
+    answer:
+      "Hariharan S is the Founder and Chief Executive Officer (CEO) of Skyrovix (skyrovix.in). He leads platform strategy, technical curriculum architecture, compiler sandbox development, and student mentorship across India.",
+  },
+  {
+    question: "Who is the co-founder of Skyrovix?",
+    answer:
+      "Maheshwaran S is the Co-Founder and Lead Architect of Skyrovix (skyrovix.in). He directs technical infrastructure, server-side APIs, database security, code evaluation pipelines, and credential verification engines.",
+  },
+  {
+    question: "What is the official website of Skyrovix?",
+    answer:
+      "The official website and virtual internship platform of Skyrovix is https://skyrovix.in. All official applications, offer letters, tasks, and certificate authentications are hosted exclusively on skyrovix.in.",
+  },
+  {
     question: "What is Skyrovix?",
     answer:
-      "Skyrovix is an MSME-registered virtual internship and training platform offering project-based internships in Full Stack Development, AI & Machine Learning, Data Science, UI/UX Design, Cyber Security, Python, Java, Cloud Computing, and more. Students earn offer letters, digital ID cards, and QR-verified certificates.",
+      "Skyrovix (skyrovix.in) is an MSME-registered (UDYAM-TN-17-0076606) virtual internship and practical skill development platform based in Tamil Nadu, India. It provides task-based remote internships in 25+ technical streams with instant offer letters, digital student ID cards, and QR-verifiable certificates.",
+  },
+  {
+    question: "Is Skyrovix recognized by the Government of India as an MSME?",
+    answer:
+      "Yes. Skyrovix is an officially registered enterprise under the Ministry of Micro, Small and Medium Enterprises (MSME), Government of India, with Udyam Registration Number UDYAM-TN-17-0076606.",
   },
   {
     question: "How do I apply for an internship at Skyrovix?",
     answer:
-      "Visit skyrovix.online, browse available internship domains, select your preferred duration (1–6 months), complete the application form, and submit the one-time processing fee of ₹100 via UPI. You'll receive an instant offer letter and digital ID card.",
+      "Visit skyrovix.in/internship, browse available internship domains, choose your preferred duration (1–6 months), complete the application form, and receive your instant offer letter and digital student ID card immediately with zero upfront fee.",
   },
   {
-    question: "Is the Skyrovix internship certificate valid?",
+    question: "Is the Skyrovix internship certificate valid and verifiable?",
     answer:
-      "Yes. Skyrovix certificates are QR-verified and can be authenticated at skyrovix.online/verify-certificate. Each certificate has a unique certificate ID and intern ID for instant online verification.",
+      "Yes. Every Skyrovix certificate includes an encrypted QR code and can be verified online at https://skyrovix.in/verify. Employers, universities, and evaluators can verify student credentials and project details in real time.",
   },
   {
     question: "How much does the Skyrovix internship cost?",
     answer:
-      "Skyrovix charges a one-time certification fee of ₹100 for internship registration. All learning materials, project guides, and mentor support are included.",
+      "Applying and starting an internship on skyrovix.in has zero upfront fee. Students only pay a nominal certificate issuance fee upon successfully completing their tasks and receiving evaluation approval (Standard Plan ₹50 / Premium Track ₹200).",
   },
   {
     question: "Who can join Skyrovix internships?",
     answer:
-      "Any college student, engineering student, CSE or IT student, fresh graduate, or career switcher interested in tech skills can join. There are no specific eligibility requirements.",
+      "Any college student, engineering student, CSE/IT student, fresh graduate, or career switcher interested in tech skills can join. There are no restrictive eligibility barriers; learning is 100% project-based.",
   },
   {
     question: "Does Skyrovix provide offer letters?",
     answer:
-      "Yes. Every Skyrovix intern receives a digital offer letter immediately after registration, along with a digital intern ID card.",
+      "Yes. Every Skyrovix intern receives an official digital offer letter immediately after registration, delivered to their email and accessible in their student dashboard at skyrovix.in/dashboard.",
   },
   {
     question: "What is the duration of Skyrovix internships?",
     answer:
-      "Skyrovix offers flexible internship durations: 1 Month (5 tasks), 2 Months (8 tasks), 3 Months (10 tasks), and 6 Months (12 tasks). All internships are 100% remote and work from home.",
+      "Skyrovix offers flexible internship durations: 1 Month (5 tasks), 2 Months (8 tasks), 3 Months (10 tasks), and 6 Months (12 tasks). All internships are 100% remote and self-paced.",
   },
   {
     question: "What domains are available for internship at Skyrovix?",
     answer:
-      "Skyrovix offers 29+ internship domains including Full Stack Development, Frontend, Backend, MERN Stack, Python, Java, AI/ML, Data Science, Cyber Security, Cloud Computing, UI/UX Design, Graphic Design, Digital Marketing, and more.",
+      "Skyrovix offers 25+ internship domains including Full Stack Development, Frontend, Backend, MERN Stack, Python, Java, AI/ML, Data Science, Cyber Security, Cloud Computing, UI/UX Design, Graphic Design, Digital Marketing, and more.",
   },
   {
     question: "Is the Skyrovix internship work from home?",
     answer:
-      "Yes. All Skyrovix internships are 100% online and work from home. You can complete your tasks at your own pace from anywhere in India.",
+      "Yes. All Skyrovix internships are 100% online and work from home. You can complete your tasks at your own pace from anywhere in India on skyrovix.in.",
   },
   {
     question: "Does Skyrovix provide a Letter of Recommendation?",
     answer:
-      "Yes. Top performers who complete all tasks with high quality submissions may receive a Letter of Recommendation in addition to their internship certificate.",
+      "Yes. Top performers who complete all tasks with high quality submissions may receive a Letter of Recommendation (LOR) signed by the Founders in addition to their verified internship certificate.",
   },
 ];
 
 // ─── Structured Data ─────────────────────────────────────────────────────────
 export const STRUCTURED_DATA_ORG = {
   "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
+  "@type": ["EducationalOrganization", "Organization"],
   name: COMPANY.name,
+  legalName: "Skyrovix IT Solutions",
+  alternateName: ["Skyrovix Virtual Internship", "Skyrovix IT Solutions", "Skyrovix EdTech", "skyrovix.in"],
   url: SITE_URL,
   logo: LOGO_URL,
   description: SITE_DESCRIPTION,
+  taxID: "UDYAM-TN-17-0076606",
+  slogan: "Learn. Build. Experience. Grow.",
   email: `mailto:${COMPANY.email}`,
   foundingDate: "2024",
   address: {
     "@type": "PostalAddress",
+    addressLocality: "Pudukkottai",
     addressCountry: "IN",
     addressRegion: "Tamil Nadu",
   },
@@ -386,17 +435,21 @@ export const STRUCTURED_DATA_ORG = {
     "https://www.linkedin.com/company/skyrovix/",
     "https://www.instagram.com/skyrovix?igsh=ZXY2ZXdxZTM5czNr",
     "https://whatsapp.com/channel/0029VbD67bgEFeXexEbYGI1f",
+    COMPANY.founder.linkedin,
   ],
   founder: [
     {
       "@type": "Person",
       name: COMPANY.founder.name,
       jobTitle: COMPANY.founder.title,
+      url: `${SITE_URL}/founder`,
+      sameAs: COMPANY.founder.linkedin,
     },
     {
       "@type": "Person",
       name: COMPANY.cofounder.name,
       jobTitle: COMPANY.cofounder.title,
+      url: `${SITE_URL}/about`,
     },
   ],
   numberOfEmployees: {
@@ -407,7 +460,7 @@ export const STRUCTURED_DATA_ORG = {
     "@type": "ContactPoint",
     contactType: "customer service",
     email: COMPANY.email,
-    availableLanguage: "English",
+    availableLanguage: ["English", "Tamil", "Hindi"],
   },
   makesOffer: DOMAINS.map((d) => ({
     "@type": "Offer",
@@ -415,10 +468,11 @@ export const STRUCTURED_DATA_ORG = {
       "@type": "EducationalOccupationalProgram",
       name: `${d.name} Virtual Internship`,
       description: d.description,
-      url: `${SITE_URL}/domains/${d.slug}`,
+      url: `${SITE_URL}/internship/${d.slug}`,
       provider: {
         "@type": "EducationalOrganization",
         name: COMPANY.name,
+        url: SITE_URL,
       },
     },
   })),

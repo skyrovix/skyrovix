@@ -9,7 +9,7 @@ export const Route = createFileRoute("/verify/$id")({
       { name: "robots", content: "noindex, follow" },
       { property: "og:type", content: "website" },
       { property: "og:title", content: `Verify Skyrovix Credential ${params.id}` },
-      { rel: "canonical", href: `https://skyrovix.online/verify/${params.id}` },
+      { rel: "canonical", href: `https://skyrovix.in/verify/${params.id}` },
     ],
   }),
   component: VerifyByIdRoute,

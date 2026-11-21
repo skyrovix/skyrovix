@@ -898,7 +898,7 @@ export async function getStudentLorDocServer(applicationId: string): Promise<Adv
     planType: (row.plan_type || row.app_plan_type) === "premium" ? "premium" : "standard",
     durationMonths: Number(row.duration) || 1,
     issuedAt: row.issue_date || row.created_at,
-    verifyUrl: `https://skyrovix.online/verify/${row.document_id}`,
+    verifyUrl: `https://skyrovix.in/verify/${row.document_id}`,
     metadata: meta,
   };
 }
@@ -1028,7 +1028,7 @@ export async function submitCertificateLinkedInPostAndClaimLorServer(input: {
   );
 
   // 4. Send LOR Email with attached PDF
-  const verifyUrl = `https://skyrovix.online/verify/${docId}`;
+  const verifyUrl = `https://skyrovix.in/verify/${docId}`;
   const lorPayload: AdvancedDocData = {
     documentId: docId,
     documentType: "lor",

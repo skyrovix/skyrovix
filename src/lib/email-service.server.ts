@@ -559,7 +559,7 @@ export async function backfillCompletedCertificatesServer() {
     }).eq("id", app.id);
 
     const domainName = app.domain === "python" ? "Python Development" : (app.domain || "Internship Program");
-    const verifyUrl = `https://www.skyrovix.online/verify?id=${encodeURIComponent(certId.trim())}`;
+    const verifyUrl = `https://www.skyrovix.in/verify?id=${encodeURIComponent(certId.trim())}`;
     const emailRes = await sendEmailDirect({
       to: targetEmail,
       studentName: app.full_name,
