@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * AuroraBackground / AuraBackground - Orchid Bloom Aura Gradient
@@ -21,7 +22,7 @@ export function AuroraBackground({
 }) {
   return (
     <div
-      className={`relative overflow-hidden w-full max-w-full ${className}`}
+      className={cn("relative overflow-hidden w-full max-w-full", className)}
       style={{
         backgroundColor: "transparent",
       }}
